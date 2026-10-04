@@ -1,7 +1,10 @@
 <template>
-  <div class="glass-card rounded-2xl overflow-hidden flex flex-col group border border-white/5 hover:border-cyan-500/40 transition-all duration-300">
-    <!-- Card Cover Banner -->
-    <div class="relative aspect-video w-full overflow-hidden bg-slate-900">
+  <NuxtLink
+    :to="`/ports/${port.slug}`"
+    class="group flex flex-col bg-slate-900/90 rounded-xl overflow-hidden border border-white/10 hover:border-cyan-500/50 hover:shadow-2xl hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 block"
+  >
+    <!-- Steam Capsule Header (Exact 460x215 aspect ratio) -->
+    <div class="relative aspect-[460/215] w-full overflow-hidden bg-slate-950">
       <img
         :src="port.cover_image_url || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=800&q=80'"
         :alt="port.title"
@@ -9,88 +12,84 @@
         loading="lazy"
       />
       
-      <!-- Gradient overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-quest-card via-quest-card/40 to-transparent"></div>
+      <!-- Subtle bottom gradient overlay for readability -->
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20 pointer-events-none"></div>
 
-      <!-- Category & Status Badges -->
-      <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+      <!-- Top Badges Overlay -->
+      <div class="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 pointer-events-none">
         <span 
-          class="px-2.5 py-1 text-xs font-semibold rounded-lg shadow-md border backdrop-blur-md"
+          class="px-2 py-0.5 text-[11px] font-bold rounded-md shadow-md border backdrop-blur-md"
           :class="categoryBadgeStyle(port.category)"
         >
           {{ formatCategory(port.category) }}
         </span>
 
         <span 
-          class="px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase rounded-md border backdrop-blur-md"
+          class="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-md border backdrop-blur-md"
           :class="statusBadgeStyle(port.status)"
         >
           {{ formatStatus(port.status) }}
         </span>
       </div>
 
-      <!-- 6DoF Indicator Pill -->
-      <div v-if="port.has_6dof_controls" class="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded bg-black/70 backdrop-blur-md text-[11px] font-mono text-cyan-300 border border-white/10">
-        <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <!-- 6DoF Indicator Pill on cover -->
+      <div v-if="port.has_6dof_controls" class="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-cyan-300 border border-white/15 pointer-events-none">
+        <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
         </svg>
         <span>6DoF Touch</span>
       </div>
     </div>
 
-    <!-- Card Content -->
-    <div class="p-5 flex-1 flex flex-col justify-between">
+    <!-- Steam-like Info Area -->
+    <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between bg-slate-900/60 border-t border-white/5">
       <div>
         <!-- Title -->
-        <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1 mb-1">
+        <h3 class="text-sm sm:text-base font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1 mb-1">
           {{ port.title }}
         </h3>
 
         <!-- Developer Credit -->
-        <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
+        <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
           <span>by</span>
-          <NuxtLink
-            :to="`/?dev=${encodeURIComponent(port.developer)}`"
-            @click.stop
-            class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors"
+          <span
+            @click.stop.prevent="navigateToDev(port.developer)"
+            class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors cursor-pointer"
             :title="`Filter ports by ${port.developer}`"
           >
             {{ port.developer }}
-          </NuxtLink>
+          </span>
         </div>
 
-        <!-- Description -->
-        <p class="text-sm text-slate-300 line-clamp-2 leading-relaxed mb-4">
+        <!-- Description (compact 2-line preview) -->
+        <p class="text-xs text-slate-300/80 line-clamp-2 leading-relaxed mb-3">
           {{ port.short_description || 'Complete installation guide and required original game files for standalone VR.' }}
         </p>
+      </div>
 
-        <!-- Hardware Tags -->
-        <div class="flex flex-wrap gap-1.5 mb-4">
+      <!-- Hardware Tags & CTA Footer -->
+      <div class="pt-2.5 border-t border-white/5 flex items-center justify-between gap-2">
+        <!-- Hardware Pills -->
+        <div class="flex flex-wrap gap-1">
           <span
             v-for="hw in port.supported_hardware"
             :key="hw"
-            class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10"
+            class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10"
           >
             {{ hw }}
           </span>
         </div>
-      </div>
 
-      <!-- Footer & Action -->
-      <div class="pt-4 border-t border-white/5">
-        <!-- Detail / Guide Link -->
-        <NuxtLink
-          :to="`/ports/${port.slug}`"
-          class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wide uppercase bg-quest-border hover:bg-cyan-500 hover:text-black text-white transition-all duration-200 border border-white/10 hover:border-transparent group-hover:shadow-glow-cyan"
-        >
-          <span>View Guide & Specs</span>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        <!-- Steam-like Action Pill -->
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors shrink-0">
+          <span>Guide</span>
+          <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
-        </NuxtLink>
+        </span>
       </div>
     </div>
-  </div>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
@@ -99,6 +98,11 @@ import type { Port, PortCategory, PortStatus } from '~/types/port'
 defineProps<{
   port: Port
 }>()
+
+const router = useRouter()
+const navigateToDev = (dev: string) => {
+  router.push(`/?dev=${encodeURIComponent(dev)}`)
+}
 
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {

@@ -239,7 +239,7 @@ INSERT INTO public.ports (
   'Mind-bending FPS with wall-walking gravity and living alien portals running natively under the id Tech 4 engine on Meta Quest.',
   'source_port',
   'playable_beta',
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+  'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/preyvr.jpg',
   '1vRt8b5G2kL',
   ARRAY['Quest 2', 'Quest 3', 'Quest 3S'],
   ARRAY['Smooth Locomotion', 'Snap Turn'],

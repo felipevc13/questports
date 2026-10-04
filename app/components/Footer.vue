@@ -1,6 +1,6 @@
 <template>
   <footer class="mt-20 border-t border-white/5 py-12 glass-panel text-slate-400 text-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="space-y-1 text-center md:text-left">
         <p class="font-bold text-slate-200">QuestPorts — The Standalone VR Database</p>
         <p class="text-[11px] text-slate-500">

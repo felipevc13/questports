@@ -226,7 +226,7 @@ export const INITIAL_PORTS: Port[] = [
     short_description: 'Mind-bending FPS with wall-walking gravity and living alien portals running natively under the id Tech 4 engine on Meta Quest.',
     category: 'source_port',
     status: 'playable_beta',
-    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/preyvr_v2.jpg',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/preyvr.jpg',
     youtube_video_id: 'yUJ5JuV4wjg',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn'],

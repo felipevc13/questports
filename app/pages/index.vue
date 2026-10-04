@@ -48,7 +48,7 @@
     </section>
 
     <!-- Filters & Catalog Section -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
       <!-- Filter Bar -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-white/5">
         <!-- Category Filter Pills -->
@@ -128,7 +128,7 @@
       </div>
 
       <!-- Grid of Cards -->
-      <div v-if="filteredPorts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div v-if="filteredPorts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
         <PortCard
           v-for="port in filteredPorts"
           :key="port.id"

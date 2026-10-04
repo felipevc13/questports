@@ -1,6 +1,6 @@
 <template>
   <header class="sticky top-0 z-50 glass-panel border-b border-white/5 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
       <!-- Brand Logo -->
       <NuxtLink to="/" class="flex items-center gap-3 group">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-quest-purple to-pink-500 p-[2px] shadow-glow-cyan transition-transform group-hover:scale-105">
