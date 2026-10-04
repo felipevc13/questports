@@ -221,25 +221,25 @@ export const INITIAL_PORTS: Port[] = [
     id: '8',
     slug: 'preyvr',
     title: 'Prey VR (Prey 2006 Quest Port)',
-    developer: 'Team Beef',
-    developer_url: 'https://www.patreon.com/teambeef',
+    developer: 'Luboš & Team Beef',
+    developer_url: 'https://sidequestvr.com/app/23478/prey-vr',
     short_description: 'Mind-bending FPS with wall-walking gravity and living alien portals running natively under the id Tech 4 engine on Meta Quest.',
     category: 'source_port',
     status: 'playable_beta',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/preyvr.jpg',
-    youtube_video_id: '1vRt8b5G2kL',
+    youtube_video_id: 'yUJ5JuV4wjg',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/PreyVR/base/',
+    internal_storage_path: '/sdcard/preyvr/preybase/',
     base_game_url: null,
     base_game_store: 'Original DVD / Archive',
-    port_download_url: 'https://www.patreon.com/teambeef',
-    port_download_source: 'Team Beef Patreon',
+    port_download_url: 'https://sidequestvr.com/app/23478/prey-vr',
+    port_download_source: 'SideQuest',
     featured: false,
     installation_guide: `### Installation
-1. Install the beta APK build provided through Team Beef.
-2. Copy the \`.pk4\` files from your original retail Prey (2006) PC installation into \`/sdcard/PreyVR/base/\`.
+1. Install the APK build provided on SideQuest or Team Beef.
+2. Copy the \`.pk4\` files from your original retail Prey (2006) PC installation into \`/sdcard/preyvr/preybase/\`.
 3. Launch the game from Unknown Sources.`,
     troubleshooting_notes: 'Requires strong VR motion tolerance due to disorienting wall-walking and inverted gravity physics.'
   }
