@@ -49,16 +49,25 @@
           {{ port.title }}
         </h3>
 
-        <!-- Developer Credit -->
-        <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
-          <span>by</span>
-          <span
-            @click.stop.prevent="navigateToDev(port.developer)"
-            class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors cursor-pointer"
-            :title="`Filter ports by ${port.developer}`"
-          >
-            {{ port.developer }}
-          </span>
+        <!-- Developer Credit & Update Pill -->
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <div class="flex items-center gap-1.5">
+            <span>by</span>
+            <span
+              @click.stop.prevent="navigateToDev(port.developer)"
+              class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors cursor-pointer"
+              :title="`Filter ports by ${port.developer}`"
+            >
+              {{ port.developer }}
+            </span>
+          </div>
+
+          <!-- Update / Version Badge -->
+          <div v-if="port.latest_version || port.last_github_update" class="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-bold">{{ port.latest_version || 'Updated' }}</span>
+            <span v-if="formatRelativeTime(port.last_github_update)" class="text-slate-400 hidden sm:inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
+          </div>
         </div>
 
         <!-- Description (compact 2-line preview) -->
@@ -102,6 +111,19 @@ defineProps<{
 const router = useRouter()
 const navigateToDev = (dev: string) => {
   router.push(`/?dev=${encodeURIComponent(dev)}`)
+}
+
+const formatRelativeTime = (dateStr?: string | null) => {
+  if (!dateStr) return null
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDays <= 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+  return `${Math.floor(diffDays / 365)}y ago`
 }
 
 const formatCategory = (cat: PortCategory) => {

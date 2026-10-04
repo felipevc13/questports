@@ -66,8 +66,23 @@
           </button>
         </div>
 
-        <!-- Secondary Filters (Developer, Hardware & Status) -->
-        <div class="flex flex-wrap items-center gap-3">
+        <!-- Secondary Filters (Sort, Developer, Hardware & Status) -->
+        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <!-- Sort Filter -->
+          <div class="flex items-center gap-1.5 bg-quest-card border border-white/10 rounded-xl px-2.5 py-1.5 focus-within:border-cyan-500">
+            <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            <select
+              v-model="sortBy"
+              class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="recent">⚡ Recently Updated</option>
+              <option value="az">A–Z (Alphabetical)</option>
+              <option value="featured">Featured First</option>
+            </select>
+          </div>
+
           <!-- Developer Filter -->
           <select
             v-model="selectedDeveloper"
@@ -175,6 +190,7 @@ const selectedCategory = ref<string>('all')
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
 const selectedDeveloper = ref<string>((route.query.dev as string) || '')
+const sortBy = ref<'recent' | 'az' | 'featured'>('recent')
 
 // Sync with URL query parameter (?dev=...)
 watch(() => route.query.dev, (newDev) => {
@@ -214,7 +230,8 @@ const hasActiveFilters = computed(() => {
     selectedCategory.value !== 'all' ||
     selectedStatus.value !== '' ||
     selectedHardware.value !== '' ||
-    selectedDeveloper.value !== ''
+    selectedDeveloper.value !== '' ||
+    sortBy.value !== 'recent'
   )
 })
 
@@ -224,42 +241,58 @@ const resetFilters = () => {
   selectedStatus.value = ''
   selectedHardware.value = ''
   selectedDeveloper.value = ''
+  sortBy.value = 'recent'
   router.replace({ query: {} })
 }
 
 const filteredPorts = computed(() => {
-  return ports.value.filter(port => {
-    // Search query match (title, description, slug, or developer)
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase()
-      const titleMatch = port.title.toLowerCase().includes(q)
-      const descMatch = (port.short_description || '').toLowerCase().includes(q)
-      const slugMatch = port.slug.toLowerCase().includes(q)
-      const devMatch = (port.developer || '').toLowerCase().includes(q)
-      if (!titleMatch && !descMatch && !slugMatch && !devMatch) return false
-    }
+  return ports.value
+    .filter(port => {
+      // Search query match (title, description, slug, or developer)
+      if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase()
+        const titleMatch = port.title.toLowerCase().includes(q)
+        const descMatch = (port.short_description || '').toLowerCase().includes(q)
+        const slugMatch = port.slug.toLowerCase().includes(q)
+        const devMatch = (port.developer || '').toLowerCase().includes(q)
+        if (!titleMatch && !descMatch && !slugMatch && !devMatch) return false
+      }
 
-    // Developer match
-    if (selectedDeveloper.value && port.developer !== selectedDeveloper.value) {
-      return false
-    }
+      // Developer match
+      if (selectedDeveloper.value && port.developer !== selectedDeveloper.value) {
+        return false
+      }
 
-    // Category match
-    if (selectedCategory.value !== 'all' && port.category !== selectedCategory.value) {
-      return false
-    }
+      // Category match
+      if (selectedCategory.value !== 'all' && port.category !== selectedCategory.value) {
+        return false
+      }
 
-    // Status match
-    if (selectedStatus.value && port.status !== selectedStatus.value) {
-      return false
-    }
+      // Status match
+      if (selectedStatus.value && port.status !== selectedStatus.value) {
+        return false
+      }
 
-    // Hardware match
-    if (selectedHardware.value && !port.supported_hardware.includes(selectedHardware.value)) {
-      return false
-    }
+      // Hardware match
+      if (selectedHardware.value && !port.supported_hardware.includes(selectedHardware.value)) {
+        return false
+      }
 
-    return true
-  })
+      return true
+    })
+    .sort((a, b) => {
+      if (sortBy.value === 'recent') {
+        const timeA = new Date(a.last_github_update || a.updated_at || 0).getTime()
+        const timeB = new Date(b.last_github_update || b.updated_at || 0).getTime()
+        return timeB - timeA
+      }
+      if (sortBy.value === 'az') {
+        return a.title.localeCompare(b.title)
+      }
+      if (sortBy.value === 'featured') {
+        return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+      }
+      return 0
+    })
 })
 </script>

@@ -11,7 +11,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/rtcwquest.jpg',
-    youtube_video_id: '2r9t4m3dKqA',
+    youtube_video_id: 'IWM7vi_OP6E',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Smooth Turn'],
     has_6dof_controls: true,
@@ -21,6 +21,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://sidequestvr.com/app/1446/rtcwquest',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/DrBeef/RTCWQuest',
+    latest_version: 'v1.4.1',
+    last_github_update: '2026-09-29T20:49:29Z',
     featured: true,
     installation_guide: `### Prerequisites
 * A legally owned copy of *Return to Castle Wolfenstein* (Steam or GOG).
@@ -52,7 +54,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/lambda1vr.jpg',
-    youtube_video_id: 'v8c0wZpUeGg',
+    youtube_video_id: '-Fa1ce9x88Y',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Teleport', 'Snap Turn'],
     has_6dof_controls: true,
@@ -62,6 +64,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://www.lambda1vr.com/',
     port_download_source: 'Official Website / SideQuest',
     github_url: 'https://github.com/DrBeef/Lambda1VR',
+    latest_version: 'v1.7.4',
+    last_github_update: '2026-09-29T18:28:44Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Original Half-Life 1 on Steam.
@@ -86,7 +90,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/doom3quest.jpg',
-    youtube_video_id: '0wFw8F9tVzU',
+    youtube_video_id: 'y2y9C0E2kPk',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Comfort Vignette'],
     has_6dof_controls: true,
@@ -96,6 +100,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://www.doom3quest.com/',
     port_download_source: 'Doom3Quest.com',
     github_url: 'https://github.com/DrBeef/Doom3Quest',
+    latest_version: 'v1.4.8',
+    last_github_update: '2026-09-30T08:30:56Z',
     featured: true,
     installation_guide: `### Prerequisites
 * **Original 2004 Doom 3** (Note: Doom 3: BFG Edition is **NOT** compatible).
@@ -119,7 +125,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'emulator',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/citravr.jpg',
-    youtube_video_id: '5j39kF2z1xA',
+    youtube_video_id: 'vMBsdsAICSY',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Roomscale', 'Seated'],
     has_6dof_controls: true,
@@ -129,6 +135,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://github.com/amwatson/CitraVR/releases',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/amwatson/CitraVR',
+    latest_version: 'v0.6.0',
+    last_github_update: '2026-08-17T06:44:44Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Legally dumped, decrypted Nintendo 3DS ROMs (.3ds or installed .cia format).
@@ -151,7 +159,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questzdoom.jpg',
-    youtube_video_id: 't89zQf6B2yM',
+    youtube_video_id: 'OoNCvmUxUFE',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Teleport'],
     has_6dof_controls: true,
@@ -161,6 +169,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://www.questzdoom.com/',
     port_download_source: 'QuestZDoom Launcher',
     github_url: 'https://github.com/DrBeef/QuestZDoom',
+    latest_version: '1.6.2',
+    last_github_update: '2026-09-30T08:01:52Z',
     featured: false,
     installation_guide: `### Installation
 1. Install both **QuestZDoom Engine** and the **QuestZDoom Launcher** via SideQuest.
@@ -178,7 +188,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/jkxr.jpg',
-    youtube_video_id: '8pLw4z7K1rE',
+    youtube_video_id: 'ToM-wz3v-NU',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
     has_6dof_controls: true,
@@ -188,6 +198,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://sidequestvr.com/app/11796/jkxr-star-wars-jedi-knight-ii-jedi-outcast-vr',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/DrBeef/JKXR',
+    latest_version: 'v1.2.0',
+    last_github_update: '2026-09-29T20:37:24Z',
     featured: false,
     installation_guide: `### Step-by-Step Installation
 1. Install the JKXR APK from SideQuest.
@@ -207,7 +219,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'released',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/quake2quest.jpg',
-    youtube_video_id: '9qVb3Zx8W1A',
+    youtube_video_id: 'qByCUtT6WG0',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion'],
     has_6dof_controls: true,
@@ -217,6 +229,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://sidequestvr.com/app/353/quake2quest',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/DrBeef/Quake2Quest',
+    latest_version: 'v1.1.1',
+    last_github_update: '2026-09-29T20:43:23Z',
     featured: false,
     installation_guide: `### Step-by-Step Installation
 1. Install Quake II Quest via SideQuest.
@@ -234,7 +248,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'playable_beta',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/preyvr.jpg',
-    youtube_video_id: 'yUJ5JuV4wjg',
+    youtube_video_id: 'e8KZmDCdPb4',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
     has_6dof_controls: true,
@@ -244,6 +258,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://sidequestvr.com/app/23478/prey-vr',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/lvonasek/PreyVR',
+    latest_version: 'v1.2.4',
+    last_github_update: '2026-03-24T17:18:41Z',
     featured: false,
     installation_guide: `### Installation
 1. Install the APK build provided on SideQuest or Team Beef.

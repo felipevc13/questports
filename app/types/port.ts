@@ -20,6 +20,8 @@ export interface Port {
   base_game_url: string | null
   base_game_store: string | null
   github_url?: string | null
+  last_github_update?: string | null
+  latest_version?: string | null
   port_download_url: string
   port_download_source: string | null
   featured: boolean
