@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-quest-dark text-slate-100 font-sans antialiased min-h-screen selection:bg-cyan-500 selection:text-black;
+  }
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(15, 19, 29, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(21, 27, 43, 0.8) 0%, rgba(15, 19, 29, 0.6) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(0, 240, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Markdown prose for installation guide */
+.guide-content h1, .guide-content h2, .guide-content h3 {
+  @apply text-white font-bold mt-6 mb-3 tracking-wide;
+}
+.guide-content h3 {
+  @apply text-lg text-cyan-400 border-b border-quest-border pb-1;
+}
+.guide-content p {
+  @apply text-slate-300 leading-relaxed mb-4;
+}
+.guide-content ul, .guide-content ol {
+  @apply text-slate-300 space-y-2 mb-4 pl-5 list-disc;
+}
+.guide-content ol {
+  @apply list-decimal;
+}
+.guide-content li strong {
+  @apply text-white;
+}
+.guide-content code {
+  @apply bg-black/60 text-cyan-300 font-mono text-sm px-2 py-0.5 rounded border border-white/10;
+}
+.guide-content pre {
+  @apply bg-black/80 rounded-xl p-4 overflow-x-auto my-4 border border-quest-border;
+}
