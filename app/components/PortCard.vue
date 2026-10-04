@@ -77,15 +77,7 @@
       </div>
 
       <!-- Footer & Action -->
-      <div class="pt-4 border-t border-white/5 space-y-3">
-        <!-- Internal Storage Path Shortcut -->
-        <div v-if="port.internal_storage_path" class="flex items-center justify-between gap-2 text-xs bg-black/40 p-2 rounded-lg border border-white/5">
-          <span class="text-slate-400 font-mono text-[11px] truncate" :title="port.internal_storage_path">
-            {{ port.internal_storage_path }}
-          </span>
-          <CopyButton :text="port.internal_storage_path" label="Copy" />
-        </div>
-
+      <div class="pt-4 border-t border-white/5">
         <!-- Detail / Guide Link -->
         <NuxtLink
           :to="`/ports/${port.slug}`"
