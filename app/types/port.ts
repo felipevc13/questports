@@ -19,6 +19,7 @@ export interface Port {
   internal_storage_path: string | null
   base_game_url: string | null
   base_game_store: string | null
+  github_url?: string | null
   port_download_url: string
   port_download_source: string | null
   featured: boolean

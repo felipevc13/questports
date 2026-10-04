@@ -20,6 +20,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://sidequestvr.com/app/1446/rtcwquest',
     port_download_source: 'SideQuest',
+    github_url: 'https://github.com/DrBeef/RTCWQuest',
     featured: true,
     installation_guide: `### Prerequisites
 * A legally owned copy of *Return to Castle Wolfenstein* (Steam or GOG).
@@ -60,6 +61,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://www.lambda1vr.com/',
     port_download_source: 'Official Website / SideQuest',
+    github_url: 'https://github.com/DrBeef/Lambda1VR',
     featured: true,
     installation_guide: `### Prerequisites
 * Original Half-Life 1 on Steam.
@@ -93,6 +95,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://www.doom3quest.com/',
     port_download_source: 'Doom3Quest.com',
+    github_url: 'https://github.com/DrBeef/Doom3Quest',
     featured: true,
     installation_guide: `### Prerequisites
 * **Original 2004 Doom 3** (Note: Doom 3: BFG Edition is **NOT** compatible).
@@ -125,6 +128,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: null,
     port_download_url: 'https://github.com/amwatson/CitraVR/releases',
     port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/amwatson/CitraVR',
     featured: true,
     installation_guide: `### Prerequisites
 * Legally dumped, decrypted Nintendo 3DS ROMs (.3ds or installed .cia format).
@@ -156,6 +160,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://www.questzdoom.com/',
     port_download_source: 'QuestZDoom Launcher',
+    github_url: 'https://github.com/DrBeef/QuestZDoom',
     featured: false,
     installation_guide: `### Installation
 1. Install both **QuestZDoom Engine** and the **QuestZDoom Launcher** via SideQuest.
@@ -182,6 +187,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://sidequestvr.com/app/11796/jkxr-star-wars-jedi-knight-ii-jedi-outcast-vr',
     port_download_source: 'SideQuest',
+    github_url: 'https://github.com/DrBeef/JKXR',
     featured: false,
     installation_guide: `### Step-by-Step Installation
 1. Install the JKXR APK from SideQuest.
@@ -210,6 +216,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Steam',
     port_download_url: 'https://sidequestvr.com/app/353/quake2quest',
     port_download_source: 'SideQuest',
+    github_url: 'https://github.com/DrBeef/Quake2Quest',
     featured: false,
     installation_guide: `### Step-by-Step Installation
 1. Install Quake II Quest via SideQuest.
@@ -236,6 +243,7 @@ export const INITIAL_PORTS: Port[] = [
     base_game_store: 'Original DVD / Archive',
     port_download_url: 'https://sidequestvr.com/app/23478/prey-vr',
     port_download_source: 'SideQuest',
+    github_url: 'https://github.com/lvonasek/PreyVR',
     featured: false,
     installation_guide: `### Installation
 1. Install the APK build provided on SideQuest or Team Beef.
