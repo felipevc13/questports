@@ -41,7 +41,8 @@ const repos = [
   { slug: 'qualyx', repo: 'tinsarfal/Qualyx' },
   { slug: 'goldeneye-vr', repo: 'MrSco/goldeneye-vr' },
   { slug: 'questcarnage', repo: 'maranone/carnage' },
-  { slug: 'gta-sa-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest' }
+  { slug: 'gta-sa-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest' },
+  { slug: 'vice-city-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/vice-city-vr-quest' }
 ]
 
 async function run() {

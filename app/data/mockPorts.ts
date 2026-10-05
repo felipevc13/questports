@@ -1098,7 +1098,68 @@ This project brings Grand Theft Auto: San Andreas directly to standalone Meta Qu
 6. **Launch:**
    In your headset, open the App Library, filter by **Unknown Sources**, and launch **GTA San Andreas VR**!`,
     troubleshooting_notes: 'Active development (alpha build). If you encounter black screen crashes on launch, verify that your Google Play game version matches 2.11.311 ARM64 and that the PS2 audio package was extracted correctly.'
+  },
+  {
+    id: '28',
+    slug: 'vice-city-vr-quest',
+    title: 'Grand Theft Auto: Vice City VR',
+    developer: 'dubrovskiy-yevhen-stakelogic',
+    developer_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/vice-city-vr-quest',
+    short_description: 'Experience Grand Theft Auto: Vice City in full standalone 6DoF VR on Meta Quest. Features motion-tracked weapon aiming, physical steering wheel vehicle driving, articulated ragdolls, and Vulkan stereo rendering.',
+    category: 'source_port',
+    status: 'playable_beta',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/vicecity_vr.jpg',
+    youtube_video_id: 'My0gwnPvWU8',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale', 'Steering Wheel Driving', 'Two-Handed Aiming'],
+    has_6dof_controls: true,
+    internal_storage_path: 'Android/data/com.revc.miamivr/files',
+    base_game_url: 'https://store.steampowered.com/app/12110/Grand_Theft_Auto_Vice_City/',
+    base_game_store: 'Steam / PC CD / Rockstar',
+    github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/vice-city-vr-quest',
+    latest_version: 'v0.5.6',
+    last_github_update: '2026-10-04T18:00:00Z',
+    port_download_url: null,
+    port_download_source: 'GitHub Source Kit',
+    featured: true,
+    installation_guide: `### Overview
+**Vice City VR** is a full standalone 6DoF OpenXR source port of GTA: Vice City built on top of **reVC** and a modern Vulkan rendering backend.
+
+> [!NOTE]
+> To comply with copyright laws, no precompiled APK or original game assets are distributed. The repository provides an automated, one-click build kit that downloads required build tools, compiles the APK with reVC, and installs it directly onto your Quest.
+
+---
+
+### Prerequisites
+1. **Meta Quest Headset** (Quest 2, Quest 3, Quest 3S, or Quest Pro) with Developer Mode enabled.
+2. Legally owned PC copy of **Grand Theft Auto: Vice City** (Steam, Rockstar Games Launcher, or original PC CD).
+3. PC connected via USB cable (Windows or Linux).
+
+---
+
+### Step-by-Step Installation Guide
+
+1. **Download the Source Kit:**
+   Download the repository ZIP or clone [dubrovskiy-yevhen-stakelogic/vice-city-vr-quest](https://github.com/dubrovskiy-yevhen-stakelogic/vice-city-vr-quest) onto your PC.
+2. **Connect Your Headset:**
+   Plug your Meta Quest into your PC via USB-C and confirm the **"Allow USB Debugging"** prompt inside the headset.
+3. **Run the Automated Wizard:**
+   * **Windows:** Double-click \`BUILD_AND_INSTALL.bat\`
+   * **Linux:** Run \`./BUILD_AND_INSTALL.sh\`
+4. **Select Your Game Folder:**
+   When prompted by the wizard, select your PC GTA Vice City installation directory (must contain \`data\`, \`models\`, \`anim\`, etc.).
+5. **Automated Build & Install:**
+   The wizard will automatically fetch portable JDK 21, the Android SDK command-line tools, and the reVC source, compile your personal APK, push the game files, and install the app onto your Quest!
+6. **Launch in VR:**
+   Put on your headset, open **App Library → Unknown Sources**, and launch **Vice City VR**!
+
+---
+
+### Updating Later
+To update to future releases without redownloading game assets, simply connect your headset and run \`UPDATE.bat\` (Windows) or \`./UPDATE.sh\` (Linux).`,
+    troubleshooting_notes: 'The wizard creates a log file at %TEMP%\\ViceCityVR-Build-And-Install.log (Windows) or $TMPDIR/ViceCityVR-Build-And-Install.log (Linux). Ensure your Vice City PC directory contains clean original game files.'
   }
 ]
+
 
 
