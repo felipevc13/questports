@@ -46,7 +46,8 @@ const repos = [
   { slug: 'gran-turismo-2-vr', repo: 'dubrovskiy-yevhen-stakelogic/gt-2-pc' },
   { slug: 'gothic2-vr', repo: 'dubrovskiy-yevhen-stakelogic/gothic2-vr' },
   { slug: 'harry-potter-vr', repo: 'dubrovskiy-yevhen-stakelogic/harry-potter-vr' },
-  { slug: 'road-rash-jailbreak-vr', repo: 'dubrovskiy-yevhen-stakelogic/road-rash-jailbreak' }
+  { slug: 'road-rash-jailbreak-vr', repo: 'dubrovskiy-yevhen-stakelogic/road-rash-jailbreak' },
+  { slug: 'perfect-dark-vr', repo: 'Alex-LeTux/perfect_dark_VR' }
 ]
 
 async function run() {
