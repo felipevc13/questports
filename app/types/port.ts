@@ -13,10 +13,13 @@ export interface Port {
   status: PortStatus
   cover_image_url: string | null
   youtube_video_id: string | null
+  video_url?: string | null
   supported_hardware: string[]
   locomotion_types: string[]
   has_6dof_controls: boolean
+  has_motion_controls?: boolean
   internal_storage_path: string | null
+  original_game?: string | null
   base_game_url: string | null
   base_game_store: string | null
   github_url?: string | null

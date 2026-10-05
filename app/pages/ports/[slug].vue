@@ -1,8 +1,8 @@
 <template>
-  <div v-if="port" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+  <div v-if="port" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
     <!-- Breadcrumb & Back -->
-    <div class="flex items-center justify-between text-xs text-slate-400">
-      <NuxtLink to="/" class="inline-flex items-center gap-2 hover:text-cyan-400 transition-colors">
+    <div class="flex items-center justify-between text-xs text-muted-foreground">
+      <NuxtLink to="/" class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -10,56 +10,51 @@
       </NuxtLink>
 
       <div class="flex items-center gap-3">
-        <a
+        <UiButton
           v-if="port.github_url"
+          as="a"
           :href="port.github_url"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-500/40 text-slate-300 hover:text-white transition-all font-medium"
+          variant="outline"
+          size="sm"
+          class="gap-1.5"
         >
           <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
           </svg>
-          <span>GitHub</span>
-        </a>
-        <span class="font-mono text-slate-500">ID: {{ port.slug }}</span>
+          <span>Repository</span>
+        </UiButton>
+        <span class="font-mono text-muted-foreground/80">ID: {{ port.slug }}</span>
       </div>
     </div>
 
     <!-- Header Section -->
-    <div class="space-y-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <span 
-          class="px-3 py-1 text-xs font-semibold rounded-lg border backdrop-blur-md"
-          :class="categoryBadgeStyle(port.category)"
-        >
+    <div class="space-y-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <UiBadge variant="secondary" class="text-xs font-mono uppercase">
           {{ formatCategory(port.category) }}
-        </span>
-        <span 
-          class="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider rounded-md border"
-          :class="statusBadgeStyle(port.status)"
-        >
+        </UiBadge>
+        <UiBadge :variant="port.status === 'released' ? 'success' : 'secondary'" class="text-xs font-mono">
           {{ formatStatus(port.status) }}
-        </span>
-        <span class="text-xs text-slate-400 font-mono">100% Standalone VR</span>
+        </UiBadge>
+        <UiBadge variant="outline" class="text-xs font-mono">
+          Zero PC Required
+        </UiBadge>
       </div>
 
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
         {{ port.title }}
       </h1>
 
-      <!-- Developer Info & Link -->
-      <div class="flex flex-wrap items-center gap-2 text-sm text-slate-300">
-        <span class="text-slate-400">Developed by:</span>
+      <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+        <span>Developed by</span>
         <NuxtLink
           :to="`/?dev=${encodeURIComponent(port.developer)}`"
-          class="font-bold text-cyan-300 hover:text-white hover:underline flex items-center gap-1.5"
+          class="font-semibold text-foreground hover:text-primary hover:underline transition-colors"
           :title="`See all ports by ${port.developer}`"
         >
-          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          <span>{{ port.developer }}</span>
+          {{ port.developer }}
         </NuxtLink>
 
         <a
@@ -67,22 +62,55 @@
           :href="port.developer_url"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-colors ml-2"
+          class="inline-flex items-center text-xs text-muted-foreground hover:text-foreground underline ml-2"
         >
-          <span>Official Page / Support</span>
-          <svg class="w-3.5 h-3.5 ml-1 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
+          Official Page ↗
         </a>
       </div>
 
-      <p class="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
+      <p class="text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed">
         {{ port.short_description }}
       </p>
     </div>
 
+    <!-- Standardized Feature Checklist (PCGamingWiki / ProtonDB style) -->
+    <div class="p-4 rounded-lg border border-border bg-card">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-mono">
+        Feature & Compatibility Matrix
+      </h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div class="p-2.5 rounded border border-border/70 bg-muted/30">
+          <div class="text-muted-foreground text-[11px] mb-0.5">Head Tracking</div>
+          <div class="font-semibold flex items-center gap-1.5" :class="port.has_6dof_controls ? 'text-emerald-400' : 'text-muted-foreground'">
+            <span>{{ port.has_6dof_controls ? '✓ Full 6DoF' : '3DoF Only' }}</span>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded border border-border/70 bg-muted/30">
+          <div class="text-muted-foreground text-[11px] mb-0.5">Input Method</div>
+          <div class="font-semibold flex items-center gap-1.5" :class="port.has_6dof_controls ? 'text-emerald-400' : 'text-muted-foreground'">
+            <span>{{ port.has_6dof_controls ? '✓ Touch Motion Controls' : 'Gamepad Required' }}</span>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded border border-border/70 bg-muted/30">
+          <div class="text-muted-foreground text-[11px] mb-0.5">Rendering Mode</div>
+          <div class="font-semibold text-emerald-400 flex items-center gap-1.5">
+            <span>✓ Stereoscopic 3D</span>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded border border-border/70 bg-muted/30">
+          <div class="text-muted-foreground text-[11px] mb-0.5">Hardware Execution</div>
+          <div class="font-semibold text-emerald-400 flex items-center gap-1.5">
+            <span>✓ 100% Native Quest</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Media Showcase: YouTube Player or Cover Image -->
-    <div class="relative w-full aspect-video rounded-3xl overflow-hidden glass-panel border border-white/10 shadow-2xl bg-black">
+    <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-border bg-black">
       <iframe
         v-if="port.youtube_video_id"
         :src="`https://www.youtube-nocookie.com/embed/${port.youtube_video_id}?autoplay=0&rel=0`"
@@ -101,36 +129,36 @@
     </div>
 
     <!-- Main Specs Grid & Action Cards -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left Column: Specs & Guide -->
-      <div class="lg:col-span-2 space-y-8">
-        <!-- Storage Path Box (Crucial Feature) -->
-        <div v-if="port.internal_storage_path" class="p-5 rounded-2xl bg-gradient-to-r from-quest-card to-quest-surface border border-cyan-500/30 shadow-lg space-y-3">
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Storage Path Box -->
+        <div v-if="port.internal_storage_path" class="p-4 rounded-lg bg-card border border-border space-y-2.5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
-              <h3 class="text-sm font-bold text-white tracking-wide uppercase">Internal Storage Directory</h3>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-foreground font-mono">Internal Storage Directory</h3>
             </div>
             <CopyButton :text="port.internal_storage_path" label="Copy Path" />
           </div>
 
-          <div class="bg-black/60 p-3 rounded-xl border border-white/10 flex items-center justify-between font-mono text-sm text-cyan-300 overflow-x-auto">
+          <div class="bg-muted p-2.5 rounded border border-border font-mono text-xs text-primary overflow-x-auto">
             <code>{{ port.internal_storage_path }}</code>
           </div>
-          <p class="text-xs text-slate-400">
-            Connect your Quest via USB (or SideQuest file explorer) and place your original game files directly into this directory.
+          <p class="text-xs text-muted-foreground">
+            Connect your Quest via USB (or SideQuest) and place your original game files directly into this directory.
           </p>
         </div>
 
         <!-- Installation Guide (Rendered Markdown) -->
-        <div class="p-6 sm:p-8 rounded-3xl glass-panel border border-white/10 space-y-6 overflow-hidden">
-          <div class="flex items-center gap-2 pb-4 border-b border-white/10">
-            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="p-5 sm:p-6 rounded-lg bg-card border border-border space-y-4 overflow-hidden">
+          <div class="flex items-center gap-2 pb-3 border-b border-border">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h2 class="text-xl font-bold text-white tracking-tight">Installation Guide</h2>
+            <h2 class="text-lg font-semibold text-foreground tracking-tight">Installation Guide</h2>
           </div>
 
           <!-- Parsed markdown content -->
@@ -138,132 +166,114 @@
         </div>
 
         <!-- Troubleshooting Notes -->
-        <div v-if="port.troubleshooting_notes" class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm space-y-2">
-          <div class="flex items-center gap-2 font-bold text-amber-400">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>Troubleshooting & Tips</span>
+        <div v-if="port.troubleshooting_notes" class="p-4 rounded-lg bg-muted/40 border border-border text-foreground text-xs space-y-1.5">
+          <div class="flex items-center gap-1.5 font-semibold text-foreground">
+            <span>Troubleshooting & Notes</span>
           </div>
-          <p class="text-xs leading-relaxed text-amber-200/90 pl-7">
+          <p class="leading-relaxed text-muted-foreground">
             {{ port.troubleshooting_notes }}
           </p>
         </div>
       </div>
 
-      <!-- Right Column: Specs Card & Download Buttons -->
-      <div class="space-y-6">
+      <!-- Right Column: Direct Links & Technical Specs -->
+      <div class="space-y-4">
         <!-- Direct Actions Card -->
-        <div class="p-6 rounded-3xl glass-panel border border-white/10 space-y-4">
-          <h3 class="text-sm font-bold text-white tracking-wide uppercase">Direct Links</h3>
+        <div class="p-4 rounded-lg bg-card border border-border space-y-3">
+          <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">Downloads & Links</h3>
 
           <!-- Download Port / APK -->
-          <a
+          <UiButton
             v-if="port.port_download_url"
+            as="a"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-bold tracking-wide bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-black shadow-glow-cyan transition-all"
+            class="w-full gap-2 font-semibold"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>Download Port ({{ port.port_download_source || 'APK' }})</span>
-          </a>
+          </UiButton>
 
           <!-- In Development Notice -->
           <div
             v-else
-            class="w-full p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 space-y-1.5 text-center"
+            class="w-full p-3 rounded-md bg-muted/60 border border-border text-muted-foreground text-xs space-y-1 text-center"
           >
-            <div class="flex items-center justify-center gap-2 font-bold text-sm text-amber-400">
-              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <div class="font-semibold text-foreground flex items-center justify-center gap-1.5">
               <span>In Active Development</span>
             </div>
-            <p class="text-xs text-amber-200/80 leading-relaxed">
-              No public release APK available yet. Check out the video showcase or repository above for progress and instructions!
+            <p class="text-[11px] leading-relaxed">
+              No public release APK available yet. Check the repository or video showcase above for progress.
             </p>
           </div>
 
           <!-- Base Game Store Link -->
-          <a
+          <UiButton
             v-if="port.base_game_url"
+            as="a"
             :href="port.base_game_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-semibold bg-quest-card hover:bg-quest-hover border border-white/10 text-slate-200 transition-colors"
+            variant="outline"
+            class="w-full gap-1.5 justify-between text-xs"
           >
             <span>Base Game on {{ port.base_game_store || 'Store' }}</span>
-            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-          </a>
+          </UiButton>
 
           <!-- Project GitHub Repository Link -->
-          <a
+          <UiButton
             v-if="port.github_url"
+            as="a"
             :href="port.github_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-500/40 text-slate-200 hover:text-white transition-all group/gh"
+            variant="secondary"
+            class="w-full gap-1.5 justify-between text-xs"
           >
-            <!-- GitHub Icon -->
-            <svg class="w-4 h-4 text-slate-400 group-hover/gh:text-white transition-colors fill-current" viewBox="0 0 24 24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-            </svg>
-            <span>Project GitHub Repository</span>
-            <svg class="w-3.5 h-3.5 text-slate-400 group-hover/gh:text-white transition-transform group-hover/gh:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span class="truncate">GitHub Project</span>
+            <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-          </a>
+          </UiButton>
         </div>
 
-        <!-- Hardware & Feature Specs -->
-        <div class="p-6 rounded-3xl glass-panel border border-white/10 space-y-5">
-          <h3 class="text-sm font-bold text-white tracking-wide uppercase">Technical Specifications</h3>
+        <!-- Technical Specifications -->
+        <div class="p-4 rounded-lg bg-card border border-border space-y-3">
+          <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">Hardware & Engine</h3>
 
           <!-- Supported Headsets -->
-          <div>
-            <span class="text-xs text-slate-400 block mb-2 font-mono">Supported Headsets:</span>
-            <div class="flex flex-wrap gap-1.5">
-              <span
+          <div class="space-y-1.5">
+            <span class="text-[11px] text-muted-foreground block font-mono">Supported Headsets:</span>
+            <div class="flex flex-wrap gap-1">
+              <UiBadge
                 v-for="hw in port.supported_hardware"
                 :key="hw"
-                class="px-2.5 py-1 text-xs font-mono rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
+                variant="outline"
+                class="font-mono text-xs py-0.5"
               >
                 {{ hw }}
-              </span>
+              </UiBadge>
             </div>
           </div>
 
           <!-- Locomotion Types -->
-          <div>
-            <span class="text-xs text-slate-400 block mb-2 font-mono">Locomotion:</span>
-            <div class="flex flex-wrap gap-1.5">
-              <span
+          <div v-if="port.locomotion_types?.length" class="space-y-1.5 pt-2 border-t border-border">
+            <span class="text-[11px] text-muted-foreground block font-mono">Locomotion:</span>
+            <div class="flex flex-wrap gap-1">
+              <UiBadge
                 v-for="loco in port.locomotion_types"
                 :key="loco"
-                class="px-2.5 py-1 text-xs font-mono rounded-lg bg-quest-card text-slate-300 border border-white/5"
+                variant="secondary"
+                class="text-xs py-0.5 font-mono"
               >
                 {{ loco }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Tracking & Controls -->
-          <div class="pt-2 border-t border-white/5 space-y-2 text-xs">
-            <div class="flex items-center justify-between text-slate-300">
-              <span class="text-slate-400">Touch 6DoF Controllers:</span>
-              <span class="text-emerald-400 font-semibold flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg>
-                Native
-              </span>
-            </div>
-            <div class="flex items-center justify-between text-slate-300">
-              <span class="text-slate-400">Requires PC to Play:</span>
-              <span class="text-cyan-400 font-semibold">No (100% Standalone)</span>
+              </UiBadge>
             </div>
           </div>
         </div>
@@ -271,18 +281,18 @@
     </div>
   </div>
 
-  <!-- Loading / Not Found State -->
-  <div v-else class="max-w-md mx-auto py-24 text-center space-y-4">
-    <div class="w-12 h-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto"></div>
-    <p class="text-slate-400 text-sm">Loading port details...</p>
+  <!-- Loading State -->
+  <div v-else class="max-w-md mx-auto py-24 text-center space-y-3">
+    <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto"></div>
+    <p class="text-muted-foreground text-xs font-mono">Loading port details...</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
-import type { Port, PortCategory, PortStatus } from '~/types/port'
+import type { PortCategory, PortStatus } from '~/types/port'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -305,7 +315,7 @@ useSeoMeta({
 
 const renderedGuide = computed(() => {
   if (!port.value || !port.value.installation_guide) {
-    return '<p class="text-slate-400">No installation tutorial registered for this port yet.</p>'
+    return '<p class="text-muted-foreground">No installation tutorial registered for this port yet.</p>'
   }
   return marked.parse(port.value.installation_guide)
 })
@@ -314,7 +324,7 @@ const formatCategory = (cat: PortCategory) => {
   switch (cat) {
     case 'source_port': return 'Source Port'
     case 'vr_injection': return 'VR Injection'
-    case 'emulator': return 'VR Emulator'
+    case 'emulator': return 'Emulator'
     case 'game_mod': return 'Game Mod'
     default: return cat
   }
@@ -323,37 +333,9 @@ const formatCategory = (cat: PortCategory) => {
 const formatStatus = (status: PortStatus) => {
   switch (status) {
     case 'released': return 'Released'
-    case 'playable_beta': return 'Playable Beta'
-    case 'in_development': return 'In Dev (WIP)'
+    case 'playable_beta': return 'Beta'
+    case 'in_development': return 'In Dev'
     default: return status
-  }
-}
-
-const categoryBadgeStyle = (cat: PortCategory) => {
-  switch (cat) {
-    case 'source_port':
-      return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-    case 'vr_injection':
-      return 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-    case 'emulator':
-      return 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-    case 'game_mod':
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-    default:
-      return 'bg-slate-500/20 text-slate-300 border-slate-500/40'
-  }
-}
-
-const statusBadgeStyle = (status: PortStatus) => {
-  switch (status) {
-    case 'released':
-      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-    case 'playable_beta':
-      return 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-    case 'in_development':
-      return 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-    default:
-      return 'bg-slate-500/10 text-slate-400 border-slate-500/30'
   }
 }
 </script>

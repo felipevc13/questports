@@ -12,8 +12,13 @@
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@supabase/supabase-js": "^2.117.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-vue-next": "^1.0.0",
     "marked": "^18.0.14",
     "nuxt": "^4.5.2",
+    "radix-vue": "^1.9.17",
+    "tailwind-merge": "^3.7.0",
     "vue": "^3.5.43",
     "vue-router": "^5.3.1"
   },

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-quest-dark text-slate-100 selection:bg-cyan-500 selection:text-black">
+  <div class="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
     <Navbar />
     <main class="flex-1">
       <NuxtPage />

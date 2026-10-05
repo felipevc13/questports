@@ -1,149 +1,182 @@
 <template>
-  <div class="space-y-12">
-    <!-- Hero Section -->
-    <section class="relative pt-6 pb-10 text-center overflow-hidden">
-      <!-- Glow ambient background -->
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full"></div>
-      <div class="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-quest-purple/10 blur-[120px] pointer-events-none rounded-full"></div>
+  <div class="space-y-8">
+    <!-- Hero Section: Clean, Direct, High Signal -->
+    <section class="pt-8 pb-6 border-b border-border bg-card/30">
+      <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div class="space-y-3 max-w-3xl">
+            <div class="flex items-center gap-2">
+              <UiBadge variant="outline" class="font-mono text-xs">
+                Meta Quest 2 • 3 • 3S • Pro
+              </UiBadge>
+              <UiBadge variant="success" class="text-xs">
+                Zero PC Required
+              </UiBadge>
+            </div>
 
-      <div class="max-w-4xl mx-auto px-4 relative z-10 space-y-6">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold tracking-wide">
-          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span>Zero PC Required • 100% Standalone Meta Quest</span>
-        </div>
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+              Standalone VR Ports & Emulators
+            </h1>
 
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
-          Ports, Emulators & Injections in <span class="bg-gradient-to-r from-cyan-400 via-sky-300 to-quest-purple bg-clip-text text-transparent">Native VR</span>
-        </h1>
+            <p class="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Open-source directory of classic PC and console games running natively on Meta Quest hardware. Verified storage paths, APK links, and step-by-step installation guides.
+            </p>
+          </div>
 
-        <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          The standalone VR directory to run PC and console classics natively on your Meta Quest hardware. Complete with folder mappings, file requirements, and step-by-step tutorials.
-        </p>
-
-        <!-- Search Input -->
-        <div class="max-w-2xl mx-auto pt-2">
-          <div class="relative group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-quest-purple rounded-2xl blur opacity-30 group-hover:opacity-75 transition duration-300"></div>
-            <div class="relative flex items-center bg-quest-surface/90 border border-white/10 rounded-2xl px-4 py-3 shadow-xl backdrop-blur-xl">
-              <svg class="w-5 h-5 text-slate-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search by game name, engine, or port (e.g., Half-Life, Doom, Wolfenstein, Citra)..."
-                class="w-full bg-transparent text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none"
-              />
-              <button
-                v-if="searchQuery"
-                @click="searchQuery = ''"
-                class="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-white/5"
-              >
-                Clear
-              </button>
+          <!-- Quick Stats Counter -->
+          <div class="flex items-center gap-6 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6 text-xs font-mono">
+            <div>
+              <div class="text-2xl font-bold text-foreground">{{ ports.length }}</div>
+              <div class="text-muted-foreground">Indexed Ports</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-emerald-400">100%</div>
+              <div class="text-muted-foreground">Free & Open</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-primary">6DoF</div>
+              <div class="text-muted-foreground">Motion VR</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Filters & Catalog Section -->
-    <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-6">
-      <!-- Filter Bar -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-white/5">
-        <!-- Category Filter Pills -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            v-for="cat in categories"
-            :key="cat.id"
-            @click="selectedCategory = cat.id"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 border"
-            :class="selectedCategory === cat.id
-              ? 'bg-cyan-500 text-black border-cyan-400 shadow-glow-cyan'
-              : 'bg-quest-card text-slate-300 hover:text-white hover:bg-quest-border border-white/5'"
-          >
-            {{ cat.label }}
-          </button>
+    <!-- Catalog Section -->
+    <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-5">
+      <!-- Search & Filters Toolbar -->
+      <div class="p-3.5 rounded-lg border border-border bg-card space-y-3">
+        <!-- Row 1: Search & Category Filter Pills -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <!-- Search Input -->
+          <div class="relative flex-1 max-w-md">
+            <svg class="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search by game, engine, or developer..."
+              class="w-full pl-9 pr-8 py-1.5 bg-background border border-input rounded-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            <button
+              v-if="searchQuery"
+              @click="searchQuery = ''"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Category Buttons -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button
+              v-for="cat in categories"
+              :key="cat.id"
+              @click="selectedCategory = cat.id"
+              class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors border select-none cursor-pointer"
+              :class="selectedCategory === cat.id
+                ? 'bg-primary text-primary-foreground border-primary font-semibold'
+                : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted border-border'"
+            >
+              {{ cat.label }}
+            </button>
+          </div>
         </div>
 
-        <!-- Secondary Filters (Sort, Developer, Hardware & Status) -->
-        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <!-- Sort Filter -->
-          <div class="flex items-center gap-1.5 bg-quest-card border border-white/10 rounded-xl px-2.5 py-1.5 focus-within:border-cyan-500">
-            <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-            </svg>
+        <!-- Row 2: Secondary Dropdowns & View Mode Toggle -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Sort Filter -->
             <select
               v-model="sortBy"
-              class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer pr-1"
+              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
             >
               <option value="recent">⚡ Recently Updated</option>
               <option value="az">A–Z (Alphabetical)</option>
               <option value="featured">Featured First</option>
             </select>
+
+            <!-- Developer Filter -->
+            <select
+              v-model="selectedDeveloper"
+              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+            >
+              <option value="">All Developers</option>
+              <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
+                {{ dev }}
+              </option>
+            </select>
+
+            <!-- Hardware Filter -->
+            <select
+              v-model="selectedHardware"
+              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+            >
+              <option value="">All Headsets</option>
+              <option value="Quest 2">Quest 2</option>
+              <option value="Quest 3">Quest 3</option>
+              <option value="Quest 3S">Quest 3S</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select
+              v-model="selectedStatus"
+              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+            >
+              <option value="">All Statuses</option>
+              <option value="released">Released</option>
+              <option value="playable_beta">Playable Beta</option>
+              <option value="in_development">In Development</option>
+            </select>
+
+            <button
+              v-if="hasActiveFilters"
+              @click="resetFilters"
+              class="text-xs text-primary hover:underline px-2 py-1"
+            >
+              Reset
+            </button>
           </div>
 
-          <!-- Developer Filter -->
-          <select
-            v-model="selectedDeveloper"
-            class="bg-quest-card text-xs text-slate-200 border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500"
-          >
-            <option value="">All Developers</option>
-            <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
-              {{ dev }}
-            </option>
-          </select>
-
-          <!-- Hardware Filter -->
-          <select
-            v-model="selectedHardware"
-            class="bg-quest-card text-xs text-slate-200 border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500"
-          >
-            <option value="">All Headsets</option>
-            <option value="Quest 2">Quest 2</option>
-            <option value="Quest 3">Quest 3</option>
-            <option value="Quest 3S">Quest 3S</option>
-          </select>
-
-          <!-- Status Filter -->
-          <select
-            v-model="selectedStatus"
-            class="bg-quest-card text-xs text-slate-200 border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="released">Released</option>
-            <option value="playable_beta">Playable Beta</option>
-            <option value="in_development">In Development</option>
-          </select>
+          <!-- View Mode Toggle: Grid vs Dense Table -->
+          <div class="flex items-center gap-1 bg-background border border-input rounded-md p-0.5">
+            <button
+              @click="viewMode = 'grid'"
+              class="p-1 rounded text-xs transition-colors cursor-pointer"
+              :class="viewMode === 'grid' ? 'bg-secondary text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'"
+              title="Grid View"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              @click="viewMode = 'table'"
+              class="p-1 rounded text-xs transition-colors cursor-pointer"
+              :class="viewMode === 'table' ? 'bg-secondary text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'"
+              title="Dense Table View (SteamDB / ProtonDB style)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Results Count & Active Tags -->
-      <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 px-1">
-        <div class="flex items-center gap-2">
-          <span>Showing <strong>{{ filteredPorts.length }}</strong> {{ filteredPorts.length === 1 ? 'port' : 'ports' }}</span>
-          
-          <!-- Active Developer Badge -->
-          <span 
-            v-if="selectedDeveloper" 
-            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-[11px]"
-          >
-            Dev: <strong>{{ selectedDeveloper }}</strong>
-            <button @click="selectedDeveloper = ''" class="hover:text-white ml-0.5" title="Remove filter">✕</button>
+      <div class="flex items-center justify-between text-xs text-muted-foreground px-0.5">
+        <div>
+          Showing <strong>{{ filteredPorts.length }}</strong> {{ filteredPorts.length === 1 ? 'port' : 'ports' }}
+          <span v-if="selectedDeveloper" class="ml-2 font-mono">
+            filtered by <strong>{{ selectedDeveloper }}</strong>
           </span>
         </div>
-
-        <button
-          v-if="hasActiveFilters"
-          @click="resetFilters"
-          class="text-cyan-400 hover:text-cyan-300 underline font-medium"
-        >
-          Reset filters
-        </button>
       </div>
 
-      <!-- Grid of Cards -->
-      <div v-if="filteredPorts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+      <!-- View 1: Grid of Cards -->
+      <div v-if="viewMode === 'grid' && filteredPorts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <PortCard
           v-for="port in filteredPorts"
           :key="port.id"
@@ -151,33 +184,119 @@
         />
       </div>
 
-      <!-- Empty State -->
-      <div v-else class="text-center py-20 px-4 rounded-3xl glass-panel border border-white/5 space-y-4">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-quest-card flex items-center justify-center text-slate-400 border border-white/10">
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      <!-- View 2: High-Density Table (SteamDB / ProtonDB style) -->
+      <div v-else-if="viewMode === 'table' && filteredPorts.length > 0" class="border border-border rounded-lg overflow-hidden bg-card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead class="bg-muted/60 text-muted-foreground border-b border-border font-medium">
+              <tr>
+                <th class="py-2.5 px-3 text-left">Game / Port</th>
+                <th class="py-2.5 px-3 text-left">Category</th>
+                <th class="py-2.5 px-3 text-left">Developer</th>
+                <th class="py-2.5 px-3 text-center">6DoF</th>
+                <th class="py-2.5 px-3 text-center">Controls</th>
+                <th class="py-2.5 px-3 text-left">Hardware</th>
+                <th class="py-2.5 px-3 text-left">Status</th>
+                <th class="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr
+                v-for="port in filteredPorts"
+                :key="port.id"
+                @click="navigateToPort(port.slug)"
+                class="hover:bg-muted/40 transition-colors cursor-pointer"
+              >
+                <!-- Title & Cover thumbnail -->
+                <td class="py-2 px-3 font-medium text-foreground">
+                  <div class="flex items-center gap-2.5">
+                    <img
+                      :src="port.cover_image_url || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=120&q=80'"
+                      :alt="port.title"
+                      class="w-10 h-6 object-cover rounded shrink-0 bg-muted"
+                      loading="lazy"
+                    />
+                    <span class="font-semibold hover:text-primary transition-colors">
+                      {{ port.title }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Category -->
+                <td class="py-2 px-3 text-muted-foreground whitespace-nowrap">
+                  <UiBadge variant="secondary" class="text-[10px] font-mono">
+                    {{ formatCategory(port.category) }}
+                  </UiBadge>
+                </td>
+
+                <!-- Developer -->
+                <td class="py-2 px-3 text-muted-foreground whitespace-nowrap">
+                  {{ port.developer }}
+                </td>
+
+                <!-- 6DoF -->
+                <td class="py-2 px-3 text-center font-mono">
+                  <span :class="port.has_6dof_controls ? 'text-emerald-400 font-bold' : 'text-muted-foreground/40'">
+                    {{ port.has_6dof_controls ? '✓ Yes' : '3DoF' }}
+                  </span>
+                </td>
+
+                <!-- Controls -->
+                <td class="py-2 px-3 text-center font-mono text-[11px]">
+                  <span :class="port.has_6dof_controls ? 'text-emerald-400' : 'text-muted-foreground'">
+                    {{ port.has_6dof_controls ? 'Touch' : 'Gamepad' }}
+                  </span>
+                </td>
+
+                <!-- Hardware -->
+                <td class="py-2 px-3 text-muted-foreground whitespace-nowrap">
+                  <span class="font-mono text-[10px]">
+                    {{ (port.supported_hardware || []).join(', ') }}
+                  </span>
+                </td>
+
+                <!-- Status -->
+                <td class="py-2 px-3 whitespace-nowrap">
+                  <UiBadge :variant="port.status === 'released' ? 'success' : 'secondary'" class="text-[10px] font-mono">
+                    {{ formatStatus(port.status) }}
+                  </UiBadge>
+                </td>
+
+                <!-- Action Link -->
+                <td class="py-2 px-3 text-right whitespace-nowrap">
+                  <NuxtLink
+                    :to="`/ports/${port.slug}`"
+                    class="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Guide →
+                  </NuxtLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <h3 class="text-lg font-bold text-white">No ports found</h3>
-        <p class="text-sm text-slate-400 max-w-sm mx-auto">
+      </div>
+
+      <!-- Empty State -->
+      <div v-else class="text-center py-16 px-4 rounded-lg border border-border bg-card space-y-3">
+        <h3 class="text-base font-semibold text-foreground">No ports found</h3>
+        <p class="text-xs text-muted-foreground max-w-sm mx-auto">
           Try adjusting your search query or switching the category and hardware filters above.
         </p>
-        <div class="flex items-center justify-center gap-3 pt-2">
-          <button
+        <div class="flex items-center justify-center gap-2 pt-1">
+          <UiButton
+            variant="outline"
+            size="sm"
             @click="resetFilters"
-            class="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 text-white hover:bg-white/15 transition-colors cursor-pointer"
           >
             Clear Filters
-          </button>
-          <button
+          </UiButton>
+          <UiButton
+            size="sm"
             @click="suggestModal.open(searchQuery)"
-            class="px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20"
           >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Suggest {{ searchQuery ? `"${searchQuery}"` : 'a Port' }}</span>
-          </button>
+            Suggest {{ searchQuery ? `"${searchQuery}"` : 'a Game' }}
+          </UiButton>
         </div>
       </div>
     </section>
@@ -187,7 +306,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { Port } from '~/types/port'
+import type { Port, PortCategory, PortStatus } from '~/types/port'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,6 +322,7 @@ const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
 const selectedDeveloper = ref<string>((route.query.dev as string) || '')
 const sortBy = ref<'recent' | 'az' | 'featured'>('recent')
+const viewMode = ref<'grid' | 'table'>('grid')
 
 // Sync with URL query parameter (?dev=...)
 watch(() => route.query.dev, (newDev) => {
@@ -254,57 +374,71 @@ const resetFilters = () => {
   selectedHardware.value = ''
   selectedDeveloper.value = ''
   sortBy.value = 'recent'
-  router.replace({ query: {} })
+}
+
+const navigateToPort = (slug: string) => {
+  router.push(`/ports/${slug}`)
+}
+
+const formatCategory = (cat: PortCategory) => {
+  switch (cat) {
+    case 'source_port': return 'Source Port'
+    case 'vr_injection': return 'VR Injection'
+    case 'emulator': return 'Emulator'
+    case 'game_mod': return 'Game Mod'
+    default: return cat
+  }
+}
+
+const formatStatus = (status: PortStatus) => {
+  switch (status) {
+    case 'released': return 'Released'
+    case 'playable_beta': return 'Beta'
+    case 'in_development': return 'In Dev'
+    default: return status
+  }
 }
 
 const filteredPorts = computed(() => {
-  return ports.value
-    .filter(port => {
-      // Search query match (title, description, slug, or developer)
-      if (searchQuery.value) {
-        const q = searchQuery.value.toLowerCase()
-        const titleMatch = port.title.toLowerCase().includes(q)
-        const descMatch = (port.short_description || '').toLowerCase().includes(q)
-        const slugMatch = port.slug.toLowerCase().includes(q)
-        const devMatch = (port.developer || '').toLowerCase().includes(q)
-        if (!titleMatch && !descMatch && !slugMatch && !devMatch) return false
-      }
+  let list = [...ports.value]
 
-      // Developer match
-      if (selectedDeveloper.value && port.developer !== selectedDeveloper.value) {
-        return false
-      }
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.developer.toLowerCase().includes(q) ||
+      p.short_description?.toLowerCase().includes(q)
+    )
+  }
 
-      // Category match
-      if (selectedCategory.value !== 'all' && port.category !== selectedCategory.value) {
-        return false
-      }
+  if (selectedCategory.value !== 'all') {
+    list = list.filter(p => p.category === selectedCategory.value)
+  }
 
-      // Status match
-      if (selectedStatus.value && port.status !== selectedStatus.value) {
-        return false
-      }
+  if (selectedStatus.value) {
+    list = list.filter(p => p.status === selectedStatus.value)
+  }
 
-      // Hardware match
-      if (selectedHardware.value && !port.supported_hardware.includes(selectedHardware.value)) {
-        return false
-      }
+  if (selectedHardware.value) {
+    list = list.filter(p => p.supported_hardware?.includes(selectedHardware.value))
+  }
 
-      return true
+  if (selectedDeveloper.value) {
+    list = list.filter(p => p.developer.toLowerCase() === selectedDeveloper.value.toLowerCase())
+  }
+
+  if (sortBy.value === 'recent') {
+    list.sort((a, b) => {
+      const dateA = a.last_github_update ? new Date(a.last_github_update).getTime() : 0
+      const dateB = b.last_github_update ? new Date(b.last_github_update).getTime() : 0
+      return dateB - dateA
     })
-    .sort((a, b) => {
-      if (sortBy.value === 'recent') {
-        const timeA = new Date(a.last_github_update || a.updated_at || 0).getTime()
-        const timeB = new Date(b.last_github_update || b.updated_at || 0).getTime()
-        return timeB - timeA
-      }
-      if (sortBy.value === 'az') {
-        return a.title.localeCompare(b.title)
-      }
-      if (sortBy.value === 'featured') {
-        return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
-      }
-      return 0
-    })
+  } else if (sortBy.value === 'az') {
+    list.sort((a, b) => a.title.localeCompare(b.title))
+  } else if (sortBy.value === 'featured') {
+    // Keep seed order
+  }
+
+  return list
 })
 </script>

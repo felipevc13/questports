@@ -3,30 +3,49 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-quest-dark text-slate-100 font-sans antialiased min-h-screen selection:bg-cyan-500 selection:text-black;
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.5rem;
   }
-}
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(15, 19, 29, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
+  * {
+    border-color: hsl(var(--border));
+  }
 
-.glass-card {
-  background: linear-gradient(135deg, rgba(21, 27, 43, 0.8) 0%, rgba(15, 19, 29, 0.6) 100%);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card:hover {
-  border-color: rgba(0, 240, 255, 0.35);
-  box-shadow: 0 10px 30px -10px rgba(0, 240, 255, 0.2);
-  transform: translateY(-2px);
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
 }
 
 /* Markdown prose for installation guide */
@@ -35,41 +54,73 @@
   overflow-wrap: break-word;
 }
 .guide-content h1, .guide-content h2, .guide-content h3 {
-  @apply text-white font-bold mt-6 mb-3 tracking-wide;
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
 }
 .guide-content h3 {
-  @apply text-lg text-cyan-400 border-b border-quest-border pb-1;
+  font-size: 1rem;
+  color: hsl(var(--primary));
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 0.25rem;
 }
 .guide-content p {
-  @apply text-slate-300 leading-relaxed mb-4;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.625;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
 .guide-content ul, .guide-content ol {
-  @apply text-slate-300 space-y-2 mb-4 pl-5 list-disc;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
 }
-.guide-content li {
-  overflow-wrap: anywhere;
+.guide-content ul {
+  list-style-type: disc;
 }
 .guide-content ol {
-  @apply list-decimal;
+  list-style-type: decimal;
+}
+.guide-content li {
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+  overflow-wrap: anywhere;
 }
 .guide-content li strong {
-  @apply text-white;
+  color: hsl(var(--foreground));
 }
 .guide-content code {
-  @apply bg-black/60 text-cyan-300 font-mono text-xs sm:text-sm px-2 py-0.5 rounded border border-white/10;
+  background-color: hsl(var(--muted));
+  color: hsl(var(--primary));
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  border: 1px solid hsl(var(--border));
   word-break: break-all;
   overflow-wrap: anywhere;
   max-width: 100%;
 }
 .guide-content pre {
-  @apply bg-black/80 rounded-xl p-4 overflow-x-auto my-4 border border-quest-border max-w-full;
+  background-color: hsl(var(--card));
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  overflow-x: auto;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  max-width: 100%;
 }
 .guide-content pre code {
   word-break: normal;
   display: block;
 }
 .guide-content a {
-  @apply text-cyan-400 hover:underline break-all;
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  word-break: break-all;
 }
-
