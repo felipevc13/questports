@@ -15,15 +15,27 @@
       <!-- Dark gradient at the bottom for text contrast -->
       <div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-black/30 pointer-events-none"></div>
 
+      <!-- Top dark vignette to guarantee badge contrast on white/bright covers -->
+      <div class="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none"></div>
+
       <!-- Top Badges Overlay -->
       <div class="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
-        <UiBadge variant="secondary" class="text-[10px] uppercase font-mono tracking-wider backdrop-blur-sm">
+        <span class="inline-flex items-center text-[10px] uppercase font-mono font-semibold tracking-wider px-2 py-0.5 rounded bg-black/85 text-slate-100 border border-white/20 shadow-md">
           {{ formatCategory(port.category) }}
-        </UiBadge>
+        </span>
 
-        <UiBadge :variant="port.status === 'released' ? 'success' : 'secondary'" class="text-[10px] font-mono backdrop-blur-sm">
+        <span
+          :class="port.status === 'released'
+            ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+            : 'bg-amber-950/90 text-amber-300 border-amber-500/40'"
+          class="inline-flex items-center text-[10px] font-mono font-semibold px-2 py-0.5 rounded border shadow-md"
+        >
+          <span
+            :class="port.status === 'released' ? 'bg-emerald-400' : 'bg-amber-400'"
+            class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0"
+          ></span>
           {{ formatStatus(port.status) }}
-        </UiBadge>
+        </span>
       </div>
 
       <!-- Video trailer badge if available -->
@@ -71,40 +83,6 @@
           {{ port.short_description || 'Step-by-step installation guide and folder mappings for native Quest VR.' }}
         </p>
 
-        <!-- Standardized Feature Checklist (Requested by Discord Community) -->
-        <div class="grid grid-cols-2 gap-1 py-1.5 px-2 rounded bg-muted/40 border border-border/60 text-[11px] font-mono">
-          <!-- 6DoF Status -->
-          <div class="flex items-center gap-1.5">
-            <span :class="port.has_6dof_controls ? 'text-emerald-400' : 'text-muted-foreground/50'">
-              {{ port.has_6dof_controls ? '✓' : '✗' }}
-            </span>
-            <span :class="port.has_6dof_controls ? 'text-foreground' : 'text-muted-foreground/60'">
-              6DoF Head
-            </span>
-          </div>
-
-          <!-- Motion Controls Status -->
-          <div class="flex items-center gap-1.5">
-            <span :class="port.has_6dof_controls ? 'text-emerald-400' : 'text-muted-foreground/50'">
-              {{ port.has_6dof_controls ? '✓' : '✗' }}
-            </span>
-            <span :class="port.has_6dof_controls ? 'text-foreground' : 'text-muted-foreground/60'">
-              {{ port.has_6dof_controls ? 'Touch Controls' : 'Gamepad' }}
-            </span>
-          </div>
-
-          <!-- Stereo 3D Status -->
-          <div class="flex items-center gap-1.5">
-            <span class="text-emerald-400">✓</span>
-            <span class="text-foreground">Stereo 3D</span>
-          </div>
-
-          <!-- Native Standalone -->
-          <div class="flex items-center gap-1.5">
-            <span class="text-emerald-400">✓</span>
-            <span class="text-foreground">Zero PC</span>
-          </div>
-        </div>
       </div>
 
       <!-- Hardware Badges & CTA Footer -->

@@ -3,48 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 199 89% 48%;
-    --primary-foreground: 222 47% 6%;
-
-    --secondary: 217 33% 15%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 14%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 199 89% 48%;
-
-    --radius: 0.5rem;
+  :root, html, body {
+    color-scheme: dark;
   }
 
-  * {
-    border-color: hsl(var(--border));
+  *, ::before, ::after {
+    border-color: rgb(30, 41, 59);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: rgb(8, 11, 20);
+    color: rgb(248, 250, 252);
     font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+  }
+
+  /* Force dark mode for form controls on all OS / browsers */
+  input, select, textarea {
+    color-scheme: dark;
+    background-color: rgb(19, 26, 42);
+    color: rgb(248, 250, 252);
   }
 }
 
@@ -54,7 +33,7 @@
   overflow-wrap: break-word;
 }
 .guide-content h1, .guide-content h2, .guide-content h3 {
-  color: hsl(var(--foreground));
+  color: rgb(248, 250, 252);
   font-weight: 700;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
@@ -62,19 +41,19 @@
 }
 .guide-content h3 {
   font-size: 1rem;
-  color: hsl(var(--primary));
-  border-bottom: 1px solid hsl(var(--border));
+  color: rgb(14, 165, 233);
+  border-bottom: 1px solid rgb(30, 41, 59);
   padding-bottom: 0.25rem;
 }
 .guide-content p {
-  color: hsl(var(--muted-foreground));
+  color: rgb(148, 163, 184);
   line-height: 1.625;
   margin-bottom: 1rem;
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
 .guide-content ul, .guide-content ol {
-  color: hsl(var(--muted-foreground));
+  color: rgb(148, 163, 184);
   margin-bottom: 1rem;
   padding-left: 1.25rem;
   font-size: 0.875rem;
@@ -91,28 +70,28 @@
   overflow-wrap: anywhere;
 }
 .guide-content li strong {
-  color: hsl(var(--foreground));
+  color: rgb(248, 250, 252);
 }
 .guide-content code {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--primary));
+  background-color: rgb(19, 26, 42);
+  color: rgb(14, 165, 233);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgb(30, 41, 59);
   word-break: break-all;
   overflow-wrap: anywhere;
   max-width: 100%;
 }
 .guide-content pre {
-  background-color: hsl(var(--card));
+  background-color: rgb(15, 21, 35);
   border-radius: 0.5rem;
   padding: 0.875rem;
   overflow-x: auto;
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgb(30, 41, 59);
   max-width: 100%;
 }
 .guide-content pre code {
@@ -120,7 +99,7 @@
   display: block;
 }
 .guide-content a {
-  color: hsl(var(--primary));
+  color: rgb(14, 165, 233);
   text-decoration: underline;
   word-break: break-all;
 }

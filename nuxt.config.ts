@@ -15,7 +15,8 @@ export default defineNuxtConfig({
     head: {
       title: 'QuestPorts — The Standalone VR Database (Zero PC Required)',
       htmlAttrs: {
-        lang: 'en'
+        lang: 'en',
+        class: 'dark'
       },
       meta: [
         { charset: 'utf-8' },

@@ -57,7 +57,7 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search by game, engine, or developer..."
-              class="w-full pl-9 pr-8 py-1.5 bg-background border border-input rounded-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              class="w-full pl-9 pr-8 py-1.5 bg-muted/80 border border-border rounded-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
             <button
               v-if="searchQuery"
@@ -74,10 +74,10 @@
               v-for="cat in categories"
               :key="cat.id"
               @click="selectedCategory = cat.id"
-              class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors border select-none cursor-pointer"
+              class="px-3 py-1.5 rounded-md text-xs transition-colors border select-none cursor-pointer"
               :class="selectedCategory === cat.id
-                ? 'bg-primary text-primary-foreground border-primary font-semibold'
-                : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted border-border'"
+                ? 'bg-primary text-primary-foreground border-primary font-bold shadow'
+                : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted border-border font-medium'"
             >
               {{ cat.label }}
             </button>
@@ -88,63 +88,83 @@
         <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60">
           <div class="flex flex-wrap items-center gap-2">
             <!-- Sort Filter -->
-            <select
-              v-model="sortBy"
-              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
-            >
-              <option value="recent">⚡ Recently Updated</option>
-              <option value="az">A–Z (Alphabetical)</option>
-              <option value="featured">Featured First</option>
-            </select>
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="sortBy"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="recent">⚡ Recently Updated</option>
+                <option value="az">A–Z (Alphabetical)</option>
+                <option value="featured">Featured First</option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
 
             <!-- Developer Filter -->
-            <select
-              v-model="selectedDeveloper"
-              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
-            >
-              <option value="">All Developers</option>
-              <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
-                {{ dev }}
-              </option>
-            </select>
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedDeveloper"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="">All Developers</option>
+                <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
+                  {{ dev }}
+                </option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
 
             <!-- Hardware Filter -->
-            <select
-              v-model="selectedHardware"
-              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
-            >
-              <option value="">All Headsets</option>
-              <option value="Quest 2">Quest 2</option>
-              <option value="Quest 3">Quest 3</option>
-              <option value="Quest 3S">Quest 3S</option>
-            </select>
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedHardware"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="">All Headsets</option>
+                <option value="Quest 2">Quest 2</option>
+                <option value="Quest 3">Quest 3</option>
+                <option value="Quest 3S">Quest 3S</option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
 
             <!-- Status Filter -->
-            <select
-              v-model="selectedStatus"
-              class="bg-muted text-xs text-foreground border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
-            >
-              <option value="">All Statuses</option>
-              <option value="released">Released</option>
-              <option value="playable_beta">Playable Beta</option>
-              <option value="in_development">In Development</option>
-            </select>
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedStatus"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="">All Statuses</option>
+                <option value="released">Released</option>
+                <option value="playable_beta">Playable Beta</option>
+                <option value="in_development">In Development</option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
 
             <button
               v-if="hasActiveFilters"
               @click="resetFilters"
-              class="text-xs text-primary hover:underline px-2 py-1"
+              class="text-xs text-primary hover:underline px-2 py-1 cursor-pointer"
             >
               Reset
             </button>
           </div>
 
           <!-- View Mode Toggle: Grid vs Dense Table -->
-          <div class="flex items-center gap-1 bg-background border border-input rounded-md p-0.5">
+          <div class="flex items-center gap-1 bg-muted/80 border border-border rounded-md p-0.5">
             <button
               @click="viewMode = 'grid'"
               class="p-1 rounded text-xs transition-colors cursor-pointer"
-              :class="viewMode === 'grid' ? 'bg-secondary text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'"
+              :class="viewMode === 'grid' ? 'bg-secondary text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:text-foreground'"
               title="Grid View"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,8 +174,8 @@
             <button
               @click="viewMode = 'table'"
               class="p-1 rounded text-xs transition-colors cursor-pointer"
-              :class="viewMode === 'table' ? 'bg-secondary text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'"
-              title="Dense Table View (SteamDB / ProtonDB style)"
+              :class="viewMode === 'table' ? 'bg-secondary text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+              title="Dense Table View"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
