@@ -563,6 +563,50 @@ INSERT INTO public.ports (
 * **Visors & Beams**: Switch visors and beam weapons naturally using controller gestures or weapon wheel.
 * **Pro Tip**: When exiting, press *Exit Game* in the VR menu twice to ensure compiled shaders are safely cached to disk for instant subsequent loads!',
   'Requires Metroid Prime USA NTSC-U v1.0 (Rev 0). European PAL or Japanese editions are not officially supported. Standalone performance shines at 90 Hz on Quest 3 / 3S with Vulkan multiview rendering.'
+),
+(
+  'astroquest',
+  'AstroQuest (ASTRO BOT Rescue Mission)',
+  'bigmak94',
+  'https://github.com/bigmak94',
+  'PlayStation VR masterpiece ASTRO BOT Rescue Mission running natively on Meta Quest 3 via an ARM64 port of shadPS4, featuring 6DoF hand-tracked DualSense gamepad integration, 3D audio, and mic blowing.',
+  'emulator',
+  'playable_beta',
+  'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/astroquest.jpg',
+  '1FXer9AHf68',
+  ARRAY['Quest 3', 'Quest 3S', 'Quest Pro'],
+  ARRAY['Seated', 'Roomscale'],
+  true,
+  '/sdcard/Android/data/com.astrobotquest.vrhost/files/',
+  null,
+  'PlayStation 4 / PS VR',
+  'https://github.com/bigmak94/AstroQuest/releases/latest',
+  'GitHub Releases',
+  true,
+  '### Prerequisites
+* **Meta Quest 3 or Quest 3S** (Quest 2 is not supported due to high CPU/GPU requirements of PS4 emulation).
+* **PS5 DualSense Controller** (paired via Bluetooth with the headset; Quest hand tracking tracks the physical controller in 3D space!).
+* Clean dumped copy of **ASTRO BOT Rescue Mission** (European PS4 release `CUSA12392`, version 1.00) dumped from your own console as an unpacked folder or `.pkg`.
+* SideQuest or Android ADB (`platform-tools`).
+
+### Step-by-Step Installation
+1. Download the latest standalone Quest APK (`AstroQuest-0.13-Quest3.apk`) from [GitHub Releases](https://github.com/bigmak94/AstroQuest/releases/latest).
+2. Install the APK to your Quest 3 via SideQuest or command line:
+   `adb install -r AstroQuest-0.13-Quest3.apk`
+3. Pair your **PS5 DualSense controller** to the Quest 3:
+   * On Quest: Go to **Settings → Bluetooth → Pair new device**.
+   * On DualSense: Hold **Create (Share) + PS Button** until the light bar flashes rapidly.
+4. Transfer your game dump folder or package to your Quest storage:
+   * Put game files in `/sdcard/Android/data/com.astrobotquest.vrhost/files/games/`
+5. Put on your Quest 3, open **App Library → Unknown Sources**, and launch **Astro VR Host**.
+6. Grant microphone permission when prompted (the game listens to your breath to blow dandelions and gadgets, exactly as on PS VR!).
+7. Place your Touch controllers aside and hold the DualSense. Hold it inside the floating outline to calibrate 3D hand tracking.
+
+### Controls & Calibrating View
+* **Hold OPTIONS (or press PS button)** for 1 second at any time to instantly reset and center the VR camera view.
+* **DualSense Motion & Touchpad**: Fully mapped to in-game gadgets (water gun, ninja stars, hookshot).
+* **Save Files**: Saved automatically to `/sdcard/Android/data/com.astrobotquest.vrhost/files/data/shadPS4/home/1000/savedata/`. (Updating the APK with `adb install -r` preserves saves).',
+  'Target framerate is 30 FPS in heavy action / 45 FPS in lighter scenes using spatial reprojection. Ensure your DualSense is paired directly to the headset via Bluetooth so Quest hand tracking can locate it in VR.'
 );
 
 
