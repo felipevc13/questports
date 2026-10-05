@@ -162,12 +162,23 @@
         <p class="text-sm text-slate-400 max-w-sm mx-auto">
           Try adjusting your search query or switching the category and hardware filters above.
         </p>
-        <button
-          @click="resetFilters"
-          class="px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-colors"
-        >
-          Clear Filters
-        </button>
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <button
+            @click="resetFilters"
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 text-white hover:bg-white/15 transition-colors cursor-pointer"
+          >
+            Clear Filters
+          </button>
+          <button
+            @click="suggestModal.open(searchQuery)"
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-black hover:bg-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Suggest {{ searchQuery ? `"${searchQuery}"` : 'a Port' }}</span>
+          </button>
+        </div>
       </div>
     </section>
   </div>
@@ -181,6 +192,7 @@ import type { Port } from '~/types/port'
 const route = useRoute()
 const router = useRouter()
 const { fetchPorts } = usePorts()
+const suggestModal = useSuggestModal()
 
 const { data: portsData } = await useAsyncData('ports', () => fetchPorts())
 const ports = computed(() => portsData.value || [])

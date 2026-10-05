@@ -14,9 +14,19 @@
       </div>
 
       <div class="flex items-center gap-6 text-slate-400">
+        <button
+          @click="suggestModal.open()"
+          class="hover:text-cyan-400 transition-colors cursor-pointer text-xs"
+        >
+          Suggest a Game
+        </button>
         <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors">GitHub</a>
         <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors">SideQuest</a>
       </div>
     </div>
   </footer>
 </template>
+
+<script setup lang="ts">
+const suggestModal = useSuggestModal()
+</script>

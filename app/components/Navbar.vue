@@ -21,11 +21,24 @@
       </NuxtLink>
 
       <!-- Navigation & Action Links -->
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3 sm:gap-4">
         <div class="hidden md:flex items-center gap-1 text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>100% Native Hardware</span>
         </div>
+
+        <!-- Suggest Port Button -->
+        <button
+          @click="suggestModal.open()"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 hover:border-cyan-400 transition-all shadow-[0_0_12px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer"
+          title="Suggest a new standalone VR game or port"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden xs:inline">Suggest Port</span>
+          <span class="xs:hidden">Suggest</span>
+        </button>
 
         <a
           href="https://github.com/felipevc13/questports"
@@ -40,5 +53,12 @@
         </a>
       </div>
     </div>
+
+    <!-- Suggest Modal Component -->
+    <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
   </header>
 </template>
+
+<script setup lang="ts">
+const suggestModal = useSuggestModal()
+</script>
