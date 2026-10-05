@@ -569,6 +569,51 @@ export const INITIAL_PORTS: Port[] = [
 * **B (Right)**: Toggle silent laser pointer
 * **Left Trigger / Physical Ducking**: Hold left trigger to leave cover and shoot; release to duck/reload. Alternatively, enable **Physical Ducking** in the menu (press Left Menu button) and press **X** while upright to calibrate height!`,
     troubleshooting_notes: 'Target framerate is 120 Hz. Ensure you are on the latest v0.8.3+ APK build which boots directly into immersive VR mode without flat-screen regressions.'
+  },
+  {
+    id: '18',
+    slug: 'primedgun',
+    title: 'PrimedGun (Metroid Prime VR)',
+    developer: 'Nobbie248',
+    developer_url: 'https://github.com/Nobbie248',
+    short_description: 'Standalone 6DoF VR source injection of Nintendo GameCube classic Metroid Prime running natively on Meta Quest with 1:1 tracked Arm Cannon, immersive helmet visors, and Vulkan multiview.',
+    category: 'vr_injection',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/primedgun.jpg',
+    youtube_video_id: 'd_xUXZURdzM',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/PrimedGun/',
+    base_game_url: null,
+    base_game_store: 'Nintendo GameCube',
+    port_download_url: 'https://github.com/Nobbie248/PrimedGun/releases/latest',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/Nobbie248/PrimedGun',
+    latest_version: 'v1.1.7',
+    last_github_update: '2026-10-02T14:25:35Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Meta Quest 2, 3, 3S, or Pro with Developer Mode enabled.
+* Original **Metroid Prime (NTSC-U Revision 0 / v1.0)** GameCube ISO/GCM disc backup.
+* SideQuest or Android ADB (\`platform-tools\`).
+
+### Step-by-Step Installation
+1. Download the latest standalone Quest APK (\`primedgun-quest-release.apk\`) from [GitHub Releases](https://github.com/Nobbie248/PrimedGun/releases/latest).
+2. Connect your Meta Quest via USB and install the APK via SideQuest or terminal:
+   \`adb install -r primedgun-quest-release.apk\`
+3. Transfer your \`Metroid Prime (USA) (Rev 0).iso\` backup into \`/sdcard/PrimedGun/\` (or any accessible folder on your headset storage).
+4. Put on your Quest, go to **App Library → Unknown Sources**, and launch **PrimedGun**.
+5. Use the in-headset launcher to select your ISO file and tap Play.
+6. Note: Initial shader compilation takes 2-3 minutes on the first launch. Wait for the progress indicator inside VR to complete.
+
+### Controls & Calibration
+* **Right Controller / Trigger**: Aim and shoot 1:1 tracked Arm Cannon; Right Grip fires Missiles.
+* **Right Stick Click**: Recenter and calibrate your player height / floor level.
+* **Left Controller**: Smooth locomotion with thumbstick; Left Stick Click opens the in-VR settings menu.
+* **Visors & Beams**: Switch visors and beam weapons naturally using controller gestures or weapon wheel.
+* **Pro Tip**: When exiting, press *Exit Game* in the VR menu twice to ensure compiled shaders are safely cached to disk for instant subsequent loads!`,
+    troubleshooting_notes: 'Requires Metroid Prime USA NTSC-U v1.0 (Rev 0). European PAL or Japanese editions are not officially supported. Standalone performance shines at 90 Hz on Quest 3 / 3S with Vulkan multiview rendering.'
   }
 ]
 

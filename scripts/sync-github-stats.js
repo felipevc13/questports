@@ -31,7 +31,8 @@ const repos = [
   { slug: 'csvr', repo: 'Team-Beef-Studios/CSVR' },
   { slug: 'ppsspp-vr', repo: 'hrydgard/ppsspp' },
   { slug: 'winlatorxr', repo: 'WinlatorXR/WinlatorXR' },
-  { slug: 'time-crisis-vr', repo: 'DR-89/time-crisis-vr' }
+  { slug: 'time-crisis-vr', repo: 'DR-89/time-crisis-vr' },
+  { slug: 'primedgun', repo: 'Nobbie248/PrimedGun' }
 ]
 
 async function run() {
