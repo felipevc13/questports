@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Discover 35+ classic PC & console games running natively in 6DoF VR on Meta Quest. No PC, no cables, zero streaming. Step-by-step install guides & file paths.' },
+        { name: 'description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. No PC, no cables, zero streaming. Step-by-step install guides & file paths.' },
         { name: 'theme-color', content: '#06b6d4' },
         
         // Open Graph / Facebook / Discord
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
         { property: 'og:url', content: 'https://questports.vercel.app' },
         { property: 'og:site_name', content: 'QuestPorts' },
         { property: 'og:title', content: 'QuestPorts — The Standalone VR Database' },
-        { property: 'og:description', content: 'Discover 35+ classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required. Guides, APK downloads, and internal storage paths.' },
+        { property: 'og:description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required. Guides, APK downloads, and internal storage paths.' },
         { property: 'og:image', content: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png' },
         { property: 'og:image:secure_url', content: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png' },
         { property: 'og:image:width', content: '1200' },
@@ -39,7 +39,7 @@ export default defineNuxtConfig({
         // Twitter / X / Discord Large Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'QuestPorts — The Standalone VR Database' },
-        { name: 'twitter:description', content: 'Discover 35+ classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required.' },
+        { name: 'twitter:description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required.' },
         { name: 'twitter:image', content: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png' }
       ],
       link: [
