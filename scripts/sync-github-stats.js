@@ -38,7 +38,8 @@ const repos = [
   { slug: 'simpsonshitrun', repo: 'kote2345/The-Simpsons-Hit-and-Run-VR' },
   { slug: 'halocequest', repo: 'moistman42069/HaloCE-Quest-VR' },
   { slug: 'galaxyquest', repo: 'bigmak94/GalaxyQuest' },
-  { slug: 'qualyx', repo: 'tinsarfal/Qualyx' }
+  { slug: 'qualyx', repo: 'tinsarfal/Qualyx' },
+  { slug: 'goldeneye-vr', repo: 'MrSco/goldeneye-vr' }
 ]
 
 async function run() {
