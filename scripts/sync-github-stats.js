@@ -33,7 +33,8 @@ const repos = [
   { slug: 'winlatorxr', repo: 'WinlatorXR/WinlatorXR' },
   { slug: 'time-crisis-vr', repo: 'DR-89/time-crisis-vr' },
   { slug: 'primedgun', repo: 'Nobbie248/PrimedGun' },
-  { slug: 'astroquest', repo: 'bigmak94/AstroQuest' }
+  { slug: 'astroquest', repo: 'bigmak94/AstroQuest' },
+  { slug: 'sourcevr', repo: 'tinsarfal/SourceVR' }
 ]
 
 async function run() {

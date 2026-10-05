@@ -662,6 +662,58 @@ export const INITIAL_PORTS: Port[] = [
 * **DualSense Motion & Touchpad**: Fully mapped to in-game gadgets (water gun, ninja stars, hookshot).
 * **Save Files**: Saved automatically to \`/sdcard/Android/data/com.astrobotquest.vrhost/files/data/shadPS4/home/1000/savedata/\`. (Updating the APK with \`adb install -r\` preserves saves).`,
     troubleshooting_notes: 'Target framerate is 30 FPS in heavy action / 45 FPS in lighter scenes using spatial reprojection. Ensure your DualSense is paired directly to the headset via Bluetooth so Quest hand tracking can locate it in VR.'
+  },
+  {
+    id: '20',
+    slug: 'sourcevr',
+    title: 'SourceVR (Half-Life 2 & Portal VR)',
+    developer: 'tinsarfal',
+    developer_url: 'https://github.com/tinsarfal',
+    short_description: 'Native standalone Valve Source Engine port for Meta Quest. Play Half-Life 2, Episode 1, Episode 2, Lost Coast, Portal, and Portal 2 in full 6DoF VR without PCVR.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/sourcevr.jpg',
+    youtube_video_id: 'QzgDw8xEpeM',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/SourceVRPort/common/',
+    base_game_url: 'https://store.steampowered.com/app/220/HalfLife_2/',
+    base_game_store: 'Steam',
+    port_download_url: 'https://github.com/tinsarfal/SourceVR/releases/latest',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/tinsarfal/SourceVR',
+    latest_version: '0.1.28',
+    last_github_update: '2026-10-02T09:32:10Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Meta Quest 2, 3, 3S, or Pro with Developer Mode enabled.
+* Original **Half-Life 2** (and optionally Episode 1, Episode 2, Portal) on Steam.
+* SideQuest or Android ADB (\`platform-tools\`).
+
+### Step-by-Step Installation
+1. Download the latest standalone Quest APK (\`SourceVR-0.1.28.apk\`) from [GitHub Releases](https://github.com/tinsarfal/SourceVR/releases/latest).
+2. Install the APK to your Meta Quest via SideQuest or command line:
+   \`adb install -r SourceVR-0.1.28.apk\`
+3. Launch **SourceVRPort** once from **App Library → Unknown Sources** on your headset and grant file permissions.
+4. Locate your game installation folders on PC:
+   * **Half-Life 2**: \`Steam/steamapps/common/Half-Life 2/\`
+   * **Portal**: \`Steam/steamapps/common/Portal/\`
+5. Copy the game content folders to your Quest storage under \`/sdcard/SourceVRPort/common/\`:
+   * For **Half-Life 2**: copy \`hl2\` and \`platform\`
+   * For **Episode One**: also copy \`episodic\`
+   * For **Episode Two**: also copy \`ep2\`
+   * For **Portal**: copy \`portal\` (uses shared \`hl2\` content)
+6. Put on your headset, open **SourceVRPort**, choose your game, and hit **Play** once the content check reports ready!
+
+### Supported Games in One Hub
+* **Half-Life 2**: Full 6DoF motion controls, weapon wheel, interactive vehicles (airboat & buggy).
+* **Episode 1 & Episode 2**: Full campaign continuity and flashlight tracking.
+* **Lost Coast**: High dynamic range showcase chapter.
+* **Portal**: Hand-tracked Aperture Science Handheld Portal Device.
+* **Entropy : Zero**: Community campaign support.
+* **Portal 2**: Experimental testing build.`,
+    troubleshooting_notes: 'Steam legacy files work out-of-the-box. Ensure you copy the required folders into /sdcard/SourceVRPort/common/. Custom content mods can be placed in /sdcard/SourceVRPort/common/hl2/custom/.'
   }
 ]
 
