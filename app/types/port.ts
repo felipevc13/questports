@@ -14,6 +14,9 @@ export interface Port {
   cover_image_url: string | null
   youtube_video_id: string | null
   video_url?: string | null
+  video_preview_url?: string | null
+  video_preview_start?: number | null
+  video_preview_end?: number | null
   supported_hardware: string[]
   locomotion_types: string[]
   has_6dof_controls: boolean
