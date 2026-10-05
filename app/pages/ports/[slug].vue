@@ -290,6 +290,19 @@ const { fetchPortBySlug } = usePorts()
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
 
+useSeoMeta({
+  title: () => port.value ? `${port.value.title} — QuestPorts` : 'QuestPorts',
+  description: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
+  ogTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
+  ogDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
+  ogImage: () => port.value?.cover_image_url || 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png',
+  ogType: 'article',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
+  twitterDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
+  twitterImage: () => port.value?.cover_image_url || 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png',
+})
+
 const renderedGuide = computed(() => {
   if (!port.value || !port.value.installation_guide) {
     return '<p class="text-slate-400">No installation tutorial registered for this port yet.</p>'
