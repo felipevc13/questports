@@ -22,7 +22,7 @@ export interface Port {
   github_url?: string | null
   last_github_update?: string | null
   latest_version?: string | null
-  port_download_url: string
+  port_download_url?: string | null
   port_download_source: string | null
   featured: boolean
   installation_guide: string | null

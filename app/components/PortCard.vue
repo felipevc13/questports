@@ -64,7 +64,16 @@
 
           <!-- Update / Version Badge -->
           <div
-            v-if="port.latest_version || port.last_github_update"
+            v-if="port.status === 'in_development'"
+            class="flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 rounded shadow-sm shrink-0 whitespace-nowrap"
+            title="In Active Development (Work in Progress)"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+            <span class="font-bold">In Dev</span>
+            <span v-if="formatRelativeTime(port.last_github_update)" class="text-amber-300/70 inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
+          </div>
+          <div
+            v-else-if="port.latest_version || port.last_github_update"
             class="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded shadow-sm shrink-0 whitespace-nowrap"
             :title="`Version ${port.latest_version || 'Updated'}${port.last_github_update ? ' • ' + formatRelativeTime(port.last_github_update) : ''}`"
           >

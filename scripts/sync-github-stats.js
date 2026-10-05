@@ -40,7 +40,8 @@ const repos = [
   { slug: 'galaxyquest', repo: 'bigmak94/GalaxyQuest' },
   { slug: 'qualyx', repo: 'tinsarfal/Qualyx' },
   { slug: 'goldeneye-vr', repo: 'MrSco/goldeneye-vr' },
-  { slug: 'questcarnage', repo: 'maranone/carnage' }
+  { slug: 'questcarnage', repo: 'maranone/carnage' },
+  { slug: 'gta-sa-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest' }
 ]
 
 async function run() {

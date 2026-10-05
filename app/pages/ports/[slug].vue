@@ -159,6 +159,7 @@
 
           <!-- Download Port / APK -->
           <a
+            v-if="port.port_download_url"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
@@ -169,6 +170,20 @@
             </svg>
             <span>Download Port ({{ port.port_download_source || 'APK' }})</span>
           </a>
+
+          <!-- In Development Notice -->
+          <div
+            v-else
+            class="w-full p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 space-y-1.5 text-center"
+          >
+            <div class="flex items-center justify-center gap-2 font-bold text-sm text-amber-400">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>In Active Development</span>
+            </div>
+            <p class="text-xs text-amber-200/80 leading-relaxed">
+              No public release APK available yet. Check out the video showcase or repository above for progress and instructions!
+            </p>
+          </div>
 
           <!-- Base Game Store Link -->
           <a
