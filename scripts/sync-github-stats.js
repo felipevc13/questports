@@ -34,7 +34,8 @@ const repos = [
   { slug: 'time-crisis-vr', repo: 'DR-89/time-crisis-vr' },
   { slug: 'primedgun', repo: 'Nobbie248/PrimedGun' },
   { slug: 'astroquest', repo: 'bigmak94/AstroQuest' },
-  { slug: 'sourcevr', repo: 'tinsarfal/SourceVR' }
+  { slug: 'sourcevr', repo: 'tinsarfal/SourceVR' },
+  { slug: 'simpsonshitrun', repo: 'kote2345/The-Simpsons-Hit-and-Run-VR' }
 ]
 
 async function run() {
