@@ -50,12 +50,12 @@
         </h3>
 
         <!-- Developer Credit & Update Pill -->
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <div class="flex items-center gap-1.5">
-            <span>by</span>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2 gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="shrink-0 text-slate-500">by</span>
             <span
               @click.stop.prevent="navigateToDev(port.developer)"
-              class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors cursor-pointer"
+              class="font-semibold text-cyan-300 hover:text-white hover:underline transition-colors cursor-pointer truncate"
               :title="`Filter ports by ${port.developer}`"
             >
               {{ port.developer }}
@@ -63,10 +63,14 @@
           </div>
 
           <!-- Update / Version Badge -->
-          <div v-if="port.latest_version || port.last_github_update" class="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded shadow-sm">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="font-bold">{{ port.latest_version || 'Updated' }}</span>
-            <span v-if="formatRelativeTime(port.last_github_update)" class="text-slate-400 hidden sm:inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
+          <div
+            v-if="port.latest_version || port.last_github_update"
+            class="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded shadow-sm shrink-0 whitespace-nowrap"
+            :title="`Version ${port.latest_version || 'Updated'}${port.last_github_update ? ' • ' + formatRelativeTime(port.last_github_update) : ''}`"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span class="font-bold">{{ formatVersion(port.latest_version) || 'Updated' }}</span>
+            <span v-if="formatRelativeTime(port.last_github_update)" class="text-slate-400 hidden xl:inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
           </div>
         </div>
 
@@ -124,6 +128,17 @@ const formatRelativeTime = (dateStr?: string | null) => {
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
   if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
   return `${Math.floor(diffDays / 365)}y ago`
+}
+
+const formatVersion = (ver?: string | null) => {
+  if (!ver) return ''
+  let v = ver.trim()
+  // Strip redundant repo name prefixes like winlatorxr_, ppsspp-, etc.
+  v = v.replace(/^winlatorxr[_-]/i, '')
+  if (v.length > 10) {
+    v = v.slice(0, 9) + '…'
+  }
+  return v
 }
 
 const formatCategory = (cat: PortCategory) => {

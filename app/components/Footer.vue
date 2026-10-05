@@ -14,9 +14,8 @@
       </div>
 
       <div class="flex items-center gap-6 text-slate-400">
-        <a href="https://github.com" target="_blank" class="hover:text-cyan-400 transition-colors">GitHub</a>
-        <a href="https://sidequestvr.com" target="_blank" class="hover:text-cyan-400 transition-colors">SideQuest</a>
-        <a href="https://discord.com" target="_blank" class="hover:text-cyan-400 transition-colors">Discord Community</a>
+        <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors">GitHub</a>
+        <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors">SideQuest</a>
       </div>
     </div>
   </footer>

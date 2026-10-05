@@ -266,5 +266,309 @@ export const INITIAL_PORTS: Port[] = [
 2. Copy the \`.pk4\` files from your original retail Prey (2006) PC installation into \`/sdcard/preyvr/preybase/\`.
 3. Launch the game from Unknown Sources.`,
     troubleshooting_notes: 'Requires strong VR motion tolerance due to disorienting wall-walking and inverted gravity physics.'
+  },
+  {
+    id: '9',
+    slug: 'beefraiderxr',
+    title: 'Beef Raider XR (Tomb Raider 1)',
+    developer: 'Team Beef',
+    developer_url: 'https://www.patreon.com/teambeef',
+    short_description: 'Step into the boots of Lara Croft in the legendary 1996 action adventure Tomb Raider, completely rebuilt for standalone 6DoF VR with dual-wield pistols, roomscale climbing, and physical puzzles.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/beefraiderxr.jpg',
+    youtube_video_id: 'aTtOlcLPbCs',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Comfort Vignette'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/BeefRaiderXR/',
+    base_game_url: 'https://store.steampowered.com/app/224960/Tomb_Raider_I/',
+    base_game_store: 'Steam / GOG',
+    port_download_url: 'https://sidequestvr.com/app/38086/beef-raider-xr-tomb-raider-in-vr',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/Team-Beef-Studios/BeefRaiderXR',
+    latest_version: '1.0.0',
+    last_github_update: '2024-09-29T21:37:18Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* A legally owned copy of the original *Tomb Raider I (1996)* (Steam or GOG).
+* Meta Quest headset with Developer Mode enabled or the SideQuest app.
+
+### Step-by-Step Installation
+1. Install **Beef Raider XR** from SideQuest onto your headset.
+2. Launch Beef Raider XR once on your headset to generate the internal folder structure, then close it.
+3. On your computer, open your installed Tomb Raider I game folder:
+   - For Steam: \`steamapps/common/Tomb Raider (I)/\`
+   - For GOG: locate the installation folder containing the game data (\`GAME.GOG\` or \`TOMB.DAT\`).
+4. Copy the game data files into \`/sdcard/BeefRaiderXR/\` on your Quest.
+5. Put on your headset and launch Beef Raider XR from the "Unknown Sources" library tab.`,
+    troubleshooting_notes: 'If audio or cutscenes fail to play, ensure the game CD audio tracks are extracted into the /sdcard/BeefRaiderXR/audio/ folder in OGG or MP3 format.'
+  },
+  {
+    id: '10',
+    slug: 'quakequest',
+    title: 'QuakeQuest (Quake 1 VR)',
+    developer: 'Team Beef',
+    developer_url: 'https://www.patreon.com/teambeef',
+    short_description: 'Original gothic dark-fantasy shooter Quake fully reimagined for standalone 6DoF VR with dual-wielding, custom weapon models, and fluid teleport/smooth locomotion.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/quakequest.jpg',
+    youtube_video_id: 'A42X55BKF6Q',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Teleport', 'Snap Turn'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/QuakeQuest/id1/',
+    base_game_url: 'https://store.steampowered.com/app/2310/Quake/',
+    base_game_store: 'Steam',
+    port_download_url: 'https://sidequestvr.com/app/93/quakequest-for-quest-pico',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/Team-Beef-Studios/QuakeQuest',
+    latest_version: 'v1.6.0',
+    last_github_update: '2026-09-29T18:33:22Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Legally owned copy of *Quake* (Steam, GOG, or Bethesda).
+* Meta Quest headset with Developer Mode enabled or SideQuest.
+
+### Step-by-Step Installation
+1. Install **QuakeQuest** APK using SideQuest.
+2. Launch QuakeQuest once inside your headset to allow it to initialize folder permissions.
+3. On your computer, open your installed Quake folder: \`steamapps/common/Quake/id1/\`.
+4. Copy \`pak0.pak\` and \`pak1.pak\` into \`/sdcard/QuakeQuest/id1/\` on your Quest.
+5. Put on your headset and launch QuakeQuest from "Unknown Sources".`,
+    troubleshooting_notes: 'Ensure pak files are lowercase (pak0.pak, pak1.pak). Add soundtrack in OGG format under /sdcard/QuakeQuest/id1/sound/cdtracks/ for classic atmospheric music.'
+  },
+  {
+    id: '11',
+    slug: 'razexr',
+    title: 'RazeXR (Duke Nukem 3D, Blood, Shadow Warrior)',
+    developer: 'Team Beef',
+    developer_url: 'https://www.patreon.com/teambeef',
+    short_description: 'Universal Build Engine VR port bringing Duke Nukem 3D, Blood, Shadow Warrior, Redneck Rampage, and Powerslave/Exhumed into standalone 6DoF virtual reality.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/razexr.jpg',
+    youtube_video_id: 'BYz7r7q65sk',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Comfort Vignette'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/RazeXR/',
+    base_game_url: 'https://store.steampowered.com/app/434050/Duke_Nukem_3D_20th_Anniversary_World_Tour/',
+    base_game_store: 'Steam',
+    port_download_url: 'https://sidequestvr.com/app/24502/razexr-build-engine-for-quest',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/Team-Beef-Studios/RazeXR',
+    latest_version: 'v1.0.0',
+    last_github_update: '2023-09-30T15:30:26Z',
+    featured: true,
+    installation_guide: `### Step-by-Step Installation
+1. Install **RazeXR** via SideQuest onto your headset.
+2. Launch the app once to initialize subdirectories for each supported Build Engine game.
+3. Transfer game data files into their respective subfolders in \`/sdcard/RazeXR/\`:
+   - Duke Nukem 3D: copy \`duke3d.grp\`
+   - Blood: copy \`blood.rff\` and all sound files
+   - Shadow Warrior: copy \`sw.grp\`
+4. Put on headset and select your chosen game from the in-VR launcher menu.`,
+    troubleshooting_notes: 'Atomic Edition and Megaton Edition grp files are fully compatible. Toggle weapon scale and HUD position in the VR Options menu.'
+  },
+  {
+    id: '12',
+    slug: 'questcraft',
+    title: 'QuestCraft (Minecraft: Java Edition)',
+    developer: 'QuestCraft Team',
+    developer_url: 'https://questcraft.net/',
+    short_description: 'Minecraft: Java Edition running natively on standalone Meta Quest using Vivecraft and Pojlib, featuring 6DoF motion controls, world generation, and server multiplayer.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questcraft.jpg',
+    youtube_video_id: 'PomiV1iyTp8',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Teleport', 'Roomscale'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Android/data/com.qcxr.qcxr/files/',
+    base_game_url: 'https://www.minecraft.net/en-us/store/minecraft-java-bedrock-edition-pc',
+    base_game_store: 'Minecraft.net',
+    port_download_url: 'https://sidequestvr.com/app/7150/questcraft',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/QuestCraftPlusPlus/QuestCraft',
+    latest_version: '6.0.0',
+    last_github_update: '2025-05-31T19:00:02Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Official Microsoft / Minecraft Java Edition account.
+* Meta Quest 2, 3, or Pro.
+
+### Step-by-Step Installation
+1. Install **QuestCraft** using SideQuest or the in-headset SideQuest app.
+2. Open QuestCraft from Unknown Sources.
+3. Sign in to your Microsoft account using the on-screen device link code (e.g. microsoft.com/link).
+4. Select your desired Minecraft version (recommended stable profile) and tap Play.
+5. Wait for the engine assets to download directly onto the headset and enter your world!`,
+    troubleshooting_notes: 'First launch requires an active Wi-Fi connection to authenticate with Microsoft and download game files. Performance on Quest 3 allows higher render distance (up to 10 chunks).'
+  },
+  {
+    id: '13',
+    slug: 'csvr',
+    title: 'CSVR (Counter-Strike 1.6 VR)',
+    developer: 'Team Beef',
+    developer_url: 'https://www.patreon.com/teambeef',
+    short_description: 'The legendary tactical FPS Counter-Strike 1.6 in standalone 6DoF VR! Experience de_dust2, office, and classic bot matches with physical two-handed gunplay.',
+    category: 'source_port',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/csvr.jpg',
+    youtube_video_id: '5ivdcCWly54',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/xash/cstrike/',
+    base_game_url: 'https://store.steampowered.com/app/10/CounterStrike/',
+    base_game_store: 'Steam',
+    port_download_url: 'https://sidequestvr.com/app/45868/csvr-classic-counter-strike-in-vr',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/Team-Beef-Studios/CSVR',
+    latest_version: 'v1.0.5',
+    last_github_update: '2026-07-29T13:50:34Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Counter-Strike 1.6 on Steam.
+* Meta Quest with Developer Mode or SideQuest.
+
+### Step-by-Step Installation
+1. Install the **CSVR** APK via SideQuest.
+2. Launch CSVR once on the headset to create the folder hierarchy.
+3. On your PC, navigate to \`Steam/steamapps/common/Half-Life/cstrike/\`.
+4. Copy the \`cstrike\` folder contents into \`/sdcard/xash/cstrike/\` on your Quest.
+5. Put on headset and launch CSVR from Unknown Sources.`,
+    troubleshooting_notes: 'Supports bot matches and LAN/online multiplayer with compatible servers.'
+  },
+  {
+    id: '14',
+    slug: 'hexen2vr',
+    title: 'Hexen II VR',
+    developer: 'alex.nax & Team Beef',
+    developer_url: 'https://sidequestvr.com/app/54816/hexen-ii-vr',
+    short_description: 'Dark fantasy boomer shooter Hexen II in standalone VR featuring physical melee weapons, spellcasting, roomscale exploration, and 4 playable RPG character classes.',
+    category: 'source_port',
+    status: 'playable_beta',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/hexen2vr.jpg',
+    youtube_video_id: 'wKyfjeuv46o',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Hexen2VR/data1/',
+    base_game_url: 'https://store.steampowered.com/app/9060/HeXen_II/',
+    base_game_store: 'Steam',
+    port_download_url: 'https://sidequestvr.com/app/54816/hexen-ii-vr',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/alexnax/VHexen2',
+    latest_version: '0.1.0-alpha',
+    last_github_update: '2024-05-15T10:00:00Z',
+    featured: false,
+    installation_guide: `### Step-by-Step Installation
+1. Install Hexen II VR from SideQuest.
+2. Copy \`pak0.pak\` and \`pak1.pak\` from your PC \`Steam/steamapps/common/HeXen II/data1/\` into \`/sdcard/Hexen2VR/data1/\`.
+3. Launch from Unknown Sources.`,
+    troubleshooting_notes: 'Alpha release. Save your game frequently.'
+  },
+  {
+    id: '15',
+    slug: 'ppsspp-vr',
+    title: 'PPSSPP VR',
+    developer: 'Henrik Rydgård',
+    developer_url: 'https://www.ppsspp.org/',
+    short_description: 'Leading Sony PlayStation Portable emulator ported to standalone VR. Play PSP classics on massive virtual curved screens or true stereoscopic 3D geometry mode.',
+    category: 'emulator',
+    status: 'released',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/ppsspp-vr.jpg',
+    youtube_video_id: 'y3dgEeDW5Xw',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/PSP/GAME/',
+    base_game_url: null,
+    base_game_store: null,
+    port_download_url: 'https://sidequestvr.com/app/12379/ppsspp-vr',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/hrydgard/ppsspp',
+    latest_version: 'v1.20.4',
+    last_github_update: '2026-05-16T12:35:08Z',
+    featured: true,
+    installation_guide: `### Installation
+1. Install PPSSPP VR APK via SideQuest.
+2. Transfer dumped PSP ISO/CSO backups to \`/sdcard/PSP/GAME/\` on your Quest.
+3. Launch PPSSPP VR, configure your virtual screen scale, and play using Quest Touch controllers or Bluetooth gamepad.`,
+    troubleshooting_notes: 'Toggle stereoscopic 3D rendering in graphics options for enhanced depth in 3D titles like Ridge Racer, Wipeout, and Monster Hunter.'
+  },
+  {
+    id: '16',
+    slug: 'winlatorxr',
+    title: 'WinlatorXR',
+    developer: 'N0l3r',
+    developer_url: 'https://github.com/WinlatorXR/WinlatorXR',
+    short_description: 'OpenXR compatibility layer running Windows x86 PC applications and games natively on Meta Quest using Wine and Box86/Box64 translation.',
+    category: 'emulator',
+    status: 'playable_beta',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/winlatorxr.jpg',
+    youtube_video_id: 'neSyrMRFs9c',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: null,
+    base_game_store: null,
+    port_download_url: 'https://sidequestvr.com/app/37320/winlatorxr',
+    port_download_source: 'SideQuest',
+    github_url: 'https://github.com/WinlatorXR/WinlatorXR',
+    latest_version: 'cats-27',
+    last_github_update: '2026-07-01T14:17:23Z',
+    featured: false,
+    installation_guide: `### Installation
+1. Download and install WinlatorXR APK via SideQuest or GitHub Releases.
+2. Put game installation folders in your Quest \`/sdcard/Download/\` directory.
+3. Open WinlatorXR, create a new Wine Container with Turnip drivers and DXVK enabled, and run your setup or .exe file.`,
+    troubleshooting_notes: 'Best suited for older DirectX 9 / 10 PC titles on Quest 3 / 3S for optimal performance.'
+  },
+  {
+    id: '17',
+    slug: 'time-crisis-vr',
+    title: 'Time Crisis VR',
+    developer: 'DR-89',
+    developer_url: 'https://github.com/DR-89/time-crisis-vr',
+    short_description: 'Standalone 6DoF VR arcade port of Namco\'s iconic light-gun rail shooter Time Crisis running at 120 Hz on Meta Quest 3 with 1:1 tracked pistol, physical roomscale ducking, and original arcade sound.',
+    category: 'source_port',
+    status: 'playable_beta',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/time-crisis-vr.jpg',
+    youtube_video_id: 'PGUc8b3VIu0',
+    supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Roomscale', 'Physical Ducking', 'Cover System'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/TimeCrisisVR/',
+    base_game_url: null,
+    base_game_store: 'Namco System 22 Arcade',
+    port_download_url: 'https://github.com/DR-89/time-crisis-vr/releases/latest',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/DR-89/time-crisis-vr',
+    latest_version: 'v0.8.3',
+    last_github_update: '2026-10-04T22:29:35Z',
+    featured: true,
+    installation_guide: `### Prerequisites
+* Meta Quest 3 or Quest 3S with Developer Mode enabled.
+* SideQuest or Android ADB (\`platform-tools\`).
+
+### Step-by-Step Installation
+1. Download the latest complete APK (\`TimeCrisisVR-v0.8.3-quest3.apk\`) from the official [GitHub Releases](https://github.com/DR-89/time-crisis-vr/releases/latest).
+2. Connect your Quest 3 via USB and install via SideQuest or terminal:
+   \`adb install -r TimeCrisisVR-v0.8.3-quest3.apk\`
+3. Launch the game from **Unknown Sources → Time Crisis VR (Experimental)**. The complete APK extracts bundled game files automatically.
+4. On the arcade boot screen, press **A (Right Controller)** to insert credits, then press **Right Trigger** to start the mission!
+
+### Controls & Cover System
+* **Right Controller / Trigger**: Aim and shoot tracked 3D pistol
+* **A (Right)**: Insert arcade credits
+* **B (Right)**: Toggle silent laser pointer
+* **Left Trigger / Physical Ducking**: Hold left trigger to leave cover and shoot; release to duck/reload. Alternatively, enable **Physical Ducking** in the menu (press Left Menu button) and press **X** while upright to calibrate height!`,
+    troubleshooting_notes: 'Target framerate is 120 Hz. Ensure you are on the latest v0.8.3+ APK build which boots directly into immersive VR mode without flat-screen regressions.'
   }
 ]
+

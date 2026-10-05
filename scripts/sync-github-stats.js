@@ -1,15 +1,19 @@
 import fs from 'node:fs'
 
-const envFile = fs.readFileSync('.env', 'utf8')
-const env = Object.fromEntries(
-  envFile
-    .split('\n')
-    .filter(line => line && !line.startsWith('#') && line.includes('='))
-    .map(line => line.split('=').map(s => s.trim()))
-)
+let env = {}
+if (fs.existsSync('.env')) {
+  const envFile = fs.readFileSync('.env', 'utf8')
+  env = Object.fromEntries(
+    envFile
+      .split('\n')
+      .filter(line => line && !line.startsWith('#') && line.includes('='))
+      .map(line => line.split('=').map(s => s.trim()))
+  )
+}
 
-const token = process.env.SUPABASE_ACCESS_TOKEN || env.SUPABASE_ACCESS_TOKEN || ''
-const projectRef = 'ccjteoxolasldhfgnoyx'
+const supabaseUrl = process.env.SUPABASE_URL || env.SUPABASE_URL || ''
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || ''
+const githubToken = process.env.GITHUB_TOKEN || ''
 
 const repos = [
   { slug: 'rtcwquest', repo: 'DrBeef/RTCWQuest' },
@@ -19,76 +23,95 @@ const repos = [
   { slug: 'jkxr', repo: 'DrBeef/JKXR' },
   { slug: 'quake2quest', repo: 'DrBeef/Quake2Quest' },
   { slug: 'citravr', repo: 'amwatson/CitraVR' },
-  { slug: 'preyvr', repo: 'lvonasek/PreyVR' }
+  { slug: 'preyvr', repo: 'lvonasek/PreyVR' },
+  { slug: 'beefraiderxr', repo: 'Team-Beef-Studios/BeefRaiderXR' },
+  { slug: 'quakequest', repo: 'Team-Beef-Studios/QuakeQuest' },
+  { slug: 'razexr', repo: 'Team-Beef-Studios/RazeXR' },
+  { slug: 'questcraft', repo: 'QuestCraftPlusPlus/QuestCraft' },
+  { slug: 'csvr', repo: 'Team-Beef-Studios/CSVR' },
+  { slug: 'ppsspp-vr', repo: 'hrydgard/ppsspp' },
+  { slug: 'winlatorxr', repo: 'WinlatorXR/WinlatorXR' },
+  { slug: 'time-crisis-vr', repo: 'DR-89/time-crisis-vr' }
 ]
 
 async function run() {
-  console.log('--- Adding columns to Supabase if not present ---')
-  const alterSql = `
-    ALTER TABLE ports ADD COLUMN IF NOT EXISTS last_github_update timestamptz;
-    ALTER TABLE ports ADD COLUMN IF NOT EXISTS latest_version text;
-  `
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.')
+    process.exit(1)
+  }
 
-  await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query: alterSql })
-  })
+  console.log(`--- Synchronizing GitHub stats for ${repos.length} ports ---`)
 
-  console.log('--- Fetching real stats from GitHub API ---')
-  const updates = []
+  const ghHeaders = {
+    'User-Agent': 'QuestPorts'
+  }
+  if (githubToken) {
+    ghHeaders['Authorization'] = `token ${githubToken}`
+  }
 
   for (const item of repos) {
     try {
-      console.log(`Checking ${item.repo}...`)
-      // Fetch release info
+      console.log(`Checking ${item.repo} (${item.slug})...`)
+      
+      // Try to fetch latest release
       const relRes = await fetch(`https://api.github.com/repos/${item.repo}/releases/latest`, {
-        headers: { 'User-Agent': 'QuestPorts' }
+        headers: ghHeaders
       })
-      const relData = await relRes.json()
+      
+      let version = 'Latest'
+      let date = null
 
-      let version = relData.tag_name || 'Latest'
-      let date = relData.published_at
-
-      if (!date) {
-        // Fallback to repo pushed_at
-        const repoRes = await fetch(`https://api.github.com/repos/${item.repo}`, {
-          headers: { 'User-Agent': 'QuestPorts' }
-        })
-        const repoData = await repoRes.json()
-        date = repoData.pushed_at || new Date().toISOString()
+      if (relRes.ok) {
+        const relData = await relRes.json()
+        let rawVersion = relData.tag_name || 'Latest'
+        version = rawVersion.replace(/^winlatorxr[_-]/i, '')
+        date = relData.published_at
       }
 
-      console.log(`-> ${item.slug}: Version ${version}, Date ${date}`)
-      updates.push({ slug: item.slug, version, date })
+      if (!date) {
+        // Fallback to repository last push
+        const repoRes = await fetch(`https://api.github.com/repos/${item.repo}`, {
+          headers: ghHeaders
+        })
+        if (repoRes.ok) {
+          const repoData = await repoRes.json()
+          date = repoData.pushed_at || new Date().toISOString()
+        }
+      }
+
+      if (!date) {
+        date = new Date().toISOString()
+      }
+
+      console.log(`  -> ${item.slug}: Version ${version}, Date ${date}`)
+
+      // Update in Supabase via PostgREST PATCH
+      const patchRes = await fetch(`${supabaseUrl}/rest/v1/ports?slug=eq.${item.slug}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          latest_version: version,
+          last_github_update: date
+        })
+      })
+
+      if (!patchRes.ok) {
+        const errText = await patchRes.text()
+        console.error(`  -> Failed to update ${item.slug}:`, errText)
+      } else {
+        console.log(`  -> Successfully updated ${item.slug} in Supabase!`)
+      }
     } catch (err) {
-      console.error(`Error fetching for ${item.slug}:`, err)
+      console.error(`Error processing ${item.slug}:`, err)
     }
   }
 
-  // Update Supabase records
-  const updateStatements = updates
-    .map(u => `UPDATE ports SET latest_version = '${u.version}', last_github_update = '${u.date}' WHERE slug = '${u.slug}';`)
-    .join('\n')
-
-  const res = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query: updateStatements })
-  })
-
-  const resData = await res.json()
-  if (!res.ok) {
-    console.error('Failed to update Supabase:', resData)
-  } else {
-    console.log('--- Successfully synchronized GitHub stats to Supabase! ---')
-  }
+  console.log('--- Sincronização concluída com sucesso! ---')
 }
 
 run()
