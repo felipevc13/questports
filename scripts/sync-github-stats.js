@@ -47,7 +47,8 @@ const repos = [
   { slug: 'gothic2-vr', repo: 'dubrovskiy-yevhen-stakelogic/gothic2-vr' },
   { slug: 'harry-potter-vr', repo: 'dubrovskiy-yevhen-stakelogic/harry-potter-vr' },
   { slug: 'road-rash-jailbreak-vr', repo: 'dubrovskiy-yevhen-stakelogic/road-rash-jailbreak' },
-  { slug: 'perfect-dark-vr', repo: 'Alex-LeTux/perfect_dark_VR' }
+  { slug: 'perfect-dark-vr', repo: 'Alex-LeTux/perfect_dark_VR' },
+  { slug: 'avp-vr', repo: 'Bassquake/Aliens-Versus-Predator-VR' }
 ]
 
 async function run() {
