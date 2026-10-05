@@ -44,9 +44,8 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=2' },
-        { rel: 'alternate icon', type: 'image/png', href: '/favicon.png?v=2' },
+        { rel: 'icon', type: 'image/png', href: '/favicon.png?v=2' },
         { rel: 'shortcut icon', href: '/favicon.ico?v=2' },
-        { rel: 'image_src', href: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap' }
