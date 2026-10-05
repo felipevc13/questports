@@ -14,13 +14,13 @@
         loading="lazy"
       />
 
-      <!-- Dark gradient at the bottom for text contrast -->
-      <div class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-black/30 pointer-events-none"></div>
+      <!-- Dark gradient at the bottom for text contrast (hidden on video preview) -->
+      <div v-if="!isPlayingPreview" class="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-black/30 pointer-events-none"></div>
 
-      <!-- Top dark vignette to guarantee badge contrast on white/bright covers -->
-      <div class="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none"></div>
+      <!-- Top dark vignette to guarantee badge contrast on white/bright covers (hidden on video preview) -->
+      <div v-if="!isPlayingPreview" class="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none"></div>
 
-      <!-- Hover Video Preview Overlay (Autoplays selected VR gameplay frames on hover) -->
+      <!-- Hover Video Preview Overlay (100% clean gameplay with zero tags or overlays) -->
       <div
         v-if="isPlayingPreview"
         class="absolute inset-0 z-10 bg-black overflow-hidden animate-in fade-in duration-300"
@@ -36,31 +36,25 @@
           class="w-full h-full object-cover pointer-events-none"
         />
 
-        <!-- YouTube Embed Snippet with cropped borders -->
+        <!-- YouTube Embed Snippet with cropped borders (pushes YouTube title and logo off-screen) -->
         <iframe
           v-else-if="previewEmbedUrl"
           :src="previewEmbedUrl"
-          class="w-full h-full object-cover pointer-events-none scale-[1.35] -translate-y-1 select-none"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[190%] max-w-none pointer-events-none select-none"
           frameborder="0"
           allow="autoplay; encrypted-media"
           tabindex="-1"
         />
 
         <!-- Transparent Shield: catches all mouse/click events so YouTube iframe never receives hover/click or displays pause icons -->
-        <div class="absolute inset-0 z-10 bg-transparent cursor-pointer"></div>
+        <div class="absolute inset-0 z-20 bg-transparent cursor-pointer"></div>
       </div>
 
-      <!-- Preview Indicator Badge -->
+      <!-- Top Badges Overlay (Cleanly hidden when video preview is playing) -->
       <div
-        v-if="isPlayingPreview"
-        class="absolute bottom-2 left-2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/90 text-[10px] font-mono text-emerald-400 border border-emerald-500/40 shadow-md pointer-events-none animate-in fade-in duration-200"
+        v-if="!isPlayingPreview"
+        class="absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-1 pointer-events-none"
       >
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="font-semibold uppercase tracking-wider text-[9px]">VR Preview</span>
-      </div>
-
-      <!-- Top Badges Overlay -->
-      <div class="absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-1 pointer-events-none">
         <span class="inline-flex items-center text-[10px] uppercase font-mono font-semibold tracking-wider px-2 py-0.5 rounded bg-black/85 text-slate-100 border border-white/20 shadow-md">
           {{ formatCategory(port.category) }}
         </span>
@@ -155,6 +149,7 @@
 
 <script setup lang="ts">
 import type { Port, PortCategory, PortStatus } from '~/types/port'
+import { GAME_VIDEO_PREVIEWS, parseSeconds } from '~/data/videoPreviews'
 
 const props = defineProps<{
   port: Port
@@ -165,43 +160,14 @@ const navigateToDev = (dev: string) => {
   router.push(`/?dev=${encodeURIComponent(dev)}`)
 }
 
-// Curated gameplay timestamps (start & end in seconds) where active VR gameplay begins
-const CURATED_TIMESTAMPS: Record<string, { start: number; end: number }> = {
-  'IWM7vi_OP6E': { start: 16, end: 23 }, // RTCWQuest
-  '-Fa1ce9x88Y': { start: 20, end: 27 }, // Lambda1VR
-  'y2y9C0E2kPk': { start: 15, end: 22 }, // Doom3Quest
-  'vMBsdsAICSY': { start: 12, end: 19 }, // QuestZDoom
-  'OoNCvmUxUFE': { start: 10, end: 17 }, // Quake2Quest
-  'ToM-wz3v-NU': { start: 25, end: 32 }, // Jedi Outcast (JKXR)
-  'qByCUtT6WG0': { start: 18, end: 25 }, // Jedi Academy
-  'e8KZmDCdPb4': { start: 30, end: 37 }, // Prey VR
-  'aTtOlcLPbCs': { start: 14, end: 21 }, // Half-Life 2 VR
-  'BYz7r7q65sk': { start: 12, end: 19 }, // GoldenEye VR
-  'PomiV1iyTp8': { start: 22, end: 29 }, // PrimedGun (Metroid Prime)
-  '5ivdcCWly54': { start: 14, end: 21 }, // Time Crisis VR
-  'wKyfjeuv46o': { start: 18, end: 25 }, // Qualyx (Half-Life Alyx)
-  'y3dgEeDW5Xw': { start: 16, end: 23 }, // GalaxyQuest (Mario Galaxy)
-  'neSyrMRFs9c': { start: 12, end: 19 }, // AstroQuest
-  'PGUc8b3VIu0': { start: 10, end: 17 }, // Road Rash
-  'd_xUXZURdzM': { start: 15, end: 22 }, // Tomb Raider
-  '1FXer9AHf68': { start: 18, end: 25 }, // Wind Waker
-  'QzgDw8xEpeM': { start: 12, end: 19 }, // Superhot VR
-  'UXMeylAkNGE': { start: 15, end: 22 }, // Counter-Strike VR
-  'mFSmPcHQpLM': { start: 14, end: 21 }, // Quake 3 Arena
-  'UnYhCfbw_bc': { start: 15, end: 22 }, // Duke Nukem 3D
-  'JHW-FMm_c7c': { start: 15, end: 22 }, // Wrath: Aeon of Ruin
-  'Nmlq5QxnVuM': { start: 20, end: 27 }, // Star Wars Squadrons
-  '9OsjifuYZVg': { start: 15, end: 22 }  // Halo CE VR
-}
-
 const isPlayingPreview = ref(false)
 let hoverTimer: ReturnType<typeof setTimeout> | null = null
 
 const previewEmbedUrl = computed(() => {
   if (!props.port.youtube_video_id) return ''
-  const curated = CURATED_TIMESTAMPS[props.port.youtube_video_id]
-  const start = props.port.video_preview_start ?? curated?.start ?? 15
-  const end = props.port.video_preview_end ?? curated?.end ?? (start + 7)
+  const config = GAME_VIDEO_PREVIEWS[props.port.slug] || GAME_VIDEO_PREVIEWS[props.port.youtube_video_id]
+  const start = props.port.video_preview_start ?? (config ? parseSeconds(config.start) : 15)
+  const end = props.port.video_preview_end ?? (config?.end ? parseSeconds(config.end) : (start + 7))
   return `https://www.youtube-nocookie.com/embed/${props.port.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${props.port.youtube_video_id}&start=${start}&end=${end}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&autohide=1`
 })
 
