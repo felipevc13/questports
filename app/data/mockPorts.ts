@@ -829,7 +829,7 @@ export const INITIAL_PORTS: Port[] = [
     short_description: 'Native standalone VR port of Super Mario Galaxy for Meta Quest 2 and 3, built on the Petari decompilation. Play in full 3D diorama mode with motion-tracked Star Bit laser aiming or on a giant 120Hz stereoscopic screen.',
     category: 'source_port',
     status: 'playable_beta',
-    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/galaxyquest.jpg',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/galaxyquest.jpg?t=1791222464793',
     youtube_video_id: 'UnYhCfbw_bc',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['3D Diorama Mode', 'Giant Virtual Screen (120Hz)', 'Star Bit Laser Pointer', 'Snap Turn', 'Tilt & Motion Controls'],
