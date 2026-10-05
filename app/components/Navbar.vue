@@ -53,9 +53,6 @@
         </a>
       </div>
     </div>
-
-    <!-- Suggest Modal Component -->
-    <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
   </header>
 </template>
 
