@@ -70,7 +70,7 @@
           >
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
             <span class="font-bold">{{ formatVersion(port.latest_version) || 'Updated' }}</span>
-            <span v-if="formatRelativeTime(port.last_github_update)" class="text-slate-400 hidden xl:inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
+            <span v-if="formatRelativeTime(port.last_github_update)" class="text-slate-400 inline">• {{ formatRelativeTime(port.last_github_update) }}</span>
           </div>
         </div>
 
