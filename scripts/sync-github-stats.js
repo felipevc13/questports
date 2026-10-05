@@ -42,7 +42,8 @@ const repos = [
   { slug: 'goldeneye-vr', repo: 'MrSco/goldeneye-vr' },
   { slug: 'questcarnage', repo: 'maranone/carnage' },
   { slug: 'gta-sa-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/gta-sa-vr-quest' },
-  { slug: 'vice-city-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/vice-city-vr-quest' }
+  { slug: 'vice-city-vr-quest', repo: 'dubrovskiy-yevhen-stakelogic/vice-city-vr-quest' },
+  { slug: 'gran-turismo-2-vr', repo: 'dubrovskiy-yevhen-stakelogic/gt-2-pc' }
 ]
 
 async function run() {
