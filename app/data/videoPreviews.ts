@@ -41,8 +41,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'IWM7vi_OP6E': { start: '0:16', end: '0:23' },
 
   // Half-Life 1 (Lambda1VR)
-  'lambda1vr': { start: '0:20', end: '0:27' },
-  '-Fa1ce9x88Y': { start: '0:20', end: '0:27' },
+  'lambda1vr': { start: '0:40', end: '1:40' },
+  '-Fa1ce9x88Y': { start: '0:40', end: '1:40' },
 
   // Doom 3 VR
   'doom3quest': { start: '0:15', end: '0:22' },
