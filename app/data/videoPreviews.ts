@@ -167,5 +167,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Harry Potter VR
   'harry-potter-vr': { start: '2:14', end: '3:14' },
-  'sJILoIKG9Mo': { start: '2:14', end: '3:14' }
+  'sJILoIKG9Mo': { start: '2:14', end: '3:14' },
+
+  // Perfect Dark VR
+  'perfect-dark-vr': { start: '4:14', end: '5:14' },
+  'AbqMNh09U04': { start: '4:14', end: '5:14' }
 }
