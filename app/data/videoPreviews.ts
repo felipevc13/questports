@@ -175,5 +175,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // QuestCraft (Minecraft: Java Edition)
   'questcraft': { start: '1:20', end: '2:05' },
-  'PomiV1iyTp8': { start: '1:20', end: '2:05' }
+  'PomiV1iyTp8': { start: '1:20', end: '2:05' },
+
+  // RazeXR (Duke Nukem 3D, Blood, Shadow Warrior)
+  'razexr': { start: '0:38', end: '1:38' },
+  'BYz7r7q65sk': { start: '0:38', end: '1:38' }
 }
