@@ -22,12 +22,11 @@
 
       <!-- Hover Video Preview Overlay (100% clean gameplay with zero tags, controls, or overlays) -->
       <div
-        v-if="isPlayingPreview"
+        v-if="isPlayingPreview && videoPreviewSource"
         class="absolute inset-0 z-10 bg-black overflow-hidden animate-in fade-in duration-300"
       >
         <!-- Native MP4 video preview (100% clean, no YouTube UI, no controls, seamless loop) -->
         <video
-          v-if="videoPreviewSource"
           :src="videoPreviewSource"
           autoplay
           muted
@@ -37,17 +36,7 @@
           @error="handleVideoError"
         />
 
-        <!-- YouTube Embed Fallback (with NO playlist parameter so transport controls |< || >| never appear) -->
-        <iframe
-          v-else-if="previewEmbedUrl"
-          :src="previewEmbedUrl"
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[200%] max-w-none pointer-events-none select-none"
-          frameborder="0"
-          allow="autoplay; encrypted-media"
-          tabindex="-1"
-        />
-
-        <!-- Transparent Shield: catches all mouse/click events so iframe/video never receives hover/click -->
+        <!-- Transparent Shield: catches all mouse/click events so video never receives hover/click -->
         <div class="absolute inset-0 z-20 bg-transparent cursor-pointer"></div>
       </div>
 
@@ -150,7 +139,7 @@
 
 <script setup lang="ts">
 import type { Port, PortCategory, PortStatus } from '~/types/port'
-import { GAME_VIDEO_PREVIEWS, parseSeconds, AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
+import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
 
 const props = defineProps<{
   port: Port
@@ -166,7 +155,7 @@ let hoverTimer: ReturnType<typeof setTimeout> | null = null
 const localVideoFailed = ref(false)
 
 const hasVideo = computed(() => {
-  return hasVideoPreview(props.port.slug, props.port.video_preview_url, props.port.youtube_video_id)
+  return hasVideoPreview(props.port.slug, props.port.video_preview_url)
 })
 
 const videoPreviewSource = computed(() => {
@@ -179,17 +168,8 @@ const videoPreviewSource = computed(() => {
 
 const handleVideoError = () => {
   localVideoFailed.value = true
+  isPlayingPreview.value = false
 }
-
-const previewEmbedUrl = computed(() => {
-  if (!props.port.youtube_video_id) return ''
-  const config = GAME_VIDEO_PREVIEWS[props.port.slug] || GAME_VIDEO_PREVIEWS[props.port.youtube_video_id]
-  const start = props.port.video_preview_start ?? (config ? parseSeconds(config.start) : 15)
-  // CRITICAL: Do NOT pass playlist= or end= to the embed URL.
-  // playlist forces YouTube into playlist mode with |< || >| transport controls.
-  // end forces YouTube to pause and display the pause icon overlay.
-  return `https://www.youtube-nocookie.com/embed/${props.port.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&start=${start}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0`
-})
 
 const onMouseEnter = () => {
   if (!hasVideo.value) return

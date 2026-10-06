@@ -67,12 +67,11 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
 ]
 
 /**
- * Checks if a port has any video preview capability (local MP4, custom video_preview_url, or YouTube ID)
+ * Checks if a port has any video preview capability (local MP4 or custom video_preview_url)
  */
-export function hasVideoPreview(slug: string, videoUrl?: string | null, ytId?: string | null): boolean {
+export function hasVideoPreview(slug: string, videoUrl?: string | null): boolean {
   if (videoUrl && videoUrl.trim()) return true
   if (AVAILABLE_VIDEO_PREVIEWS.includes(slug)) return true
-  if (ytId && ytId !== 'null' && ytId.trim()) return true
   return false
 }
 
@@ -179,5 +178,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // RazeXR (Duke Nukem 3D, Blood, Shadow Warrior)
   'razexr': { start: '0:38', end: '1:38' },
-  'BYz7r7q65sk': { start: '0:38', end: '1:38' }
+  'BYz7r7q65sk': { start: '0:38', end: '1:38' },
+
+  // Hexen II VR
+  'hexen2vr': { start: '0:17', end: '1:17' },
+  'wKyfjeuv46o': { start: '0:17', end: '1:17' }
 }

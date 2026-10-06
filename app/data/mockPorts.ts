@@ -1230,7 +1230,7 @@ To update to future releases without redownloading game assets, simply connect y
     category: 'source_port',
     status: 'playable_beta',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/gothic2_vr.jpg',
-    youtube_video_id: 'A-5qT4v8Wyo',
+    youtube_video_id: null,
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Roomscale', 'Smooth Locomotion', 'Physical Melee', 'Physical Archery', 'Physical Swimming'],
     has_6dof_controls: true,
