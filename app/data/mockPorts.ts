@@ -725,7 +725,7 @@ export const INITIAL_PORTS: Port[] = [
     category: 'source_port',
     status: 'playable_beta',
     cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/simpsonshitrun.jpg',
-    youtube_video_id: 'UXMeylAkNGE',
+    youtube_video_id: 'UQJZKjkRzyI',
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'VR Steering Wheel', 'Roomscale', 'Seated Mode'],
     has_6dof_controls: true,

@@ -150,8 +150,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   '5ivdcCWly54': { start: '0:15', end: '0:22' },
 
   // The Simpsons: Hit & Run VR
-  'simpsonshitrun': { start: '0:15', end: '0:22' },
-  'UXMeylAkNGE': { start: '0:15', end: '0:22' },
+  'simpsonshitrun': { start: '13:57', end: '14:57' },
+  'UQJZKjkRzyI': { start: '13:57', end: '14:57' },
 
   // Halo CE VR
   'halocequest': { start: '6:07', end: '7:00' },
