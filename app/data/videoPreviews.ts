@@ -3,7 +3,7 @@
  * 
  * Specify the exact gameplay highlight frames to play when hovering a card:
  * - Format: 'M:SS' (e.g. '1:05', '0:42', '2:15') or raw seconds (e.g. 65, 42, 135)
- * - Recommended duration: 6 to 10 seconds of active VR gameplay
+ * - The video will loop smoothly across the chosen start and end frames.
  */
 
 export interface PreviewConfig {
@@ -28,14 +28,13 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
 }
 
 /**
- * Manual Timestamps Registry (by port slug or youtube video id)
+ * Manual Timestamps Registry (indexed by port slug or youtube video id)
  * Edit timestamps here freely (e.g., start: '1:05', end: '1:12')
  */
 export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   // GoldenEye VR (007)
   'goldeneye-vr': { start: '1:50', end: '2:50' },
   'Nmlq5QxnVuM': { start: '1:50', end: '2:50' },
-  'BYz7r7q65sk': { start: '1:50', end: '2:50' },
 
   // Return to Castle Wolfenstein
   'rtcwquest': { start: '0:16', end: '0:23' },
@@ -51,12 +50,10 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Super Mario Galaxy (GalaxyQuest)
   'galaxyquest': { start: '0:20', end: '1:54' },
-  'super-mario-galaxy': { start: '0:20', end: '1:54' },
   'UnYhCfbw_bc': { start: '0:20', end: '1:54' },
 
   // Metroid Prime (PrimedGun)
   'primedgun': { start: '3:30', end: '4:30' },
-  'metroid-prime-vr': { start: '3:30', end: '4:30' },
   'd_xUXZURdzM': { start: '3:30', end: '4:30' },
 
   // Time Crisis VR
@@ -73,43 +70,38 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Road Rash: Jailbreak VR
   'road-rash-jailbreak-vr': { start: '0:10', end: '0:17' },
-  'PGUc8b3VIu0': { start: '0:10', end: '0:17' },
+  'f01aGgd6Uzs': { start: '0:10', end: '0:17' },
 
   // Star Wars: Jedi Outcast (JKXR)
   'jkxr': { start: '0:25', end: '0:32' },
   'ToM-wz3v-NU': { start: '0:25', end: '0:32' },
 
-  // Star Wars: Jedi Academy
-  'jedi-academy': { start: '0:18', end: '0:25' },
-  'qByCUtT6WG0': { start: '0:18', end: '0:25' },
-
-  // Half-Life 2 VR (Source)
-  'half-life-2-vr': { start: '0:14', end: '0:21' },
-  'aTtOlcLPbCs': { start: '0:14', end: '0:21' },
-
-  // Prey VR
-  'prey-vr': { start: '0:30', end: '0:37' },
-  'e8KZmDCdPb4': { start: '0:30', end: '0:37' },
-
-  // QuestZDoom
-  'questzdoom': { start: '0:12', end: '0:19' },
-  'vMBsdsAICSY': { start: '0:12', end: '0:19' },
-
   // Quake 2 VR
   'quake2quest': { start: '0:50', end: '1:50' },
   'qByCUtT6WG0': { start: '0:50', end: '1:50' },
 
-  // Tomb Raider (OpenLara)
-  'openlara': { start: '0:15', end: '0:22' },
-  'd_xUXZURdzM': { start: '0:15', end: '0:22' },
+  // Tomb Raider (Beef Raider XR)
+  'beefraiderxr': { start: '0:15', end: '0:22' },
+  'aTtOlcLPbCs': { start: '0:15', end: '0:22' },
 
-  // Counter-Strike VR
-  'counter-strike-vr': { start: '0:15', end: '0:22' },
+  // Prey VR
+  'preyvr': { start: '0:30', end: '0:37' },
+  'e8KZmDCdPb4': { start: '0:30', end: '0:37' },
+
+  // QuestZDoom
+  'questzdoom': { start: '0:12', end: '0:19' },
+  'OoNCvmUxUFE': { start: '0:12', end: '0:19' },
+
+  // Counter-Strike VR (CSVR)
+  'csvr': { start: '0:15', end: '0:22' },
+  '5ivdcCWly54': { start: '0:15', end: '0:22' },
+
+  // The Simpsons: Hit & Run VR
+  'simpsonshitrun': { start: '0:15', end: '0:22' },
   'UXMeylAkNGE': { start: '0:15', end: '0:22' },
 
   // Halo CE VR
   'halocequest': { start: '6:07', end: '7:00' },
-  'halo-ce-quest-vr': { start: '6:07', end: '7:00' },
   'mFSmPcHQpLM': { start: '6:07', end: '7:00' },
 
   // GTA San Andreas VR
