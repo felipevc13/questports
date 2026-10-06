@@ -60,8 +60,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'd_xUXZURdzM': { start: '3:30', end: '4:30' },
 
   // Time Crisis VR
-  'time-crisis-vr': { start: '0:14', end: '0:21' },
-  '5ivdcCWly54': { start: '0:14', end: '0:21' },
+  'time-crisis-vr': { start: '7:30', end: '8:30' },
+  'PGUc8b3VIu0': { start: '7:30', end: '8:30' },
 
   // Half-Life: Alyx (Qualyx)
   'qualyx': { start: '0:18', end: '0:25' },
