@@ -68,8 +68,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'JHW-FMm_c7c': { start: '3:40', end: '4:40' },
 
   // ASTRO BOT (AstroQuest)
-  'astroquest': { start: '0:12', end: '0:19' },
-  'neSyrMRFs9c': { start: '0:12', end: '0:19' },
+  'astroquest': { start: '4:14', end: '5:14' },
+  '1FXer9AHf68': { start: '4:14', end: '5:14' },
 
   // Road Rash: Jailbreak VR
   'road-rash-jailbreak-vr': { start: '0:10', end: '0:17' },
