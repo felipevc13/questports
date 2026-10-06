@@ -20,33 +20,34 @@
       <!-- Top dark vignette to guarantee badge contrast on white/bright covers (hidden on video preview) -->
       <div v-if="!isPlayingPreview" class="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-none"></div>
 
-      <!-- Hover Video Preview Overlay (100% clean gameplay with zero tags or overlays) -->
+      <!-- Hover Video Preview Overlay (100% clean gameplay with zero tags, controls, or overlays) -->
       <div
         v-if="isPlayingPreview"
         class="absolute inset-0 z-10 bg-black overflow-hidden animate-in fade-in duration-300"
       >
-        <!-- Native MP4/WebM video if provided -->
+        <!-- Native MP4 video preview (100% clean, no YouTube UI, no controls, seamless loop) -->
         <video
-          v-if="port.video_preview_url"
-          :src="port.video_preview_url"
+          v-if="videoPreviewSource"
+          :src="videoPreviewSource"
           autoplay
           muted
           loop
           playsinline
           class="w-full h-full object-cover pointer-events-none"
+          @error="handleVideoError"
         />
 
-        <!-- YouTube Embed Snippet with cropped borders (pushes YouTube title and logo off-screen) -->
+        <!-- YouTube Embed Fallback (with NO playlist parameter so transport controls |< || >| never appear) -->
         <iframe
           v-else-if="previewEmbedUrl"
           :src="previewEmbedUrl"
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[190%] max-w-none pointer-events-none select-none"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[200%] max-w-none pointer-events-none select-none"
           frameborder="0"
           allow="autoplay; encrypted-media"
           tabindex="-1"
         />
 
-        <!-- Transparent Shield: catches all mouse/click events so YouTube iframe never receives hover/click or displays pause icons -->
+        <!-- Transparent Shield: catches all mouse/click events so iframe/video never receives hover/click -->
         <div class="absolute inset-0 z-20 bg-transparent cursor-pointer"></div>
       </div>
 
@@ -162,17 +163,32 @@ const navigateToDev = (dev: string) => {
 
 const isPlayingPreview = ref(false)
 let hoverTimer: ReturnType<typeof setTimeout> | null = null
+const localVideoFailed = ref(false)
+
+const videoPreviewSource = computed(() => {
+  if (props.port.video_preview_url) return props.port.video_preview_url
+  if (!localVideoFailed.value) {
+    return `/previews/${props.port.slug}.mp4`
+  }
+  return null
+})
+
+const handleVideoError = () => {
+  localVideoFailed.value = true
+}
 
 const previewEmbedUrl = computed(() => {
   if (!props.port.youtube_video_id) return ''
   const config = GAME_VIDEO_PREVIEWS[props.port.slug] || GAME_VIDEO_PREVIEWS[props.port.youtube_video_id]
   const start = props.port.video_preview_start ?? (config ? parseSeconds(config.start) : 15)
-  const end = props.port.video_preview_end ?? (config?.end ? parseSeconds(config.end) : (start + 7))
-  return `https://www.youtube-nocookie.com/embed/${props.port.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${props.port.youtube_video_id}&start=${start}&end=${end}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&autohide=1`
+  // CRITICAL: Do NOT pass playlist= or end= to the embed URL.
+  // playlist forces YouTube into playlist mode with |< || >| transport controls.
+  // end forces YouTube to pause and display the pause icon overlay.
+  return `https://www.youtube-nocookie.com/embed/${props.port.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&start=${start}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0`
 })
 
 const onMouseEnter = () => {
-  if (!props.port.youtube_video_id && !props.port.video_preview_url) return
+  if (!props.port.youtube_video_id && !props.port.video_preview_url && !videoPreviewSource.value) return
   // 350ms debounce so rapid page scrolling does not mount iframes
   hoverTimer = setTimeout(() => {
     isPlayingPreview.value = true
