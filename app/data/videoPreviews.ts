@@ -107,6 +107,7 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'UXMeylAkNGE': { start: '0:15', end: '0:22' },
 
   // Halo CE VR
-  'halo-ce-quest-vr': { start: '0:15', end: '0:22' },
-  '9OsjifuYZVg': { start: '0:15', end: '0:22' }
+  'halocequest': { start: '6:07', end: '7:00' },
+  'halo-ce-quest-vr': { start: '6:07', end: '7:00' },
+  'mFSmPcHQpLM': { start: '6:07', end: '7:00' }
 }
