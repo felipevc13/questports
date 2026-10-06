@@ -50,9 +50,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'y2y9C0E2kPk': { start: '0:15', end: '0:22' },
 
   // Super Mario Galaxy (GalaxyQuest)
-  'galaxyquest': { start: '0:16', end: '0:23' },
-  'super-mario-galaxy': { start: '0:16', end: '0:23' },
-  'y3dgEeDW5Xw': { start: '0:16', end: '0:23' },
+  'galaxyquest': { start: '0:20', end: '1:54' },
+  'super-mario-galaxy': { start: '0:20', end: '1:54' },
+  'UnYhCfbw_bc': { start: '0:20', end: '1:54' },
 
   // Metroid Prime (PrimedGun)
   'primedgun': { start: '3:30', end: '4:30' },
