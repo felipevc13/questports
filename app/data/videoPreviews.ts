@@ -76,6 +76,10 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'jkxr': { start: '0:25', end: '0:32' },
   'ToM-wz3v-NU': { start: '0:25', end: '0:32' },
 
+  // Quake 1 VR (QuakeQuest)
+  'quakequest': { start: '0:18', end: '0:58' },
+  'A42X55BKF6Q': { start: '0:18', end: '0:58' },
+
   // Quake 2 VR
   'quake2quest': { start: '0:50', end: '1:50' },
   'qByCUtT6WG0': { start: '0:50', end: '1:50' },
