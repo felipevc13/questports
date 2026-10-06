@@ -96,8 +96,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'vMBsdsAICSY': { start: '0:12', end: '0:19' },
 
   // Quake 2 VR
-  'quake2quest': { start: '0:10', end: '0:17' },
-  'OoNCvmUxUFE': { start: '0:10', end: '0:17' },
+  'quake2quest': { start: '0:50', end: '1:50' },
+  'qByCUtT6WG0': { start: '0:50', end: '1:50' },
 
   // Tomb Raider (OpenLara)
   'openlara': { start: '0:15', end: '0:22' },
