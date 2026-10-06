@@ -93,8 +93,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   '-Fa1ce9x88Y': { start: '0:40', end: '1:40' },
 
   // Doom 3 VR
-  'doom3quest': { start: '0:15', end: '0:22' },
-  'y2y9C0E2kPk': { start: '0:15', end: '0:22' },
+  'doom3quest': { start: '0:39', end: '1:39' },
+  'y2y9C0E2kPk': { start: '0:39', end: '1:39' },
 
   // Super Mario Galaxy (GalaxyQuest)
   'galaxyquest': { start: '0:20', end: '1:54' },
