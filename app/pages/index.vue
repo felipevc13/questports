@@ -371,9 +371,11 @@ const availableDevelopers = computed(() => {
 const categories = [
   { id: 'all', label: 'All' },
   { id: 'source_port', label: 'Source Ports' },
-  { id: 'vr_injection', label: 'VR Injections' },
-  { id: 'emulator', label: 'VR Emulators' },
-  { id: 'game_mod', label: 'Game Mods' }
+  { id: 'decompilation', label: 'Decomps' },
+  { id: 'engine_recreation', label: 'Engine Recreations' },
+  { id: 'emulator', label: 'Emulators' },
+  { id: 'wrapper', label: 'Wrappers' },
+  { id: 'vr_injection', label: 'VR Mods' }
 ]
 
 const hasActiveFilters = computed(() => {
@@ -403,8 +405,11 @@ const navigateToPort = (slug: string) => {
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {
     case 'source_port': return 'Source Port'
-    case 'vr_injection': return 'VR Injection'
+    case 'decompilation': return 'Decomp'
+    case 'engine_recreation': return 'Engine Recreation'
     case 'emulator': return 'Emulator'
+    case 'wrapper': return 'Wrapper'
+    case 'vr_injection': return 'VR Injection'
     case 'game_mod': return 'Game Mod'
     default: return cat
   }

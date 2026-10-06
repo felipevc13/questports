@@ -1,4 +1,11 @@
-export type PortCategory = 'source_port' | 'vr_injection' | 'emulator' | 'game_mod'
+export type PortCategory =
+  | 'source_port'
+  | 'decompilation'
+  | 'engine_recreation'
+  | 'emulator'
+  | 'wrapper'
+  | 'vr_injection'
+  | 'game_mod'
 
 export type PortStatus = 'released' | 'playable_beta' | 'in_development'
 

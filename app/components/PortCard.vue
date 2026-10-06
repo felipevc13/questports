@@ -216,8 +216,11 @@ const formatVersion = (ver?: string | null) => {
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {
     case 'source_port': return 'Source Port'
-    case 'vr_injection': return 'VR Injection'
+    case 'decompilation': return 'Decomp'
+    case 'engine_recreation': return 'Engine Recreation'
     case 'emulator': return 'Emulator'
+    case 'wrapper': return 'Wrapper'
+    case 'vr_injection': return 'VR Injection'
     case 'game_mod': return 'Game Mod'
     default: return cat
   }
