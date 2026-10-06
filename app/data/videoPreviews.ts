@@ -28,6 +28,55 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
 }
 
 /**
+ * List of port slugs that have verified local MP4 preview clips available in /previews/
+ */
+export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
+  'astroquest',
+  'beefraiderxr',
+  'citravr',
+  'csvr',
+  'doom3quest',
+  'galaxyquest',
+  'goldeneye-vr',
+  'gran-turismo-2-vr',
+  'gta-sa-vr-quest',
+  'halocequest',
+  'harry-potter-vr',
+  'hexen2vr',
+  'iron-lung-vr',
+  'jkxr',
+  'lambda1vr',
+  'perfect-dark-vr',
+  'ppsspp-vr',
+  'preyvr',
+  'primedgun',
+  'quake2quest',
+  'quakequest',
+  'qualyx',
+  'questcarnage',
+  'questcraft',
+  'questzdoom',
+  'razexr',
+  'road-rash-jailbreak-vr',
+  'rtcwquest',
+  'simpsonshitrun',
+  'sourcevr',
+  'time-crisis-vr',
+  'vice-city-vr-quest',
+  'winlatorxr'
+]
+
+/**
+ * Checks if a port has any video preview capability (local MP4, custom video_preview_url, or YouTube ID)
+ */
+export function hasVideoPreview(slug: string, videoUrl?: string | null, ytId?: string | null): boolean {
+  if (videoUrl && videoUrl.trim()) return true
+  if (AVAILABLE_VIDEO_PREVIEWS.includes(slug)) return true
+  if (ytId && ytId !== 'null' && ytId.trim()) return true
+  return false
+}
+
+/**
  * Manual Timestamps Registry (indexed by port slug or youtube video id)
  * Edit timestamps here freely (e.g., start: '1:05', end: '1:12')
  */

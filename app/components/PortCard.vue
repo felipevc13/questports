@@ -76,7 +76,7 @@
 
       <!-- Video trailer badge if available (hidden when preview is active) -->
       <div
-        v-if="port.youtube_video_id && !isPlayingPreview"
+        v-if="hasVideo && !isPlayingPreview"
         class="absolute bottom-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-muted-foreground border border-border"
       >
         <svg class="w-3 h-3 text-primary" viewBox="0 0 24 24" fill="currentColor">
@@ -150,7 +150,7 @@
 
 <script setup lang="ts">
 import type { Port, PortCategory, PortStatus } from '~/types/port'
-import { GAME_VIDEO_PREVIEWS, parseSeconds } from '~/data/videoPreviews'
+import { GAME_VIDEO_PREVIEWS, parseSeconds, AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
 
 const props = defineProps<{
   port: Port
@@ -165,9 +165,13 @@ const isPlayingPreview = ref(false)
 let hoverTimer: ReturnType<typeof setTimeout> | null = null
 const localVideoFailed = ref(false)
 
+const hasVideo = computed(() => {
+  return hasVideoPreview(props.port.slug, props.port.video_preview_url, props.port.youtube_video_id)
+})
+
 const videoPreviewSource = computed(() => {
   if (props.port.video_preview_url) return props.port.video_preview_url
-  if (!localVideoFailed.value) {
+  if (AVAILABLE_VIDEO_PREVIEWS.includes(props.port.slug) && !localVideoFailed.value) {
     return `/previews/${props.port.slug}.mp4`
   }
   return null
@@ -188,7 +192,7 @@ const previewEmbedUrl = computed(() => {
 })
 
 const onMouseEnter = () => {
-  if (!props.port.youtube_video_id && !props.port.video_preview_url && !videoPreviewSource.value) return
+  if (!hasVideo.value) return
   // 350ms debounce so rapid page scrolling does not mount iframes
   hoverTimer = setTimeout(() => {
     isPlayingPreview.value = true
