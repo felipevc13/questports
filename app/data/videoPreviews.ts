@@ -55,9 +55,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'y3dgEeDW5Xw': { start: '0:16', end: '0:23' },
 
   // Metroid Prime (PrimedGun)
-  'primedgun': { start: '0:22', end: '0:29' },
-  'metroid-prime-vr': { start: '0:22', end: '0:29' },
-  'PomiV1iyTp8': { start: '0:22', end: '0:29' },
+  'primedgun': { start: '3:30', end: '4:30' },
+  'metroid-prime-vr': { start: '3:30', end: '4:30' },
+  'd_xUXZURdzM': { start: '3:30', end: '4:30' },
 
   // Time Crisis VR
   'time-crisis-vr': { start: '0:14', end: '0:21' },
