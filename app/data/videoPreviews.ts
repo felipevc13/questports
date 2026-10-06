@@ -64,8 +64,8 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'PGUc8b3VIu0': { start: '7:30', end: '8:30' },
 
   // Half-Life: Alyx (Qualyx)
-  'qualyx': { start: '0:18', end: '0:25' },
-  'wKyfjeuv46o': { start: '0:18', end: '0:25' },
+  'qualyx': { start: '3:40', end: '4:40' },
+  'JHW-FMm_c7c': { start: '3:40', end: '4:40' },
 
   // ASTRO BOT (AstroQuest)
   'astroquest': { start: '0:12', end: '0:19' },
