@@ -159,5 +159,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // GTA San Andreas VR
   'gta-sa-vr-quest': { start: '4:00', end: '5:00' },
-  '9NAW-5CKdFc': { start: '4:00', end: '5:00' }
+  '9NAW-5CKdFc': { start: '4:00', end: '5:00' },
+
+  // Carmageddon VR (QuestCarNage)
+  'questcarnage': { start: '12:22', end: '13:22' },
+  'wdP-DzNOv5U': { start: '12:22', end: '13:22' },
+
+  // Harry Potter VR
+  'harry-potter-vr': { start: '2:14', end: '3:14' },
+  'sJILoIKG9Mo': { start: '2:14', end: '3:14' }
 }
