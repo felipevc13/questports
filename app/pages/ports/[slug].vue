@@ -182,32 +182,19 @@
         <div class="p-4 rounded-lg bg-card border border-border space-y-3">
           <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">Downloads & Links</h3>
 
-          <!-- Smart WebUSB Sideload Button -->
-          <UiButton
-            v-if="port.port_download_url && (port.port_download_url.endsWith('.apk') || port.port_download_url.includes('releases'))"
-            @click="questModal.open({ title: port.title, apkUrl: port.port_download_url, slug: port.slug })"
-            class="w-full gap-2 font-semibold text-xs h-auto min-h-9 py-2 px-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-sm cursor-pointer"
-          >
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span class="break-words font-bold">Install & Manage on Quest</span>
-          </UiButton>
-
-          <!-- Download Port / APK Link -->
+          <!-- Download Port / APK -->
           <UiButton
             v-if="port.port_download_url"
             as="a"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
-            variant="outline"
             class="w-full gap-2 font-semibold text-xs h-auto min-h-9 py-2 px-3 whitespace-normal text-center leading-snug"
           >
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span class="break-words line-clamp-2">Manual Download ({{ port.port_download_source || 'APK' }}) ↗</span>
+            <span class="break-words line-clamp-2">Download Port ({{ port.port_download_source || 'APK' }})</span>
           </UiButton>
 
           <!-- In Development Notice -->

@@ -39,34 +39,36 @@
           <span class="xs:hidden">Suggest</span>
         </UiButton>
 
-        <!-- Connect Quest Button -->
-        <button
-          v-if="adb.isConnected"
-          @click="questModal.open()"
-          class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all cursor-pointer shadow-sm"
-          title="Quest Connected! Click to open manager"
-        >
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="font-mono font-semibold">{{ adb.deviceModel || 'Quest' }}</span>
-          <span v-if="adb.batteryLevel !== null" class="text-[11px] font-mono text-emerald-300/80">
-            {{ adb.isCharging ? '⚡' : '' }}{{ adb.batteryLevel }}%
-          </span>
-        </button>
+        <!-- Connect Quest Button (Local Only) -->
+        <template v-if="isLocalOrDev">
+          <button
+            v-if="adb.isConnected"
+            @click="questModal.open()"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all cursor-pointer shadow-sm"
+            title="Quest Connected! Click to open manager"
+          >
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-mono font-semibold">{{ adb.deviceModel || 'Quest' }}</span>
+            <span v-if="adb.batteryLevel !== null" class="text-[11px] font-mono text-emerald-300/80">
+              {{ adb.isCharging ? '⚡' : '' }}{{ adb.batteryLevel }}%
+            </span>
+          </button>
 
-        <UiButton
-          v-else
-          variant="default"
-          size="sm"
-          @click="questModal.open()"
-          class="gap-1.5 text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-sm cursor-pointer"
-          title="Connect Quest via WebUSB for 1-click install and folder file management"
-        >
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span class="hidden sm:inline">Connect Quest</span>
-          <span class="sm:hidden">Connect</span>
-        </UiButton>
+          <UiButton
+            v-else
+            variant="default"
+            size="sm"
+            @click="questModal.open()"
+            class="gap-1.5 text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-sm cursor-pointer"
+            title="Connect Quest via WebUSB for 1-click install and folder file management"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span class="hidden sm:inline">Connect Quest</span>
+            <span class="sm:hidden">Connect</span>
+          </UiButton>
+        </template>
 
         <UiButton
           as="a"
@@ -88,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useSuggestModal } from '~/composables/useSuggestModal'
 import { useQuestConnectModal } from '~/composables/useQuestConnectModal'
 import { useQuestAdb } from '~/composables/useQuestAdb'
@@ -95,4 +98,12 @@ import { useQuestAdb } from '~/composables/useQuestAdb'
 const suggestModal = useSuggestModal()
 const questModal = useQuestConnectModal()
 const adb = useQuestAdb()
+
+const isLocalOrDev = computed(() => {
+  if (import.meta.client) {
+    const host = window.location.hostname
+    return host === 'localhost' || host === '127.0.0.1'
+  }
+  return false
+})
 </script>
