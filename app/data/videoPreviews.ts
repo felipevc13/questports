@@ -171,5 +171,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Perfect Dark VR
   'perfect-dark-vr': { start: '4:14', end: '5:14' },
-  'AbqMNh09U04': { start: '4:14', end: '5:14' }
+  'AbqMNh09U04': { start: '4:14', end: '5:14' },
+
+  // QuestCraft (Minecraft: Java Edition)
+  'questcraft': { start: '1:20', end: '2:05' },
+  'PomiV1iyTp8': { start: '1:20', end: '2:05' }
 }
