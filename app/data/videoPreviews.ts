@@ -110,5 +110,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   // Halo CE VR
   'halocequest': { start: '6:07', end: '7:00' },
   'halo-ce-quest-vr': { start: '6:07', end: '7:00' },
-  'mFSmPcHQpLM': { start: '6:07', end: '7:00' }
+  'mFSmPcHQpLM': { start: '6:07', end: '7:00' },
+
+  // GTA San Andreas VR
+  'gta-sa-vr-quest': { start: '4:00', end: '5:00' },
+  '9NAW-5CKdFc': { start: '4:00', end: '5:00' }
 }
