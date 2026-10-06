@@ -33,8 +33,9 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  */
 export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   // GoldenEye VR (007)
-  'goldeneye-vr': { start: '0:14', end: '0:22' },
-  'BYz7r7q65sk': { start: '0:14', end: '0:22' },
+  'goldeneye-vr': { start: '1:50', end: '2:50' },
+  'Nmlq5QxnVuM': { start: '1:50', end: '2:50' },
+  'BYz7r7q65sk': { start: '1:50', end: '2:50' },
 
   // Return to Castle Wolfenstein
   'rtcwquest': { start: '0:16', end: '0:23' },
