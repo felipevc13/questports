@@ -246,7 +246,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       exampleFiles: 'NOLF.REZ, NOLF2.REZ, nolfu003.rez, nolfu003cres.rez',
       instruction: 'Copy the four required .REZ archives into /sdcard/nolf/ (not a nested folder)',
       storeUrl: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
-      storeName: 'PC CD-ROM / GOG (owned copies)'
+      storeName: 'Requires your own original copy'
     },
     {
       id: 'nolf_goty',
@@ -258,7 +258,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       exampleFiles: 'NOLFGOTY.REZ',
       instruction: 'Copy NOLFGOTY.REZ into the same nolf/ folder to unlock the bonus chapter',
       storeUrl: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
-      storeName: 'GOTY disc / owned copy'
+      storeName: 'Requires your own GOTY copy'
     }
   ]
 }

@@ -56,6 +56,10 @@ CREATE TABLE IF NOT EXISTS public.ports (
   installation_guide text,
   troubleshooting_notes text,
 
+  github_url text,
+  last_github_update timestamptz,
+  latest_version text,
+
   -- Metadata
   featured boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
