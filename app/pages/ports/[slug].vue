@@ -1202,6 +1202,7 @@ import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
+import { absoluteCoverUrl } from '~/data/coverUrl'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -1215,12 +1216,12 @@ useSeoMeta({
   description: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
   ogTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
   ogDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
-  ogImage: () => port.value?.cover_image_url || 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png',
+  ogImage: () => absoluteCoverUrl(port.value?.cover_image_url),
   ogType: 'article',
   twitterCard: 'summary_large_image',
   twitterTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
   twitterDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
-  twitterImage: () => port.value?.cover_image_url || 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/questports-og.png',
+  twitterImage: () => absoluteCoverUrl(port.value?.cover_image_url),
 })
 
 // Expandable Features Tray State
