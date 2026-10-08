@@ -234,6 +234,32 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       storeUrl: 'https://store.steampowered.com/app/546560/HalfLife_Alyx/',
       storeName: 'Steam'
     }
+  ],
+  'nolf-vr': [
+    {
+      id: 'nolf_base',
+      name: 'No One Lives Forever',
+      badge: 'Base Game',
+      isBase: true,
+      folder: 'nolf',
+      fullPath: '/sdcard/nolf/',
+      exampleFiles: 'NOLF.REZ, NOLF2.REZ, nolfu003.rez, nolfu003cres.rez',
+      instruction: 'Copy the four required .REZ archives into /sdcard/nolf/ (not a nested folder)',
+      storeUrl: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
+      storeName: 'PC CD-ROM / GOG (owned copies)'
+    },
+    {
+      id: 'nolf_goty',
+      name: 'Rest and Relaxation',
+      badge: 'GOTY bonus chapter',
+      isBase: false,
+      folder: 'nolf',
+      fullPath: '/sdcard/nolf/',
+      exampleFiles: 'NOLFGOTY.REZ',
+      instruction: 'Copy NOLFGOTY.REZ into the same nolf/ folder to unlock the bonus chapter',
+      storeUrl: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
+      storeName: 'GOTY disc / owned copy'
+    }
   ]
 }
 
@@ -364,6 +390,12 @@ export function getDefaultFolderInfo(port: Port): {
       fullPath: '/sdcard/PerfectDarkVR/',
       exampleFiles: 'pd.z64',
       instruction: 'Drop the Perfect Dark USA N64 ROM'
+    },
+    'nolf-vr': {
+      folder: 'nolf',
+      fullPath: '/sdcard/nolf/',
+      exampleFiles: 'NOLF.REZ, NOLF2.REZ, nolfu003.rez, nolfu003cres.rez',
+      instruction: 'Drop the four required .REZ archives into nolf/ (not a subfolder)'
     }
   }
 

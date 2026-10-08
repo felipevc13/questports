@@ -515,6 +515,7 @@ const filteredPorts = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter(p =>
       p.title.toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q) ||
       p.developer.toLowerCase().includes(q) ||
       p.short_description?.toLowerCase().includes(q)
     )

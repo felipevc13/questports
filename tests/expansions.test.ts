@@ -27,6 +27,15 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(bshift?.fullPath).toBe('/sdcard/xash/bshift/')
     })
 
+    it('defines No One Lives ForeVR campaigns (base REZ + GOTY bonus chapter)', () => {
+      const nolf = PORT_EXPANSIONS['nolf-vr']
+      expect(nolf).toBeDefined()
+      expect(nolf.length).toBe(2)
+      expect(nolf.find(c => c.id === 'nolf_base')?.isBase).toBe(true)
+      expect(nolf.find(c => c.id === 'nolf_base')?.fullPath).toBe('/sdcard/nolf/')
+      expect(nolf.find(c => c.id === 'nolf_goty')?.exampleFiles).toContain('NOLFGOTY.REZ')
+    })
+
     it('defines SourceVR campaigns (Half-Life 2, Episode One, Episode Two, Portal)', () => {
       const source = PORT_EXPANSIONS['sourcevr']
       expect(source).toBeDefined()
@@ -134,9 +143,9 @@ describe('Port Campaigns & Expansions Engine', () => {
     })
   })
 
-  describe('getPortCampaigns cross-validation on all 37 ports', () => {
+  describe('getPortCampaigns cross-validation on all 38 ports', () => {
     it('generates at least one valid campaign for every single port in INITIAL_PORTS', () => {
-      expect(INITIAL_PORTS.length).toBe(37)
+      expect(INITIAL_PORTS.length).toBe(38)
 
       for (const port of INITIAL_PORTS) {
         const campaigns = getPortCampaigns(port)

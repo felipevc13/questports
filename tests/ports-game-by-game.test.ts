@@ -3,9 +3,9 @@ import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, resolveWorkflowType } from '../app/data/portPackageMap'
 import { getPortCampaigns } from '../app/data/expansions'
 
-describe('Game-by-Game Automated Verification Suite (All 37 Ports)', () => {
-  it('indexes all 37 ports in database', () => {
-    expect(INITIAL_PORTS.length).toBe(37)
+describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
+  it('indexes all 38 ports in database', () => {
+    expect(INITIAL_PORTS.length).toBe(38)
   })
 
   // Test every individual port game-by-game

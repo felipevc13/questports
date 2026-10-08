@@ -977,6 +977,30 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'Original soundtrack files'
       }
     ]
+  },
+  'nolf-vr': {
+    slug: 'nolf-vr',
+    packageName: 'net.relith.nolf',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['NOLF.REZ', 'NOLF2.REZ', 'nolfu003.rez', 'nolfu003cres.rez'],
+    fileGuidance: 'Copy NOLF.REZ, NOLF2.REZ, nolfu003.rez, and nolfu003cres.rez from your PC copy into /sdcard/nolf/. Do not nest them in another folder.',
+    sourceStoreName: 'GOG',
+    targetPath: '/sdcard/nolf/',
+    altPaths: ['/sdcard/Android/data/net.relith.nolf/files/nolf/'],
+    folders: [
+      {
+        id: 'nolf_rez',
+        name: 'NOLF Game Archives',
+        folderName: 'nolf',
+        targetPath: '/sdcard/nolf/',
+        altPaths: ['/sdcard/Android/data/net.relith.nolf/files/nolf/'],
+        required: true,
+        expectedFiles: ['NOLF.REZ', 'NOLF2.REZ', 'nolfu003.rez', 'nolfu003cres.rez'],
+        fileExtensionPattern: '\\.rez$',
+        description: 'Original No One Lives Forever .REZ archives (engine reads them directly)'
+      }
+    ]
   }
 }
 

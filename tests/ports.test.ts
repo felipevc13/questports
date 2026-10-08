@@ -104,6 +104,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'iron-lung-vr': 'com.JackRandolph.IronLungVR',
     jkxr: 'com.drbeef.jkxr',
     lambda1vr: 'com.drbeef.lambda1vr',
+    'nolf-vr': 'net.relith.nolf',
     'perfect-dark-vr': 'com.perfectdark.port',
     'ppsspp-vr': 'org.ppsspp.ppssppvr',
     preyvr: 'com.lvonasek.preyvr',
@@ -158,7 +159,8 @@ describe('Port Package Map & Workflow Verification', () => {
       'citravr',
       'ppsspp-vr',
       'primedgun',
-      'time-crisis-vr'
+      'time-crisis-vr',
+      'nolf-vr'
     ]
     for (const slug of needsFiles) {
       expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS[slug]), slug).toBe(false)

@@ -183,6 +183,27 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       expect(result.isOverallReady).toBe(true)
     })
 
+    it('detects No One Lives ForeVR REZ archives in /sdcard/nolf/', async () => {
+      const mockFs: Record<string, string[]> = {
+        '/sdcard/nolf/': ['NOLF.REZ', 'NOLF2.REZ', 'nolfu003.rez', 'nolfu003cres.rez']
+      }
+      const listRemoteDirFn = async (path: string) => mockFs[path] || []
+      const result = await verifyPortFoldersOnQuest('nolf-vr', listRemoteDirFn)
+      expect(result.folders[0].status).toBe('ready')
+      expect(result.isOverallReady).toBe(true)
+    })
+
+    it('detects NOLF archives in the scoped Android/data fallback path', async () => {
+      const mockFs: Record<string, string[]> = {
+        '/sdcard/Android/data/net.relith.nolf/files/nolf/': ['NOLF.REZ', 'NOLF2.REZ', 'nolfu003.rez', 'nolfu003cres.rez']
+      }
+      const listRemoteDirFn = async (path: string) => mockFs[path] || []
+      const result = await verifyPortFoldersOnQuest('nolf-vr', listRemoteDirFn)
+      expect(result.folders[0].status).toBe('ready')
+      expect(result.folders[0].detectedPath).toBe('/sdcard/Android/data/net.relith.nolf/files/nolf/')
+      expect(result.isOverallReady).toBe(true)
+    })
+
     it('handles ports with direct sideload and no folders defined', async () => {
       const listRemoteDirFn = async () => []
       const result = await verifyPortFoldersOnQuest('questcraft', listRemoteDirFn)

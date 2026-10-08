@@ -1801,6 +1801,115 @@ Ensure the \`System\` folder contains \`Core.u\`, \`Engine.u\`, and \`Botpack.u\
 2. On first run, the app will automatically download and apply the modern OldUnreal 469 packages with a progress bar.
 3. Jump into instant action against bots or open the server browser for online deathmatch!`,
     troubleshooting_notes: 'The app requires System, Maps, Textures, Sounds, and Music folders with Core.u, Engine.u, and Botpack.u inside System. If you encounter permissions issues, push files directly into /sdcard/Android/data/com.ghwstvr.ut99quest/files/UT99/ as this path does not require extra scoped storage permissions.'
+  },
+  {
+    id: '38',
+    slug: 'nolf-vr',
+    title: 'No One Lives ForeVR',
+    developer: 'alex.nax',
+    developer_url: 'https://github.com/alex-nax',
+    short_description: 'Standalone 6DoF OpenXR VR port of The Operative: No One Lives Forever (2000) on Meta Quest via ReLith, a LithTech 2.x reimplementation. First-person motion-controlled weapons, Cate’s authored hands, and a floating HUD — engine only, you supply the original game files.',
+    category: 'engine_recreation',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: 'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/nolf-vr.png',
+    youtube_video_id: '6NsGBkCp9ro',
+    video_preview_url: null,
+    video_preview_start: 300,
+    video_preview_end: 360,
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Smooth Turn', 'Two-Handed Weapons', 'Seated / Standing'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/nolf/',
+    base_game_url: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
+    base_game_store: 'PC CD-ROM / GOG (owned copies)',
+    port_download_url: 'https://github.com/alex-nax/relith/releases/download/v0.4.0/relith-nolf-quest-0.4.0.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/alex-nax/relith',
+    latest_version: 'v0.4.0',
+    last_github_update: '2026-09-25T13:40:37Z',
+    featured: true,
+    installation_guide: `### Overview
+**ReLith** is a modern LithTech 2.x engine for *The Operative: No One Lives Forever* (2000), running standalone on Meta Quest. It is the **engine only** — it ships no game content. You need your own copy of NOLF (original discs or a legally owned install). The engine reads the original \`.REZ\` archives directly.
+
+Official Quest guide: [INSTALL-QUEST.md](https://github.com/alex-nax/relith/blob/master/INSTALL-QUEST.md).
+
+> [!NOTE]
+> First launch **must** grant **All files access**. Until you copy the game archives, you will see **Game data not found** — that is expected.
+
+---
+
+### Prerequisites
+1. Meta Quest (Quest 3 / 3S recommended; Quest 2 works with a known menu-panel issue).
+2. Developer Mode + USB debugging allowed in the headset.
+3. Your own copy of **No One Lives Forever** (PC discs or an owned install).
+4. About **1.1 GB** free on the headset for the game archives.
+
+---
+
+### Step-by-Step Installation
+
+#### 1. Install the APK
+Download **\`relith-nolf-quest-0.4.0.apk\`** via 1-click on QuestPorts or from [GitHub Releases](https://github.com/alex-nax/relith/releases/tag/v0.4.0).
+
+\`\`\`bash
+adb install -r relith-nolf-quest-0.4.0.apk
+\`\`\`
+
+Package name: \`net.relith.nolf\`.
+
+#### 2. Launch once and grant storage
+Open **App Library → Unknown Sources → ReLith**. Grant **Allow access to manage all files**. If the Settings page does not open: **Settings → Apps → Special app access → All files access → ReLith**.
+
+Launch again. You should see **Game data not found**. Close the app — launching created the folder you copy into.
+
+#### 3. Copy game files into \`nolf/\`
+Copy these archives **directly** into \`/sdcard/nolf/\` (a plain folder next to Downloads/Pictures — not a nested subfolder):
+
+| File | Needed? |
+|---|---|
+| \`NOLF.REZ\` | required — the game |
+| \`NOLF2.REZ\` | required — menus, music, interface |
+| \`nolfu003.rez\` | required — v1.003 patch |
+| \`nolfu003cres.rez\` | required — menu text (without it, menus are blank) |
+| \`NOLFGOTY.REZ\` | optional — GOTY bonus chapter *Rest and Relaxation* |
+| \`FontData.fnt\` | optional — ReLith has a fallback |
+
+\`\`\`bash
+adb push NOLF.REZ /sdcard/nolf/
+adb push NOLF2.REZ /sdcard/nolf/
+adb push nolfu003.rez /sdcard/nolf/
+adb push nolfu003cres.rez /sdcard/nolf/
+\`\`\`
+
+**From original discs:** Disc 1 \`Data\\\` has \`NOLF2.REZ\`, \`NOLFGOTY.REZ\`, \`nolfu003.rez\` and the \`*cres.rez\` files. Disc 2 \`Data\\\` has \`NOLF.REZ\`.
+
+Do **not** copy Windows-only leftovers (\`.flt\` filters, \`.M3D\` drivers, \`cshell.dll\`, \`WidescreenGOTY.rez\`, \`EReg/\`, \`Movies/\`, \`Save/\`). **Do not copy MODERNIZER** — it is already bundled in the APK.
+
+If storage permission was never granted, files can also live in \`/sdcard/Android/data/net.relith.nolf/files/nolf/\` (uninstalling then **deletes** that copy).
+
+#### 4. Play
+Launch ReLith again. You should get the main menu.
+
+---
+
+### Upgrading from 0.3.1 or older (one time)
+Those builds used Android’s debug signing key. **0.4.0 is properly signed**, so Android refuses an in-place update (\`INSTALL_FAILED_UPDATE_INCOMPATIBLE\`). Back up saves, uninstall, install, restore — then later releases update normally.
+
+Saves are next to the game files:
+
+- \`/sdcard/nolf/Save/\` (and \`autoexec.cfg\` in \`/sdcard/nolf/\` — unlocked missions live there)
+- or \`/sdcard/Android/data/net.relith.nolf/files/nolf/Save/\` if that is where your data is
+
+\`\`\`bash
+adb pull /sdcard/nolf/Save ./relith-saves
+adb pull /sdcard/nolf/autoexec.cfg .
+adb uninstall net.relith.nolf
+# install 0.4.0, launch once with storage granted, then:
+adb push ./relith-saves/. /sdcard/nolf/Save/
+adb push ./autoexec.cfg /sdcard/nolf/
+\`\`\``,
+    troubleshooting_notes: 'Game data not found after copying: archives must sit directly in /sdcard/nolf/, not a nested folder. Menus with no text: missing nolfu003cres.rez (or nolf003cres.rez / NOLFCRES003.REZ). Bonus chapter greyed out: missing NOLFGOTY.REZ. Storage prompt every launch: All files access did not stick. Quest 2: VR menu panel can render black except the pointer line. Falling into water can apply extra fall damage vs the original. MODERNIZER by HeyThereCoffeee (haekb) is bundled; unofficial fan project, not affiliated with Monolith.'
   }
 ]
 

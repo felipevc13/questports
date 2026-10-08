@@ -104,6 +104,14 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
       expect(picked?.name).toBe('RoadRashJailbreak-0.1.0.zip')
     })
 
+    it('picks the Relith Quest APK over the Windows PCVR zip', () => {
+      const picked = pickPreferredReleaseDownload([
+        { name: 'relith-nolf-windows-vr-0.4.0.zip', browser_download_url: 'https://github.com/alex-nax/relith/releases/download/v0.4.0/relith-nolf-windows-vr-0.4.0.zip' },
+        { name: 'relith-nolf-quest-0.4.0.apk', browser_download_url: 'https://github.com/alex-nax/relith/releases/download/v0.4.0/relith-nolf-quest-0.4.0.apk' }
+      ])
+      expect(picked?.name).toBe('relith-nolf-quest-0.4.0.apk')
+    })
+
     it('still prefers a real APK over a zip when both exist', () => {
       const picked = pickPreferredReleaseDownload([
         { name: 'AstroQuest-0.20-PC-VR-Windows.zip', browser_download_url: 'https://github.com/test/pc.zip' },

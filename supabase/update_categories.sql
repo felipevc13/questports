@@ -42,7 +42,8 @@ UPDATE ports SET category = 'engine_recreation' WHERE slug IN (
   'csvr',
   'questzdoom',
   'gothic2-vr',
-  'questcarnage'
+  'questcarnage',
+  'nolf-vr'
 );
 
 -- 4. Emulators (4)

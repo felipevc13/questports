@@ -47,6 +47,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'iron-lung-vr',
   'jkxr',
   'lambda1vr',
+  'nolf-vr',
   'perfect-dark-vr',
   'ppsspp-vr',
   'preyvr',
@@ -192,5 +193,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Aliens Versus Predator VR (middle 1 minute of the video)
   'avp-vr': { start: '1:25', end: '2:25' },
-  'IxnrIYhSEMs': { start: '1:25', end: '2:25' }
+  'IxnrIYhSEMs': { start: '1:25', end: '2:25' },
+
+  // No One Lives ForeVR (ReLith / NOLF)
+  'nolf-vr': { start: '5:00', end: '6:00' },
+  '6NsGBkCp9ro': { start: '5:00', end: '6:00' }
 }
