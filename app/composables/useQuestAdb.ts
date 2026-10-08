@@ -898,13 +898,31 @@ export const useQuestAdb = () => {
     }
   }
 
+  // Vice City's first launch creates files/ as the app. mkdir before that
+  // makes a directory the game cannot use. See overlay/docs/QUEST_PORT.md.
+  const assertViceCityFilesExist = async (remotePath: string) => {
+    const cleaned = remotePath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
+    const roots = [
+      '/sdcard/Android/data/com.miamivr.quest/files',
+      '/storage/emulated/0/Android/data/com.miamivr.quest/files'
+    ]
+    const root = roots.find(marker => cleaned === marker || cleaned.startsWith(`${marker}/`))
+    if (!root) return
+    const probe = await runShell(`test -d "${root}" && echo yes || echo no`)
+    if (!String(probe).includes('yes')) {
+      throw new Error('Launch Vice City VR once before copying game data. The port says not to create Android/data/com.miamivr.quest/files yourself — the first launch creates that folder.')
+    }
+  }
+
   // Create remote folder on Quest
   const createRemoteDir = async (remotePath: string): Promise<boolean> => {
     if (!isConnected.value || !adbInstance) return false
+    await assertViceCityFilesExist(remotePath)
     try {
       await runShell(`mkdir -p "${remotePath}"`)
       return true
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Launch Vice City VR once')) throw err
       return false
     }
   }

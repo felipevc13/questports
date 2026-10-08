@@ -417,35 +417,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.galaxy.quest',
     installType: 'apk_and_assets',
     workflowType: 'smart_converter',
-    criticalFiles: ['sys/main.dol'],
-    fileGuidance: 'Cook and extract your USA Super Mario Galaxy Wii disc via cook.py into GalaxyQuest/.',
+    criticalFiles: ['sys/fst.bin'],
+    fileGuidance: 'Cook the disc, then push with tools/push_data.py. The app reads /sdcard/Android/data/com.galaxy.quest/files/game/ and looks for sys/fst.bin. /sdcard/GalaxyQuest/ still counts if that folder was chosen earlier. If USB cannot list Android/data, confirm after the push.',
     sourceStoreName: 'Nintendo Wii Disc',
-    targetPath: '/sdcard/GalaxyQuest/',
+    targetPath: '/sdcard/Android/data/com.galaxy.quest/files/game/',
+    altPaths: ['/sdcard/GalaxyQuest/'],
     folders: [
       {
         id: 'gq_sys',
-        name: 'Wii Executable (sys)',
+        name: 'Converted system table (sys)',
         folderName: 'sys',
-        targetPath: '/sdcard/GalaxyQuest/sys/',
-        altPaths: [
-          '/sdcard/GalaxyQuest/sys/',
-          '/sdcard/Android/data/com.galaxy.quest/files/game/sys/'
-        ],
+        targetPath: '/sdcard/Android/data/com.galaxy.quest/files/game/sys/',
+        altPaths: ['/sdcard/GalaxyQuest/sys/'],
         required: true,
-        expectedFiles: ['main.dol'],
-        description: 'Extracted Wii system boot files'
-      },
-      {
-        id: 'gq_files',
-        name: 'Converted Assets (files)',
-        folderName: 'files',
-        targetPath: '/sdcard/GalaxyQuest/files/',
-        altPaths: [
-          '/sdcard/GalaxyQuest/files/',
-          '/sdcard/Android/data/com.galaxy.quest/files/game/files/'
-        ],
-        required: true,
-        description: 'Extracted and byte-swapped Little-Endian assets'
+        expectedFiles: ['fst.bin'],
+        description: 'sys/fst.bin from the cooked game folder. push_data.py refuses a folder without it.'
       }
     ]
   },
@@ -570,60 +556,62 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'pc_builder_required',
     workflowType: 'obb_extractor',
     pcToolName: 'BUILD_AND_INSTALL.bat / .sh',
-    criticalFiles: ['audio/streams/AA'],
-    fileGuidance: 'Extract textures and audio from your legal Android Grand Theft Auto: San Andreas OBB/APK into Android/data/com.rockstargames.gtasa/files/.',
+    criticalFiles: ['assets/texdb/gta3.img'],
+    fileGuidance: 'The build script pushes game data to /sdcard/savr/data_main/assets/ (texdb/gta3.img) and audio to /sdcard/Android/data/com.rockstargames.gtasa/files/audio/. If USB cannot list Android/data, confirm after the installer finishes.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/Android/data/com.rockstargames.gtasa/files/',
+    targetPath: '/sdcard/savr/data_main/',
     folders: [
       {
         id: 'gtasa_texdb',
-        name: 'Textures DB (texdb)',
+        name: 'Game data (texdb)',
         folderName: 'texdb',
-        targetPath: '/sdcard/Android/data/com.rockstargames.gtasa/files/texdb/',
+        targetPath: '/sdcard/savr/data_main/assets/texdb/',
+        campaignId: 'base',
         required: true,
         expectedFiles: ['gta3.img'],
-        description: 'gta3.img, gta_int.img, and texture archives'
+        description: 'texdb/gta3.img inside /sdcard/savr/data_main/assets/'
       },
       {
         id: 'gtasa_audio',
         name: 'Audio Streams & SFX',
         folderName: 'audio',
         targetPath: '/sdcard/Android/data/com.rockstargames.gtasa/files/audio/',
+        campaignId: 'base',
         required: true,
         expectedFiles: ['streams'],
-        description: 'Radio stations, sound effects, and voices'
+        description: 'Audio tree under the GTA SA app files/audio directory'
       }
     ]
   },
   'vice-city-vr-quest': {
     slug: 'vice-city-vr-quest',
-    packageName: 'com.revc.miamivr',
-    altPackages: ['com.rockstargames.gtavc'],
+    packageName: 'com.miamivr.quest',
+    altPackages: ['com.revc.miamivr', 'com.rockstargames.gtavc'],
     installType: 'pc_builder_required',
     workflowType: 'obb_extractor',
     pcToolName: 'BUILD_AND_INSTALL.bat / .sh',
-    criticalFiles: ['audio/streams/ambience'],
-    fileGuidance: 'Extract audio and textures from your legal Android GTA Vice City OBB into Android/data/com.revc.miamivr/files/.',
+    criticalFiles: ['models/gta3.img', 'TEXT/american.gxt'],
+    fileGuidance: 'Launch Vice City VR once before copying anything. Do not create Android/data/com.miamivr.quest/files yourself — the first launch creates it. Game data then belongs in files/gamedata/ (models/gta3.img and TEXT/american.gxt). If USB cannot list Android/data, confirm after the installer finishes.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/Android/data/com.revc.miamivr/files/',
+    targetPath: '/sdcard/Android/data/com.miamivr.quest/files/gamedata/',
     folders: [
       {
-        id: 'gtavc_audio',
-        name: 'Vice City Audio & Radio',
-        folderName: 'audio',
-        targetPath: '/sdcard/Android/data/com.revc.miamivr/files/audio/',
-        required: true,
-        expectedFiles: ['streams'],
-        description: 'Radio stations and SFX'
-      },
-      {
-        id: 'gtavc_data',
-        name: 'Game Data (data)',
-        folderName: 'data',
-        targetPath: '/sdcard/Android/data/com.revc.miamivr/files/data/',
+        id: 'gtavc_models',
+        name: 'Models (gta3.img)',
+        folderName: 'models',
+        targetPath: '/sdcard/Android/data/com.miamivr.quest/files/gamedata/models/',
         required: true,
         expectedFiles: ['gta3.img'],
-        description: 'Game configurations, maps, and models'
+        description: 'models/gta3.img under files/gamedata/'
+      },
+      {
+        id: 'gtavc_text',
+        name: 'Text (american.gxt)',
+        folderName: 'TEXT',
+        targetPath: '/sdcard/Android/data/com.miamivr.quest/files/gamedata/TEXT/',
+        required: true,
+        expectedFiles: ['american.gxt'],
+        description: 'TEXT/american.gxt under files/gamedata/'
       }
     ]
   },
@@ -660,22 +648,10 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'org.timecrisis.quest',
     altPackages: ['com.fabulousmachine.timecrisis'],
     installType: 'direct_apk',
-    workflowType: 'smart_converter',
-    criticalFiles: ['TIME_CRISIS.BIN'],
-    fileGuidance: 'Place your legal copy of Time Crisis PS1/Arcade disc image or extracted BIN data into TimeCrisisVR.',
-    sourceStoreName: 'Other',
-    targetPath: '/sdcard/TimeCrisisVR/',
-    folders: [
-      {
-        id: 'tc_data',
-        name: 'Time Crisis Data',
-        folderName: 'TimeCrisisVR',
-        targetPath: '/sdcard/TimeCrisisVR/',
-        required: true,
-        expectedFiles: ['TIME_CRISIS.BIN'],
-        description: 'Time Crisis game data and audio tracks'
-      }
-    ]
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The release APK bundles the Time Crisis ROM set and prepares it on first start. Install the APK and launch. A separate ROM import is only for an optional ROM-free build, which this catalog does not ask for.',
+    sourceStoreName: 'Other'
   },
   primedgun: {
     slug: 'primedgun',
@@ -914,19 +890,28 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.stakelogic.gothic2vr', 'org.opengothic.quest'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['Data/Gothic.dat'],
-    fileGuidance: 'Copy your Gothic II Gold (Steam or GOG) Data and System directories into Gothic2VR.',
+    criticalFiles: ['Data/Anims.vdf', '_work/Data/Scripts/_compiled/GOTHIC.DAT'],
+    fileGuidance: 'INSTALL.bat stages the private game ZIP in /sdcard/Download/Gothic2VR/ for the in-headset import. After import, the game is /sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/ with Data/*.vdf and _work/Data/Scripts/_compiled/GOTHIC.DAT. If USB cannot list Android/data, confirm after import.',
     sourceStoreName: 'Steam',
-    targetPath: '/sdcard/Gothic2VR/',
+    targetPath: '/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/',
     folders: [
       {
         id: 'gothic2_data',
-        name: 'Gothic II Data',
+        name: 'Gothic II Data archives',
         folderName: 'Data',
-        targetPath: '/sdcard/Gothic2VR/Data/',
+        targetPath: '/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/Data/',
         required: true,
-        expectedFiles: ['Gothic.dat'],
-        description: 'Gothic II Gold Data directory'
+        fileExtensionPattern: '\\.vdf$',
+        description: 'Data/*.vdf (Anims.vdf and the rest of the Night of the Raven set)'
+      },
+      {
+        id: 'gothic2_scripts',
+        name: 'Compiled scripts',
+        folderName: '_compiled',
+        targetPath: '/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/_work/Data/Scripts/_compiled/',
+        required: true,
+        expectedFiles: ['GOTHIC.DAT'],
+        description: '_work/Data/Scripts/_compiled/GOTHIC.DAT'
       }
     ]
   },
@@ -936,19 +921,28 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.stakelogic.harrypottervr', 'com.hpvr.quest'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['System/HP.u'],
-    fileGuidance: "Copy your Harry Potter and the Sorcerer's Stone PC System and Maps directories into HarryPotterVR.",
+    criticalFiles: ['system/HPBase.u', 'system/HarryPotter.u', 'Maps/Lev_Tut1.unr'],
+    fileGuidance: "The imported game lives in /sdcard/Android/data/io.github.hpvr.quest/files/HP/ (system/HPBase.u, system/HarryPotter.u, Maps/Lev_Tut1.unr). Launch once so Android creates the app files folder. If USB cannot list Android/data, confirm after the installer finishes.",
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/HarryPotterVR/',
+    targetPath: '/sdcard/Android/data/io.github.hpvr.quest/files/HP/',
     folders: [
       {
         id: 'hp_system',
-        name: 'System Scripts',
-        folderName: 'System',
-        targetPath: '/sdcard/HarryPotterVR/System/',
+        name: 'System packages',
+        folderName: 'system',
+        targetPath: '/sdcard/Android/data/io.github.hpvr.quest/files/HP/system/',
         required: true,
-        expectedFiles: ['HP.u'],
-        description: 'PC System directory with HP.u'
+        expectedFiles: ['HPBase.u', 'HarryPotter.u'],
+        description: 'system/HPBase.u and system/HarryPotter.u'
+      },
+      {
+        id: 'hp_maps',
+        name: 'Introduction map',
+        folderName: 'Maps',
+        targetPath: '/sdcard/Android/data/io.github.hpvr.quest/files/HP/Maps/',
+        required: true,
+        expectedFiles: ['Lev_Tut1.unr'],
+        description: 'Maps/Lev_Tut1.unr'
       }
     ]
   },
@@ -959,20 +953,22 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'direct_apk',
     workflowType: 'emulator_roms',
     criticalFiles: [],
-    fileGuidance: 'Drop your legal Road Rash: Jailbreak PS1 disc image into RoadRashVR.',
+    fileGuidance: 'The installer copies your disc to /sdcard/Android/data/com.rrjb.vr/files/disc.bin. The game also opens the first .bin or .img in that folder. A .iso does not count — it drops the XA sectors the game streams. If USB cannot list Android/data, confirm after the installer finishes.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/RoadRashVR/',
-    romExtensions: ['.bin', '.cue', '.iso', '.chd', '.pbp'],
-    romDirectories: ['/sdcard/RoadRashVR/'],
+    targetPath: '/sdcard/Android/data/com.rrjb.vr/files/',
+    romExtensions: ['.bin', '.img'],
+    romDirectories: ['/sdcard/Android/data/com.rrjb.vr/files/'],
     folders: [
       {
         id: 'rr_roms',
-        name: 'Road Rash Jailbreak Disc Image',
-        folderName: 'RoadRashVR',
-        targetPath: '/sdcard/RoadRashVR/',
+        name: 'Road Rash Jailbreak disc',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.rrjb.vr/files/',
         required: true,
-        fileExtensionPattern: '\\.(bin|cue|iso|chd|pbp)$',
-        description: 'Legal PS1 Road Rash: Jailbreak disc dump'
+        expectedFiles: ['disc.bin'],
+        fileExtensionPattern: '\\.(bin|img)$',
+        acceptance: 'expected-or-extension',
+        description: 'disc.bin, or the first .bin/.img. .iso is not a valid disc image for this port.'
       }
     ]
   },
@@ -1004,19 +1000,37 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.bassquake.quest.avpvr'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['fastfile/gamedata.ff'],
-    fileGuidance: 'Copy your Aliens Versus Predator Classic 2000 (Steam or GOG) files into AvPVR.',
+    criticalFiles: ['avp_huds/alien.rif', 'avp_rifs/temple.rif', 'fastfile/ffinfo.txt'],
+    fileGuidance: 'Launch the APK once, then copy the Gold edition files into /sdcard/Android/data/com.bassquake.quest.avpvr/files/. A real install has avp_huds/alien.rif, avp_rifs/temple.rif, and fastfile/ffinfo.txt. gamedata.ff is not part of that install. If USB cannot list Android/data, confirm after you have copied the files.',
     sourceStoreName: 'Steam',
-    targetPath: '/sdcard/AvPVR/',
+    targetPath: '/sdcard/Android/data/com.bassquake.quest.avpvr/files/',
     folders: [
       {
-        id: 'avp_fastfile',
-        name: 'AvP Game Data',
-        folderName: 'fastfile',
-        targetPath: '/sdcard/AvPVR/fastfile/',
+        id: 'avp_huds',
+        name: 'HUD models',
+        folderName: 'avp_huds',
+        targetPath: '/sdcard/Android/data/com.bassquake.quest.avpvr/files/avp_huds/',
         required: true,
-        expectedFiles: ['gamedata.ff'],
-        description: 'Original AvP Classic 2000 fastfile data'
+        expectedFiles: ['alien.rif'],
+        description: 'avp_huds/alien.rif from the Gold edition file list'
+      },
+      {
+        id: 'avp_rifs',
+        name: 'Level RIFs',
+        folderName: 'avp_rifs',
+        targetPath: '/sdcard/Android/data/com.bassquake.quest.avpvr/files/avp_rifs/',
+        required: true,
+        expectedFiles: ['temple.rif'],
+        description: 'avp_rifs/temple.rif from the Gold edition file list'
+      },
+      {
+        id: 'avp_fastfile',
+        name: 'Fastfile index',
+        folderName: 'fastfile',
+        targetPath: '/sdcard/Android/data/com.bassquake.quest.avpvr/files/fastfile/',
+        required: true,
+        expectedFiles: ['ffinfo.txt'],
+        description: 'fastfile/ffinfo.txt. The engine locates the game directory with this file, not gamedata.ff.'
       }
     ]
   },

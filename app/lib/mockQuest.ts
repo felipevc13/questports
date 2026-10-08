@@ -581,6 +581,12 @@ export function createMockQuestDevice(scenario: MockQuestScenario): MockQuestDev
         return 'Events injected: 1\n'
       }
 
+      if (cmd.startsWith('test ')) {
+        const target = extractQuoted(cmd)
+        const exists = Boolean(target && fs.list(target) !== null)
+        return exists ? 'yes\n' : 'no\n'
+      }
+
       if (cmd.startsWith('mkdir')) {
         const target = extractQuoted(cmd) || cmd.split(/\s+/).pop() || ''
         if (target) fs.mkdir(target)
