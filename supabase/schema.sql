@@ -44,6 +44,11 @@ create table if not exists public.ports (
   installation_guide text,
   troubleshooting_notes text,
 
+  -- Release metadata shown on the catalog. Present in production; kept here so new databases match.
+  github_url text,
+  last_github_update timestamptz,
+  latest_version text,
+
   -- Metadata
   featured boolean not null default false,
   created_at timestamptz not null default now(),

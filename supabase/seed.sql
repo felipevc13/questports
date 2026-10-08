@@ -139,7 +139,7 @@ INSERT INTO public.ports (
   true,
   '/sdcard/CitraVR/',
   NULL,
-  NULL,
+  'Requires your own 3DS game',
   'https://github.com/amwatson/CitraVR/releases',
   'GitHub Releases',
   true,
@@ -245,8 +245,8 @@ INSERT INTO public.ports (
   ARRAY['Smooth Locomotion', 'Snap Turn'],
   true,
   '/sdcard/preyvr/',
-  NULL,
-  'Original DVD / Archive',
+  'https://en.wikipedia.org/wiki/Prey_(2006_video_game)',
+  'Requires your own original Prey (2006) copy',
   'https://www.patreon.com/teambeef',
   'Team Beef Patreon',
   false,
@@ -451,7 +451,7 @@ INSERT INTO public.ports (
   true,
   '/sdcard/PSP/',
   null,
-  null,
+  'Requires your own PSP game',
   'https://sidequestvr.com/app/12379/ppsspp-vr',
   'SideQuest',
   true,
@@ -476,7 +476,7 @@ INSERT INTO public.ports (
   true,
   '/sdcard/Download/',
   null,
-  null,
+  'Requires your own Windows games',
   'https://sidequestvr.com/app/37320/winlatorxr',
   'SideQuest',
   false,
@@ -500,8 +500,8 @@ INSERT INTO public.ports (
   ARRAY['Roomscale', 'Physical Ducking', 'Cover System'],
   true,
   '/sdcard/TimeCrisisVR/',
-  null,
-  'Namco System 22 Arcade',
+  'https://en.wikipedia.org/wiki/Time_Crisis',
+  'Requires your own original copy',
   'https://github.com/DR-89/time-crisis-vr/releases/latest',
   'GitHub Releases',
   true,
@@ -510,9 +510,9 @@ INSERT INTO public.ports (
 * SideQuest or Android ADB (`platform-tools`).
 
 ### Step-by-Step Installation
-1. Download the latest complete APK (`TimeCrisisVR-v0.8.3-quest3.apk`) from the official [GitHub Releases](https://github.com/DR-89/time-crisis-vr/releases/latest).
+1. Download the latest Quest APK (`TimeCrisisVR-*-quest.apk`) from the official [GitHub Releases](https://github.com/DR-89/time-crisis-vr/releases/latest).
 2. Connect your Quest 3 via USB and install via SideQuest or terminal:
-   `adb install -r TimeCrisisVR-v0.8.3-quest3.apk`
+   `adb install -r TimeCrisisVR-*-quest.apk`
 3. Launch the game from **Unknown Sources → Time Crisis VR (Experimental)**. The complete APK extracts bundled game files automatically.
 4. On the arcade boot screen, press **A (Right Controller)** to insert credits, then press **Right Trigger** to start the mission!
 
@@ -521,7 +521,7 @@ INSERT INTO public.ports (
 * **A (Right)**: Insert arcade credits
 * **B (Right)**: Toggle silent laser pointer
 * **Left Trigger / Physical Ducking**: Hold left trigger to leave cover and shoot; release to duck/reload. Alternatively, enable **Physical Ducking** in the menu (press Left Menu button) and press **X** while upright to calibrate height!',
-  'Target framerate is 120 Hz. Ensure you are on the latest v0.8.3+ APK build which boots directly into immersive VR mode without flat-screen regressions.'
+  'Target framerate is 120 Hz. Use the latest Quest APK from Releases. That build boots directly into immersive VR mode without flat-screen regressions.'
 ),
 (
   'primedgun',
@@ -537,9 +537,9 @@ INSERT INTO public.ports (
   ARRAY['Smooth Locomotion', 'Snap Turn', 'Roomscale'],
   true,
   '/sdcard/PrimedGun/',
-  null,
-  'Nintendo GameCube',
-  'https://github.com/Nobbie248/PrimedGun/releases/latest',
+  'https://en.wikipedia.org/wiki/Metroid_Prime',
+  'Requires your own original GameCube copy',
+  'https://github.com/Nobbie248/PrimedGun/releases/download/v1.1.7/primedgun-quest-release.apk',
   'GitHub Releases',
   true,
   '### Prerequisites
@@ -548,7 +548,7 @@ INSERT INTO public.ports (
 * SideQuest or Android ADB (`platform-tools`).
 
 ### Step-by-Step Installation
-1. Download the latest standalone Quest APK (`primedgun-quest-release.apk`) from [GitHub Releases](https://github.com/Nobbie248/PrimedGun/releases/latest).
+1. Download the Quest APK (`primedgun-quest-release.apk`) from the Quest release [v1.1.7](https://github.com/Nobbie248/PrimedGun/releases/tag/v1.1.7). The newer Windows tag is not a Quest APK.
 2. Connect your Meta Quest via USB and install the APK via SideQuest or terminal:
    `adb install -r primedgun-quest-release.apk`
 3. Transfer your `Metroid Prime (USA) (Rev 0).iso` backup into `/sdcard/PrimedGun/` (or any accessible folder on your headset storage).
@@ -578,8 +578,8 @@ INSERT INTO public.ports (
   ARRAY['Seated', 'Roomscale'],
   true,
   '/sdcard/Android/data/com.astrobotquest.vrhost/files/',
-  null,
-  'PlayStation 4 / PS VR',
+  'https://store.playstation.com/en-gb/product/EP9000-CUSA12392_00-PLATFORMERVR00EU/',
+  'PlayStation Store',
   'https://github.com/bigmak94/AstroQuest/releases/latest',
   'GitHub Releases',
   true,
@@ -590,9 +590,9 @@ INSERT INTO public.ports (
 * SideQuest or Android ADB (`platform-tools`).
 
 ### Step-by-Step Installation
-1. Download the latest standalone Quest APK (`AstroQuest-0.13-Quest3.apk`) from [GitHub Releases](https://github.com/bigmak94/AstroQuest/releases/latest).
+1. Download the latest standalone Quest APK (`AstroQuest-*-Quest3.apk`) from [GitHub Releases](https://github.com/bigmak94/AstroQuest/releases/latest).
 2. Install the APK to your Quest 3 via SideQuest or command line:
-   `adb install -r AstroQuest-0.13-Quest3.apk`
+   `adb install -r AstroQuest-*-Quest3.apk`
 3. Pair your **PS5 DualSense controller** to the Quest 3:
    * On Quest: Go to **Settings → Bluetooth → Pair new device**.
    * On DualSense: Hold **Create (Share) + PS Button** until the light bar flashes rapidly.

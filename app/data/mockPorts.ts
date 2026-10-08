@@ -135,7 +135,7 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/CitraVR/',
     base_game_url: null,
-    base_game_store: null,
+    base_game_store: 'Requires your own 3DS game',
     port_download_url: 'https://github.com/amwatson/CitraVR/releases',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/amwatson/CitraVR',
@@ -261,8 +261,8 @@ export const INITIAL_PORTS: Port[] = [
     locomotion_types: ['Smooth Locomotion', 'Snap Turn'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/preyvr/',
-    base_game_url: null,
-    base_game_store: 'Original DVD / Archive',
+    base_game_url: 'https://en.wikipedia.org/wiki/Prey_(2006_video_game)',
+    base_game_store: 'Requires your own original Prey (2006) copy',
     port_download_url: 'https://sidequestvr.com/app/23478/prey-vr',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/lvonasek/PreyVR',
@@ -502,7 +502,7 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/PSP/',
     base_game_url: null,
-    base_game_store: null,
+    base_game_store: 'Requires your own PSP game',
     port_download_url: 'https://sidequestvr.com/app/12379/ppsspp-vr',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/hrydgard/ppsspp',
@@ -532,7 +532,7 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Download/',
     base_game_url: null,
-    base_game_store: null,
+    base_game_store: 'Requires your own Windows games',
     port_download_url: 'https://sidequestvr.com/app/37320/winlatorxr',
     port_download_source: 'SideQuest',
     github_url: 'https://github.com/WinlatorXR/WinlatorXR',
@@ -561,22 +561,22 @@ export const INITIAL_PORTS: Port[] = [
     locomotion_types: ['Roomscale', 'Physical Ducking', 'Cover System'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/TimeCrisisVR/',
-    base_game_url: null,
-    base_game_store: 'Namco System 22 Arcade',
+    base_game_url: 'https://en.wikipedia.org/wiki/Time_Crisis',
+    base_game_store: 'Requires your own original copy',
     port_download_url: 'https://github.com/DR-89/time-crisis-vr/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/DR-89/time-crisis-vr',
-    latest_version: 'v0.8.3',
-    last_github_update: '2026-10-04T22:29:35Z',
+    latest_version: 'v0.8.4',
+    last_github_update: '2026-10-07T16:17:58Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 3 or Quest 3S with Developer Mode enabled.
 * SideQuest or Android ADB (\`platform-tools\`).
 
 ### Step-by-Step Installation
-1. Download the latest complete APK (\`TimeCrisisVR-v0.8.3-quest3.apk\`) from the official [GitHub Releases](https://github.com/DR-89/time-crisis-vr/releases/latest).
+1. Download the latest Quest APK (\`TimeCrisisVR-*-quest.apk\`) from the official [GitHub Releases](https://github.com/DR-89/time-crisis-vr/releases/latest).
 2. Connect your Quest 3 via USB and install via SideQuest or terminal:
-   \`adb install -r TimeCrisisVR-v0.8.3-quest3.apk\`
+   \`adb install -r TimeCrisisVR-*-quest.apk\`
 3. Launch the game from **Unknown Sources → Time Crisis VR (Experimental)**. The complete APK extracts bundled game files automatically.
 4. On the arcade boot screen, press **A (Right Controller)** to insert credits, then press **Right Trigger** to start the mission!
 
@@ -585,7 +585,7 @@ export const INITIAL_PORTS: Port[] = [
 * **A (Right)**: Insert arcade credits
 * **B (Right)**: Toggle silent laser pointer
 * **Left Trigger / Physical Ducking**: Hold left trigger to leave cover and shoot; release to duck/reload. Alternatively, enable **Physical Ducking** in the menu (press Left Menu button) and press **X** while upright to calibrate height!`,
-    troubleshooting_notes: 'Target framerate is 120 Hz. Ensure you are on the latest v0.8.3+ APK build which boots directly into immersive VR mode without flat-screen regressions.'
+    troubleshooting_notes: 'Target framerate is 120 Hz. Use the latest Quest APK from Releases. That build boots directly into immersive VR mode without flat-screen regressions.'
   },
   {
     id: '18',
@@ -603,9 +603,9 @@ export const INITIAL_PORTS: Port[] = [
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/PrimedGun/',
-    base_game_url: null,
-    base_game_store: 'Nintendo GameCube',
-    port_download_url: 'https://github.com/Nobbie248/PrimedGun/releases/latest',
+    base_game_url: 'https://en.wikipedia.org/wiki/Metroid_Prime',
+    base_game_store: 'Requires your own original GameCube copy',
+    port_download_url: 'https://github.com/Nobbie248/PrimedGun/releases/download/v1.1.7/primedgun-quest-release.apk',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/Nobbie248/PrimedGun',
     latest_version: 'v1.1.7',
@@ -617,7 +617,7 @@ export const INITIAL_PORTS: Port[] = [
 * SideQuest or Android ADB (\`platform-tools\`).
 
 ### Step-by-Step Installation
-1. Download the latest standalone Quest APK (\`primedgun-quest-release.apk\`) from [GitHub Releases](https://github.com/Nobbie248/PrimedGun/releases/latest).
+1. Download the Quest APK (\`primedgun-quest-release.apk\`) from the Quest release [v1.1.7](https://github.com/Nobbie248/PrimedGun/releases/tag/v1.1.7). The newer Windows tag is not a Quest APK.
 2. Connect your Meta Quest via USB and install the APK via SideQuest or terminal:
    \`adb install -r primedgun-quest-release.apk\`
 3. Transfer your \`Metroid Prime (USA) (Rev 0).iso\` backup into \`/sdcard/PrimedGun/\` (or any accessible folder on your headset storage).
@@ -649,13 +649,13 @@ export const INITIAL_PORTS: Port[] = [
     locomotion_types: ['Seated', 'Roomscale'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Android/data/com.astrobotquest.vrhost/files/',
-    base_game_url: null,
-    base_game_store: 'PlayStation 4 / PS VR',
+    base_game_url: 'https://store.playstation.com/en-gb/product/EP9000-CUSA12392_00-PLATFORMERVR00EU/',
+    base_game_store: 'PlayStation Store',
     port_download_url: 'https://github.com/bigmak94/AstroQuest/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/bigmak94/AstroQuest',
-    latest_version: 'v0.13',
-    last_github_update: '2026-10-03T15:42:53Z',
+    latest_version: 'v0.20',
+    last_github_update: '2026-10-06T18:45:57Z',
     featured: true,
     installation_guide: `### Prerequisites
 * **Meta Quest 3 or Quest 3S** (Quest 2 is not supported due to high CPU/GPU requirements of PS4 emulation).
@@ -664,9 +664,9 @@ export const INITIAL_PORTS: Port[] = [
 * SideQuest or Android ADB (\`platform-tools\`).
 
 ### Step-by-Step Installation
-1. Download the latest standalone Quest APK (\`AstroQuest-0.13-Quest3.apk\`) from [GitHub Releases](https://github.com/bigmak94/AstroQuest/releases/latest).
+1. Download the latest standalone Quest APK (\`AstroQuest-*-Quest3.apk\`) from [GitHub Releases](https://github.com/bigmak94/AstroQuest/releases/latest).
 2. Install the APK to your Quest 3 via SideQuest or command line:
-   \`adb install -r AstroQuest-0.13-Quest3.apk\`
+   \`adb install -r AstroQuest-*-Quest3.apk\`
 3. Pair your **PS5 DualSense controller** to the Quest 3:
    * On Quest: Go to **Settings → Bluetooth → Pair new device**.
    * On DualSense: Hold **Create (Share) + PS Button** until the light bar flashes rapidly.
@@ -751,13 +751,13 @@ export const INITIAL_PORTS: Port[] = [
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'VR Steering Wheel', 'Roomscale', 'Seated Mode'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/SimpsonsHitRun/',
-    base_game_url: 'https://www.myabandonware.com/game/the-simpsons-hit-run-bg6',
-    base_game_store: 'PC CD-ROM / Retail',
-    port_download_url: 'https://github.com/kote2345/The-Simpsons-Hit-and-Run-VR/releases/tag/Beta1.1',
+    base_game_url: 'https://en.wikipedia.org/wiki/The_Simpsons:_Hit_%26_Run',
+    base_game_store: 'Requires your own original PC copy',
+    port_download_url: 'https://github.com/kote2345/The-Simpsons-Hit-and-Run-VR/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/kote2345/The-Simpsons-Hit-and-Run-VR',
-    latest_version: 'Beta 1.1',
-    last_github_update: '2026-08-26T21:28:06Z',
+    latest_version: '1.2',
+    last_github_update: '2026-08-27T20:58:20Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, Quest 3, Quest 3S, or Quest Pro with Developer Mode enabled.
@@ -766,11 +766,11 @@ export const INITIAL_PORTS: Port[] = [
 
 ### Step-by-Step Installation Guide
 1. **Download the VR APK:**
-   Get the latest \`SimpsonsHitRun_1.1.apk\` from [GitHub Releases](https://github.com/kote2345/The-Simpsons-Hit-and-Run-VR/releases/tag/Beta1.1).
+   Get the latest \`SimpsonsHitRun_*.apk\` from [GitHub Releases](https://github.com/kote2345/The-Simpsons-Hit-and-Run-VR/releases/latest).
 2. **Install the APK:**
    Sideload the APK onto your Meta Quest using SideQuest or ADB:
    \`\`\`bash
-   adb install -r SimpsonsHitRun_1.1.apk
+   adb install -r SimpsonsHitRun_*.apk
    \`\`\`
 3. **Create the Game Directory:**
    On your Quest internal storage, create a folder named \`SimpsonsHitRun\`:
@@ -804,12 +804,12 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Documents/HaloCE/',
     base_game_url: 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved',
-    base_game_store: 'Original Xbox disc (ISO/XISO dump)',
+    base_game_store: 'Requires your own original Xbox copy',
     port_download_url: 'https://github.com/moistman42069/HaloCE-Quest-VR/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/moistman42069/HaloCE-Quest-VR',
     latest_version: 'v1.0.16',
-    last_github_update: '2026-10-08T02:13:00Z',
+    last_github_update: '2026-10-08T02:13:04Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, Quest 3, Quest 3S, or Quest Pro with Developer Mode enabled.
@@ -818,11 +818,11 @@ export const INITIAL_PORTS: Port[] = [
 
 ### Step-by-Step Installation Guide
 1. **Download the VR APK:**
-   Download \`HaloCE-Quest-1.0.16.apk\` (package \`com.halo.decomp.vr\`) from [GitHub Releases](https://github.com/moistman42069/HaloCE-Quest-VR/releases/latest). Use the **Quest** APK, not the Android/flat build.
+   Download the latest \`HaloCE-Quest-*.apk\` (package \`com.halo.decomp.vr\`) from [GitHub Releases](https://github.com/moistman42069/HaloCE-Quest-VR/releases/latest). Use the **Quest** APK, not the Android/flat build.
 2. **Install the APK:**
    Sideload the APK onto your Meta Quest using SideQuest or ADB:
    \`\`\`bash
-   adb install -r HaloCE-Quest-1.0.16.apk
+   adb install -r HaloCE-Quest-*.apk
    \`\`\`
 3. **Import Game Files:**
    * Transfer your Halo CE Xbox ISO/XISO file to your Quest storage (e.g., inside \`Download/\`).
@@ -843,7 +843,7 @@ export const INITIAL_PORTS: Port[] = [
   * **Physical Crouch:** Physically squat or use thumbstick crouch.
   * **Motion Melee:** Swing your rifle or fist to pistol-whip Grunts and Elites.
 * **Multiplayer & Co-op:** Join native PvP servers or host experimental co-op campaign sessions with fellow Quest players.`,
-    troubleshooting_notes: 'Use an original Xbox ISO or XISO image for data extraction. If NPC or model presentation desyncs during co-op, ensure both players are on the exact same build (test14). Recenter standing height anytime by clicking both thumbsticks.'
+    troubleshooting_notes: 'Use an original Xbox ISO or XISO image for data extraction. If NPC or model presentation desyncs during co-op, ensure both players are on the exact same build. Recenter standing height anytime by clicking both thumbsticks.'
   },
   {
     id: '23',
@@ -862,12 +862,12 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/GalaxyQuest/',
     base_game_url: 'https://en.wikipedia.org/wiki/Super_Mario_Galaxy',
-    base_game_store: 'Nintendo Wii Disc (ISO/RVZ/WBFS)',
+    base_game_store: 'Requires your own original Wii copy',
     port_download_url: 'https://github.com/bigmak94/GalaxyQuest/releases/latest/download/GalaxyQuest.apk',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/bigmak94/GalaxyQuest',
-    latest_version: 'v0.1.3',
-    last_github_update: '2026-10-01T02:29:04Z',
+    latest_version: 'v0.1.8',
+    last_github_update: '2026-10-03T20:28:59Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, Quest 3, Quest 3S, or Quest Pro with Developer Mode enabled.
@@ -928,8 +928,8 @@ export const INITIAL_PORTS: Port[] = [
     port_download_url: 'https://github.com/tinsarfal/Qualyx/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/tinsarfal/Qualyx',
-    latest_version: '1.0.50',
-    last_github_update: '2026-09-23T18:30:24Z',
+    latest_version: '1.0.84',
+    last_github_update: '2026-10-04T05:13:33Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, Quest 3, Quest 3S, or Quest Pro with Developer Mode enabled.
@@ -939,11 +939,11 @@ export const INITIAL_PORTS: Port[] = [
 
 ### Step-by-Step Installation Guide
 1. **Download the VR APK:**
-   Download \`Qualyx-1.0.50.apk\` from [GitHub Releases](https://github.com/tinsarfal/Qualyx/releases/latest).
+   Download the latest \`Qualyx-*.apk\` from [GitHub Releases](https://github.com/tinsarfal/Qualyx/releases/latest).
 2. **Install the APK:**
    Sideload the APK onto your Meta Quest using SideQuest or ADB:
    \`\`\`bash
-   adb install -r Qualyx-1.0.50.apk
+   adb install -r Qualyx-*.apk
    \`\`\`
 3. **Copy Game Files from PC:**
    Locate your Steam installation folder (typically \`Steam/steamapps/common/Half-Life Alyx/game/\`).
@@ -982,12 +982,12 @@ export const INITIAL_PORTS: Port[] = [
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Android/data/com.gevr.port/files/data/',
     base_game_url: 'https://en.wikipedia.org/wiki/GoldenEye_007_(1997_video_game)',
-    base_game_store: 'Nintendo 64 ROM (NTSC-U USA)',
+    base_game_store: 'Requires your own original N64 copy',
     port_download_url: 'https://github.com/MrSco/goldeneye-vr/releases/latest',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/MrSco/goldeneye-vr',
-    latest_version: 'v0.1.11',
-    last_github_update: '2026-09-25T01:37:52Z',
+    latest_version: 'v0.4.13',
+    last_github_update: '2026-10-08T11:36:09Z',
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, Quest 3, Quest 3S, or Quest Pro with Developer Mode enabled.
@@ -997,11 +997,11 @@ export const INITIAL_PORTS: Port[] = [
 
 ### Step-by-Step Installation Guide
 1. **Download the VR APK:**
-   Download the latest \`GoldenEye-VR-v0.1.11.apk\` from [GitHub Releases](https://github.com/MrSco/goldeneye-vr/releases/latest) or [goldeneyevr.com](https://goldeneyevr.com).
+   Download the latest \`GoldenEye-VR-*.apk\` from [GitHub Releases](https://github.com/MrSco/goldeneye-vr/releases/latest) or [goldeneyevr.com](https://goldeneyevr.com).
 2. **Install the APK:**
    Sideload the APK onto your headset using SideQuest or ADB:
    \`\`\`bash
-   adb install -r GoldenEye-VR-v0.1.11.apk
+   adb install -r GoldenEye-VR-*.apk
    \`\`\`
 3. **Copy your USA ROM to your Headset:**
    Copy your USA ROM into the Quest **Download** folder, open the app, and press **Choose ROM file...**. The launcher copies it to \`/sdcard/Android/data/com.gevr.port/files/data/ge.z64\`. After the app has been opened once you can also push it directly:
@@ -1019,7 +1019,7 @@ export const INITIAL_PORTS: Port[] = [
 * **Realistic Scopes & Ejection:** True-to-life 4.4x–25x magnification on the sniper rifle and working ejection ports for spent shell casings.
 * **Optional HD & AI Texture Packs:** Download high-resolution AI upscaled textures directly within the in-VR launcher.
 * **Multiplayer:** 8-player online/Wi-Fi deathmatch and 4-player co-op campaign!`,
-    troubleshooting_notes: 'Only the USA (NTSC-U) ROM is supported. Updating APKs with SideQuest retains your ROM and save data. If distant scenery pops on older builds, ensure you are running v0.1.11 or later.'
+    troubleshooting_notes: 'Only the USA (NTSC-U) ROM is supported. Updating APKs with SideQuest retains your ROM and save data. If distant scenery pops on older builds, install the latest Quest APK from Releases.'
   },
   {
     id: '26',
@@ -1039,7 +1039,7 @@ export const INITIAL_PORTS: Port[] = [
     internal_storage_path: '/sdcard/Android/data/com.github.maranone.questcarnage/files/',
     base_game_url: 'https://store.steampowered.com/app/282010/Carmageddon_Max_Pack/',
     base_game_store: 'Steam / GOG',
-    port_download_url: 'https://github.com/maranone/carnage/releases/latest',
+    port_download_url: 'https://github.com/maranone/carnage/releases/download/b003/QuestCarnage-Meta-Quest-release.apk',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/maranone/carnage',
     latest_version: 'b003',
@@ -1052,7 +1052,7 @@ export const INITIAL_PORTS: Port[] = [
 
 ### Step-by-Step Installation Guide
 1. **Download the VR APK:**
-   Download the latest \`QuestCarnage-Meta-Quest-release.apk\` from [GitHub Releases (b003)](https://github.com/maranone/carnage/releases/latest).
+   Download \`QuestCarnage-Meta-Quest-release.apk\` from the Quest release [b003](https://github.com/maranone/carnage/releases/tag/b003). Later tags can be PC-only.
 2. **Install the APK:**
    Sideload the APK onto your Meta Quest using SideQuest or ADB:
    \`\`\`bash
@@ -1210,7 +1210,7 @@ To update to future releases without redownloading game assets, simply connect y
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
     base_game_url: 'https://www.mobygames.com/game/1597/gran-turismo-2/',
-    base_game_store: 'PlayStation PS1 Disc (BIN/CUE)',
+    base_game_store: 'Requires your own original PS1 copy',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/gt-2-pc',
     latest_version: 'v0.8.1',
     last_github_update: '2026-09-30T11:19:02Z',
@@ -1338,7 +1338,7 @@ To update to future releases without redownloading game assets, simply connect y
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/HarryPotterVR/',
     base_game_url: 'https://www.mobygames.com/game/5501/harry-potter-and-the-sorcerers-stone/',
-    base_game_store: 'PC CD-ROM (US Release)',
+    base_game_store: 'Requires your own original PC copy',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/harry-potter-vr',
     latest_version: 'v0.1.4.1',
     last_github_update: '2026-09-23T22:21:18Z',
@@ -1401,7 +1401,7 @@ To update to future releases without redownloading game assets, simply connect y
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/RoadRashVR/',
     base_game_url: 'https://www.mobygames.com/game/3773/road-rash-jailbreak/',
-    base_game_store: 'PlayStation PS1 Disc (SLUS-01053)',
+    base_game_store: 'Requires your own original PS1 copy (SLUS-01053)',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/road-rash-jailbreak',
     latest_version: 'v0.1.0',
     last_github_update: '2026-10-02T20:49:06Z',
@@ -1463,12 +1463,12 @@ To update to future releases without redownloading game assets, simply connect y
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Android/data/com.perfectdark.port/files/data/',
     base_game_url: 'https://en.wikipedia.org/wiki/Perfect_Dark',
-    base_game_store: 'Nintendo 64 ROM (NTSC Final .z64)',
-    port_download_url: 'https://github.com/Alex-LeTux/perfect_dark_VR/releases/download/v1.1-beta/Perfect_Dark_VR_Standalone_v1.1-beta.apk',
+    base_game_store: 'Requires your own original N64 copy',
+    port_download_url: 'https://github.com/Alex-LeTux/perfect_dark_VR/releases/latest',
     port_download_source: 'GitHub Releases (APK)',
     github_url: 'https://github.com/Alex-LeTux/perfect_dark_VR',
-    latest_version: 'v1.1-beta',
-    last_github_update: '2026-07-01T06:24:00Z',
+    latest_version: 'v2.0',
+    last_github_update: '2026-10-07T19:21:20Z',
     featured: true,
     installation_guide: `### Overview
 **Perfect Dark VR** is a native standalone 6DoF VR source port of Rare's classic Nintendo 64 first-person shooter *Perfect Dark* (2000), running directly on Meta Quest headsets with full motion controller tracking, immersive weapon handling, and dual wielding.
@@ -1488,10 +1488,10 @@ To update to future releases without redownloading game assets, simply connect y
 ### Step-by-Step Installation Guide
 
 #### 1. Sideload the Standalone APK
-- Download **\`Perfect_Dark_VR_Standalone_v1.1-beta.apk\`** from [GitHub Releases](https://github.com/Alex-LeTux/perfect_dark_VR/releases/tag/v1.1-beta).
+- Download the latest NTSC standalone APK, **\`Perfect_Dark_VR_Standalone-NTSC_*.apk\`**, from [GitHub Releases](https://github.com/Alex-LeTux/perfect_dark_VR/releases/latest). Do not install the JPN or PAL builds.
 - Sideload the APK onto your Meta Quest using **SideQuest** or run:
   \`\`\`bash
-  adb install -r Perfect_Dark_VR_Standalone_v1.1-beta.apk
+  adb install -r Perfect_Dark_VR_Standalone-NTSC_*.apk
   \`\`\`
 
 #### 2. Copy the ROM to Your Headset
@@ -1518,7 +1518,7 @@ This VR port includes full support for the **Community Texture Packs** maintaine
 * **6DoF Aiming & Dual Wielding:** Aim independently with each Touch controller, including dual CMP-150s, Falcon 2s, or Magnums.
 * **Full Locomotion & Turning:** Smooth thumbstick locomotion with customizable snap or smooth turning.
 * **Roomscale Tracking:** Duck behind cover and physically lean around corners in Carrington Institute and combat missions.`,
-    troubleshooting_notes: 'Requires North American / NTSC Final ROM (PAL and Japanese ROMs are not supported). If you experience an infinite reload loop on older versions, ensure you are using v1.1-beta or later.'
+    troubleshooting_notes: 'Requires North American / NTSC Final ROM (PAL and Japanese ROMs are not supported). Install the NTSC standalone APK, not the JPN or PAL build. If you experience an infinite reload loop on older versions, install the latest release.'
   },
   {
     id: '34',
@@ -1538,11 +1538,11 @@ This VR port includes full support for the **Community Texture Packs** maintaine
     internal_storage_path: '/sdcard/AvPVR/',
     base_game_url: 'https://store.steampowered.com/app/3730/Aliens_versus_Predator_Classic_2000/',
     base_game_store: 'Steam (AvP Classic 2000) / GOG / PC CD-ROM',
-    port_download_url: 'https://github.com/Bassquake/Aliens-Versus-Predator-VR/releases/download/0.2/avpvr-0.2-arm64-v8a-release.apk',
+    port_download_url: 'https://github.com/Bassquake/Aliens-Versus-Predator-VR/releases/latest',
     port_download_source: 'GitHub Releases (APK)',
     github_url: 'https://github.com/Bassquake/Aliens-Versus-Predator-VR',
-    latest_version: '0.2',
-    last_github_update: '2026-06-30T08:29:43Z',
+    latest_version: '1.1',
+    last_github_update: '2026-10-07T17:10:06Z',
     featured: true,
     installation_guide: `### Overview
 **Aliens Versus Predator VR (AvP VR)** is a native standalone 6DoF OpenXR port of Rebellion's classic sci-fi survival horror FPS *Aliens Versus Predator* (1999), running directly on Meta Quest headsets. Play three distinct campaigns with full VR immersion: Colonial Marine, Xenomorph Alien, and Predator.
@@ -1562,8 +1562,8 @@ This VR port includes full support for the **Community Texture Packs** maintaine
 ### Step-by-Step Installation Guide
 
 #### 1. Sideload the VR APK
-- Download **\`avpvr-0.2-arm64-v8a-release.apk\`** from [GitHub Releases](https://github.com/Bassquake/Aliens-Versus-Predator-VR/releases/tag/0.2).
-- Install the APK on your headset using **SideQuest** (or via ADB: \`adb install -r avpvr-0.2-arm64-v8a-release.apk\`).
+- Download the latest Quest APK, **\`avpvr-*-quest-*.apk\`**, from [GitHub Releases](https://github.com/Bassquake/Aliens-Versus-Predator-VR/releases/latest).
+- Install the APK on your headset using **SideQuest** (or via ADB: \`adb install -r avpvr-*-quest-*.apk\`).
 
 #### 2. First Launch (Initialize Folders)
 - Put on your headset and launch **Aliens Versus Predator: VR** from **App Library → Unknown Sources**.
@@ -1613,11 +1613,11 @@ This VR port includes full support for the **Community Texture Packs** maintaine
     internal_storage_path: '/sdcard/Android/data/com.github.maranone.questsam/files/',
     base_game_url: 'https://store.steampowered.com/app/41050/Serious_Sam_Classic_The_First_Encounter/',
     base_game_store: 'Steam / GOG (Serious Sam Classic: TFE / TSE)',
-    port_download_url: 'https://github.com/maranone/QuestSam/releases/download/b002/questsam.apk',
+    port_download_url: 'https://github.com/maranone/QuestSam/releases/latest',
     port_download_source: 'GitHub Releases (APK)',
     github_url: 'https://github.com/maranone/QuestSam',
-    latest_version: 'b002',
-    last_github_update: '2026-09-09T11:26:47Z',
+    latest_version: 'b004',
+    last_github_update: '2026-09-20T16:39:29Z',
     featured: true,
     installation_guide: `### Overview
 **QuestSam** is a free, open-source standalone 6DoF VR source port of Croteam's legendary arcade FPS classics: **Serious Sam Classic: The First Encounter (TFE)** and **Serious Sam Classic: The Second Encounter (TSE)**, running natively on Meta Quest without a PC.
@@ -1637,7 +1637,7 @@ This VR port includes full support for the **Community Texture Packs** maintaine
 ### Step-by-Step Installation Guide
 
 #### 1. Sideload the Standalone APK
-- Download **\`questsam.apk\`** from [GitHub Releases](https://github.com/maranone/QuestSam/releases/tag/b002).
+- Download **\`questsam.apk\`** from [GitHub Releases](https://github.com/maranone/QuestSam/releases/latest).
 - Install the APK using **SideQuest** or run:
   \`\`\`bash
   adb install -r questsam.apk
@@ -1752,12 +1752,12 @@ Trapped inside a blind, creaking submarine nicknamed the "Iron Lung", you must n
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Smooth Turn', 'Roomscale'],
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/Android/data/com.ghwstvr.ut99quest/files/UT99/',
-    base_game_url: 'https://www.gog.com/game/unreal_tournament_goty',
-    base_game_store: 'GOG / Steam / CD',
+    base_game_url: 'https://en.wikipedia.org/wiki/Unreal_Tournament',
+    base_game_store: 'Requires your own original PC copy',
     port_download_url: 'https://ut99vr.pages.dev/ut99quest.apk',
     port_download_source: 'Official Portal (ut99vr.pages.dev)',
     github_url: 'https://ut99vr.pages.dev',
-    latest_version: 'v1.0.2',
+    latest_version: 'v1.1.0',
     last_github_update: '2026-10-06T12:00:00Z',
     featured: true,
     installation_guide: `### Overview
@@ -1828,7 +1828,7 @@ Ensure the \`System\` folder contains \`Core.u\`, \`Engine.u\`, and \`Botpack.u\
     has_6dof_controls: true,
     internal_storage_path: '/sdcard/nolf/',
     base_game_url: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
-    base_game_store: 'PC CD-ROM / GOG (owned copies)',
+    base_game_store: 'Requires your own original PC copy',
     port_download_url: 'https://github.com/alex-nax/relith/releases/download/v0.4.0/relith-nolf-quest-0.4.0.apk',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/alex-nax/relith',

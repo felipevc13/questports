@@ -1022,10 +1022,14 @@
             class="w-full flex items-center justify-between text-xs py-2 px-3 rounded-lg border border-border hover:bg-muted/50 transition-colors text-foreground"
           >
             <div class="flex items-center gap-2">
-              <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg v-if="isLegitimateStoreUrl(port.base_game_url)" class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <span>Buy Base Game ({{ port.base_game_store || 'Store' }})</span>
+              <svg v-else class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span v-if="isLegitimateStoreUrl(port.base_game_url)">Buy Base Game ({{ port.base_game_store || 'Store' }})</span>
+              <span v-else>About the original game</span>
             </div>
             <span class="text-muted-foreground">↗</span>
           </a>
@@ -1104,7 +1108,7 @@
                     rel="noopener noreferrer"
                     class="text-[10px] text-primary hover:underline font-mono"
                   >
-                    Store Page ↗
+                    {{ isLegitimateStoreUrl(port.base_game_url) ? 'Store Page ↗' : 'About ↗' }}
                   </a>
                 </div>
               </div>
@@ -1170,9 +1174,9 @@
                       rel="noopener noreferrer"
                       @click.stop
                       class="text-[10px] text-primary hover:underline font-mono shrink-0"
-                      title="View on Store"
+                      :title="isLegitimateStoreUrl(c.storeUrl) ? 'View on Store' : 'About the original game'"
                     >
-                      {{ c.storeName }} ↗
+                      {{ isLegitimateStoreUrl(c.storeUrl) ? c.storeName : 'About' }} ↗
                     </a>
                   </div>
                   <div class="font-mono text-[10px] text-muted-foreground/90 truncate">
@@ -1247,6 +1251,7 @@ import { useQuestAdb } from '~/composables/useQuestAdb'
 import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
+import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
 
 const route = useRoute()
