@@ -1,10 +1,23 @@
 import { ref, computed } from 'vue'
+import { QUEST_NO_DEVICE_HINT, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
 import {
-  QUEST_NO_DEVICE_HINT,
-  connectPreviewState,
-  isUsbChooserDismissed,
-  parseConnectPreview
-} from '~/lib/questConnectUx'
+  activateMockDevice,
+  armMockInstall,
+  cancelPendingMockChoice,
+  clearMockDevice,
+  connectionErrorForNext,
+  connectionErrorForPhase,
+  isMockQuestEnabled,
+  mockAdbFromDevice,
+  mockApkProxyResponse,
+  mockHoldAfterSuccessfulInstall,
+  mockOverlay,
+  mockScenarioRevision,
+  readMockScenario,
+  waitForMockChoice,
+  writeMockSearch
+} from '~/lib/mockQuest'
 
 export interface InstallProgress {
   title: string
@@ -51,10 +64,15 @@ let adbInstance: any = null
 let syncInstance: any = null
 let currentDevice: any = null
 let activeAbortController: AbortController | null = null
+let mockConnectGen = 0
 
 export const useQuestAdb = () => {
   const isWebUsbSupported = computed(() => {
     if (!import.meta.client) return false
+    void mockScenarioRevision.value
+    if (isMockQuestEnabled()) {
+      return readMockScenario()?.phase !== 'unsupported'
+    }
     return typeof navigator !== 'undefined' && 'usb' in navigator
   })
 
@@ -165,6 +183,7 @@ export const useQuestAdb = () => {
 
   const setupUsbEventListeners = () => {
     if (!import.meta.client || isListenerSetup) return
+    if (isMockQuestEnabled()) return
     const nav = typeof navigator !== 'undefined' ? (navigator as any) : null
     if (nav?.usb) {
       isListenerSetup = true
@@ -198,6 +217,9 @@ export const useQuestAdb = () => {
 
   // Silently reconnect to previously authorized WebUSB device without opening picker
   const tryAutoConnect = async () => {
+    if (isMockQuestEnabled()) {
+      return applyMockScenario()
+    }
     if (!import.meta.client || isConnected.value || isConnecting.value) return false
     if (!isWebUsbSupported.value) return false
 
@@ -230,6 +252,11 @@ export const useQuestAdb = () => {
   }
 
   const cancelConnect = async () => {
+    if (isMockQuestEnabled()) {
+      mockConnectGen++
+      cancelPendingMockChoice()
+      mockOverlay.value = 'none'
+    }
     if (currentDevice?.raw?.opened) {
       try {
         await currentDevice.raw.close()
@@ -243,8 +270,12 @@ export const useQuestAdb = () => {
   // Connect via WebUSB (accepts optional paired device to avoid picker popup)
   const connect = async (targetDevice?: any) => {
     if (!import.meta.client) return false
+    if (isMockQuestEnabled()) {
+      const gen = ++mockConnectGen
+      return connectMock(gen, targetDevice ? 'visor' : 'picker')
+    }
     if (!isWebUsbSupported.value) {
-      connectionError.value = 'WebUSB is not supported in this browser. Please use Chrome, Edge, or Brave.'
+      connectionError.value = QUEST_USB_MESSAGES.unsupported
       connectionPhase.value = 'error'
       return false
     }
@@ -299,7 +330,7 @@ export const useQuestAdb = () => {
 
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
-          reject(new Error('Headset authorization timed out. Put on your Meta Quest so the screen stays awake, then click Connect and accept the "Allow USB debugging" prompt inside the visor.'))
+          reject(new Error(QUEST_USB_MESSAGES.timeout))
         }, 90000)
       })
 
@@ -360,11 +391,11 @@ export const useQuestAdb = () => {
       
       const msg = err?.message || ''
       if (msg.toLowerCase().includes('already in use') || msg.toLowerCase().includes('already in used') || msg.toLowerCase().includes('claim') || msg.toLowerCase().includes('busy')) {
-        connectionError.value = 'The Quest USB interface is locked by another program (Android File Transfer, SideQuest, Meta Developer Hub, or native ADB). Unplug and replug the USB cable, close background VR apps, then click connect.'
+        connectionError.value = QUEST_USB_MESSAGES.usbLocked
       } else if (msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('transferin') || msg.toLowerCase().includes('aborterror')) {
-        connectionError.value = 'Connection was cancelled by the headset. Put on your Meta Quest so the display stays awake, then click connect and accept the "Allow USB debugging" prompt inside the visor.'
+        connectionError.value = QUEST_USB_MESSAGES.cancelled
       } else {
-        connectionError.value = msg || 'Connection failed. Ensure headset is unlocked with Developer Mode enabled.'
+        connectionError.value = msg || QUEST_USB_MESSAGES.generic
       }
 
       isConnecting.value = false
@@ -385,19 +416,13 @@ export const useQuestAdb = () => {
     connectNotice.value = QUEST_NO_DEVICE_HINT
   }
 
-  const applyConnectPreview = () => {
-    if (!import.meta.client) return
-    const mode = parseConnectPreview(window.location.search)
-    if (!mode) return
-    const next = connectPreviewState(mode)
-    isConnected.value = false
-    isConnecting.value = next.isConnecting
-    connectionPhase.value = next.phase
-    connectionError.value = null
-    connectNotice.value = next.notice
-  }
-
   const disconnect = async (manual = false) => {
+    if (isMockQuestEnabled()) {
+      cancelPendingMockChoice()
+      clearMockDevice()
+      connectionError.value = null
+      if (manual) writeMockSearch({ mockPhase: 'disconnected' })
+    }
     stopPolling()
     if (manual && import.meta.client) {
       sessionStorage.setItem('quest_manual_disconnect', 'true')
@@ -553,6 +578,7 @@ export const useQuestAdb = () => {
   // Install from local File
   const installApkFile = async (file: File, title: string) => {
     activeAbortController = new AbortController()
+    if (isMockQuestEnabled()) armMockInstall(activeAbortController.signal)
     try {
       await installApkStream(file.stream(), file.size, title)
     } catch (err: any) {
@@ -589,9 +615,11 @@ export const useQuestAdb = () => {
         message: 'Downloading latest APK from repository...'
       }
 
-      // Use local server proxy
+      // Use local server proxy. The mock headset never downloads a real APK.
       const proxyUrl = `/api/apk-proxy?url=${encodeURIComponent(url)}`
-      const res = await fetch(proxyUrl, { signal: activeAbortController.signal })
+      const res = isMockQuestEnabled()
+        ? await mockApkProxyResponse(activeAbortController.signal)
+        : await fetch(proxyUrl, { signal: activeAbortController.signal })
 
       if (!res.ok) {
         let detail = `HTTP ${res.status}`
@@ -612,6 +640,9 @@ export const useQuestAdb = () => {
       }
 
       await installApkStream(res.body, totalBytes, title)
+      if (isMockQuestEnabled()) {
+        await mockHoldAfterSuccessfulInstall(activeAbortController.signal)
+      }
     } catch (err: any) {
       if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
         installProgress.value = {
@@ -874,6 +905,10 @@ export const useQuestAdb = () => {
     if (!isConnected.value || !adbInstance) {
       throw new Error('Quest not connected')
     }
+    if (isMockQuestEnabled()) {
+      activeAbortController = new AbortController()
+      armMockInstall(activeAbortController.signal)
+    }
 
     const { WrapReadableStream } = await import('@yume-chan/stream-extra')
 
@@ -962,6 +997,113 @@ export const useQuestAdb = () => {
     return installedPackages.value.includes(pkgName)
   }
 
+  const attachMockHeadset = async (publishConnectedPhase: boolean) => {
+    const scenario = readMockScenario()
+    if (!scenario) return false
+    const device = activateMockDevice(scenario)
+    device.onDisconnect = () => {
+      writeMockSearch({ mockPhase: 'disconnected' })
+      disconnect(false)
+    }
+    adbInstance = mockAdbFromDevice(device)
+    currentDevice = { serial: 'MOCK-QUEST-001' }
+    deviceSerial.value = 'MOCK-QUEST-001'
+    deviceModel.value = 'Quest 3'
+    androidVersion.value = '12'
+    installedPackages.value = [...device.packages]
+    mockOverlay.value = 'none'
+    connectionError.value = null
+    connectNotice.value = null
+    isConnecting.value = false
+    isConnected.value = true
+    connectionPhase.value = 'connected'
+    if (publishConnectedPhase && scenario.phase !== 'connected' && scenario.phase !== 'scanning') {
+      writeMockSearch({ mockPhase: 'connected' })
+    }
+    await refreshStats()
+    startPolling()
+    return true
+  }
+
+  const failMockConnect = (gen: number, message: string) => {
+    if (gen !== mockConnectGen) return false
+    mockOverlay.value = 'none'
+    connectionError.value = message
+    connectNotice.value = null
+    connectionPhase.value = 'error'
+    isConnecting.value = false
+    isConnected.value = false
+    return false
+  }
+
+  const connectMock = async (gen: number, start: 'picker' | 'visor') => {
+    const scenario = readMockScenario()
+    if (!scenario) return false
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('quest_manual_disconnect')
+    }
+    if (scenario.phase === 'unsupported') {
+      return failMockConnect(gen, QUEST_USB_MESSAGES.unsupported)
+    }
+
+    isConnecting.value = true
+    connectionError.value = null
+    connectNotice.value = null
+    isConnected.value = false
+
+    if (start === 'picker') {
+      connectionPhase.value = 'picker'
+      mockOverlay.value = 'usb-picker'
+      const choice = await waitForMockChoice()
+      if (gen !== mockConnectGen) return false
+      if (choice !== 'device' || scenario.next === 'picker-cancel') {
+        mockOverlay.value = 'none'
+        markChooserDismissed()
+        return false
+      }
+    }
+
+    connectionPhase.value = 'authorizing'
+    isConnecting.value = true
+    const next = readMockScenario()?.next || 'ok'
+    const nextError = connectionErrorForNext(next)
+    if (nextError) {
+      return failMockConnect(gen, nextError)
+    }
+
+    mockOverlay.value = 'visor'
+    const visor = await waitForMockChoice()
+    if (gen !== mockConnectGen) return false
+    if (visor !== 'allow') {
+      return failMockConnect(gen, QUEST_USB_MESSAGES.cancelled)
+    }
+    if (gen !== mockConnectGen) return false
+    return attachMockHeadset(true)
+  }
+
+  const applyMockScenario = async () => {
+    if (!import.meta.client || !isMockQuestEnabled()) return false
+    const gen = ++mockConnectGen
+    activeAbortController?.abort()
+    activeAbortController = null
+    await disconnect(false)
+    if (gen !== mockConnectGen) return false
+    const scenario = readMockScenario()
+    if (!scenario || scenario.phase === 'disconnected') return false
+
+    const presetError = connectionErrorForPhase(scenario.phase)
+    if (presetError) {
+      connectionError.value = presetError
+      connectionPhase.value = 'error'
+      isConnecting.value = false
+      isConnected.value = false
+      return false
+    }
+    if (scenario.phase === 'picker') return connectMock(gen, 'picker')
+    if (scenario.phase === 'authorizing') return connectMock(gen, 'visor')
+    return attachMockHeadset(false)
+  }
+
   return {
     isWebUsbSupported,
     isConnected,
@@ -970,7 +1112,6 @@ export const useQuestAdb = () => {
     connectionError,
     connectNotice,
     dismissConnectNotice,
-    applyConnectPreview,
     deviceModel,
     deviceSerial,
     androidVersion,
@@ -984,6 +1125,7 @@ export const useQuestAdb = () => {
     connect,
     cancelConnect,
     tryAutoConnect,
+    applyMockScenario,
     setupUsbEventListeners,
     disconnect,
     refreshStats,

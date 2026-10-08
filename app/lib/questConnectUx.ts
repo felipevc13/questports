@@ -5,8 +5,6 @@ export const QUEST_PICKER_HINT = 'Select your Quest in the browser window.'
 export const QUEST_NO_DEVICE_HINT =
   'No Quest found. Check the USB cable and that Developer Mode is enabled.'
 
-export type ConnectPreviewMode = 'picker' | 'dismissed' | 'authorizing'
-
 export interface QuestConnectChrome {
   /** Amber “put on the headset / Allow USB debugging” banner. */
   showHeadsetBanner: boolean
@@ -56,20 +54,4 @@ export function isUsbChooserDismissed(err: unknown): boolean {
   const message = 'message' in err ? String((err as { message?: unknown }).message || '') : ''
   if (name === 'NotFoundError') return true
   return /no device selected/i.test(message)
-}
-
-export function parseConnectPreview(search: string): ConnectPreviewMode | null {
-  const value = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search).get('connectPreview')
-  if (value === 'picker' || value === 'dismissed' || value === 'authorizing') return value
-  return null
-}
-
-export function connectPreviewState(mode: ConnectPreviewMode): {
-  isConnecting: boolean
-  phase: ConnectPhase
-  notice: string | null
-} {
-  if (mode === 'picker') return { isConnecting: true, phase: 'picker', notice: null }
-  if (mode === 'authorizing') return { isConnecting: true, phase: 'authorizing', notice: null }
-  return { isConnecting: false, phase: 'idle', notice: QUEST_NO_DEVICE_HINT }
 }

@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   QUEST_NO_DEVICE_HINT,
   QUEST_PICKER_HINT,
-  connectPreviewState,
   isUsbChooserDismissed,
-  parseConnectPreview,
   questConnectChrome
 } from '../app/lib/questConnectUx'
 
@@ -54,29 +52,5 @@ describe('usb chooser dismissal', () => {
     expect(QUEST_NO_DEVICE_HINT).toBe(
       'No Quest found. Check the USB cable and that Developer Mode is enabled.'
     )
-  })
-})
-
-describe('connect preview', () => {
-  it('ignores the flag unless a known mode is present', () => {
-    expect(parseConnectPreview('')).toBeNull()
-    expect(parseConnectPreview('?mockQuest=1')).toBeNull()
-    expect(parseConnectPreview('?connectPreview=picker')).toBe('picker')
-    expect(parseConnectPreview('connectPreview=dismissed')).toBe('dismissed')
-    expect(parseConnectPreview('?connectPreview=nope')).toBeNull()
-  })
-
-  it('maps each preview mode onto the chrome the card and navbar share', () => {
-    const picker = connectPreviewState('picker')
-    expect(questConnectChrome(picker.phase, false).showPickerHint).toBe(true)
-    expect(picker.notice).toBeNull()
-
-    const authorizing = connectPreviewState('authorizing')
-    expect(questConnectChrome(authorizing.phase, false).showHeadsetBanner).toBe(true)
-
-    const dismissed = connectPreviewState('dismissed')
-    expect(dismissed.notice).toBe(QUEST_NO_DEVICE_HINT)
-    expect(dismissed.isConnecting).toBe(false)
-    expect(questConnectChrome(dismissed.phase, false).status).toBe('disconnected')
   })
 })
