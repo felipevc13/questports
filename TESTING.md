@@ -26,6 +26,8 @@ A **Simulated Quest** panel sits at the bottom-left while the flag is on. It is 
 | `mockLaunch` | `ok` (default), `slow` | Keep **Launching...** on screen long enough to see it |
 | `mockSpeed` | `normal` (default), `instant` | Skip the short pauses between download, transfer, and `pm install` |
 | `mockChrome` | `1` (default), `0` | Show or hide the panel |
+| `mockFree` | omitted (88G free), `low` (32 MB), or a number of MB such as `200` | Free space `df` reports. `low` is too small for the simulated 8 MB APK plus spare room, so Install stops before the download. |
+| `mockLength` | `known` (default), `missing` | `missing` omits Content-Length. The download meter shows received MB on a pulsing bar instead of a percent. |
 
 You can also set the phase as the flag itself: `?mockQuest=connected` is the same as `?mockQuest=1&mockPhase=connected`. `mockPhase` wins if both are set.
 
@@ -45,8 +47,9 @@ Open a port that has a direct APK button, for example Return to Castle Wolfenste
 | Authorizing / visor prompt | `mockPhase=authorizing`. Amber **Action Required inside Headset!** banner, navbar **Authorizing Quest...**, and a simulated **Allow USB debugging?** prompt. **Allow** connects. **Deny** shows the cancelled-by-headset error. |
 | Connected, game not installed | `mockPhase=connected&mockGame=absent`. Green **Quest 3** pill (78% battery, 88G free). **Install APK on Quest (1-Click)**. Open the navbar pill for the storage and battery dropdown. |
 | Scanning storage | `mockPhase=scanning&mockGame=installed&mockFiles=missing` on a game that needs files. The card stays on **Scanning...** because the fake `ls` does not return. |
-| Downloading | Connected, game absent, `mockInstall=hold-downloading`, then click **Install APK**. Holds on **Downloading latest APK from repository...** at 2%. |
-| Transferring the APK | `mockInstall=hold-pushing`, then click **Install APK**. Holds on **Transferring APK to Quest**. |
+| Downloading | Connected, game absent, `mockInstall=hold-downloading`, then click **Install APK**. The bar moves with bytes received (about 4 MB of 8 MB) and then holds. **Cancel** returns to **Install APK** with no error. |
+| Download, size unknown | Add `mockLength=missing` to the downloading URL. The meter shows received MB and the bar pulses instead of freezing on a percent. |
+| Transferring the APK | `mockInstall=hold-pushing`, then click **Install APK**. Holds on **Transferring APK**. **Cancel** deletes the partial temp APK and returns to the install button. |
 | Installing | `mockInstall=hold-installing`, then click **Install APK**. Holds on **Installing APK package on Quest OS (pm install)...** at 90%. |
 | Success message | `mockInstall=hold-success`, then click **Install APK**. Holds at 100% with **Successfully installed!** |
 | Installed, nothing else to copy | `mockPhase=connected&mockGame=installed` on `/ports/iron-lung-vr` or `/ports/questcraft`. **Standalone Port Ready to Play!** and **Launch on Quest**. |
@@ -57,7 +60,9 @@ Open a port that has a direct APK button, for example Return to Castle Wolfenste
 | Installed, external files present | `mockPhase=connected&mockGame=installed&mockFiles=present` on `/ports/rtcwquest`. **Ready to Play on Quest!**, **Verified on Quest**, and **Launch on Quest**. |
 | Update available | `mockPhase=connected&mockGame=outdated&mockFiles=present`. Badge **Update available** and **Update to …**. |
 | Download failed | `mockInstall=download-failed`, then click **Install APK**. **Installation Issue: Failed to download APK: …** |
-| Not enough storage | `mockInstall=storage`, then click **Install APK**. The storage meter drops to **184M free / 99%**, and install ends with `INSTALL_FAILED_INSUFFICIENT_STORAGE`. |
+| Not enough storage before download | `mockFree=low`, then click **Install APK**. A message names how much is needed and how much is free. The download does not start. |
+| Not enough storage at pm install | `mockInstall=storage`, then click **Install APK**. The storage meter drops to **184M free / 99%**. That still fits the simulated APK plus margin, so the pre-check allows it and install ends with `INSTALL_FAILED_INSUFFICIENT_STORAGE`. |
+| Reinstall confirm | On an installed game, click **Reinstall**. The dialog warns that uninstall deletes Android/data for that package. **Install over it (keep data)** uses `pm install -r`. **Uninstall and reinstall** removes the package first. |
 | Disconnect mid-install | `mockInstall=disconnect`, then click **Install APK**. The cable-pull runs during the APK transfer and the card returns to **No Quest Connected**. |
 | Device unauthorized (while connecting) | `mockPhase=unauthorized`, or connect with `mockNext=unauthorized`. **Connection Failed** plus the unauthorized message. |
 | Device unauthorized (during install) | `mockInstall=unauthorized`, then click **Install APK**. The headset stays connected and the card shows `error: device unauthorized.` |
@@ -70,7 +75,8 @@ Open a port that has a direct APK button, for example Return to Castle Wolfenste
 | Several campaigns | `/ports/lambda1vr?mockQuest=1&mockPhase=connected&mockGame=installed&mockFiles=present`. Each campaign tab can be verified on its own. |
 | Uninstall prompt | On an installed game, click **Uninstall**. |
 | Uninstall failure | Add `mockUninstall=fail`, open **Uninstall**, confirm. The headset error stays in the prompt. |
-| File copy in progress | `mockGame=installed&mockFiles=missing&mockTransfer=hold`, then drop a file on the send-files box. |
+| File copy in progress | `mockGame=installed&mockFiles=missing&mockTransfer=hold`, then drop a file on the send-files box. **Cancel** stops the copy and leaves the send-files box up, with no error. |
+| File copy, not enough space | `mockGame=installed&mockFiles=missing&mockFree=low`, then drop a file. The same needed-versus-available message shows, and nothing is copied. |
 | Launching | `mockGame=installed&mockFiles=present&mockLaunch=slow`, then click **Launch on Quest**. |
 | Library on the home page | `/?mockQuest=1&mockPhase=connected&mockGame=installed` shows the **Library** banner and installed count. `mockGame=absent` shows 0 installed. |
 

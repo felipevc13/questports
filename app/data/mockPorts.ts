@@ -554,13 +554,13 @@ export const INITIAL_PORTS: Port[] = [
     short_description: 'Standalone 6DoF VR arcade port of Namco\'s iconic light-gun rail shooter Time Crisis running at 120 Hz on Meta Quest 3 with 1:1 tracked pistol, physical roomscale ducking, and original arcade sound.',
     category: 'decompilation',
     status: 'playable_beta',
-    install_workflow: 'smart_converter',
+    install_workflow: 'direct',
     cover_image_url: '/covers/time-crisis-vr.jpg',
     youtube_video_id: 'PGUc8b3VIu0',
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Roomscale', 'Physical Ducking', 'Cover System'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/TimeCrisisVR/',
+    internal_storage_path: 'N/A (ROM set bundled in the release APK)',
     base_game_url: 'https://en.wikipedia.org/wiki/Time_Crisis',
     base_game_store: 'Requires your own original copy',
     port_download_url: 'https://github.com/DR-89/time-crisis-vr/releases/latest',
@@ -860,7 +860,7 @@ export const INITIAL_PORTS: Port[] = [
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['3D Diorama Mode', 'Giant Virtual Screen (120Hz)', 'Star Bit Laser Pointer', 'Snap Turn', 'Tilt & Motion Controls'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/GalaxyQuest/',
+    internal_storage_path: '/sdcard/Android/data/com.galaxy.quest/files/game/',
     base_game_url: 'https://en.wikipedia.org/wiki/Super_Mario_Galaxy',
     base_game_store: 'Requires your own original Wii copy',
     port_download_url: 'https://github.com/bigmak94/GalaxyQuest/releases/latest/download/GalaxyQuest.apk',
@@ -890,14 +890,15 @@ export const INITIAL_PORTS: Port[] = [
    adb install --no-incremental -r GalaxyQuest.apk
    \`\`\`
 3. Extract your Super Mario Galaxy disc using Dolphin or DolphinTool into \`sys\` and \`files\` folders.
-4. Run the cook script with Python:
+4. Run the cook script with Python (from the unzipped \`GalaxyQuest-converter\` folder):
    \`\`\`bash
-   python tools/cook/cook.py --disc /path/to/extracted/disc --out /path/to/output
+   python tools/cook/cook.py extracted cooked --with-movies
    \`\`\`
-5. Push the converted files to \`/sdcard/GalaxyQuest/\` on your headset:
+5. Copy the converted files to the headset. The script unpacks them into \`/sdcard/Android/data/com.galaxy.quest/files/game/\`:
    \`\`\`bash
-   adb push output/* /sdcard/GalaxyQuest/
+   python tools/push_data.py cooked
    \`\`\`
+   Without adb, copy the \`cooked\` folder to the headset (for example into \`Download\`) and pick it on the app's setup screen.
 6. Launch **GalaxyQuest** from **App Library → Unknown Sources**!
 
 ### VR Modes & Controls
@@ -1127,7 +1128,7 @@ This project brings Grand Theft Auto: San Andreas directly to standalone Meta Qu
 4. **Follow On-Screen Prompts:**
    Select the exported APK folder and audio package when prompted.
 5. **Connect Quest:**
-   Plug your Quest into your PC and authorize USB debugging on the headset prompt. The installer will patch the binaries and push the assets to \`Android/data/com.rockstargames.gtasa/files\`.
+   Plug your Quest into your PC and authorize USB debugging on the headset prompt. The installer will patch the binaries, push the game data to \`/sdcard/savr/data_main/\` and the audio to \`/sdcard/Android/data/com.rockstargames.gtasa/files/audio/\`.
 6. **Launch:**
    In your headset, open the App Library, filter by **Unknown Sources**, and launch **GTA San Andreas VR**!`,
     troubleshooting_notes: 'Active development (alpha build). If you encounter black screen crashes on launch, verify that your Google Play game version matches 2.11.311 ARM64 and that the PS2 audio package was extracted correctly.'
@@ -1147,7 +1148,7 @@ This project brings Grand Theft Auto: San Andreas directly to standalone Meta Qu
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale', 'Steering Wheel Driving', 'Two-Handed Aiming'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/Android/data/com.revc.miamivr/files/',
+    internal_storage_path: '/sdcard/Android/data/com.miamivr.quest/files/gamedata/',
     base_game_url: 'https://store.steampowered.com/app/12110/Grand_Theft_Auto_Vice_City/',
     base_game_store: 'Steam / PC CD / Rockstar',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/vice-city-vr-quest',
@@ -1270,7 +1271,7 @@ To update to future releases without redownloading game assets, simply connect y
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Roomscale', 'Smooth Locomotion', 'Physical Melee', 'Physical Archery', 'Physical Swimming'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/Gothic2VR/',
+    internal_storage_path: '/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/',
     base_game_url: 'https://store.steampowered.com/app/39510/Gothic_II_Gold_Edition/',
     base_game_store: 'Steam / GOG (Night of the Raven)',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/gothic2-vr',
@@ -1309,7 +1310,7 @@ To update to future releases without redownloading game assets, simply connect y
 6. **Automatic Packaging & Install:**
    The script packages your local game files, installs the signed Quest APK, and copies the data directly onto your headset.
 7. **In-Headset Import:**
-   Put on your headset, approve storage permissions when prompted, select the imported data archive, and launch **Gothic II VR** from **Unknown Sources**!
+   Put on your headset, approve storage permissions when prompted, and choose the ZIP in \`/sdcard/Download/Gothic2VR/\`. After import the game is in \`/sdcard/Android/data/com.gothic2vr.quest/files/Gothic2/\`. Launch **Gothic II VR** from **Unknown Sources**.
 
 ---
 
@@ -1336,7 +1337,7 @@ To update to future releases without redownloading game assets, simply connect y
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Roomscale', 'Smooth Locomotion', 'Wand Motion Gestures', 'Voice Spell Casting', 'Broomstick Flight'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/HarryPotterVR/',
+    internal_storage_path: '/sdcard/Android/data/io.github.hpvr.quest/files/HP/',
     base_game_url: 'https://www.mobygames.com/game/5501/harry-potter-and-the-sorcerers-stone/',
     base_game_store: 'Requires your own original PC copy',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/harry-potter-vr',
@@ -1399,7 +1400,7 @@ To update to future releases without redownloading game assets, simply connect y
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Cockpit VR', 'Motorcycle Riding', 'Physical Melee Combat', 'Roomscale'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/RoadRashVR/',
+    internal_storage_path: '/sdcard/Android/data/com.rrjb.vr/files/',
     base_game_url: 'https://www.mobygames.com/game/3773/road-rash-jailbreak/',
     base_game_store: 'Requires your own original PS1 copy (SLUS-01053)',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/road-rash-jailbreak',
@@ -1412,7 +1413,7 @@ To update to future releases without redownloading game assets, simply connect y
 **Road Rash: Jailbreak VR** is a native C++ standalone OpenXR port of the classic PlayStation game *Road Rash: Jailbreak* (2000), running directly on Meta Quest 3 without needing a PC during gameplay.
 
 > [!NOTE]
-> The release ZIP already contains the pre-compiled signed Quest APK. You only need your legally dumped PS1 disc image (\`BIN\` / \`CUE\` from SLUS-01053).
+> The release ZIP already contains the pre-compiled signed Quest APK. You only need your legally dumped PS1 disc image (MODE2/2352 \`.bin\` or \`.img\`, copied to the headset as \`disc.bin\`). A 2048-byte \`.iso\` omits the XA audio sectors and is not accepted.
 
 ---
 
@@ -1535,7 +1536,7 @@ This VR port includes full support for the **Community Texture Packs** maintaine
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['6DoF Motion Tracking', 'Smooth Locomotion', 'Snap / Smooth Turn', 'Independent Hand Aiming', 'Alien Wall-Climbing'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/AvPVR/',
+    internal_storage_path: '/sdcard/Android/data/com.bassquake.quest.avpvr/files/',
     base_game_url: 'https://store.steampowered.com/app/3730/Aliens_versus_Predator_Classic_2000/',
     base_game_store: 'Steam (AvP Classic 2000) / GOG / PC CD-ROM',
     port_download_url: 'https://github.com/Bassquake/Aliens-Versus-Predator-VR/releases/latest',

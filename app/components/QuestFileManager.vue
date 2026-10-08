@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useQuestAdb, type AdbFileEntry } from '~/composables/useQuestAdb'
 import type { Port } from '~/types/port'
 import type { PortPackageConfig } from '~/data/portPackageMap'
+import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 
 const props = defineProps<{
   rootPath: string
@@ -225,20 +226,8 @@ const uploadFileBatch = async (items: { file: File, relPath?: string }[]) => {
       // Determine destination directory
       let targetDir = currentFullPath.value
 
-      if (item.relPath) {
-        const cleanRel = item.relPath.replace(/^\/+|\/+$/g, '')
-        if (cleanRel) {
-          targetDir = `${currentFullPath.value}${cleanRel}/`
-        }
-      } else if (file.webkitRelativePath) {
-        const parts = file.webkitRelativePath.split('/')
-        if (parts.length > 1) {
-          const innerSub = parts.slice(0, parts.length - 1).join('/')
-          if (innerSub) {
-            targetDir = `${currentFullPath.value}${innerSub}/`
-          }
-        }
-      }
+      const relative = item.relPath || file.webkitRelativePath || ''
+      targetDir = destinationDirForDroppedFile(currentFullPath.value, relative, file.name)
 
       uploadProgress.value = {
         current: i + 1,

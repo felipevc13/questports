@@ -139,6 +139,14 @@
         </label>
       </div>
 
+      <label class="block space-y-1">
+        <span class="text-zinc-400">Free space</span>
+        <select class="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1" :value="freeSpaceValue" @change="setFree">
+          <option value="default">Plenty free (88G)</option>
+          <option value="low">Low free space (32 MB)</option>
+        </select>
+      </label>
+
       <label class="flex items-center justify-between gap-2 text-zinc-300">
         <span>Uninstall command fails</span>
         <input type="checkbox" :checked="scenario?.uninstall === 'fail'" @change="setUninstall" />
@@ -195,6 +203,14 @@ const setField = (key: string, event: Event) => {
 const setUninstall = (event: Event) => {
   const checked = (event.target as HTMLInputElement).checked
   writeMockSearch({ mockUninstall: checked ? 'fail' : 'ok' })
+  apply()
+}
+
+const freeSpaceValue = computed(() => (scenario.value?.freeMb === 32 ? 'low' : 'default'))
+
+const setFree = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value
+  writeMockSearch({ mockFree: value === 'default' ? null : value })
   apply()
 }
 

@@ -19,6 +19,18 @@ import {
   writeMockSearch
 } from '~/lib/mockQuest'
 import { RemoteDirDeniedError } from '~/data/portPackageMap'
+import {
+  bytesToStream,
+  describeByteProgress,
+  formatByteSize,
+  isUserCancel,
+  parseDfAvailableKilobytes,
+  readStreamWithProgress,
+  spaceDecision,
+  type SpaceDecision,
+  type SpaceKind
+} from '~/lib/installFlow'
+import { extractReleaseApk, responseLooksLikeZip } from '~/lib/extractReleaseApk'
 
 export interface InstallProgress {
   title: string
@@ -26,6 +38,10 @@ export interface InstallProgress {
   percent: number
   message: string
   error?: string
+  /** Pulsing bar. Used when the download or transfer has no total size. */
+  indeterminate?: boolean
+  /** Bytes received so far, shown in place of a percent while indeterminate. */
+  receivedLabel?: string
 }
 
 export interface AdbFileEntry {
@@ -58,14 +74,29 @@ const installProgress = ref<InstallProgress>({
   title: '',
   step: 'idle',
   percent: 0,
-  message: ''
+  message: '',
+  indeterminate: false,
+  receivedLabel: ''
 })
+const installSpaceWarning = ref<string | null>(null)
 
 let adbInstance: any = null
 let syncInstance: any = null
 let currentDevice: any = null
 let activeAbortController: AbortController | null = null
+let fileAbortController: AbortController | null = null
+let activeRemoteCleanup: string | null = null
+let installLocked = false
 let mockConnectGen = 0
+
+const idleProgress = (): InstallProgress => ({
+  title: '',
+  step: 'idle',
+  percent: 0,
+  message: '',
+  indeterminate: false,
+  receivedLabel: ''
+})
 
 export const useQuestAdb = () => {
   const isWebUsbSupported = computed(() => {
@@ -456,150 +487,215 @@ export const useQuestAdb = () => {
     installedPackages.value = []
   }
 
-  // Install an APK from a File/Blob directly into the Quest
-  const installApkStream = async (stream: ReadableStream<Uint8Array>, totalBytes: number, title: string) => {
+  const publishProgress = (next: InstallProgress) => {
+    installProgress.value = next
+  }
+
+  const removeRemoteFile = async (path: string | null) => {
+    if (!path || !isConnected.value || !adbInstance) return
+    const safe = path.replace(/"/g, '')
+    await runShell(`rm -f "${safe}"`).catch(() => {})
+  }
+
+  const readFreeBytes = async (): Promise<number | null> => {
+    if (!isConnected.value || !adbInstance) return null
+    try {
+      const kilobyteText = await runShell('df -k /sdcard')
+      const kilobytes = parseDfAvailableKilobytes(kilobyteText)
+      if (kilobytes != null) return kilobytes * 1024
+      const plain = await runShell('df /sdcard')
+      const fallback = parseDfAvailableKilobytes(plain)
+      if (fallback != null) return fallback * 1024
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const checkFreeSpace = async (payloadBytes: number | null, kind: SpaceKind): Promise<SpaceDecision> => {
+    const freeBytes = await readFreeBytes()
+    return spaceDecision(payloadBytes, freeBytes, kind)
+  }
+
+  const gateFreeSpace = async (payloadBytes: number | null, kind: SpaceKind) => {
+    const decision = await checkFreeSpace(payloadBytes, kind)
+    if (decision.action === 'warn') {
+      installSpaceWarning.value = decision.message
+      return
+    }
+    if (decision.action === 'block') {
+      activeAbortController?.abort()
+      fileAbortController?.abort()
+      throw new Error(decision.message)
+    }
+  }
+
+  const finishCancelled = () => {
+    activeRemoteCleanup = null
+    installSpaceWarning.value = null
+    publishProgress(idleProgress())
+  }
+
+  const failInstall = (title: string, err: any, fallback: string) => {
+    if (isUserCancel(err)) {
+      finishCancelled()
+      return
+    }
+    const message = err?.message || fallback
+    if (message.startsWith('Not enough free space')) {
+      publishProgress(idleProgress())
+      throw err
+    }
+    publishProgress({
+      title,
+      step: 'error',
+      percent: 0,
+      indeterminate: false,
+      receivedLabel: '',
+      message,
+      error: message
+    })
+    throw err
+  }
+
+  // Install an APK from a byte stream. The bar is this transfer's own bytes / size.
+  const installApkStream = async (
+    stream: ReadableStream<Uint8Array>,
+    totalBytes: number,
+    title: string
+  ) => {
     if (!isConnected.value || !adbInstance) {
       throw new Error('Meta Quest not connected! Please connect your headset first.')
     }
 
     const { WrapReadableStream } = await import('@yume-chan/stream-extra')
-
-    installProgress.value = {
-      title,
-      step: 'pushing',
-      percent: 5,
-      message: 'Uploading APK to Quest internal storage...'
-    }
-
     const tempPath = '/data/local/tmp/questports_installer.apk'
+    activeRemoteCleanup = tempPath
 
-    // Stream with byte counter to track push percentage (5% to 85%)
     let loaded = 0
     const progressTransform = new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
         if (activeAbortController?.signal.aborted) {
-          controller.error(new Error('Installation cancelled by user'))
+          controller.error(new DOMException('Installation cancelled by user', 'AbortError'))
           return
         }
         loaded += chunk.byteLength
-        if (totalBytes > 0) {
-          const pct = Math.min(85, Math.round(5 + (loaded / totalBytes) * 80))
-          installProgress.value.percent = pct
-          const mbUploaded = (loaded / (1024 * 1024)).toFixed(1)
-          const mbTotal = (totalBytes / (1024 * 1024)).toFixed(1)
-          installProgress.value.message = `Transferring APK to Quest (${mbUploaded} MB / ${mbTotal} MB)...`
-        } else {
-          const mbUploaded = (loaded / (1024 * 1024)).toFixed(1)
-          const pct = Math.min(80, Math.round(5 + (loaded / (loaded + 30 * 1024 * 1024)) * 75))
-          installProgress.value.percent = pct
-          installProgress.value.message = `Transferring APK to Quest (${mbUploaded} MB transferred)...`
-        }
+        const view = describeByteProgress(loaded, totalBytes, 'transfer')
+        publishProgress({
+          title,
+          step: 'pushing',
+          percent: view.indeterminate ? 0 : view.percent,
+          indeterminate: view.indeterminate,
+          receivedLabel: formatByteSize(loaded),
+          message: view.message
+        })
         controller.enqueue(chunk)
       }
     })
 
     const monitoredStream = stream.pipeThrough(progressTransform)
     const wrappedStream = new WrapReadableStream(monitoredStream as any)
-
-    // Open ADB sync session
     const sync = await adbInstance.sync()
     try {
       await sync.write({
         filename: tempPath,
         file: wrappedStream
       })
+    } catch (err) {
+      await removeRemoteFile(tempPath)
+      activeRemoteCleanup = null
+      throw err
     } finally {
       await sync.dispose().catch(() => {})
     }
 
     if (activeAbortController?.signal.aborted) {
-      await runShell(`rm -f ${tempPath}`).catch(() => {})
-      throw new Error('Installation cancelled by user')
+      await removeRemoteFile(tempPath)
+      activeRemoteCleanup = null
+      throw new DOMException('Installation cancelled by user', 'AbortError')
     }
 
-    // Step 2: Trigger native Android package manager install (pm install -r)
-    installProgress.value = {
+    // pm install is not cancellable. Aborting it can leave a half-installed package.
+    activeRemoteCleanup = null
+    installLocked = true
+    publishProgress({
       title,
       step: 'installing',
       percent: 90,
+      indeterminate: false,
+      receivedLabel: '',
       message: 'Installing APK package on Quest OS (pm install)...'
-    }
+    })
 
-    const resultText = await runShell(`pm install -r ${tempPath}`)
+    try {
+      const resultText = await runShell(`pm install -r ${tempPath}`)
+      await removeRemoteFile(tempPath)
 
-    // Clean up temporary APK
-    await runShell(`rm -f ${tempPath}`).catch(() => {})
-
-    if (activeAbortController?.signal.aborted) {
-      throw new Error('Installation cancelled by user')
-    }
-
-    if (/^\s*success/im.test(resultText) && !/failure|INSTALL_FAILED/i.test(resultText)) {
-      installProgress.value = {
-        title,
-        step: 'completed',
-        percent: 100,
-        message: 'Successfully installed! Launch it from Unknown Sources on your headset.'
+      if (/^\s*success/im.test(resultText) && !/failure|INSTALL_FAILED/i.test(resultText)) {
+        publishProgress({
+          title,
+          step: 'completed',
+          percent: 100,
+          indeterminate: false,
+          receivedLabel: '',
+          message: 'Successfully installed! Launch it from Unknown Sources on your headset.'
+        })
+        await updatePackages()
+        return true
       }
-      // Refresh installed packages list
-      await updatePackages()
-      return true
-    } else {
       const err = resultText.trim() || 'Package manager install failed'
-      installProgress.value = {
+      publishProgress({
         title,
         step: 'error',
         percent: 90,
+        indeterminate: false,
+        receivedLabel: '',
         message: `Installation error: ${err}`,
         error: err
-      }
+      })
       throw new Error(err)
+    } finally {
+      installLocked = false
     }
   }
 
-  // Cancel an ongoing installation
+  // Cancel download or APK transfer. Ignored once `pm install` has started.
   const cancelInstall = async () => {
+    if (installLocked || installProgress.value.step === 'installing') return
     if (activeAbortController) {
       activeAbortController.abort()
       activeAbortController = null
     }
-    try {
-      if (isConnected.value && adbInstance) {
-        await runShell('rm -f /data/local/tmp/questports_installer.apk').catch(() => {})
-      }
-    } catch {}
-    installProgress.value = {
-      title: '',
-      step: 'idle',
-      percent: 0,
-      message: ''
+    const partial = activeRemoteCleanup
+    activeRemoteCleanup = null
+    installSpaceWarning.value = null
+    await removeRemoteFile(partial)
+    await removeRemoteFile('/data/local/tmp/questports_installer.apk')
+    publishProgress(idleProgress())
+  }
+
+  const cancelFilePush = async () => {
+    if (fileAbortController) {
+      fileAbortController.abort()
+      fileAbortController = null
     }
+    const partial = activeRemoteCleanup
+    activeRemoteCleanup = null
+    await removeRemoteFile(partial)
   }
 
   // Install from local File
   const installApkFile = async (file: File, title: string) => {
     activeAbortController = new AbortController()
+    installSpaceWarning.value = null
     if (isMockQuestEnabled()) armMockInstall(activeAbortController.signal)
     try {
+      await gateFreeSpace(file.size, 'apk')
       await installApkStream(file.stream(), file.size, title)
+      return installProgress.value.step === 'completed'
     } catch (err: any) {
-      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
-        installProgress.value = {
-          title: '',
-          step: 'idle',
-          percent: 0,
-          message: ''
-        }
-        return
-      }
-      installProgress.value = {
-        title,
-        step: 'error',
-        percent: 0,
-        message: err?.message || 'Failed to install APK',
-        error: err?.message
-      }
-      throw err
+      failInstall(title, err, 'Failed to install APK')
+      return false
     } finally {
       activeAbortController = null
     }
@@ -608,19 +704,22 @@ export const useQuestAdb = () => {
   // Install from URL (via our streaming proxy to avoid CORS)
   const installApkUrl = async (url: string, title: string) => {
     activeAbortController = new AbortController()
+    const signal = activeAbortController.signal
+    installSpaceWarning.value = null
     try {
-      installProgress.value = {
+      publishProgress({
         title,
         step: 'downloading',
-        percent: 2,
+        percent: 0,
+        indeterminate: true,
+        receivedLabel: '0 MB',
         message: 'Downloading latest APK from repository...'
-      }
+      })
 
-      // Use local server proxy. The mock headset never downloads a real APK.
       const proxyUrl = `/api/apk-proxy?url=${encodeURIComponent(url)}`
       const res = isMockQuestEnabled()
-        ? await mockApkProxyResponse(activeAbortController.signal)
-        : await fetch(proxyUrl, { signal: activeAbortController.signal })
+        ? await mockApkProxyResponse(signal)
+        : await fetch(proxyUrl, { signal })
 
       if (!res.ok) {
         let detail = `HTTP ${res.status}`
@@ -634,34 +733,49 @@ export const useQuestAdb = () => {
       }
 
       const contentLength = res.headers.get('content-length')
-      const totalBytes = contentLength ? parseInt(contentLength, 10) : 0
+      const headerBytes = contentLength ? parseInt(contentLength, 10) : 0
+      const totalBytes = Number.isFinite(headerBytes) && headerBytes > 0 ? headerBytes : 0
+      if (totalBytes > 0) await gateFreeSpace(totalBytes, 'apk')
 
       if (!res.body) {
         throw new Error('Failed to read download stream')
       }
 
-      await installApkStream(res.body, totalBytes, title)
-      if (isMockQuestEnabled()) {
+      const downloaded = await readStreamWithProgress(res.body, signal, (loaded) => {
+        const view = describeByteProgress(loaded, totalBytes, 'download')
+        publishProgress({
+          title,
+          step: 'downloading',
+          percent: view.indeterminate ? 0 : view.percent,
+          indeterminate: view.indeterminate,
+          receivedLabel: formatByteSize(loaded),
+          message: view.message
+        })
+      })
+
+      await gateFreeSpace(downloaded.byteLength, 'apk')
+      let apkBytes = downloaded
+      if (responseLooksLikeZip(res.headers)) {
+        publishProgress({
+          title,
+          step: 'downloading',
+          percent: 45,
+          indeterminate: true,
+          receivedLabel: formatByteSize(downloaded.byteLength),
+          message: 'Extracting APK from the release archive...'
+        })
+        apkBytes = await extractReleaseApk(downloaded)
+        await gateFreeSpace(apkBytes.byteLength, 'apk')
+      }
+
+      await installApkStream(bytesToStream(apkBytes), apkBytes.byteLength, title)
+      if (isMockQuestEnabled() && activeAbortController) {
         await mockHoldAfterSuccessfulInstall(activeAbortController.signal)
       }
+      return installProgress.value.step === 'completed'
     } catch (err: any) {
-      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
-        installProgress.value = {
-          title: '',
-          step: 'idle',
-          percent: 0,
-          message: ''
-        }
-        return
-      }
-      installProgress.value = {
-        title,
-        step: 'error',
-        percent: 0,
-        message: err?.message || 'Failed to download and install APK',
-        error: err?.message
-      }
-      throw err
+      failInstall(title, err, 'Failed to download and install APK')
+      return false
     } finally {
       activeAbortController = null
     }
@@ -898,65 +1012,102 @@ export const useQuestAdb = () => {
     }
   }
 
+  // Vice City's first launch creates files/ as the app. mkdir before that
+  // makes a directory the game cannot use. See overlay/docs/QUEST_PORT.md.
+  const assertViceCityFilesExist = async (remotePath: string) => {
+    const cleaned = remotePath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
+    const roots = [
+      '/sdcard/Android/data/com.miamivr.quest/files',
+      '/storage/emulated/0/Android/data/com.miamivr.quest/files'
+    ]
+    const root = roots.find(marker => cleaned === marker || cleaned.startsWith(`${marker}/`))
+    if (!root) return
+    const probe = await runShell(`test -d "${root}" && echo yes || echo no`)
+    if (!String(probe).includes('yes')) {
+      throw new Error('Launch Vice City VR once before copying game data. The port says not to create Android/data/com.miamivr.quest/files yourself — the first launch creates that folder.')
+    }
+  }
+
   // Create remote folder on Quest
   const createRemoteDir = async (remotePath: string): Promise<boolean> => {
     if (!isConnected.value || !adbInstance) return false
+    await assertViceCityFilesExist(remotePath)
     try {
       await runShell(`mkdir -p "${remotePath}"`)
       return true
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Launch Vice City VR once')) throw err
       return false
     }
   }
 
   // Push arbitrary game assets/files into a specific Quest directory
-  const pushFileToPath = async (file: File, remoteDirectory: string, onProgress?: (percent: number, msg: string) => void) => {
+  const pushFileToPath = async (
+    file: File,
+    remoteDirectory: string,
+    onProgress?: (percent: number, msg: string, indeterminate?: boolean) => void
+  ) => {
     if (!isConnected.value || !adbInstance) {
       throw new Error('Quest not connected')
     }
-    if (isMockQuestEnabled()) {
-      activeAbortController = new AbortController()
-      armMockInstall(activeAbortController.signal)
-    }
+    fileAbortController = new AbortController()
+    const signal = fileAbortController.signal
+    if (isMockQuestEnabled()) armMockInstall(signal)
 
-    const { WrapReadableStream } = await import('@yume-chan/stream-extra')
-
-    // Ensure remote directory exists
-    await createRemoteDir(remoteDirectory)
-
-    // Normalize path
-    const targetDir = remoteDirectory.endsWith('/') ? remoteDirectory : `${remoteDirectory}/`
-    const targetFilePath = `${targetDir}${file.name}`
-
-    let loaded = 0
-    const totalBytes = file.size
-    const progressTransform = new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        loaded += chunk.byteLength
-        if (totalBytes > 0 && onProgress) {
-          const pct = Math.min(100, Math.round((loaded / totalBytes) * 100))
-          const mbUploaded = (loaded / (1024 * 1024)).toFixed(1)
-          const mbTotal = (totalBytes / (1024 * 1024)).toFixed(1)
-          onProgress(pct, `Transferring ${file.name} (${mbUploaded} MB / ${mbTotal} MB)...`)
-        }
-        controller.enqueue(chunk)
-      }
-    })
-
-    const stream = file.stream().pipeThrough(progressTransform)
-    const wrappedStream = new WrapReadableStream(stream as any)
-
-    const sync = await adbInstance.sync()
     try {
-      await sync.write({
-        filename: targetFilePath,
-        file: wrappedStream
-      })
-    } finally {
-      await sync.dispose().catch(() => {})
-    }
+      await gateFreeSpace(file.size, 'files')
+      await createRemoteDir(remoteDirectory)
 
-    return true
+      const { WrapReadableStream } = await import('@yume-chan/stream-extra')
+      const targetDir = remoteDirectory.endsWith('/') ? remoteDirectory : `${remoteDirectory}/`
+      const targetFilePath = `${targetDir}${file.name}`
+      activeRemoteCleanup = targetFilePath
+
+      let loaded = 0
+      const totalBytes = file.size
+      const progressTransform = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          if (signal.aborted) {
+            controller.error(new DOMException('Installation cancelled by user', 'AbortError'))
+            return
+          }
+          loaded += chunk.byteLength
+          const view = describeByteProgress(loaded, totalBytes, 'transfer', file.name)
+          onProgress?.(
+            view.indeterminate ? 0 : view.percent,
+            view.message,
+            view.indeterminate
+          )
+          controller.enqueue(chunk)
+        }
+      })
+
+      const stream = file.stream().pipeThrough(progressTransform)
+      const wrappedStream = new WrapReadableStream(stream as any)
+      const sync = await adbInstance.sync()
+      try {
+        await sync.write({
+          filename: targetFilePath,
+          file: wrappedStream
+        })
+      } catch (err) {
+        await removeRemoteFile(targetFilePath)
+        activeRemoteCleanup = null
+        throw err
+      } finally {
+        await sync.dispose().catch(() => {})
+      }
+
+      if (signal.aborted) {
+        await removeRemoteFile(targetFilePath)
+        activeRemoteCleanup = null
+        throw new DOMException('Installation cancelled by user', 'AbortError')
+      }
+      activeRemoteCleanup = null
+      return true
+    } finally {
+      fileAbortController = null
+    }
   }
 
   // Launch app directly on headset
@@ -1131,6 +1282,7 @@ export const useQuestAdb = () => {
     storagePercent,
     installedPackages,
     installProgress,
+    installSpaceWarning,
     connect,
     cancelConnect,
     tryAutoConnect,
@@ -1142,6 +1294,8 @@ export const useQuestAdb = () => {
     installApkFile,
     installApkUrl,
     cancelInstall,
+    cancelFilePush,
+    checkFreeSpace,
     uninstallPackage,
     deleteRemotePath,
     getPackageVersion,

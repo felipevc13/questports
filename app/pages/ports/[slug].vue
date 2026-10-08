@@ -484,6 +484,17 @@
                 <span class="text-[11px] font-mono text-primary">WebADB Ready</span>
               </div>
 
+              <div
+                v-if="spaceNotice || questAdb.installSpaceWarning.value"
+                data-testid="space-notice"
+                class="p-3 rounded-lg border text-[11px] leading-relaxed"
+                :class="spaceNoticeKind === 'block'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-100'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-50'"
+              >
+                {{ spaceNotice || questAdb.installSpaceWarning.value }}
+              </div>
+
               <div v-if="!isInstallingApk" class="space-y-2">
                 <button
                   @click="handleApkInstall"
@@ -509,22 +520,16 @@
                 </div>
               </div>
 
-              <!-- Installing Progress Bar -->
-              <div v-else class="space-y-2 py-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-primary font-medium flex items-center gap-1.5 truncate max-w-[280px]">
-                    <svg class="w-3.5 h-3.5 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                    </svg>
-                    <span class="truncate">{{ questAdb.installProgress.value.message || 'Installing on Quest...' }}</span>
-                  </span>
-                  <span class="font-mono text-primary font-semibold shrink-0">{{ apkProgress }}%</span>
-                </div>
-                <div class="w-full bg-muted rounded-full h-2 overflow-hidden border border-border">
-                  <div class="bg-primary h-full transition-all duration-300" :style="{ width: apkProgress + '%' }"></div>
-                </div>
-              </div>
+              <TransferProgress
+                v-else
+                :message="questAdb.installProgress.value.message || 'Installing on Quest...'"
+                :percent="questAdb.installProgress.value.percent"
+                :indeterminate="Boolean(questAdb.installProgress.value.indeterminate)"
+                :received-label="questAdb.installProgress.value.receivedLabel"
+                :show-cancel="canCancelInstall"
+                :locked-note="installLockedNote"
+                @cancel="cancelApkInstall"
+              />
 
               <!-- Installation Error Message with Retry / Bypass -->
               <div v-if="apkInstallError" class="p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300 space-y-1.5 animate-in fade-in duration-200">
@@ -571,12 +576,13 @@
                   v-if="isApkOutdated && !isInstallingApk"
                   @click="handleApkInstall"
                   class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500 hover:bg-amber-400 text-black cursor-pointer"
+                  title="Installs over the current app with pm install -r and keeps data"
                 >
                   Update to {{ port.latest_version }}
                 </button>
                 <button
                   v-else-if="!isInstallingApk"
-                  @click="isApkInstalled = false"
+                  @click="openReinstallPrompt"
                   class="text-[11px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
                   Reinstall
@@ -595,21 +601,67 @@
             </div>
 
             <div
-              v-if="isInstallingApk"
-              class="p-3 rounded-lg bg-muted/20 border border-border/80 space-y-2"
+              v-if="spaceNotice || questAdb.installSpaceWarning.value"
+              data-testid="space-notice"
+              class="p-3 rounded-lg border text-[11px] leading-relaxed"
+              :class="spaceNoticeKind === 'block'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-100'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-50'"
             >
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-primary font-medium flex items-center gap-1.5 truncate max-w-[280px]">
-                  <svg class="w-3.5 h-3.5 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                  </svg>
-                  <span class="truncate">{{ questAdb.installProgress.value.message || 'Updating APK on Quest...' }}</span>
-                </span>
-                <span class="font-mono text-primary font-semibold shrink-0">{{ apkProgress }}%</span>
-              </div>
-              <div class="w-full bg-muted rounded-full h-2 overflow-hidden border border-border">
-                <div class="bg-primary h-full transition-all duration-300" :style="{ width: apkProgress + '%' }"></div>
+              {{ spaceNotice || questAdb.installSpaceWarning.value }}
+            </div>
+
+            <div
+              v-if="isInstallingApk"
+              class="p-3 rounded-lg bg-muted/20 border border-border/80"
+            >
+              <TransferProgress
+                :message="questAdb.installProgress.value.message || 'Updating APK on Quest...'"
+                :percent="questAdb.installProgress.value.percent"
+                :indeterminate="Boolean(questAdb.installProgress.value.indeterminate)"
+                :received-label="questAdb.installProgress.value.receivedLabel"
+                :show-cancel="canCancelInstall"
+                :locked-note="installLockedNote"
+                @cancel="cancelApkInstall"
+              />
+            </div>
+
+            <div
+              v-if="showReinstallPrompt"
+              data-testid="reinstall-confirm"
+              class="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-xs space-y-2.5"
+            >
+              <div class="font-semibold text-amber-100">Reinstall {{ port.title }}?</div>
+              <p class="text-[11px] text-muted-foreground leading-relaxed">{{ reinstallCopy.lead }}</p>
+              <p v-if="reinstallCopy.shared" class="text-[11px] text-foreground leading-relaxed">{{ reinstallCopy.shared }}</p>
+              <p class="text-[11px] text-muted-foreground leading-relaxed">{{ reinstallCopy.keepData }}</p>
+              <p v-if="reinstallError" class="text-[11px] text-rose-300 font-mono">{{ reinstallError }}</p>
+              <div class="flex items-center justify-end gap-2 pt-0.5 flex-wrap">
+                <button
+                  type="button"
+                  @click="showReinstallPrompt = false"
+                  :disabled="isUninstallingApp"
+                  class="px-2.5 py-1 text-[11px] font-medium rounded border border-border/80 bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  @click="installKeepingData"
+                  :disabled="isUninstallingApp || isInstallingApk"
+                  class="px-2.5 py-1 text-[11px] font-semibold rounded bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer disabled:opacity-50"
+                >
+                  Install over it (keep data)
+                </button>
+                <button
+                  type="button"
+                  data-testid="reinstall-confirm-wipe"
+                  @click="executeReinstall"
+                  :disabled="isUninstallingApp || isInstallingApk"
+                  class="px-3 py-1 text-[11px] font-semibold rounded bg-rose-600 hover:bg-rose-500 text-white cursor-pointer disabled:opacity-50"
+                >
+                  {{ isUninstallingApp ? 'Removing...' : 'Uninstall and reinstall' }}
+                </button>
               </div>
             </div>
 
@@ -873,20 +925,15 @@
                   </div>
                 </div>
 
-                <div v-else class="space-y-2 py-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-primary font-medium flex items-center gap-1.5 truncate max-w-[280px]">
-                      <svg class="w-3.5 h-3.5 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                      </svg>
-                      <span class="truncate">{{ fileTransferStatusMsg || `Copying files into /${currentCampaign?.folder}/...` }}</span>
-                    </span>
-                    <span class="font-mono text-primary font-semibold shrink-0">{{ fileTransferProgress }}%</span>
-                  </div>
-                  <div class="w-full bg-muted rounded-full h-1.5 overflow-hidden border border-border">
-                    <div class="bg-primary h-full transition-all duration-200" :style="{ width: fileTransferProgress + '%' }"></div>
-                  </div>
+                <div v-else class="py-1" @click.stop>
+                  <TransferProgress
+                    :message="fileTransferStatusMsg || `Copying files into /${currentCampaign?.folder}/...`"
+                    :percent="fileTransferProgress"
+                    :indeterminate="fileTransferIndeterminate"
+                    :received-label="fileTransferReceived"
+                    :show-cancel="true"
+                    @cancel="cancelFileTransfer"
+                  />
                 </div>
               </div>
 
@@ -1128,10 +1175,9 @@
                 </div>
               </div>
 
-              <!-- Compatible Files -->
               <div class="space-y-1">
-                <span class="text-[11px] text-muted-foreground block font-mono">Required Files:</span>
-                <div class="text-[11px] text-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
+                <span class="text-[11px] text-muted-foreground block font-mono">{{ extraFilesHeading }}</span>
+                <div data-testid="extra-files" class="text-[11px] text-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
                   {{ currentCampaign?.exampleFiles }}
                 </div>
               </div>
@@ -1194,7 +1240,7 @@
 
               <!-- Active Campaign Details -->
               <div class="space-y-1 pt-1 border-t border-border/60">
-                <span class="text-[11px] text-muted-foreground block font-mono">Required for {{ currentCampaign?.name }}:</span>
+                <span class="text-[11px] text-muted-foreground block font-mono">{{ extraFilesHeading }}</span>
                 <div class="text-[11px] text-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
                   {{ currentCampaign?.exampleFiles }}
                 </div>
@@ -1257,12 +1303,15 @@ import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
+import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
+import TransferProgress from '~/components/TransferProgress.vue'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -1359,6 +1408,10 @@ const isApkInstalled = ref(false)
 const isInstallingApk = ref(false)
 const apkProgress = ref(0)
 const apkInstallError = ref<string | null>(null)
+const spaceNotice = ref<string | null>(null)
+const spaceNoticeKind = ref<'block' | 'warn'>('warn')
+const showReinstallPrompt = ref(false)
+const reinstallError = ref<string | null>(null)
 
 // Restore persisted state on mount
 onMounted(() => {
@@ -1401,10 +1454,33 @@ watch(
   { immediate: true }
 )
 
-watch(() => questAdb.installProgress.value.percent, (pct) => {
-  if (isInstallingApk.value && pct > 0) {
-    apkProgress.value = pct
+watch(() => questAdb.installProgress.value, (progress) => {
+  if (!isInstallingApk.value) return
+  apkProgress.value = progress.percent
+}, { deep: true })
+
+const canCancelInstall = computed(() => {
+  const step = questAdb.installProgress.value.step
+  return isInstallingApk.value && (step === 'downloading' || step === 'pushing')
+})
+
+const installLockedNote = computed(() => {
+  if (questAdb.installProgress.value.step !== 'installing') return ''
+  return 'Installing on the headset. This step runs to completion so the package is not left half-installed.'
+})
+
+const reinstallCopy = computed(() => reinstallWarningCopy(port.value?.slug))
+
+const showsNoExtraFiles = computed(() => {
+  return isDirectApkOnly.value || currentCampaign.value?.exampleFiles === 'No extra files needed'
+})
+
+const extraFilesHeading = computed(() => {
+  if (showsNoExtraFiles.value) return 'Extra files:'
+  if (campaignList.value.length > 1 && currentCampaign.value?.name) {
+    return `Required for ${currentCampaign.value.name}:`
   }
+  return 'Required Files:'
 })
 
 const selectedCampaignId = ref<string | null>(null)
@@ -1417,7 +1493,10 @@ const showDetectedFilesList = ref(false)
 
 const isTransferringFiles = ref(false)
 const fileTransferProgress = ref(0)
+const fileTransferIndeterminate = ref(false)
+const fileTransferReceived = ref('')
 const fileTransferStatusMsg = ref('')
+const fileTransferCancelRequested = ref(false)
 const copiedPath = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -1575,14 +1654,18 @@ const handleLocalApkSelected = async (e: Event) => {
     return
   }
 
+  spaceNotice.value = null
+  spaceNoticeKind.value = 'warn'
   isInstallingApk.value = true
-  apkProgress.value = 10
+  apkProgress.value = 0
   try {
-    await questAdb.installApkFile(file, port.value?.title || 'Game Port')
-    isApkInstalled.value = true
-    scanCampaignFiles()
+    const installed = await questAdb.installApkFile(file, port.value?.title || 'Game Port')
+    if (installed) {
+      isApkInstalled.value = true
+      scanCampaignFiles()
+    }
   } catch (err: any) {
-    console.error('Failed to install APK:', err)
+    noteInstallFailure(err)
   } finally {
     isInstallingApk.value = false
   }
@@ -1736,9 +1819,70 @@ const recordInstallVerification = async () => {
 }
 
 // 1-Click APK Install Handler
+const noteInstallFailure = (err: any) => {
+  if (isUserCancel(err)) {
+    apkInstallError.value = null
+    return
+  }
+  const message = err?.message || 'Failed to install APK on headset.'
+  if (isLowSpaceError(err) || message.startsWith('Not enough free space')) {
+    spaceNotice.value = message
+    spaceNoticeKind.value = 'block'
+    apkInstallError.value = null
+    return
+  }
+  console.error('Failed to install APK via WebADB:', err)
+  apkInstallError.value = message
+}
+
+const cancelApkInstall = async () => {
+  await questAdb.cancelInstall()
+  apkInstallError.value = null
+  spaceNotice.value = null
+  isInstallingApk.value = false
+  apkProgress.value = 0
+}
+
+const openReinstallPrompt = () => {
+  reinstallError.value = null
+  showUninstallPrompt.value = false
+  showReinstallPrompt.value = true
+}
+
+const installKeepingData = async () => {
+  showReinstallPrompt.value = false
+  await handleApkInstall()
+}
+
+const executeReinstall = async () => {
+  reinstallError.value = null
+  const pkg = getInstalledPackageName()
+  if (!questAdb.isConnected.value || !pkg) {
+    reinstallError.value = 'Connect the Quest so the installed package can be removed before it is installed again.'
+    return
+  }
+  isUninstallingApp.value = true
+  try {
+    const ok = await questAdb.uninstallPackage(pkg)
+    if (!ok) {
+      reinstallError.value = `Headset could not remove package "${pkg}". App data was left in place, and the APK was not installed again.`
+      return
+    }
+    showReinstallPrompt.value = false
+    isApkInstalled.value = false
+    await handleApkInstall()
+  } catch (err: any) {
+    reinstallError.value = err?.message || 'Error executing uninstall command on headset.'
+  } finally {
+    isUninstallingApp.value = false
+  }
+}
+
 const handleApkInstall = async () => {
   if (isInstallingApk.value || !port.value) return
   apkInstallError.value = null
+  spaceNotice.value = null
+  spaceNoticeKind.value = 'warn'
 
   const downloadUrl = port.value.port_download_url
   if (!downloadUrl) {
@@ -1758,12 +1902,14 @@ const handleApkInstall = async () => {
   }
 
   isInstallingApk.value = true
-  apkProgress.value = 5
+  apkProgress.value = 0
   try {
-    await questAdb.installApkUrl(downloadUrl, port.value.title)
-    // installApkUrl returns silently on user cancel; trust only the headset package list
-    await questAdb.updatePackages()
-    if (questAdb.installProgress.value.step === 'completed') {
+    const installed = await questAdb.installApkUrl(downloadUrl, port.value.title)
+    if (questAdb.installSpaceWarning.value) {
+      spaceNotice.value = questAdb.installSpaceWarning.value
+      spaceNoticeKind.value = 'warn'
+    }
+    if (installed || questAdb.installProgress.value.step === 'completed') {
       isApkInstalled.value = true
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
@@ -1771,8 +1917,7 @@ const handleApkInstall = async () => {
       await recordInstallVerification()
     }
   } catch (err: any) {
-    console.error('Failed to install APK via WebADB:', err)
-    apkInstallError.value = err?.message || 'Failed to install APK on headset.'
+    noteInstallFailure(err)
   } finally {
     isInstallingApk.value = false
   }
@@ -1790,34 +1935,114 @@ const handleFileInputChange = async (e: Event) => {
   }
 }
 
+const traverseDroppedEntry = async (item: any, path = ''): Promise<{ file: File, relPath: string }[]> => {
+  if (item.isFile) {
+    return new Promise((resolve) => {
+      item.file((file: File) => resolve([{ file, relPath: path }]))
+    })
+  }
+  if (!item.isDirectory) return []
+  const dirReader = item.createReader()
+  const entries: any[] = await new Promise((resolve) => {
+    const all: any[] = []
+    const readNext = () => {
+      dirReader.readEntries((batch: any[]) => {
+        if (!batch || batch.length === 0) resolve(all)
+        else {
+          all.push(...batch)
+          readNext()
+        }
+      }, () => resolve(all))
+    }
+    readNext()
+  })
+  const subFolder = path ? `${path}/${item.name}` : item.name
+  const results: { file: File, relPath: string }[] = []
+  for (const child of entries) results.push(...await traverseDroppedEntry(child, subFolder))
+  return results
+}
+
 const handleDrop = async (e: DragEvent) => {
   e.preventDefault()
   if (!currentCampaign.value || !questAdb.isConnected.value) return
+  const items = e.dataTransfer?.items
+  if (items && items.length > 0 && typeof items[0]?.webkitGetAsEntry === 'function') {
+    const collected: { file: File, relPath: string }[] = []
+    for (let i = 0; i < items.length; i++) {
+      const entry = items[i] && typeof items[i].webkitGetAsEntry === 'function' ? items[i].webkitGetAsEntry() : null
+      if (entry) collected.push(...await traverseDroppedEntry(entry, ''))
+    }
+    if (collected.length > 0) {
+      await uploadRealFiles(collected)
+      return
+    }
+  }
   const files = e.dataTransfer?.files
   if (files && files.length > 0) {
-    await uploadRealFiles(Array.from(files))
+    await uploadRealFiles(Array.from(files).map(file => ({ file })))
   }
 }
 
-const uploadRealFiles = async (files: File[]) => {
+const cancelFileTransfer = async () => {
+  fileTransferCancelRequested.value = true
+  await questAdb.cancelFilePush()
+  fileTransferProgress.value = 0
+  fileTransferIndeterminate.value = false
+  fileTransferReceived.value = ''
+  fileTransferStatusMsg.value = ''
+  isTransferringFiles.value = false
+}
+
+const uploadRealFiles = async (files: Array<File | { file: File, relPath?: string }>) => {
   if (!currentCampaign.value || !questAdb.isConnected.value || files.length === 0) return
+  const normalized = files.map(entry => entry instanceof File ? entry : entry.file)
+  const payloadBytes = normalized.reduce((sum, file) => sum + (file.size || 0), 0)
+  spaceNotice.value = null
+  const decision = await questAdb.checkFreeSpace(payloadBytes, 'files')
+  if (decision.action === 'block') {
+    spaceNotice.value = decision.message
+    spaceNoticeKind.value = 'block'
+    return
+  }
+  if (decision.action === 'warn') {
+    spaceNotice.value = decision.message
+    spaceNoticeKind.value = 'warn'
+  }
+
+  fileTransferCancelRequested.value = false
   isTransferringFiles.value = true
   fileTransferProgress.value = 0
+  fileTransferIndeterminate.value = false
+  fileTransferReceived.value = ''
   fileTransferStatusMsg.value = `Preparing ${files.length} file(s)...`
 
   try {
-    const targetDir = currentCampaign.value.fullPath
+    const campaignPath = currentCampaign.value.fullPath
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]!
+      if (fileTransferCancelRequested.value) return
+      const entry = files[i]!
+      const file = entry instanceof File ? entry : entry.file
+      const relPath = entry instanceof File ? file.webkitRelativePath : (entry.relPath || file.webkitRelativePath)
+      const targetDir = destinationDirForDroppedFile(campaignPath, relPath, file.name)
       const currentPct = Math.round((i / files.length) * 100)
       fileTransferProgress.value = currentPct
       fileTransferStatusMsg.value = `Transferring ${file.name} (${i + 1}/${files.length})...`
-      await questAdb.pushFileToPath(file, targetDir, (pct, msg) => {
+      await questAdb.pushFileToPath(file, targetDir, (pct, msg, indeterminate) => {
+        if (fileTransferCancelRequested.value) return
+        fileTransferIndeterminate.value = Boolean(indeterminate)
+        if (indeterminate) {
+          const match = msg.match(/\(([^)]+)\)/)
+          fileTransferReceived.value = match?.[1]?.split(' sent')[0] || ''
+          fileTransferStatusMsg.value = msg
+          return
+        }
         const overall = Math.min(99, Math.round(((i + (pct / 100)) / files.length) * 100))
         fileTransferProgress.value = overall
         fileTransferStatusMsg.value = msg
       })
     }
+    if (fileTransferCancelRequested.value) return
+    fileTransferIndeterminate.value = false
     fileTransferProgress.value = 100
     fileTransferStatusMsg.value = 'Files transferred successfully!'
     if (port.value) {
@@ -1827,12 +2052,28 @@ const uploadRealFiles = async (files: File[]) => {
     allowFileTransferOverride.value = false
     await scanCampaignFiles()
   } catch (err: any) {
+    if (fileTransferCancelRequested.value || isUserCancel(err)) {
+      fileTransferStatusMsg.value = ''
+      fileTransferProgress.value = 0
+      fileTransferIndeterminate.value = false
+      isTransferringFiles.value = false
+      return
+    }
+    if (isLowSpaceError(err)) {
+      spaceNotice.value = err.message
+      spaceNoticeKind.value = 'block'
+      fileTransferStatusMsg.value = ''
+      isTransferringFiles.value = false
+      return
+    }
     console.error('File push failed:', err)
     fileTransferStatusMsg.value = `Error: ${err?.message || 'Failed to push files'}`
   } finally {
-    setTimeout(() => {
-      isTransferringFiles.value = false
-    }, 800)
+    if (!fileTransferCancelRequested.value) {
+      setTimeout(() => {
+        isTransferringFiles.value = false
+      }, 800)
+    }
   }
 }
 

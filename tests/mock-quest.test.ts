@@ -172,9 +172,9 @@ describe('catalog install card expectations', () => {
     expect(facts.every(fact => fact.installType !== 'missing')).toBe(true)
   })
 
-  it('treats only QuestCraft and Iron Lung as self-contained sideloads', () => {
+  it('treats QuestCraft, Iron Lung, and Time Crisis as self-contained sideloads', () => {
     const selfContained = facts.filter(fact => fact.selfContained).map(fact => fact.slug).sort()
-    expect(selfContained).toEqual(['iron-lung-vr', 'questcraft'])
+    expect(selfContained).toEqual(['iron-lung-vr', 'questcraft', 'time-crisis-vr'])
   })
 
   it('expects a send-files step for every game that is not self-contained', () => {
