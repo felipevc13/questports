@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { INITIAL_PORTS } from '~/data/mockPorts'
 import { getPortCampaigns } from '~/data/expansions'
-import { PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { PORT_PACKAGE_CONFIGS, firstDistinctAltPath, type PortFolderRequirement } from '~/data/portPackageMap'
 import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
 
 /**
@@ -48,7 +48,7 @@ export interface MockQuestScenario {
   next: MockNext
   install: MockInstall
   game: 'absent' | 'installed' | 'outdated'
-  files: 'missing' | 'present'
+  files: 'missing' | 'present' | 'stray' | 'primary' | 'alternate'
   uninstall: 'ok' | 'fail'
   chrome: boolean
   speed: 'normal' | 'instant'
@@ -109,7 +109,12 @@ export function parseMockScenario(search: string): MockQuestScenario | null {
   const install = (INSTALL_SET.has(installParam) ? installParam : 'ok') as MockInstall
   const gameParam = params.get('mockGame') || 'absent'
   const game = gameParam === 'installed' || gameParam === 'outdated' ? gameParam : 'absent'
-  const files = params.get('mockFiles') === 'present' ? 'present' : 'missing'
+  const filesParam = params.get('mockFiles') || 'missing'
+  const files = (
+    filesParam === 'present' || filesParam === 'stray' || filesParam === 'primary' || filesParam === 'alternate'
+      ? filesParam
+      : 'missing'
+  ) as MockQuestScenario['files']
   const uninstall = params.get('mockUninstall') === 'fail' ? 'fail' : 'ok'
   const chrome = params.get('mockChrome') !== '0'
   const speed = params.get('mockSpeed') === 'instant' ? 'instant' : 'normal'
@@ -193,30 +198,54 @@ function sampleForPattern(pattern: string, folderName: string): string {
   return `${stem}.${ext}`
 }
 
-/** Absolute headset paths the UI scan treats as "files present" for every catalog game. */
-export function collectPresentSeedPaths(): string[] {
+const STRAY_FILE_NAME = 'unrelated-note.txt'
+
+function namesForFolder(folder: PortFolderRequirement): string[] {
+  if (folder.acceptance === 'confirm') return []
+  if (folder.expectedFiles?.length) return [...folder.expectedFiles]
+  if (folder.fileExtensionPattern) return [sampleForPattern(folder.fileExtensionPattern, folder.folderName)]
+  return [`${folder.folderName || 'asset'}.bin`]
+}
+
+function seedDirFor(folder: PortFolderRequirement, where: 'primary' | 'alternate'): string {
+  if (where === 'alternate') return firstDistinctAltPath(folder) || folder.targetPath
+  return folder.targetPath
+}
+
+/** Absolute headset paths for one mockFiles mode. `present` matches `primary`. */
+export function collectSeedPaths(mode: MockQuestScenario['files']): string[] {
+  if (mode === 'missing') return []
   const paths: string[] = []
   for (const port of INITIAL_PORTS) {
-    for (const campaign of getPortCampaigns(port)) {
-      if (!campaign.fullPath.startsWith('/sdcard/')) continue
-      paths.push(joinPath(campaign.fullPath, fileNameFromExample(campaign.exampleFiles, campaign.folder)))
-    }
     const cfg = PORT_PACKAGE_CONFIGS[port.slug]
-    if (!cfg) continue
-    if (cfg.targetPath) {
-      for (const rel of cfg.criticalFiles || []) {
-        if (rel) paths.push(joinPath(cfg.targetPath, rel))
+    const folders = cfg?.folders || []
+    if (mode === 'stray') {
+      const dirs = new Set<string>()
+      for (const campaign of getPortCampaigns(port)) {
+        if (campaign.fullPath.startsWith('/sdcard/')) dirs.add(campaign.fullPath)
       }
+      for (const folder of folders) dirs.add(folder.targetPath)
+      for (const dir of dirs) paths.push(joinPath(dir, STRAY_FILE_NAME))
+      continue
     }
-    for (const folder of cfg.folders || []) {
-      if (folder.expectedFiles?.length) {
-        for (const name of folder.expectedFiles) paths.push(joinPath(folder.targetPath, name))
-      } else if (folder.fileExtensionPattern) {
-        paths.push(joinPath(folder.targetPath, sampleForPattern(folder.fileExtensionPattern, folder.folderName)))
+    const where = mode === 'alternate' ? 'alternate' : 'primary'
+    for (const folder of folders) {
+      const dir = seedDirFor(folder, where)
+      for (const name of namesForFolder(folder)) paths.push(joinPath(dir, name))
+    }
+    if (folders.length === 0) {
+      for (const campaign of getPortCampaigns(port)) {
+        if (!campaign.fullPath.startsWith('/sdcard/')) continue
+        paths.push(joinPath(campaign.fullPath, fileNameFromExample(campaign.exampleFiles, campaign.folder)))
       }
     }
   }
   return Array.from(new Set(paths))
+}
+
+/** Absolute headset paths the UI scan treats as "files present" for every catalog game. */
+export function collectPresentSeedPaths(): string[] {
+  return collectSeedPaths('primary')
 }
 
 interface FsDir {
@@ -453,8 +482,8 @@ export function getActiveMockDevice(): MockQuestDevice | null {
 
 export function createMockQuestDevice(scenario: MockQuestScenario): MockQuestDevice {
   const fs = new MockQuestFilesystem()
-  if (scenario.files === 'present') {
-    for (const path of collectPresentSeedPaths()) fs.addFile(path, 1024 * 64)
+  if (scenario.files !== 'missing') {
+    for (const path of collectSeedPaths(scenario.files)) fs.addFile(path, 1024 * 64)
   }
   const seeded = buildPackageState(scenario.game)
   const packages = seeded.packages

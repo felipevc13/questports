@@ -20,7 +20,7 @@ A **Simulated Quest** panel sits at the bottom-left while the flag is on. It is 
 | `mockNext` | `ok` (default), `picker-cancel`, `unauthorized`, `usb-locked`, `cancelled`, `timeout`, `generic` | What the next **Connect** click does after the simulated USB prompt |
 | `mockInstall` | `ok` (default), `hold-downloading`, `hold-pushing`, `hold-installing`, `hold-success`, `download-failed`, `storage`, `disconnect`, `unauthorized`, `pm-failed` | What the next **Install APK** click does |
 | `mockGame` | `absent` (default), `installed`, `outdated` | Whether every catalog package is on the headset, and whether `versionName` is older than the catalog |
-| `mockFiles` | `missing` (default), `present` | Whether external game files are already in the folders the install card scans |
+| `mockFiles` | `missing` (default), `stray`, `primary`, `alternate`, `present` | `missing` leaves storage empty. `stray` puts only `unrelated-note.txt` in each scanned folder (the send-files box stays up, except CitraVR / PPSSPP VR / PrimedGun, which still treat any file as present). `primary` and `present` place each game's required filenames in its main folder. `alternate` places them in the first real alternate folder, or the `/storage/emulated/0` alias when the game has no second folder. |
 | `mockUninstall` | `ok` (default), `fail` | `pm uninstall` result |
 | `mockTransfer` | `ok` (default), `hold` | Pause a drag-and-drop file copy mid-transfer |
 | `mockLaunch` | `ok` (default), `slow` | Keep **Launching...** on screen long enough to see it |
@@ -51,6 +51,9 @@ Open a port that has a direct APK button, for example Return to Castle Wolfenste
 | Success message | `mockInstall=hold-success`, then click **Install APK**. Holds at 100% with **Successfully installed!** |
 | Installed, nothing else to copy | `mockPhase=connected&mockGame=installed` on `/ports/iron-lung-vr` or `/ports/questcraft`. **Standalone Port Ready to Play!** and **Launch on Quest**. |
 | Installed, external files missing | `mockPhase=connected&mockGame=installed&mockFiles=missing` on `/ports/rtcwquest`. **Drag & drop** send-files box. No **Launch on Quest**. |
+| Installed, stray file only | `mockPhase=connected&mockGame=installed&mockFiles=stray` on `/ports/rtcwquest`. The send-files box stays up. **Launch on Quest** stays hidden. |
+| Installed, required files in the main folder | `mockPhase=connected&mockGame=installed&mockFiles=primary` (or `present`) on `/ports/perfect-dark-vr`. **Ready to Play on Quest!**, **Verified on Quest**, and **Launch on Quest**. |
+| Installed, required files in an alternate folder | `mockPhase=connected&mockGame=installed&mockFiles=alternate` on `/ports/questsam`. Same ready card. The detected path is the legacy folder, not the app-data folder. |
 | Installed, external files present | `mockPhase=connected&mockGame=installed&mockFiles=present` on `/ports/rtcwquest`. **Ready to Play on Quest!**, **Verified on Quest**, and **Launch on Quest**. |
 | Update available | `mockPhase=connected&mockGame=outdated&mockFiles=present`. Badge **Update available** and **Update to …**. |
 | Download failed | `mockInstall=download-failed`, then click **Install APK**. **Installation Issue: Failed to download APK: …** |
@@ -75,6 +78,6 @@ Click **Connect Meta Quest via USB** with `mockNext=ok` to walk the happy path y
 
 ## Game files
 
-`mockGame=installed` puts every catalog package on the fake headset. `mockFiles=present` fills the folders the install card actually scans (the campaign paths from the catalog). `mockFiles=missing` leaves storage empty, so the send-files box stays up.
+`mockGame=installed` puts every catalog package on the fake headset. `mockFiles=primary` (and `present`) writes the required filenames into each port's main folder. `mockFiles=alternate` writes those filenames into the alternate folder instead. `mockFiles=stray` writes only an unrelated text file, which does not count as ready. `mockFiles=missing` leaves storage empty, so the send-files box stays up. CitraVR, PPSSPP VR, and PrimedGun still become ready when their ROM folder is non-empty, including a stray file.
 
 That is the same check the page uses after a real `ls` over ADB. It does not require the critical filenames from `portPackageMap` to be present; any file in the scanned folder counts.

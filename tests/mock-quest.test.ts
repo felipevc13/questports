@@ -3,6 +3,7 @@ import { QUEST_USB_MESSAGES } from '../app/lib/questUsbMessages'
 import {
   buildPackageState,
   collectPresentSeedPaths,
+  collectSeedPaths,
   createMockQuestDevice,
   parseMockScenario
 } from '../app/lib/mockQuest'
@@ -82,6 +83,43 @@ describe('mock Quest device', () => {
     const files = device.fs.list('/sdcard/RTCWQuest/main')
     expect(files).toContain('pak0.pk3')
     expect(collectPresentSeedPaths().length).toBeGreaterThan(30)
+  })
+
+  it('seeds stray, primary, and alternate files on different paths', () => {
+    const base = {
+      phase: 'connected' as const,
+      next: 'ok' as const,
+      install: 'ok' as const,
+      game: 'installed' as const,
+      uninstall: 'ok' as const,
+      chrome: true,
+      speed: 'instant' as const,
+      launch: 'ok' as const,
+      transfer: 'ok' as const
+    }
+    const stray = createMockQuestDevice({ ...base, files: 'stray' })
+    expect(stray.fs.list('/sdcard/Documents/HaloCE/maps')).toEqual(['unrelated-note.txt'])
+    expect(stray.fs.list('/sdcard/Android/data/com.perfectdark.port/files/data')).toEqual(['unrelated-note.txt'])
+    expect(stray.fs.list('/sdcard/Android/data/com.github.maranone.questsam/files')).toEqual(['unrelated-note.txt'])
+
+    const primary = createMockQuestDevice({ ...base, files: 'primary' })
+    expect(primary.fs.list('/sdcard/Documents/HaloCE/maps')).toEqual(expect.arrayContaining(['ui.map', 'bloodgulch.map']))
+    expect(primary.fs.list('/sdcard/Android/data/com.perfectdark.port/files/data')).toContain('pd.ntsc-final.z64')
+    expect(primary.fs.list('/sdcard/Android/data/com.github.maranone.questsam/files')).toContain('SE1_00.gro')
+    expect(primary.fs.list('/sdcard/questsam')).toBeNull()
+
+    const alternate = createMockQuestDevice({ ...base, files: 'alternate' })
+    expect(alternate.fs.list('/sdcard/Documents/HaloCE/maps')).toBeNull()
+    expect(alternate.fs.list('/sdcard/Android/data/com.halo.decomp.vr/files/maps')).toEqual(expect.arrayContaining(['ui.map', 'bloodgulch.map']))
+    expect(alternate.fs.list('/sdcard/Android/data/com.perfectdark.port/files/data')).toBeNull()
+    expect(alternate.fs.list('/storage/emulated/0/Android/data/com.perfectdark.port/files/data')).toContain('pd.ntsc-final.z64')
+    expect(alternate.fs.list('/sdcard/questsam')).toContain('SE1_00.gro')
+    expect(alternate.fs.list('/sdcard/Android/data/com.github.maranone.questsam/files')).toBeNull()
+
+    expect(parseMockScenario('?mockQuest=1&mockFiles=stray')?.files).toBe('stray')
+    expect(parseMockScenario('?mockQuest=1&mockFiles=alternate')?.files).toBe('alternate')
+    expect(parseMockScenario('?mockQuest=1&mockFiles=primary')?.files).toBe('primary')
+    expect(collectSeedPaths('stray').some(path => path.endsWith('unrelated-note.txt'))).toBe(true)
   })
 
   it('marks every catalog package outdated and reports a full disk for the storage failure', async () => {

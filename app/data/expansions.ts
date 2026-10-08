@@ -189,7 +189,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       fullPath: '/sdcard/RazeXR/duke3d/',
       steamPath: 'duke3d/',
       exampleFiles: 'duke3d.grp',
-      instruction: 'Drop the "duke3d" folder or duke3d.grp',
+      instruction: 'Drop duke3d.grp here, or place it in the RazeXR root',
       storeUrl: 'https://store.steampowered.com/app/434050/Duke_Nukem_3D_20th_Anniversary_World_Tour/',
       storeName: 'Steam'
     },
@@ -201,8 +201,8 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       folder: 'blood',
       fullPath: '/sdcard/RazeXR/blood/',
       steamPath: 'blood/',
-      exampleFiles: 'blood.rff and audio files',
-      instruction: 'Drop the "blood" folder with blood.rff',
+      exampleFiles: 'blood.rff',
+      instruction: 'Drop blood.rff here, or place it in the RazeXR root',
       storeUrl: 'https://store.steampowered.com/app/1010750/Blood_Fresh_Supply/',
       storeName: 'Steam'
     },
@@ -215,7 +215,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       fullPath: '/sdcard/RazeXR/sw/',
       steamPath: 'sw/',
       exampleFiles: 'sw.grp',
-      instruction: 'Drop the "sw" folder or sw.grp',
+      instruction: 'Drop sw.grp here, or place it in the RazeXR root',
       storeUrl: 'https://store.steampowered.com/app/225160/Shadow_Warrior_Classic_Redux/',
       storeName: 'Steam'
     }
@@ -311,7 +311,7 @@ export function getDefaultFolderInfo(port: Port): {
       folder: 'preybase',
       fullPath: '/sdcard/preyvr/preybase/',
       exampleFiles: 'pak000.pk4 through pak004.pk4',
-      instruction: 'Drop the "preybase" folder or .pk4 files'
+      instruction: 'Drop pak000.pk4 into preyvr/preybase. PreyVR/base is also detected.'
     },
     beefraiderxr: {
       folder: 'BeefRaiderXR',
@@ -320,10 +320,10 @@ export function getDefaultFolderInfo(port: Port): {
       instruction: 'Drop Tomb Raider 1 PC data files here'
     },
     halocequest: {
-      folder: 'HaloCEQuest',
-      fullPath: '/sdcard/HaloCEQuest/',
-      exampleFiles: 'Halo CE Xbox ISO or extracted maps',
-      instruction: 'Drop your Halo CE Xbox ISO or data files'
+      folder: 'maps',
+      fullPath: '/sdcard/Documents/HaloCE/maps/',
+      exampleFiles: 'ui.map, bloodgulch.map, or an .iso/.xiso',
+      instruction: 'Drop ui.map and bloodgulch.map here, or an Xbox ISO/XISO. The app files maps folder is also detected.'
     },
     citravr: {
       folder: 'roms',
@@ -368,10 +368,10 @@ export function getDefaultFolderInfo(port: Port): {
       instruction: 'Drop Windows game folders or installers here'
     },
     'gran-turismo-2-vr': {
-      folder: 'GT2VR',
-      fullPath: '/sdcard/GT2VR/',
-      exampleFiles: '.bin / .cue / .iso / .chd',
-      instruction: 'Drop your Gran Turismo 2 PS1 disc dump'
+      folder: 'files',
+      fullPath: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
+      exampleFiles: 'extracted disc data from INSTALL-QUEST',
+      instruction: 'INSTALL-QUEST copies extracted disc data here. USB usually cannot list this folder — confirm if you already ran the installer.'
     },
     'road-rash-jailbreak-vr': {
       folder: 'RoadRashVR',
@@ -380,22 +380,40 @@ export function getDefaultFolderInfo(port: Port): {
       instruction: 'Drop your Road Rash: Jailbreak PS1 disc dump'
     },
     'goldeneye-vr': {
-      folder: 'GoldenEyeVR',
-      fullPath: '/sdcard/GoldenEyeVR/',
-      exampleFiles: 'baserom.us.z64',
-      instruction: 'Drop the GoldenEye 007 USA N64 ROM'
+      folder: 'data',
+      fullPath: '/sdcard/Android/data/com.gevr.port/files/data/',
+      exampleFiles: 'ge.z64',
+      instruction: 'Drop the USA ROM here after the app has been opened once, or import it from Download with Choose ROM. A file that is only in Download is not ready yet.'
     },
     'perfect-dark-vr': {
-      folder: 'PerfectDarkVR',
-      fullPath: '/sdcard/PerfectDarkVR/',
-      exampleFiles: 'pd.z64',
-      instruction: 'Drop the Perfect Dark USA N64 ROM'
+      folder: 'data',
+      fullPath: '/sdcard/Android/data/com.perfectdark.port/files/data/',
+      exampleFiles: 'pd.ntsc-final.z64',
+      instruction: 'The ROM must be named pd.ntsc-final.z64 in this folder. Select ROM inside the app copies it here from Download.'
     },
     'nolf-vr': {
       folder: 'nolf',
       fullPath: '/sdcard/nolf/',
       exampleFiles: 'NOLF.REZ, NOLF2.REZ, nolfu003.rez, nolfu003cres.rez',
-      instruction: 'Drop the four required .REZ archives into nolf/ (not a subfolder)'
+      instruction: 'Drop the four required .REZ archives into nolf/ (not a subfolder). Android/data/net.relith.nolf/files/nolf/ is also detected.'
+    },
+    questsam: {
+      folder: 'files',
+      fullPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+      exampleFiles: 'SE1_00.gro',
+      instruction: 'Drop SE1_00.gro here. Legacy /sdcard/questsam and Download/Serious Sam/TSE are also detected.'
+    },
+    questcarnage: {
+      folder: 'DATA',
+      fullPath: '/sdcard/Android/data/com.github.maranone.questcarnage/files/DATA/',
+      exampleFiles: 'GENERAL.TXT',
+      instruction: 'Drop the Carmageddon DATA folder (it must contain GENERAL.TXT). Legacy /sdcard/questcarnage/DATA is also detected.'
+    },
+    'ut99-vr-quest': {
+      folder: 'UT99',
+      fullPath: '/sdcard/Android/data/com.ghwstvr.ut99quest/files/UT99/',
+      exampleFiles: 'System/Core.u, System/Engine.u, System/Botpack.u, Maps, Textures, Sounds',
+      instruction: 'Copy System, Maps, Textures, and Sounds into this folder. /sdcard/UT99Quest/ is also detected.'
     }
   }
 

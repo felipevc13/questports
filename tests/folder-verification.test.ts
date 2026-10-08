@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   PORT_PACKAGE_CONFIGS,
+  RemoteDirDeniedError,
+  assessCampaignOnQuest,
+  campaignPresenceIsAnyFile,
   verifyPortFoldersOnQuest,
   matchFolderRequirement,
   type PortFolderRequirement
@@ -209,6 +212,150 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       const result = await verifyPortFoldersOnQuest('questcraft', listRemoteDirFn)
       expect(result.folders).toEqual([])
       expect(result.isOverallReady).toBe(false)
+    })
+
+    it('keeps RTCW incomplete when the folder only has a stray pk3', async () => {
+      const listRemoteDirFn = async (path: string) => {
+        if (path === '/sdcard/RTCWQuest/main/') return ['readme.txt', 'pak1.pk3']
+        return []
+      }
+      const result = await verifyPortFoldersOnQuest('rtcwquest', listRemoteDirFn)
+      expect(result.folders[0].status).toBe('incomplete')
+      expect(result.folders[0].missingExpectedFiles).toContain('pak0.pk3')
+      expect(result.isOverallReady).toBe(false)
+    })
+
+    it('keeps looking at later paths when an earlier folder only has stray files', async () => {
+      const listRemoteDirFn = async (path: string) => {
+        if (path === '/sdcard/preyvr/preybase/') return ['notes.txt']
+        if (path === '/sdcard/PreyVR/base/') return ['pak000.pk4']
+        return []
+      }
+      const result = await verifyPortFoldersOnQuest('preyvr', listRemoteDirFn)
+      expect(result.folders[0].status).toBe('ready')
+      expect(result.folders[0].detectedPath).toBe('/sdcard/PreyVR/base/')
+      expect(result.isOverallReady).toBe(true)
+    })
+
+    it('accepts Halo when ui.map and bloodgulch.map are in Documents, and rejects a lone map', async () => {
+      const stray = await verifyPortFoldersOnQuest('halocequest', async (path) => {
+        if (path === '/sdcard/Documents/HaloCE/maps/') return ['custom.map', 'readme.txt']
+        return []
+      })
+      expect(stray.isOverallReady).toBe(false)
+
+      const maps = await verifyPortFoldersOnQuest('halocequest', async (path) => {
+        if (path === '/sdcard/Documents/HaloCE/maps/') return ['ui.map', 'bloodgulch.map']
+        return []
+      })
+      expect(maps.isOverallReady).toBe(true)
+      expect(maps.folders[0].detectedPath).toBe('/sdcard/Documents/HaloCE/maps/')
+
+      const iso = await verifyPortFoldersOnQuest('halocequest', async (path) => {
+        if (path === '/sdcard/Android/data/com.halo.decomp.vr/files/maps/') return ['halo.iso']
+        return []
+      })
+      expect(iso.isOverallReady).toBe(true)
+      expect(iso.folders[0].detectedPath).toBe('/sdcard/Android/data/com.halo.decomp.vr/files/maps/')
+    })
+
+    it('accepts QuestSam SE1_00.gro in the app folder or the legacy folder, not a stray gro', async () => {
+      const stray = await assessCampaignOnQuest('questsam', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+        folder: 'files'
+      }, async (path) => path === '/sdcard/Android/data/com.github.maranone.questsam/files/' ? ['other.gro'] : [])
+      expect(stray.exists).toBe(false)
+
+      const primary = await assessCampaignOnQuest('questsam', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+        folder: 'files'
+      }, async (path) => path === '/sdcard/Android/data/com.github.maranone.questsam/files/' ? ['SE1_00.gro'] : [])
+      expect(primary.exists).toBe(true)
+
+      const legacy = await assessCampaignOnQuest('questsam', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+        folder: 'files'
+      }, async (path) => path === '/sdcard/questsam/' ? ['SE1_00.gro'] : [])
+      expect(legacy.exists).toBe(true)
+      expect(legacy.matchedPath).toBe('/sdcard/questsam/')
+    })
+
+    it('requires Perfect Dark pd.ntsc-final.z64 and treats a denied Android/data listing as unreadable', async () => {
+      const campaign = {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.perfectdark.port/files/data/',
+        folder: 'data'
+      }
+      const stray = await assessCampaignOnQuest('perfect-dark-vr', campaign, async (path) => {
+        if (path === '/sdcard/Android/data/com.perfectdark.port/files/data/') return ['pd.z64', 'unrelated-note.txt']
+        return []
+      })
+      expect(stray.exists).toBe(false)
+      expect(stray.confirmReason).toBeNull()
+
+      const ready = await assessCampaignOnQuest('perfect-dark-vr', campaign, async (path) => {
+        if (path === '/storage/emulated/0/Android/data/com.perfectdark.port/files/data/') return ['pd.ntsc-final.z64']
+        return []
+      })
+      expect(ready.exists).toBe(true)
+
+      const denied = await assessCampaignOnQuest('perfect-dark-vr', campaign, async () => {
+        throw new RemoteDirDeniedError('/sdcard/Android/data/com.perfectdark.port/files/data')
+      })
+      expect(denied.exists).toBe(false)
+      expect(denied.confirmReason).toBe('unreadable')
+    })
+
+    it('does not treat a GoldenEye ROM that is only in Download as imported', async () => {
+      const result = await assessCampaignOnQuest('goldeneye-vr', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.gevr.port/files/data/',
+        folder: 'data'
+      }, async (path) => path === '/sdcard/Download/' ? ['GoldenEye.z64'] : [])
+      expect(result.exists).toBe(false)
+
+      const imported = await assessCampaignOnQuest('goldeneye-vr', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/com.gevr.port/files/data/',
+        folder: 'data'
+      }, async (path) => path === '/sdcard/Android/data/com.gevr.port/files/data/' ? ['ge.z64'] : [])
+      expect(imported.exists).toBe(true)
+    })
+
+    it('asks the player to confirm Gran Turismo 2 instead of treating any file as the disc data', async () => {
+      const result = await assessCampaignOnQuest('gran-turismo-2-vr', {
+        id: 'base',
+        fullPath: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
+        folder: 'files'
+      }, async () => ['unrelated-note.txt', 'game.bin'])
+      expect(result.exists).toBe(false)
+      expect(result.confirmReason).toBe('unproven')
+    })
+
+    it('accepts Raze GRP files in the subfolder or the engine root', async () => {
+      const campaign = { id: 'duke3d', fullPath: '/sdcard/RazeXR/duke3d/', folder: 'duke3d' }
+      const stray = await assessCampaignOnQuest('razexr', campaign, async () => ['unrelated-note.txt'])
+      expect(stray.exists).toBe(false)
+      const root = await assessCampaignOnQuest('razexr', campaign, async (path) => {
+        if (path === '/sdcard/RazeXR/') return ['duke3d.grp']
+        return []
+      })
+      expect(root.exists).toBe(true)
+      expect(root.matchedPath).toBe('/sdcard/RazeXR/')
+    })
+
+    it('leaves CitraVR, PPSSPP VR, and PrimedGun on the loose any-file check', () => {
+      expect(campaignPresenceIsAnyFile('citravr')).toBe(true)
+      expect(campaignPresenceIsAnyFile('ppsspp-vr')).toBe(true)
+      expect(campaignPresenceIsAnyFile('primedgun')).toBe(true)
+      expect(campaignPresenceIsAnyFile('perfect-dark-vr')).toBe(false)
+      expect(campaignPresenceIsAnyFile('halocequest')).toBe(false)
+      expect(PORT_PACKAGE_CONFIGS.citravr.folders?.[0].required).toBe(false)
+      expect(PORT_PACKAGE_CONFIGS['ppsspp-vr'].folders?.[0].required).toBe(false)
+      expect(PORT_PACKAGE_CONFIGS.primedgun.folders?.[0].required).toBe(false)
     })
   })
 })

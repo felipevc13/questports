@@ -890,9 +890,23 @@
                 </div>
               </div>
 
+              <div
+                v-if="!isCurrentCampaignTransferred && currentDetectedCampaign?.confirmReason"
+                class="p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-left space-y-2"
+              >
+                <p class="text-[11px] text-foreground leading-relaxed">{{ confirmCopy }}</p>
+                <button
+                  type="button"
+                  @click="confirmImportedFiles"
+                  class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-[11px] font-semibold cursor-pointer"
+                >
+                  I already imported the files
+                </button>
+              </div>
+
               <!-- TRIUMPHANT SUCCESS / READY TO PLAY CARD -->
               <div
-                v-else
+                v-if="isCurrentCampaignTransferred"
                 class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center space-y-3 animate-in fade-in duration-300"
               >
                 <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
@@ -912,6 +926,12 @@
                   >
                     <span>✓ Verified on Quest</span>
                     <span v-if="currentDetectedCampaign?.fileCount">({{ currentDetectedCampaign.fileCount }} files detected)</span>
+                  </div>
+                  <div
+                    v-else-if="currentCampaign && confirmedCampaigns[currentCampaign.id]"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200 text-[10px] font-mono mt-1.5"
+                  >
+                    <span>Confirmed by you — not verified over USB</span>
                   </div>
 
                   <p class="text-[11px] text-muted-foreground max-w-xs mx-auto mt-1 leading-relaxed">
@@ -1225,7 +1245,7 @@ import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
-import { isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { absoluteCoverUrl } from '~/data/coverUrl'
 
@@ -1366,7 +1386,8 @@ watch(() => questAdb.installProgress.value.percent, (pct) => {
 const selectedCampaignId = ref<string | null>(null)
 const transferredCampaigns = ref<Record<string, boolean>>({})
 const isScanningGameFiles = ref(false)
-const detectedCampaigns = ref<Record<string, { exists: boolean; matchedPath: string; fileCount: number; files: string[] }>>({})
+const detectedCampaigns = ref<Record<string, { exists: boolean; matchedPath: string; fileCount: number; files: string[]; confirmReason: 'unreadable' | 'unproven' | null }>>({})
+const confirmedCampaigns = ref<Record<string, boolean>>({})
 const allowFileTransferOverride = ref(false)
 const showDetectedFilesList = ref(false)
 
@@ -1410,9 +1431,18 @@ const scanCampaignFiles = async () => {
   isScanningGameFiles.value = true
 
   try {
+    const slugName = port.value.slug
     for (const campaign of campaignList.value) {
-      const res = await questAdb.checkCampaignFilesOnQuest(campaign)
-      detectedCampaigns.value[campaign.id] = res
+      const res = campaignPresenceIsAnyFile(slugName)
+        ? await questAdb.checkCampaignFilesOnQuest(campaign)
+        : await assessCampaignOnQuest(slugName, campaign, path => questAdb.listRemoteDir(path))
+      detectedCampaigns.value[campaign.id] = {
+        exists: res.exists,
+        matchedPath: res.matchedPath,
+        fileCount: 'fileCount' in res ? res.fileCount : res.files.length,
+        files: res.files,
+        confirmReason: 'confirmReason' in res ? res.confirmReason : null
+      }
       if (res.exists) {
         const targetKey = `${port.value.id}-${campaign.id}`
         transferredCampaigns.value[targetKey] = true
@@ -1429,6 +1459,7 @@ const scanCampaignFiles = async () => {
 watch(
   [() => questAdb.isConnected.value, () => port.value?.id],
   ([connected, portId]) => {
+    confirmedCampaigns.value = {}
     if (connected && portId) {
       scanCampaignFiles()
     }
@@ -1436,13 +1467,32 @@ watch(
   { immediate: true }
 )
 
+const confirmImportedFiles = () => {
+  const id = currentCampaign.value?.id
+  if (!id) return
+  confirmedCampaigns.value = { ...confirmedCampaigns.value, [id]: true }
+}
+
+const confirmCopy = computed(() => {
+  const reason = currentDetectedCampaign.value?.confirmReason
+  if (reason === 'unproven') {
+    return 'QuestPorts cannot see this port’s imported files over USB. If you already ran its installer or in-app import, confirm to show Launch.'
+  }
+  if (reason === 'unreadable') {
+    return 'USB cannot list this Android/data folder (Quest keeps it private). If you already imported the files, confirm to show Launch. A stray file somewhere else is not enough.'
+  }
+  return ''
+})
+
 const isCurrentCampaignTransferred = computed(() => {
   if (isDirectApkOnly.value && isApkInstalled.value) return true
   const currentPort = port.value
   const activeCampaign = currentCampaign.value
   if (!currentPort || !activeCampaign) return false
   if (allowFileTransferOverride.value) return false
-  if (detectedCampaigns.value[activeCampaign.id]?.exists) return true
+  const detected = detectedCampaigns.value[activeCampaign.id]
+  if (detected?.exists) return true
+  if (detected?.confirmReason && confirmedCampaigns.value[activeCampaign.id]) return true
   // When the headset is connected, only files actually found on disk count as ready.
   if (questAdb.isConnected.value) return false
   const targetKey = `${currentPort.id}-${activeCampaign.id}`
