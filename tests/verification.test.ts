@@ -61,11 +61,21 @@ describe('version normalization', () => {
     expect(versionsMatch('', 'v1.0.16')).toBe(false)
   })
 
-  it('does not add a second v when one is already present', () => {
+  it('does not add a second v, and does not prefix build names', () => {
     expect(formatVerificationVersion('v1.0.16')).toBe('v1.0.16')
+    expect(formatVerificationVersion('vv1.0.16')).toBe('v1.0.16')
     expect(formatVerificationVersion('1.0.16')).toBe('v1.0.16')
     expect(formatVerificationVersion('b004')).toBe('b004')
-    expect(formatVerificationVersion('Latest')).toBe('Latest')
+    expect(formatVerificationVersion('cats27')).toBe('cats27')
+    expect(formatVerificationVersion('Latest')).toBe('')
+    expect(formatVerificationVersion('0.1.0-alpha')).toBe('v0.1.0-alpha')
+  })
+
+  it('does not treat a placeholder catalog version as something to go stale against', () => {
+    expect(verificationBadgeState(check(), 'Latest')).toBe('none')
+    expect(verificationBadgeState(check({ tested_version: 'b004' }), 'b004')).toBe('current')
+    expect(buildVerificationBadge(check({ tested_version: 'b004' }), 'b004', NOW)?.text)
+      .toBe('Verified · Quest 3 · 5 days ago')
   })
 })
 

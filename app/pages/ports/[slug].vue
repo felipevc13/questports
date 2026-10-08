@@ -41,9 +41,11 @@
         <span class="inline-flex items-center px-2 py-0.5 rounded border border-border text-xs font-mono text-muted-foreground">
           {{ isDirectApkOnly ? 'Zero PC Required' : 'Standalone VR' }}
         </span>
-        <span v-if="port.latest_version" class="inline-flex items-center px-2 py-0.5 rounded bg-primary/10 border border-primary/20 text-xs font-mono text-primary">
-          {{ port.latest_version }}
-        </span>
+        <PortVersion
+          v-if="catalogVersion"
+          :version="port.latest_version"
+          class="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary"
+        />
       </div>
 
       <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
@@ -563,7 +565,7 @@
                   </div>
                   <div class="text-[11px] text-muted-foreground">
                     <template v-if="isApkOutdated">
-                      Headset {{ headsetApkVersion }} → catalog {{ port.latest_version }}
+                      Headset {{ formatPortVersion(headsetApkVersion) || headsetApkVersion }} → catalog {{ catalogVersion }}
                     </template>
                     <template v-else>
                       {{ headsetApkVersion ? `Installed ${headsetApkVersion}` : (isDirectApkOnly ? 'Standalone port ready to launch' : 'Ready to launch or manage game data files') }}
@@ -578,7 +580,7 @@
                   class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500 hover:bg-amber-400 text-black cursor-pointer"
                   title="Installs over the current app with pm install -r and keeps data"
                 >
-                  Update to {{ port.latest_version }}
+                  Update to {{ catalogVersion }}
                 </button>
                 <button
                   v-else-if="!isInstallingApk"
@@ -1304,7 +1306,7 @@ import { useQuestAdb } from '~/composables/useQuestAdb'
 import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile } from '~/lib/dropPaths'
-import { isHeadsetApkOutdated } from '~/lib/portVersion'
+import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
@@ -1729,6 +1731,7 @@ const getInstalledPackageName = (): string | null => {
 }
 
 const headsetApkVersion = ref<string | null>(null)
+const catalogVersion = computed(() => formatPortVersion(port.value?.latest_version))
 const isApkOutdated = computed(() => {
   return isHeadsetApkOutdated(headsetApkVersion.value, port.value?.latest_version)
 })

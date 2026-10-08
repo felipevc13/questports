@@ -1,4 +1,14 @@
+/**
+ * Refresh ports.latest_version from GitHub releases that actually ship a
+ * Quest or Android build.
+ *
+ * Dry-run (prints the writes, does not PATCH):
+ *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-github-stats.js --dry-run
+ *
+ * The service role key is a GitHub Actions secret. It is never printed.
+ */
 import fs from 'node:fs'
+import { planPortUpdate, versionToWrite } from './lib/selectQuestRelease.js'
 
 let env = {}
 if (fs.existsSync('.env')) {
@@ -7,13 +17,17 @@ if (fs.existsSync('.env')) {
     envFile
       .split('\n')
       .filter(line => line && !line.startsWith('#') && line.includes('='))
-      .map(line => line.split('=').map(s => s.trim()))
+      .map(line => {
+        const index = line.indexOf('=')
+        return [line.slice(0, index).trim(), line.slice(index + 1).trim()]
+      })
   )
 }
 
-const supabaseUrl = process.env.SUPABASE_URL || env.SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || ''
-const githubToken = process.env.GITHUB_TOKEN || ''
+const supabaseUrl = (process.env.SUPABASE_URL || env.SUPABASE_URL || '').trim()
+const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
+const githubToken = (process.env.GITHUB_TOKEN || env.GITHUB_TOKEN || '').trim()
+const dryRun = process.argv.includes('--dry-run') || process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true'
 
 const repos = [
   { slug: 'rtcwquest', repo: 'DrBeef/RTCWQuest' },
@@ -52,84 +66,135 @@ const repos = [
   { slug: 'questsam', repo: 'maranone/QuestSam' }
 ]
 
+function describePlan(slug, plan) {
+  const skipped = plan.skipped
+    .filter(item => item.reason !== 'draft')
+    .slice(0, 4)
+    .map(item => `${item.tag} (${item.reason})`)
+    .join(', ')
+  const skipSuffix = skipped ? `; skipped ${skipped}` : ''
+  const channel = plan.prereleaseOnly ? '; prerelease is the only channel' : ''
+  if (plan.action === 'leave') {
+    const shown = plan.previous == null || plan.previous === '' ? 'null' : JSON.stringify(plan.previous)
+    return `${slug}: no Quest/Android release; leave ${shown}${skipSuffix}`
+  }
+  if (plan.action === 'keep') {
+    const shown = plan.previous == null ? 'null' : plan.previous
+    return `${slug}: keep ${shown} (${plan.reason}; selected ${plan.selectedTag})${channel}${skipSuffix}`
+  }
+  const from = plan.previous == null || plan.previous === '' ? 'null' : plan.previous
+  return `${slug}: ${from} -> ${plan.latest_version} (${plan.reason})${channel}${skipSuffix}`
+}
+
+async function fetchAllReleases(repo, headers) {
+  /** @type {any[]} */
+  const all = []
+  let url = `https://api.github.com/repos/${repo}/releases?per_page=100`
+  for (let page = 0; page < 5 && url; page++) {
+    const res = await fetch(url, { headers })
+    if (res.status === 404) return []
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`GitHub ${res.status} for ${repo}: ${body.slice(0, 200)}`)
+    }
+    const data = await res.json()
+    if (!Array.isArray(data) || data.length === 0) break
+    all.push(...data)
+    const link = res.headers.get('link') || ''
+    const next = link.match(/<([^>]+)>;\s*rel="next"/)
+    url = next ? next[1] : ''
+  }
+  return all
+}
+
+async function fetchCatalog() {
+  const res = await fetch(`${supabaseUrl}/rest/v1/ports?select=slug,latest_version,last_github_update`, {
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`
+    }
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Could not read ports: ${res.status} ${body.slice(0, 300)}`)
+  }
+  const rows = await res.json()
+  return new Map(rows.map(row => [row.slug, row]))
+}
+
+async function patchPort(slug, body) {
+  const res = await fetch(`${supabaseUrl}/rest/v1/ports?slug=eq.${encodeURIComponent(slug)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Supabase ${res.status}: ${text.slice(0, 300)}`)
+  }
+}
+
 async function run() {
+  if (process.argv.includes('--help')) {
+    console.log('Usage: node scripts/sync-github-stats.js [--dry-run]')
+    console.log('Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Optional GITHUB_TOKEN.')
+    return
+  }
+
   if (!supabaseUrl || !supabaseKey) {
-    console.error('Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.')
+    console.error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.')
+    console.error('Set them as GitHub Actions secrets before this job writes to production.')
+    console.error('Preview: SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-github-stats.js --dry-run')
     process.exit(1)
   }
 
-  console.log(`--- Synchronizing GitHub stats for ${repos.length} ports ---`)
+  console.log(`--- ${dryRun ? 'Dry run' : 'Sync'} for ${repos.length} ports ---`)
 
   const ghHeaders = {
-    'User-Agent': 'QuestPorts'
+    'User-Agent': 'QuestPorts',
+    Accept: 'application/vnd.github+json'
   }
-  if (githubToken) {
-    ghHeaders['Authorization'] = `token ${githubToken}`
-  }
+  if (githubToken) ghHeaders.Authorization = `Bearer ${githubToken}`
+
+  const catalog = await fetchCatalog()
+  let failures = 0
+  let writes = 0
 
   for (const item of repos) {
     try {
-      console.log(`Checking ${item.repo} (${item.slug})...`)
-      
-      // Try to fetch latest release
-      const relRes = await fetch(`https://api.github.com/repos/${item.repo}/releases/latest`, {
-        headers: ghHeaders
-      })
-      
-      let version = 'Latest'
-      let date = null
-
-      if (relRes.ok) {
-        const relData = await relRes.json()
-        let rawVersion = relData.tag_name || 'Latest'
-        version = rawVersion.replace(/^winlatorxr[_-]/i, '')
-        date = relData.published_at
+      const releases = await fetchAllReleases(item.repo, ghHeaders)
+      const current = catalog.get(item.slug)?.latest_version ?? null
+      const plan = planPortUpdate(current, releases)
+      const written = versionToWrite(plan)
+      if (written === 'Latest' || written === 'latest') {
+        throw new Error(`Refusing to write placeholder version for ${item.slug}`)
       }
+      console.log(describePlan(item.slug, plan))
 
-      if (!date) {
-        // Fallback to repository last push
-        const repoRes = await fetch(`https://api.github.com/repos/${item.repo}`, {
-          headers: ghHeaders
-        })
-        if (repoRes.ok) {
-          const repoData = await repoRes.json()
-          date = repoData.pushed_at || new Date().toISOString()
-        }
+      if (!written) continue
+
+      const body = { latest_version: written }
+      if (plan.published_at) body.last_github_update = plan.published_at
+      if (dryRun) {
+        writes += 1
+        continue
       }
-
-      if (!date) {
-        date = new Date().toISOString()
-      }
-
-      console.log(`  -> ${item.slug}: Version ${version}, Date ${date}`)
-
-      // Update in Supabase via PostgREST PATCH
-      const patchRes = await fetch(`${supabaseUrl}/rest/v1/ports?slug=eq.${item.slug}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          latest_version: version,
-          last_github_update: date
-        })
-      })
-
-      if (!patchRes.ok) {
-        const errText = await patchRes.text()
-        console.error(`  -> Failed to update ${item.slug}:`, errText)
-      } else {
-        console.log(`  -> Successfully updated ${item.slug} in Supabase!`)
-      }
+      await patchPort(item.slug, body)
+      writes += 1
+      console.log(`  wrote ${item.slug}`)
     } catch (err) {
-      console.error(`Error processing ${item.slug}:`, err)
+      failures += 1
+      console.error(`  failed ${item.slug}:`, err instanceof Error ? err.message : err)
     }
   }
 
-  console.log('--- Sincronização concluída com sucesso! ---')
+  console.log(`--- ${dryRun ? 'Dry run' : 'Sync'} finished: ${writes} version change(s), ${failures} failure(s) ---`)
+  if (failures) process.exit(1)
 }
 
 run()

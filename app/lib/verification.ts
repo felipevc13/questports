@@ -1,5 +1,9 @@
 /** Headset verification: version matching, badge staleness, and display labels. */
 
+import { formatPortVersion, normalizeVersionKey } from '~/lib/portVersion'
+
+export { normalizeVersionKey }
+
 export const HEADSET_MODELS = ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'] as const
 
 export type HeadsetModel = (typeof HEADSET_MODELS)[number]
@@ -42,16 +46,6 @@ export interface VerificationBadge {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/** Compare catalog tags with the version string stored on a check. Leading "v" is ignored. */
-export function normalizeVersionKey(raw: string | null | undefined): string {
-  if (!raw) return ''
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '')
-    .replace(/^v(?=\d)/, '')
-}
-
 export function versionsMatch(left: string | null | undefined, right: string | null | undefined): boolean {
   const a = normalizeVersionKey(left)
   const b = normalizeVersionKey(right)
@@ -72,7 +66,7 @@ export function verificationBadgeState(
   catalogVersion: string | null | undefined
 ): BadgeState {
   if (!latest || !isPositiveResult(latest.result)) return 'none'
-  if (!catalogVersion || !catalogVersion.trim()) return 'none'
+  if (!formatPortVersion(catalogVersion)) return 'none'
   return versionsMatch(latest.tested_version, catalogVersion) ? 'current' : 'stale'
 }
 
@@ -93,12 +87,9 @@ export function isMockDeviceSerial(serial: string | null | undefined): boolean {
   return value.startsWith('mock') || value.includes('mock-quest')
 }
 
+/** Same display string as catalog cards, the detail page, and the table. */
 export function formatVerificationVersion(raw: string | null | undefined): string {
-  const trimmed = raw?.trim() || ''
-  if (!trimmed) return ''
-  if (/^v/i.test(trimmed)) return trimmed
-  if (/^\d/.test(trimmed)) return `v${trimmed}`
-  return trimmed
+  return formatPortVersion(raw)
 }
 
 export function formatVerificationAge(iso: string, now = Date.now()): string {

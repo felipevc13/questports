@@ -266,6 +266,7 @@
                 <th class="py-2.5 px-3 text-left">Game / Port</th>
                 <th class="py-2.5 px-3 text-left">Category</th>
                 <th class="py-2.5 px-3 text-left">Developer</th>
+                <th class="py-2.5 px-3 text-left">Version</th>
                 <th class="py-2.5 px-3 text-center">6DoF</th>
                 <th class="py-2.5 px-3 text-center">Controls</th>
                 <th class="py-2.5 px-3 text-left">Hardware</th>
@@ -317,6 +318,16 @@
                 <!-- Developer -->
                 <td class="py-2 px-3 text-muted-foreground whitespace-nowrap">
                   {{ port.developer }}
+                </td>
+
+                <!-- Version -->
+                <td class="py-2 px-3 whitespace-nowrap">
+                  <PortVersion
+                    v-if="formatPortVersion(port.latest_version)"
+                    :version="port.latest_version"
+                    class="max-w-[14rem] text-[11px] text-muted-foreground"
+                  />
+                  <span v-else class="text-muted-foreground/40">—</span>
                 </td>
 
                 <!-- 6DoF -->
@@ -395,6 +406,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
+import { formatPortVersion } from '~/lib/portVersion'
 
 const route = useRoute()
 const router = useRouter()

@@ -4,7 +4,13 @@ on:
   schedule:
     # Runs daily at 04:00 UTC (01:00 BRT)
     - cron: '0 4 * * *'
-  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab anytime
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Print version changes without writing to Supabase'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   sync:
@@ -23,4 +29,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/sync-github-stats.js
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/sync-github-stats.js --dry-run
+          else
+            node scripts/sync-github-stats.js
+          fi
