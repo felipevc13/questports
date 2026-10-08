@@ -464,7 +464,7 @@ INSERT INTO public.ports (
 (
   'winlatorxr',
   'WinlatorXR',
-  'N0l3r',
+  'WinlatorXR team',
   'https://github.com/WinlatorXR/WinlatorXR',
   'OpenXR compatibility layer running Windows x86 PC applications and games natively on Meta Quest using Wine and Box86/Box64 translation.',
   'emulator',
