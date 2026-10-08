@@ -328,20 +328,20 @@ export function getDefaultFolderInfo(port: Port): {
     citravr: {
       folder: 'roms',
       fullPath: '/sdcard/CitraVR/roms/',
-      exampleFiles: '.3ds or decrypted .cia ROMs',
-      instruction: 'Drop Nintendo 3DS ROM files here'
+      exampleFiles: '.3ds, .cci, .cxi, .cia, .app, or .3dsx ROMs',
+      instruction: 'Drop a 3DS ROM here. /sdcard/3DS Games is also detected.'
     },
     'ppsspp-vr': {
       folder: 'GAME',
       fullPath: '/sdcard/PSP/GAME/',
-      exampleFiles: '.iso or .cso dump files',
-      instruction: 'Drop PSP ISO/CSO backup dumps here'
+      exampleFiles: '.iso, .cso, .pbp, or .chd',
+      instruction: 'Drop a PSP game into PSP/GAME'
     },
     primedgun: {
       folder: 'PrimedGun',
       fullPath: '/sdcard/PrimedGun/',
       exampleFiles: 'Metroid Prime (USA) (Rev 0).iso',
-      instruction: 'Drop Metroid Prime GameCube ISO backup'
+      instruction: 'Drop a Metroid Prime GameCube disc image (.iso, .gcm, .rvz, .ciso, .gcz, or .nkit.iso)'
     },
     astroquest: {
       folder: 'games',

@@ -143,14 +143,14 @@ export const INITIAL_PORTS: Port[] = [
     last_github_update: '2026-08-17T06:44:44Z',
     featured: true,
     installation_guide: `### Prerequisites
-* Legally dumped, decrypted Nintendo 3DS ROMs (.3ds or installed .cia format).
+* A legally dumped 3DS game. CitraVR lists .3ds, .cci, .cxi, .app, and .3dsx (and compressed .zcci/.zcxi/.z3dsx). .cia/.zcia are accepted by the loader and then installed.
 * Meta Quest 3 or 3S recommended for optimal 60 FPS performance at 3x native resolution.
 
 ### Step-by-Step Installation
 1. Download the latest APK release from the official CitraVR GitHub repository.
 2. Install the APK via SideQuest or \`adb install CitraVR.apk\`.
-3. Create the folder \`/sdcard/CitraVR/roms/\` on your headset and transfer your game ROMs.
-4. Launch CitraVR under Unknown Sources and select your ROMs directory.`,
+3. Create the folder \`/sdcard/CitraVR/roms/\` on your headset and transfer your game ROMs. The backup wiki’s example folder \`/sdcard/3DS Games\` is also detected.
+4. Launch CitraVR under Unknown Sources and select that ROMs directory.`,
     troubleshooting_notes: 'On Quest 3 and 3S, increase internal resolution scale to 3x in graphics settings for crisp stereoscopic 3D clarity.'
   },
   {
@@ -511,7 +511,7 @@ export const INITIAL_PORTS: Port[] = [
     featured: true,
     installation_guide: `### Installation
 1. Install PPSSPP VR APK via SideQuest.
-2. Transfer dumped PSP ISO/CSO backups to \`/sdcard/PSP/GAME/\` on your Quest.
+2. Transfer dumped PSP games (\`.iso\`, \`.cso\`, \`.pbp\`, or \`.chd\`) to \`/sdcard/PSP/GAME/\` on your Quest.
 3. Launch PPSSPP VR, configure your virtual screen scale, and play using Quest Touch controllers or Bluetooth gamepad.`,
     troubleshooting_notes: 'Toggle stereoscopic 3D rendering in graphics options for enhanced depth in 3D titles like Ridge Racer, Wipeout, and Monster Hunter.'
   },
@@ -613,7 +613,7 @@ export const INITIAL_PORTS: Port[] = [
     featured: true,
     installation_guide: `### Prerequisites
 * Meta Quest 2, 3, 3S, or Pro with Developer Mode enabled.
-* Original **Metroid Prime (NTSC-U Revision 0 / v1.0)** GameCube ISO/GCM disc backup.
+* Original **Metroid Prime (NTSC-U Revision 0 / v1.0)** GameCube disc backup. PrimedGun’s file list accepts \`.iso\` (including \`.nkit.iso\`), \`.gcm\`, \`.ciso\`, \`.gcz\`, \`.rvz\`, \`.wia\`, \`.wbfs\`, \`.tgc\`, and \`.nfs\`.
 * SideQuest or Android ADB (\`platform-tools\`).
 
 ### Step-by-Step Installation
