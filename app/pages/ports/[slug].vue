@@ -1055,6 +1055,7 @@
           :records="verificationRecords"
           :slug="port.slug"
           :latest-version="port.latest_version"
+          :connected-headset="connectedVerificationHeadset"
         />
       </div>
     </div>
@@ -1261,6 +1262,7 @@ import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
+import { canonicalHeadset } from '~/lib/verification'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -1315,6 +1317,10 @@ const comfortBadgeClass = computed(() => {
 // Quest connection state (tied to global questAdb singleton so Navbar & Card are 100% in sync)
 const isQuestConnected = computed(() => questAdb.isConnected.value)
 const questDeviceModel = computed(() => questAdb.deviceModel.value || 'Meta Quest Connected')
+const connectedVerificationHeadset = computed(() => {
+  if (!questAdb.isConnected.value) return null
+  return canonicalHeadset(questAdb.deviceModel.value)
+})
 const questDeviceInfoText = computed(() => {
   const parts: string[] = []
   if (questAdb.batteryLevel.value !== null) {

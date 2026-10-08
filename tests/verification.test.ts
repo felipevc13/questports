@@ -1,8 +1,10 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { buildInstallVerificationBody } from '../app/lib/installVerification'
 import {
   buildVerificationBadge,
   canonicalHeadset,
+  verificationSummaryLine,
   formatVerificationVersion,
   isMockDeviceSerial,
   latestVerification,
@@ -100,6 +102,68 @@ describe('verification staleness', () => {
     })
     expect(latestVerification([older, newer], 'halocequest')?.id).toBe('new')
     expect(verificationBadgeState(latestVerification([older, newer], 'halocequest'), 'v1.0.16')).toBe('stale')
+  })
+})
+
+describe('detail verification summary', () => {
+  const quest3 = check({ id: 'q3', headset_model: 'Quest 3', checked_at: '2026-10-03T12:00:00.000Z' })
+  const quest2 = check({
+    id: 'q2',
+    headset_model: 'Quest 2',
+    checked_at: '2026-09-20T12:00:00.000Z',
+    tested_version: 'v1.0.16',
+    result: 'works'
+  })
+
+  it('summarizes the newest positive check when no headset is connected', () => {
+    expect(verificationSummaryLine([quest2, quest3], 'halocequest', 'v1.0.16', null, NOW)).toEqual({
+      text: '✅ Verified on v1.0.16 · Quest 3 · 5 days ago',
+      tone: 'verified'
+    })
+  })
+
+  it('uses the stale and not-tested lines without calling the current version verified', () => {
+    expect(verificationSummaryLine([quest3], 'halocequest', 'v1.0.17', null, NOW).text)
+      .toBe('Verified on v1.0.16 · update not tested')
+    expect(verificationSummaryLine([], 'halocequest', 'v1.0.16', null, NOW)).toEqual({
+      text: 'Not tested',
+      tone: 'untested'
+    })
+  })
+
+  it('prefers the connected headset over the most recently tested one', () => {
+    expect(verificationSummaryLine([quest3, quest2], 'halocequest', 'v1.0.16', 'Quest 2', NOW).text)
+      .toBe('Quest 2: works')
+    expect(verificationSummaryLine([quest3, quest2], 'halocequest', 'v1.0.16', 'Meta Quest 3S', NOW).text)
+      .toBe('Quest 3S: not tested')
+  })
+
+  it('keeps a connected headset honest when its check is for an older version', () => {
+    const staleQuest2 = check({
+      headset_model: 'Quest 2',
+      tested_version: 'v1.4.0',
+      result: 'works',
+      port_slug: 'rtcwquest'
+    })
+    expect(verificationSummaryLine([staleQuest2], 'rtcwquest', 'v1.4.1', 'Quest 2', NOW).text)
+      .toBe('Quest 2: verified on v1.4.0 · update not tested')
+    expect(verificationSummaryLine([
+      check({ headset_model: 'Quest 2', result: 'doesnt_work' })
+    ], 'halocequest', 'v1.0.16', 'hollywood', NOW).text).toBe("Quest 2: doesn't work")
+  })
+
+  it('falls back to the newest check when the connected model is not recognized', () => {
+    expect(verificationSummaryLine([quest3], 'halocequest', '1.0.16', 'Meta Quest Connected', NOW).text)
+      .toBe('✅ Verified on v1.0.16 · Quest 3 · 5 days ago')
+  })
+
+  it('keeps headset details behind a collapsed accessible toggle', () => {
+    const source = readFileSync(new URL('../app/components/VerificationPanel.vue', import.meta.url), 'utf8')
+    expect(source).toContain(':aria-expanded="expanded"')
+    expect(source).toContain('aria-controls="port-verification-details"')
+    expect(source).toContain('const expanded = ref(false)')
+    expect(source).toContain('See details')
+    expect(source).toContain('Hide details')
   })
 })
 

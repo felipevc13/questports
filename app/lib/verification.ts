@@ -205,6 +205,86 @@ export function headsetVerificationRows(
   return rows
 }
 
+export type VerificationSummaryTone = 'verified' | 'issues' | 'stale' | 'failed' | 'untested'
+
+export interface VerificationSummaryLine {
+  text: string
+  tone: VerificationSummaryTone
+}
+
+function headsetLabel(raw: string): string {
+  return canonicalHeadset(raw) ?? raw
+}
+
+function connectedStatusPhrase(result: VerificationResult): string {
+  switch (result) {
+    case 'works': return 'works'
+    case 'works_with_issues': return 'works with issues'
+    case 'doesnt_work': return "doesn't work"
+  }
+}
+
+/**
+ * One line for the detail page. A connected, recognized headset replaces the
+ * newest check with that headset's own status.
+ */
+export function verificationSummaryLine(
+  records: PortVerification[] | null | undefined,
+  slug: string,
+  catalogVersion: string | null | undefined,
+  connectedHeadset?: string | null,
+  now = Date.now()
+): VerificationSummaryLine {
+  const connected = canonicalHeadset(connectedHeadset)
+  if (connected) {
+    const record = latestVerificationForHeadset(records, slug, connected)
+    if (!record) return { text: `${connected}: not tested`, tone: 'untested' }
+    const state = verificationBadgeState(record, catalogVersion)
+    if (state === 'stale') {
+      return {
+        text: `${connected}: verified on ${formatVerificationVersion(record.tested_version)} · update not tested`,
+        tone: 'stale'
+      }
+    }
+    if (record.result === 'doesnt_work') {
+      return { text: `${connected}: doesn't work`, tone: 'failed' }
+    }
+    if (record.result === 'works_with_issues') {
+      return { text: `${connected}: works with issues`, tone: 'issues' }
+    }
+    return { text: `${connected}: works`, tone: 'verified' }
+  }
+
+  const latest = latestVerification(records, slug)
+  if (!latest) return { text: 'Not tested', tone: 'untested' }
+  const version = formatVerificationVersion(latest.tested_version)
+  const headset = headsetLabel(latest.headset_model)
+  const age = formatVerificationAge(latest.checked_at, now)
+  const state = verificationBadgeState(latest, catalogVersion)
+  if (state === 'current' && latest.result === 'works') {
+    return {
+      text: `✅ Verified on ${version} · ${headset} · ${age}`,
+      tone: 'verified'
+    }
+  }
+  if (state === 'current' && latest.result === 'works_with_issues') {
+    return {
+      text: `Verified with issues on ${version} · ${headset} · ${age}`,
+      tone: 'issues'
+    }
+  }
+  if (state === 'stale') {
+    return {
+      text: `Verified on ${version} · update not tested`,
+      tone: 'stale'
+    }
+  }
+  return {
+    text: `${connectedStatusPhrase(latest.result)} · ${headset} · ${version} · ${age}`,
+    tone: latest.result === 'doesnt_work' ? 'failed' : 'untested'
+  }
+}
+
 export function buildVerificationBadge(
   latest: PortVerification | null | undefined,
   catalogVersion: string | null | undefined,
