@@ -9,6 +9,33 @@ export type PortCategory =
 
 export type PortStatus = 'released' | 'playable_beta' | 'in_development'
 
+/** Confirmed support. Omit the key when it has not been recorded. */
+export type FeatureSupport = 'full' | 'partial' | 'none'
+
+export type ComfortVignette = 'adjustable' | 'on' | 'none'
+
+export type HapticSupport = 'active' | 'none'
+
+export type ComfortRating = 'Comfortable' | 'Moderate' | 'Intense'
+
+export interface PortFeatures {
+  /** How motion controls work, e.g. "1:1 tracked pistol". */
+  motion_controls?: string | null
+  left_handed?: FeatureSupport | null
+  /** Named physical interaction, e.g. "Virtual holsters". */
+  physical_interaction?: string | null
+  haptics?: HapticSupport | null
+  comfort_vignette?: ComfortVignette | null
+  /** Named play modes. Do not store a count. */
+  play_modes?: string[] | null
+  /** Stereo rendering as stated for this port, e.g. "Optional stereoscopic 3D". */
+  stereo?: string | null
+  /** Refresh as stated for this port, e.g. "72/90/120Hz" or "Adjustable". */
+  refresh?: string | null
+  spatial_audio?: string | null
+  comfort_rating?: ComfortRating | null
+}
+
 export type PortWorkflowType =
   | 'direct'           // ⚡ Direct Sideload (APK only)
   | 'pc_assets'        // 📁 Steam / PC Original Files
@@ -36,6 +63,13 @@ export interface Port {
   locomotion_types: string[]
   has_6dof_controls: boolean
   has_motion_controls?: boolean
+  /**
+   * Optional VR claims recorded for this port. A missing key or null means
+   * unknown and must not be shown as a confirmed check.
+   * Tracking still comes from has_6dof_controls, locomotion from
+   * locomotion_types, and headsets from supported_hardware.
+   */
+  features?: PortFeatures | null
   internal_storage_path: string | null
   original_game?: string | null
   base_game_url: string | null

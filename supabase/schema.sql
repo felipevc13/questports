@@ -32,6 +32,10 @@ create table if not exists public.ports (
   supported_hardware text[] not null default '{"Quest 2", "Quest 3", "Quest 3S"}',
   locomotion_types text[] default '{"Smooth Locomotion"}',
   has_6dof_controls boolean not null default true,
+  -- Optional recorded VR claims. Missing keys mean unknown. Shape check and
+  -- backfill live in supabase/migrations/20261008230000_port_features.sql
+  -- and 20261008230100_port_features_seed.sql. Do not invent values here.
+  features jsonb,
   
   -- Installation details & Links
   internal_storage_path text,
