@@ -8,6 +8,12 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
     expect(INITIAL_PORTS.length).toBe(38)
   })
 
+  it('credits WinlatorXR to the WinlatorXR team and the project repo', () => {
+    const port = INITIAL_PORTS.find(p => p.slug === 'winlatorxr')
+    expect(port?.developer).toBe('WinlatorXR team')
+    expect(port?.developer_url).toBe('https://github.com/WinlatorXR/WinlatorXR')
+  })
+
   // Test every individual port game-by-game
   INITIAL_PORTS.forEach((port, idx) => {
     describe(`[#${idx + 1}] ${port.title} (${port.slug})`, () => {

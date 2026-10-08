@@ -519,7 +519,7 @@ export const INITIAL_PORTS: Port[] = [
     id: '16',
     slug: 'winlatorxr',
     title: 'WinlatorXR',
-    developer: 'N0l3r',
+    developer: 'WinlatorXR team',
     developer_url: 'https://github.com/WinlatorXR/WinlatorXR',
     short_description: 'OpenXR compatibility layer running Windows x86 PC applications and games natively on Meta Quest using Wine and Box86/Box64 translation.',
     category: 'wrapper',
