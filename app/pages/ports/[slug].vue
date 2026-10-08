@@ -1050,6 +1050,12 @@
             <span class="text-muted-foreground">↗</span>
           </a>
         </div>
+
+        <VerificationPanel
+          :records="verificationRecords"
+          :slug="port.slug"
+          :latest-version="port.latest_version"
+        />
       </div>
     </div>
 
@@ -1253,6 +1259,8 @@ import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQues
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
+import { isMockQuestEnabled } from '~/lib/mockQuest'
+import { buildInstallVerificationBody } from '~/lib/installVerification'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -1261,6 +1269,11 @@ const questAdb = useQuestAdb()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
+const { data: verificationData, refresh: refreshVerifications } = await useAsyncData(
+  'port-verifications',
+  () => fetchVerificationRecords()
+)
+const verificationRecords = computed(() => verificationData.value || [])
 
 useSeoMeta({
   title: () => port.value ? `${port.value.title} — QuestPorts` : 'QuestPorts',
@@ -1684,6 +1697,38 @@ const executeUninstallApp = async () => {
   }
 }
 
+const recordInstallVerification = async () => {
+  if (!port.value) return
+  const selfContained = isDirectApkOnly.value
+  const campaigns = campaignList.value
+  const gameFilesDetected = selfContained
+    ? null
+    : campaigns.length > 0 && campaigns.every(campaign => detectedCampaigns.value[campaign.id]?.exists)
+  const storagePathConfirmed = selfContained
+    ? null
+    : Boolean(gameFilesDetected) && campaigns.every(campaign => {
+      const detected = detectedCampaigns.value[campaign.id]
+      return Boolean(detected?.exists && detected.matchedPath)
+    })
+  const body = buildInstallVerificationBody({
+    mockEnabled: isMockQuestEnabled(),
+    deviceSerial: questAdb.deviceSerial.value,
+    deviceModel: questAdb.deviceModel.value,
+    slug: port.value.slug,
+    testedVersion: headsetApkVersion.value || port.value.latest_version || '',
+    apkInstalled: true,
+    gameFilesDetected,
+    storagePathConfirmed
+  })
+  if (!body) return
+  try {
+    await $fetch('/api/verifications', { method: 'POST', body })
+    await refreshVerifications()
+  } catch (err) {
+    console.warn('[QuestPorts] Install verification was not recorded:', err)
+  }
+}
+
 // 1-Click APK Install Handler
 const handleApkInstall = async () => {
   if (isInstallingApk.value || !port.value) return
@@ -1717,6 +1762,7 @@ const handleApkInstall = async () => {
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
       await scanCampaignFiles()
+      await recordInstallVerification()
     }
   } catch (err: any) {
     console.error('Failed to install APK via WebADB:', err)

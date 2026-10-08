@@ -19,7 +19,7 @@
             </h1>
 
             <p class="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Open-source directory of classic PC and console games running natively on Meta Quest hardware. Verified storage paths, APK links, and step-by-step installation guides.
+              Open-source directory of classic PC and console games running natively on Meta Quest hardware. Storage paths, APK links, and step-by-step installation guides. A port is marked Verified only when a headset check of that version is on record.
             </p>
           </div>
 
@@ -253,6 +253,7 @@
           v-for="port in filteredPorts"
           :key="port.id"
           :port="port"
+          :verifications="verificationRecords"
         />
       </div>
 
@@ -288,7 +289,7 @@
                       class="w-10 h-6 object-cover rounded shrink-0 bg-muted"
                       loading="lazy"
                     />
-                    <span class="font-semibold hover:text-primary transition-colors flex items-center gap-1.5">
+                    <span class="font-semibold hover:text-primary transition-colors flex flex-wrap items-center gap-1.5">
                       {{ port.title }}
                       <span
                         v-if="isPortInstalled(port.slug)"
@@ -296,6 +297,12 @@
                       >
                         Installed ✓
                       </span>
+                      <VerificationBadge
+                        class="!ml-0"
+                        :records="verificationRecords"
+                        :slug="port.slug"
+                        :latest-version="port.latest_version"
+                      />
                     </span>
                   </div>
                 </td>
@@ -397,6 +404,9 @@ const questAdb = useQuestAdb()
 
 const { data: portsData } = await useAsyncData('ports', () => fetchPorts())
 const ports = computed(() => portsData.value || [])
+
+const { data: verificationData } = await useAsyncData('port-verifications', () => fetchVerificationRecords())
+const verificationRecords = computed(() => verificationData.value || [])
 
 const searchQuery = ref('')
 const selectedCategory = ref<string>('all')

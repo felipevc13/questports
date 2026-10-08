@@ -61,6 +61,15 @@ One-click install uses WebUSB/ADB and needs a headset. For local testing, open a
 
 Run `supabase/full_setup.sql` in your Supabase SQL Editor to initialize the `ports` table, enums, RLS policies, and initial seed data.
 
+Headset checks live in `port_verifications` (one row per check). Apply `supabase/migrations/20261008220000_port_verifications.sql` in the SQL editor on an existing project. The public API can only read `approved` rows. Browsers cannot insert.
+
+Server environment (Vercel, never `NEXT_PUBLIC` / Nuxt `public`):
+
+* `SUPABASE_SERVICE_ROLE_KEY` — one-click install reports and the admin form write through this key.
+* `VERIFICATION_ADMIN_SECRET` — required header for `POST /api/admin/verifications`. The unlisted form is `/admin/verify`.
+
+A copy-paste SQL check is in `supabase/manual_verification.sql`. A catalog badge stays current only while `tested_version` still matches `ports.latest_version` (a leading `v` does not matter). The daily GitHub sync updates `latest_version`; the badge goes stale from that alone.
+
 ---
 
 ## 📄 License & Disclaimer

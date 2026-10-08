@@ -352,3 +352,7 @@ ON CONFLICT (slug) DO UPDATE SET
   installation_guide = EXCLUDED.installation_guide,
   troubleshooting_notes = EXCLUDED.troubleshooting_notes,
   updated_at = now();
+
+-- Headset verification is a separate migration. Apply
+-- supabase/migrations/20261008220000_port_verifications.sql in the SQL editor
+-- after this seed. Do not expect verification rows from this file.
