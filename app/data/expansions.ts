@@ -1,5 +1,5 @@
 import type { Port } from '~/types/port'
-import { normalizeQuestPath } from '~/data/portPackageMap'
+import { isSelfContainedSideload, normalizeQuestPath, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 
 export interface PortCampaign {
   id: string
@@ -271,6 +271,17 @@ export function getDefaultFolderInfo(port: Port): {
   instruction: string
 } {
   const slug = port.slug
+  if (isSelfContainedSideload(PORT_PACKAGE_CONFIGS[slug])) {
+    const stored = (port.internal_storage_path || '').trim()
+    const normalized = normalizeQuestPath(stored)
+    const fullPath = stored.startsWith('N/A') ? stored : (normalized || stored || 'N/A')
+    return {
+      folder: 'apk',
+      fullPath,
+      exampleFiles: 'No extra files needed',
+      instruction: 'This port does not need extra game files. Install the APK and launch it.'
+    }
+  }
   const map: Record<string, { folder: string; fullPath: string; exampleFiles: string; instruction: string }> = {
     rtcwquest: {
       folder: 'main',

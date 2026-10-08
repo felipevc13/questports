@@ -155,6 +155,17 @@ describe('Port Campaigns & Expansions Engine', () => {
         internal_storage_path: 'N/A (ROM set bundled in the release APK)'
       } as any)
       expect(bundled.fullPath).toBe('N/A (ROM set bundled in the release APK)')
+      expect(bundled.exampleFiles).toBe('No extra files needed')
+    })
+
+    it('does not call bundled ports base game assets', () => {
+      for (const slug of ['time-crisis-vr', 'questcraft', 'iron-lung-vr']) {
+        const port = INITIAL_PORTS.find(item => item.slug === slug)
+        expect(port, slug).toBeTruthy()
+        const campaign = getPortCampaigns(port!)[0]
+        expect(campaign?.exampleFiles, slug).toBe('No extra files needed')
+        expect(campaign?.exampleFiles, slug).not.toBe('Base game assets')
+      }
     })
   })
 

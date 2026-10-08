@@ -1,10 +1,8 @@
 import { defineEventHandler, getQuery, createError, setResponseHeaders, sendStream } from 'h3'
-import JSZip from 'jszip'
 import {
   isAllowedApkProxyHost,
   isLikelyApkPath,
   isLikelyZipPath,
-  pickPreferredApkPath,
   pickPreferredReleaseDownload,
   rewriteKnownHomepageToGithubRelease
 } from '../utils/apkAssetPicker'
@@ -43,27 +41,6 @@ async function resolveGithubReleaseAsset(pageUrl: string): Promise<string> {
   }
 
   return zipFallback || pageUrl
-}
-
-async function extractApkFromZip(buffer: ArrayBuffer, sourceName: string): Promise<{ bytes: Buffer; filename: string }> {
-  const zip = await JSZip.loadAsync(buffer)
-  const apkPath = pickPreferredApkPath(Object.keys(zip.files).filter(name => !zip.files[name]?.dir))
-  if (!apkPath) {
-    throw createError({
-      statusCode: 502,
-      statusMessage: `The download (${sourceName}) is a ZIP without an .apk inside. Use Manual APK Download.`
-    })
-  }
-  const entry = zip.file(apkPath)
-  if (!entry) {
-    throw createError({
-      statusCode: 502,
-      statusMessage: `Could not read ${apkPath} from the release ZIP.`
-    })
-  }
-  const bytes = Buffer.from(await entry.async('uint8array'))
-  const filename = apkPath.split('/').pop() || 'quest-port.apk'
-  return { bytes, filename }
 }
 
 export default defineEventHandler(async (event) => {
@@ -133,19 +110,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const filenameHint = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'download')
   const shouldUnzip = isLikelyZipPath(url) || upstreamType.includes('zip')
 
+  // Stream the ZIP itself. Buffering it here held the client at 2% until the
+  // whole archive arrived. The browser counts those bytes, then extracts the APK.
   if (shouldUnzip) {
-    const zipBuffer = await upstreamRes.arrayBuffer()
-    const apk = await extractApkFromZip(zipBuffer, filenameHint)
-    setResponseHeaders(event, {
-      'Content-Type': 'application/vnd.android.package-archive',
-      'Content-Length': String(apk.bytes.length),
-      'Content-Disposition': `attachment; filename="${apk.filename}"`,
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/zip',
+      'X-QuestPorts-Unwrap': 'apk',
       'Cache-Control': 'public, max-age=3600'
-    })
-    return apk.bytes
+    }
+    const zipLength = upstreamRes.headers.get('content-length')
+    if (zipLength) headers['Content-Length'] = zipLength
+    setResponseHeaders(event, headers)
+    return sendStream(event, upstreamRes.body as any)
   }
 
   const headers: Record<string, string> = {
