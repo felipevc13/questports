@@ -54,6 +54,10 @@ export interface MockQuestScenario {
   speed: 'normal' | 'instant'
   launch: 'ok' | 'slow'
   transfer: 'ok' | 'hold'
+  /** Free mebibytes reported by `df`. Null keeps the default meter (88G, or 184M when install is `storage`). */
+  freeMb?: number | null
+  /** `missing` omits Content-Length so the download meter stays indeterminate. */
+  downloadLength?: 'known' | 'missing'
 }
 
 export const MOCK_PHASES: MockPhase[] = [
@@ -120,8 +124,43 @@ export function parseMockScenario(search: string): MockQuestScenario | null {
   const speed = params.get('mockSpeed') === 'instant' ? 'instant' : 'normal'
   const launch = params.get('mockLaunch') === 'slow' ? 'slow' : 'ok'
   const transfer = params.get('mockTransfer') === 'hold' ? 'hold' : 'ok'
+  const freeMb = parseMockFreeMb(params.get('mockFree'))
+  const downloadLength = params.get('mockLength') === 'missing' ? 'missing' : 'known'
 
-  return { phase, next, install, game, files, uninstall, chrome, speed, launch, transfer }
+  return { phase, next, install, game, files, uninstall, chrome, speed, launch, transfer, freeMb, downloadLength }
+}
+
+/** `low` is a headset that cannot fit the simulated 8 MB APK plus the spare-space margin. */
+export function parseMockFreeMb(raw: string | null): number | null {
+  if (!raw) return null
+  const value = raw.trim().toLowerCase()
+  if (!value || value === 'default') return null
+  if (value === 'low') return 32
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 0) return null
+  return parsed
+}
+
+export function resolveMockFreeMegabytes(scenario: MockQuestScenario, live?: MockQuestScenario | null): number {
+  const source = live || scenario
+  if (typeof source.freeMb === 'number') return source.freeMb
+  if ((source.install || scenario.install) === 'storage') return 184
+  return 88 * 1024
+}
+
+export function mockDfOutput(command: string, freeMb: number): string {
+  if (/(?:^|\s)-k(?:\s|$)/.test(command)) {
+    const available = Math.round(freeMb * 1024)
+    const used = 40 * 1024 * 1024
+    const size = available + used
+    return `Filesystem     1K-blocks      Used Available Use% Mounted on\n/dev/fuse       ${size} ${used} ${available}  32% /storage/emulated\n`
+  }
+  if (freeMb >= 1024) {
+    const g = Math.max(1, Math.round(freeMb / 1024))
+    return `Filesystem      Size  Used Avail Use% Mounted on\n/dev/fuse       128G   40G   ${g}G  32% /storage/emulated\n`
+  }
+  const m = Math.max(0, Math.round(freeMb))
+  return `Filesystem      Size  Used Avail Use% Mounted on\n/dev/fuse       128G  127G  ${m}M  99% /storage/emulated\n`
 }
 
 export function isMockQuestEnabled(search?: string): boolean {
@@ -518,11 +557,8 @@ export function createMockQuestDevice(scenario: MockQuestScenario): MockQuestDev
       }
 
       if (cmd.startsWith('df')) {
-        const full = (scenarioNow?.install || scenario.install) === 'storage'
-        if (full) {
-          return 'Filesystem      Size  Used Avail Use% Mounted on\n/dev/fuse       128G  127G  184M  99% /storage/emulated\n'
-        }
-        return 'Filesystem      Size  Used Avail Use% Mounted on\n/dev/fuse       128G   40G   88G  32% /storage/emulated\n'
+        const freeMb = resolveMockFreeMegabytes(scenario, scenarioNow)
+        return mockDfOutput(cmd, freeMb)
       }
 
       if (cmd.startsWith('pm list packages')) {
@@ -677,24 +713,18 @@ export function clearMockDevice() {
   mockOverlay.value = 'none'
 }
 
-export async function mockApkProxyResponse(signal: AbortSignal): Promise<Response> {
-  armMockInstall(signal)
-  const scenario = readMockScenario()
-  const install = scenario?.install || 'ok'
-  const speed = scenario?.speed || 'normal'
-  if (install === 'hold-downloading') {
-    await hangUntilAbort(signal)
-  }
-  if (install === 'download-failed') {
-    await delay(speed === 'instant' ? 0 : 250, signal)
-    return new Response(JSON.stringify({ statusMessage: 'The release asset could not be downloaded (HTTP 502)' }), {
-      status: 502,
-      headers: { 'content-type': 'application/json' }
-    })
-  }
-  await delay(speed === 'instant' ? 0 : 600, signal)
-  const total = 8 * 1024 * 1024
+export const MOCK_APK_BYTES = 8 * 1024 * 1024
+
+export function createMockApkResponse(options: {
+  install: MockInstall
+  speed: 'normal' | 'instant'
+  includeLength: boolean
+  signal: AbortSignal
+}): Response {
+  const { install, speed, includeLength, signal } = options
+  const total = MOCK_APK_BYTES
   const chunkSize = 256 * 1024
+  const hangAfter = install === 'hold-downloading' ? 4 * 1024 * 1024 : total
   let sent = 0
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
@@ -702,19 +732,43 @@ export async function mockApkProxyResponse(signal: AbortSignal): Promise<Respons
         controller.error(abortedError())
         return
       }
+      if (sent >= hangAfter && install === 'hold-downloading') {
+        await hangUntilAbort(signal)
+        return
+      }
       if (sent >= total) {
         controller.close()
         return
       }
-      const n = Math.min(chunkSize, total - sent)
+      const limit = install === 'hold-downloading' ? hangAfter : total
+      const n = Math.min(chunkSize, limit - sent)
       controller.enqueue(new Uint8Array(n))
       sent += n
       if (speed !== 'instant') await delay(40, signal)
     }
   })
-  return new Response(stream, {
-    status: 200,
-    headers: { 'content-length': String(total) }
+  const headers: Record<string, string> = {}
+  if (includeLength) headers['content-length'] = String(total)
+  return new Response(stream, { status: 200, headers })
+}
+
+export async function mockApkProxyResponse(signal: AbortSignal): Promise<Response> {
+  armMockInstall(signal)
+  const scenario = readMockScenario()
+  const install = scenario?.install || 'ok'
+  const speed = scenario?.speed || 'normal'
+  if (install === 'download-failed') {
+    await delay(speed === 'instant' ? 0 : 250, signal)
+    return new Response(JSON.stringify({ statusMessage: 'The release asset could not be downloaded (HTTP 502)' }), {
+      status: 502,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+  return createMockApkResponse({
+    install,
+    speed,
+    includeLength: scenario?.downloadLength !== 'missing',
+    signal
   })
 }
 
