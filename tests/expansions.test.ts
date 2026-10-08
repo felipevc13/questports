@@ -141,6 +141,21 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(info.folder).toBe('MyGameFolder')
       expect(info.fullPath).toBe('/sdcard/MyGameFolder/')
     })
+
+    it('normalizes a DB path that omits /sdcard and keeps N/A text', () => {
+      const info = getDefaultFolderInfo({
+        slug: 'custom-android-game',
+        internal_storage_path: 'Android/data/com.example.game/files'
+      } as any)
+      expect(info.fullPath).toBe('/sdcard/Android/data/com.example.game/files/')
+      expect(info.folder).toBe('files')
+
+      const bundled = getDefaultFolderInfo({
+        slug: 'time-crisis-vr',
+        internal_storage_path: 'N/A (ROM set bundled in the release APK)'
+      } as any)
+      expect(bundled.fullPath).toBe('N/A (ROM set bundled in the release APK)')
+    })
   })
 
   describe('getPortCampaigns cross-validation on all 38 ports', () => {

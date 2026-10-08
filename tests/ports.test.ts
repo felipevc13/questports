@@ -11,9 +11,10 @@ describe('Port Package Map & Workflow Verification', () => {
     expect(mario).toBeDefined()
     expect(mario.packageName).toBe('com.galaxy.quest')
     expect(mario.installType).toBe('apk_and_assets')
-    expect(mario.targetPath).toBe('/sdcard/GalaxyQuest/')
+    expect(mario.targetPath).toBe('/sdcard/Android/data/com.galaxy.quest/files/game/')
     expect(mario.folders).toBeDefined()
-    expect(mario.folders?.[0].expectedFiles).toContain('main.dol')
+    expect(mario.folders?.[0].expectedFiles).toContain('fst.bin')
+    expect(mario.folders?.[0].altPaths).toContain('/sdcard/GalaxyQuest/sys/')
 
     const workflow = resolveWorkflowType(mario)
     expect(workflow).toBe('smart_converter')
@@ -135,7 +136,7 @@ describe('Port Package Map & Workflow Verification', () => {
   }
 
   it('identifies only truly self-contained APK ports as direct sideload', () => {
-    const selfContained = ['questcraft', 'iron-lung-vr']
+    const selfContained = ['questcraft', 'iron-lung-vr', 'time-crisis-vr']
     for (const slug of selfContained) {
       const port = PORT_PACKAGE_CONFIGS[slug]
       expect(port, slug).toBeDefined()
@@ -159,7 +160,6 @@ describe('Port Package Map & Workflow Verification', () => {
       'citravr',
       'ppsspp-vr',
       'primedgun',
-      'time-crisis-vr',
       'nolf-vr'
     ]
     for (const slug of needsFiles) {

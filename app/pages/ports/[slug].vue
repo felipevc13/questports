@@ -1250,6 +1250,7 @@ import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
@@ -1738,25 +1739,67 @@ const handleFileInputChange = async (e: Event) => {
   }
 }
 
+const traverseDroppedEntry = async (item: any, path = ''): Promise<{ file: File, relPath: string }[]> => {
+  if (item.isFile) {
+    return new Promise((resolve) => {
+      item.file((file: File) => resolve([{ file, relPath: path }]))
+    })
+  }
+  if (!item.isDirectory) return []
+  const dirReader = item.createReader()
+  const entries: any[] = await new Promise((resolve) => {
+    const all: any[] = []
+    const readNext = () => {
+      dirReader.readEntries((batch: any[]) => {
+        if (!batch || batch.length === 0) resolve(all)
+        else {
+          all.push(...batch)
+          readNext()
+        }
+      }, () => resolve(all))
+    }
+    readNext()
+  })
+  const subFolder = path ? `${path}/${item.name}` : item.name
+  const results: { file: File, relPath: string }[] = []
+  for (const child of entries) results.push(...await traverseDroppedEntry(child, subFolder))
+  return results
+}
+
 const handleDrop = async (e: DragEvent) => {
   e.preventDefault()
   if (!currentCampaign.value || !questAdb.isConnected.value) return
+  const items = e.dataTransfer?.items
+  if (items && items.length > 0 && typeof items[0]?.webkitGetAsEntry === 'function') {
+    const collected: { file: File, relPath: string }[] = []
+    for (let i = 0; i < items.length; i++) {
+      const entry = items[i] && typeof items[i].webkitGetAsEntry === 'function' ? items[i].webkitGetAsEntry() : null
+      if (entry) collected.push(...await traverseDroppedEntry(entry, ''))
+    }
+    if (collected.length > 0) {
+      await uploadRealFiles(collected)
+      return
+    }
+  }
   const files = e.dataTransfer?.files
   if (files && files.length > 0) {
-    await uploadRealFiles(Array.from(files))
+    await uploadRealFiles(Array.from(files).map(file => ({ file })))
   }
 }
 
-const uploadRealFiles = async (files: File[]) => {
+const uploadRealFiles = async (files: Array<File | { file: File, relPath?: string }>) => {
   if (!currentCampaign.value || !questAdb.isConnected.value || files.length === 0) return
   isTransferringFiles.value = true
   fileTransferProgress.value = 0
   fileTransferStatusMsg.value = `Preparing ${files.length} file(s)...`
 
   try {
-    const targetDir = currentCampaign.value.fullPath
+    const campaignPath = currentCampaign.value.fullPath
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]!
+      const entry = files[i]!
+      const file = entry instanceof File ? entry : entry.file
+      const relPath = entry instanceof File ? file.webkitRelativePath : (entry.relPath || file.webkitRelativePath)
+      const targetDir = destinationDirForDroppedFile(campaignPath, relPath, file.name)
       const currentPct = Math.round((i / files.length) * 100)
       fileTransferProgress.value = currentPct
       fileTransferStatusMsg.value = `Transferring ${file.name} (${i + 1}/${files.length})...`

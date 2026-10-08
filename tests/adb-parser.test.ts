@@ -19,6 +19,11 @@ describe('ADB Shell Parser & Path Sanitization Test Suite', () => {
       expect(normalizeQuestPath('/xash/valve')).toBe('/sdcard/xash/valve/')
     })
 
+    it('turns a bare Android/data path into an absolute push target', () => {
+      expect(normalizeQuestPath('Android/data/com.example.game/files')).toBe('/sdcard/Android/data/com.example.game/files/')
+      expect(normalizeQuestPath('N/A (ROM set bundled in the release APK)')).toBe('')
+    })
+
     it('keeps paths already formatted as /sdcard/...', () => {
       expect(normalizeQuestPath('/sdcard/Doom3Quest/')).toBe('/sdcard/Doom3Quest/')
       expect(normalizeQuestPath('/sdcard/Doom3Quest')).toBe('/sdcard/Doom3Quest/')

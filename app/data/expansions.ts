@@ -1,4 +1,5 @@
 import type { Port } from '~/types/port'
+import { normalizeQuestPath } from '~/data/portPackageMap'
 
 export interface PortCampaign {
   id: string
@@ -374,10 +375,10 @@ export function getDefaultFolderInfo(port: Port): {
       instruction: 'INSTALL-QUEST copies extracted disc data here. USB usually cannot list this folder — confirm if you already ran the installer.'
     },
     'road-rash-jailbreak-vr': {
-      folder: 'RoadRashVR',
-      fullPath: '/sdcard/RoadRashVR/',
-      exampleFiles: '.bin / .cue / .iso / .chd',
-      instruction: 'Drop your Road Rash: Jailbreak PS1 disc dump'
+      folder: 'files',
+      fullPath: '/sdcard/Android/data/com.rrjb.vr/files/',
+      exampleFiles: 'disc.bin, or the first .bin/.img',
+      instruction: 'The installer copies the disc here as disc.bin. A .iso does not count. If USB cannot list Android/data, confirm after install.'
     },
     'goldeneye-vr': {
       folder: 'data',
@@ -420,7 +421,9 @@ export function getDefaultFolderInfo(port: Port): {
   const mapped = map[slug]
   if (mapped) return mapped
 
-  const rawPath = port.internal_storage_path || '/sdcard/'
+  const stored = (port.internal_storage_path || '').trim()
+  const normalized = normalizeQuestPath(stored)
+  const rawPath = normalized || (stored.startsWith('N/A') ? stored : '/sdcard/')
   const segments = rawPath.replace(/^\/sdcard\/|\/$/g, '').split('/').filter(Boolean)
   const folder = (segments.length ? segments[segments.length - 1] : '') || 'data'
   return {

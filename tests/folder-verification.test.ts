@@ -87,7 +87,7 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
 
     it('returns incomplete when folder exists but expected files are missing', async () => {
       const mockFs: Record<string, string[]> = {
-        '/sdcard/GalaxyQuest/sys/': ['some_readme.txt', 'savegame.sav']
+        '/sdcard/Android/data/com.galaxy.quest/files/game/sys/': ['some_readme.txt', 'savegame.sav']
       }
 
       const listRemoteDirFn = async (path: string) => mockFs[path] || []
@@ -95,7 +95,7 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       const result = await verifyPortFoldersOnQuest('galaxyquest', listRemoteDirFn)
       const sysFolder = result.folders.find(f => f.folderDef.id === 'gq_sys')
       expect(sysFolder?.status).toBe('incomplete')
-      expect(sysFolder?.missingExpectedFiles).toContain('main.dol')
+      expect(sysFolder?.missingExpectedFiles).toContain('fst.bin')
       expect(result.isOverallReady).toBe(false)
     })
 
