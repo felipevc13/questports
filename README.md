@@ -51,6 +51,10 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Simulated Quest (install flow)
+
+One-click install uses WebUSB/ADB and needs a headset. For local testing, open any page with `?mockQuest=1`. A simulated Quest 3 appears, and a small panel lets you switch headset, install, and “files on device” states. Visitors without that query are unchanged. See [TESTING.md](TESTING.md).
+
 ---
 
 ## 🗄️ Database Setup (Supabase)
