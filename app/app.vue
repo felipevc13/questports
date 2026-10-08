@@ -24,8 +24,8 @@ const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()
 const questAdb = useQuestAdb()
 
-onMounted(() => {
+onMounted(async () => {
   questAdb.setupUsbEventListeners()
-  questAdb.tryAutoConnect()
+  await questAdb.tryAutoConnect()
 })
 </script>

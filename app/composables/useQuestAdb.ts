@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { QUEST_NO_DEVICE_HINT, isUsbChooserDismissed } from '~/lib/questConnectUx'
 import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
 import {
   activateMockDevice,
@@ -40,6 +41,7 @@ const isConnected = ref(false)
 const isConnecting = ref(false)
 const connectionPhase = ref<AdbConnectionPhase>('idle')
 const connectionError = ref<string | null>(null)
+const connectNotice = ref<string | null>(null)
 
 const deviceModel = ref<string>('')
 const deviceSerial = ref<string>('')
@@ -285,6 +287,7 @@ export const useQuestAdb = () => {
     isConnecting.value = true
     connectionPhase.value = targetDevice ? 'authorizing' : 'picker'
     connectionError.value = null
+    connectNotice.value = null
 
     try {
       const { AdbDaemonWebUsbDeviceManager } = await import('@yume-chan/adb-daemon-webusb')
@@ -303,8 +306,7 @@ export const useQuestAdb = () => {
       }
 
       if (!device) {
-        isConnecting.value = false
-        connectionPhase.value = 'idle'
+        markChooserDismissed()
         return false
       }
 
@@ -356,6 +358,7 @@ export const useQuestAdb = () => {
       isConnected.value = true
       isConnecting.value = false
       connectionPhase.value = 'connected'
+      connectNotice.value = null
 
       // Fetch initial diagnostics
       await refreshStats()
@@ -370,8 +373,21 @@ export const useQuestAdb = () => {
 
       return true
     } catch (err: any) {
+      if (currentDevice?.raw?.opened) {
+        try {
+          await currentDevice.raw.close()
+        } catch {}
+        currentDevice = null
+      }
+
+      if (isUsbChooserDismissed(err)) {
+        markChooserDismissed()
+        return false
+      }
+
       console.error('Failed to connect to Quest via WebUSB:', err)
       connectionPhase.value = 'error'
+      connectNotice.value = null
       
       const msg = err?.message || ''
       if (msg.toLowerCase().includes('already in use') || msg.toLowerCase().includes('already in used') || msg.toLowerCase().includes('claim') || msg.toLowerCase().includes('busy')) {
@@ -382,17 +398,22 @@ export const useQuestAdb = () => {
         connectionError.value = msg || QUEST_USB_MESSAGES.generic
       }
 
-      if (currentDevice?.raw?.opened) {
-        try {
-          await currentDevice.raw.close()
-        } catch {}
-        currentDevice = null
-      }
-
       isConnecting.value = false
       isConnected.value = false
       return false
     }
+  }
+
+  const dismissConnectNotice = () => {
+    connectNotice.value = null
+  }
+
+  const markChooserDismissed = () => {
+    isConnecting.value = false
+    isConnected.value = false
+    connectionPhase.value = 'idle'
+    connectionError.value = null
+    connectNotice.value = QUEST_NO_DEVICE_HINT
   }
 
   const disconnect = async (manual = false) => {
@@ -424,6 +445,7 @@ export const useQuestAdb = () => {
     isConnected.value = false
     isConnecting.value = false
     connectionPhase.value = 'idle'
+    connectNotice.value = null
     deviceModel.value = ''
     deviceSerial.value = ''
     batteryLevel.value = null
@@ -991,6 +1013,7 @@ export const useQuestAdb = () => {
     installedPackages.value = [...device.packages]
     mockOverlay.value = 'none'
     connectionError.value = null
+    connectNotice.value = null
     isConnecting.value = false
     isConnected.value = true
     connectionPhase.value = 'connected'
@@ -1006,6 +1029,7 @@ export const useQuestAdb = () => {
     if (gen !== mockConnectGen) return false
     mockOverlay.value = 'none'
     connectionError.value = message
+    connectNotice.value = null
     connectionPhase.value = 'error'
     isConnecting.value = false
     isConnected.value = false
@@ -1024,6 +1048,7 @@ export const useQuestAdb = () => {
 
     isConnecting.value = true
     connectionError.value = null
+    connectNotice.value = null
     isConnected.value = false
 
     if (start === 'picker') {
@@ -1033,8 +1058,7 @@ export const useQuestAdb = () => {
       if (gen !== mockConnectGen) return false
       if (choice !== 'device' || scenario.next === 'picker-cancel') {
         mockOverlay.value = 'none'
-        isConnecting.value = false
-        connectionPhase.value = 'idle'
+        markChooserDismissed()
         return false
       }
     }
@@ -1086,6 +1110,8 @@ export const useQuestAdb = () => {
     isConnecting,
     connectionPhase,
     connectionError,
+    connectNotice,
+    dismissConnectNotice,
     deviceModel,
     deviceSerial,
     androidVersion,

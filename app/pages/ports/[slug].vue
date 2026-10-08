@@ -286,16 +286,16 @@
           <div class="flex items-center gap-2">
             <span
               class="w-2.5 h-2.5 rounded-full"
-              :class="isQuestConnected ? 'bg-emerald-400 animate-pulse' : questAdb.isConnecting.value ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
+              :class="isQuestConnected ? 'bg-emerald-400 animate-pulse' : connectChrome.showHeadsetBanner ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
             ></span>
             <span class="text-xs font-semibold text-foreground">
-              {{ isQuestConnected ? (questDeviceModel || 'Meta Quest Connected') : questAdb.isConnecting.value ? 'Authorizing Quest...' : 'No Quest Connected' }}
+              {{ isQuestConnected ? (questDeviceModel || 'Meta Quest Connected') : connectChrome.showHeadsetBanner ? 'Authorizing Quest...' : 'No Quest Connected' }}
             </span>
           </div>
           <span v-if="isQuestConnected" class="text-xs font-mono text-muted-foreground">
             {{ questDeviceInfoText }}
           </span>
-          <span v-else-if="questAdb.isConnecting.value" class="text-xs text-amber-400 font-mono flex items-center gap-1.5">
+          <span v-else-if="connectChrome.showHeadsetBanner" class="text-xs text-amber-400 font-mono flex items-center gap-1.5">
             <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
@@ -303,7 +303,7 @@
             <span>Waiting for visor...</span>
           </span>
           <button
-            v-else
+            v-else-if="!connectChrome.showPickerHint"
             @click="connectQuest"
             class="text-xs text-primary hover:underline font-medium cursor-pointer"
           >
@@ -321,7 +321,7 @@
 
             <!-- Live Authorizing Guidance Banner -->
             <div
-              v-if="questAdb.isConnecting.value"
+              v-if="connectChrome.showHeadsetBanner"
               class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 text-left animate-in fade-in duration-200"
             >
               <div class="font-bold flex items-center gap-2 text-amber-300">
@@ -359,6 +359,23 @@
               </div>
             </div>
 
+            <div
+              v-else-if="questAdb.connectNotice.value"
+              class="p-3.5 rounded-lg bg-muted/40 border border-border text-xs text-left animate-in fade-in duration-200"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <p class="text-[11px] text-muted-foreground leading-relaxed">{{ QUEST_NO_DEVICE_HINT }}</p>
+                <button
+                  type="button"
+                  class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                  aria-label="Dismiss"
+                  @click="questAdb.dismissConnectNotice()"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
             <!-- Error Banner -->
             <div
               v-else-if="questAdb.connectionError.value"
@@ -385,7 +402,7 @@
 
             <!-- Connect Button -->
             <button
-              v-if="!questAdb.isConnecting.value"
+              v-if="!connectChrome.showHeadsetBanner && !connectChrome.showPickerHint"
               @click="connectQuest"
               class="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-primary/20"
             >
@@ -393,6 +410,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Connect Meta Quest via USB</span>
+            </button>
+            <button
+              v-else-if="connectChrome.showPickerHint"
+              disabled
+              class="w-full py-2.5 px-4 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-2 cursor-wait border border-border"
+            >
+              <span>{{ QUEST_PICKER_HINT }}</span>
             </button>
             <button
               v-else
@@ -1200,6 +1224,7 @@ import { marked } from 'marked'
 import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 import { isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { absoluteCoverUrl } from '~/data/coverUrl'
@@ -1208,6 +1233,7 @@ const route = useRoute()
 const slug = route.params.slug as string
 const { fetchPortBySlug } = usePorts()
 const questAdb = useQuestAdb()
+const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
 

@@ -104,21 +104,39 @@
               @click="handleConnectQuest"
               :disabled="questAdb.isConnecting.value"
               class="inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground hover:text-foreground text-xs font-medium transition-colors cursor-pointer shadow-sm disabled:cursor-wait disabled:opacity-60 select-none"
-              :title="questAdb.isConnecting.value ? 'Waiting for authorization inside Quest headset visor' : 'Connect Meta Quest via USB Cable'"
+              :title="connectChrome.navbar === 'authorizing' ? 'Waiting for authorization inside Quest headset visor' : connectChrome.navbar === 'picker' ? QUEST_PICKER_HINT : 'Connect Meta Quest via USB Cable'"
             >
               <span
                 class="w-2 h-2 rounded-full"
-                :class="questAdb.isConnecting.value ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
+                :class="connectChrome.navbar === 'authorizing' ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
               ></span>
-              <span v-if="questAdb.isConnecting.value" class="flex items-center gap-1.5 text-amber-300 font-medium">
+              <span v-if="connectChrome.navbar === 'authorizing'" class="flex items-center gap-1.5 text-amber-300 font-medium">
                 <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                 </svg>
                 <span>Authorizing Quest...</span>
               </span>
+              <span v-else-if="connectChrome.navbar === 'picker'">Select your Quest...</span>
               <span v-else>Connect Quest</span>
             </button>
+
+            <div
+              v-if="questAdb.connectNotice.value && connectChrome.navbar === 'connect'"
+              class="absolute right-0 mt-2 w-72 rounded-lg bg-card border border-border p-3 shadow-2xl z-50 text-xs"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <p class="text-[11px] text-muted-foreground leading-relaxed">{{ questAdb.connectNotice.value }}</p>
+                <button
+                  type="button"
+                  class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                  aria-label="Dismiss"
+                  @click.stop="questAdb.dismissConnectNotice()"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
 
             <!-- Dropdown Menu -->
             <div
@@ -185,15 +203,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSuggestModal } from '~/composables/useSuggestModal'
 import { useFeedbackModal } from '~/composables/useFeedbackModal'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 
 const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()
 const questAdb = useQuestAdb()
+const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 const route = useRoute()
 
 const isDropdownOpen = ref(false)
