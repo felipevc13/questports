@@ -131,7 +131,10 @@
           <span class="text-zinc-400">External files</span>
           <select class="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1" :value="scenario?.files" @change="setField('mockFiles', $event)">
             <option value="missing">Missing</option>
-            <option value="present">Present</option>
+            <option value="stray">Wrong file only</option>
+            <option value="primary">Required files (main folder)</option>
+            <option value="alternate">Required files (alternate folder)</option>
+            <option value="present">Present (same as main folder)</option>
           </select>
         </label>
       </div>

@@ -3,24 +3,39 @@ export type { PortWorkflowType }
 
 export type InstallType = 'direct_apk' | 'apk_and_assets' | 'pc_builder_required'
 
+/**
+ * expected — every expectedFiles entry must be present (a matching extension is not enough).
+ * expected-or-extension — all expected files, or any file matching fileExtensionPattern.
+ * any-file — a non-empty listing is enough. Used only where no sentinel filename exists.
+ * confirm — USB cannot prove the install. The card asks the player to confirm.
+ */
+export type FolderAcceptance = 'expected' | 'expected-or-extension' | 'any-file' | 'confirm'
+
 export interface PortFolderRequirement {
   id: string
   name: string
   folderName: string
   targetPath: string
   altPaths?: string[]
+  /** When set, this folder is the check for that campaign tab only. */
+  campaignId?: string
   required: boolean
   expectedFiles?: string[]
   fileExtensionPattern?: string
+  acceptance?: FolderAcceptance
   description?: string
 }
 
 export interface FolderCheckResult {
   folderDef: PortFolderRequirement
-  status: 'ready' | 'incomplete' | 'missing'
+  status: 'ready' | 'incomplete' | 'missing' | 'unreadable'
   detectedPath: string
   filesFound: string[]
   missingExpectedFiles: string[]
+  /** A candidate path existed but Android blocked the listing. */
+  listingDenied: boolean
+  /** Player must confirm. Set for confirm-only games and for unreadable required paths. */
+  needsUserConfirm: boolean
 }
 
 export interface PortPackageConfig {
@@ -88,7 +103,9 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         name: 'Blue Shift Expansion (bshift)',
         folderName: 'bshift',
         targetPath: '/sdcard/xash/bshift/',
+        campaignId: 'bshift',
         required: false,
+        expectedFiles: ['bshift.pak'],
         description: 'Optional Blue Shift campaign files'
       },
       {
@@ -96,7 +113,9 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         name: 'Opposing Force (gearbox)',
         folderName: 'gearbox',
         targetPath: '/sdcard/xash/gearbox/',
+        campaignId: 'opfor',
         required: false,
+        expectedFiles: ['opfor.pak'],
         description: 'Optional Opposing Force campaign files'
       }
     ]
@@ -126,7 +145,9 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         name: 'Resurrection of Evil (d3xp)',
         folderName: 'd3xp',
         targetPath: '/sdcard/Doom3Quest/d3xp/',
+        campaignId: 'd3xp',
         required: false,
+        expectedFiles: ['pak000.pk4'],
         description: 'Optional RoE expansion pack'
       }
     ]
@@ -202,6 +223,26 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         expectedFiles: ['pak0.pak'],
         fileExtensionPattern: '\.pak$',
         description: 'Quake II official pak archives'
+      },
+      {
+        id: 'q2_xatrix',
+        name: 'The Reckoning',
+        folderName: 'xatrix',
+        targetPath: '/sdcard/Quake2Quest/xatrix/',
+        campaignId: 'xatrix',
+        required: false,
+        expectedFiles: ['pak0.pak'],
+        description: 'Mission Pack 1 pak0.pak'
+      },
+      {
+        id: 'q2_rogue',
+        name: 'Ground Zero',
+        folderName: 'rogue',
+        targetPath: '/sdcard/Quake2Quest/rogue/',
+        campaignId: 'rogue',
+        required: false,
+        expectedFiles: ['pak0.pak'],
+        description: 'Mission Pack 2 pak0.pak'
       }
     ]
   },
@@ -222,10 +263,10 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'preybase',
         targetPath: '/sdcard/preyvr/preybase/',
         altPaths: [
-          '/sdcard/preyvr/preybase/',
-          '/sdcard/PreyVR/preybase/',
           '/sdcard/PreyVR/base/',
+          '/sdcard/preyvr/preybase/',
           '/sdcard/preyvr/base/',
+          '/sdcard/PreyVR/preybase/',
           '/sdcard/Android/data/com.lvonasek.preyvr/files/preybase/',
           '/sdcard/Android/data/com.drbeef.preyvr/files/base/'
         ],
@@ -286,19 +327,43 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.teambeef.razexr'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['duke3d.grp'],
-    fileGuidance: 'Copy duke3d.grp, blood.rff, or sw.grp into RazeXR root.',
+    criticalFiles: ['duke3d.grp', 'blood.rff', 'sw.grp'],
+    fileGuidance: 'Copy duke3d.grp, blood.rff, or sw.grp into RazeXR/duke3d, RazeXR/blood, and RazeXR/sw, or place those files directly in the RazeXR root. The upstream README does not name a folder; both layouts are accepted.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/RazeXR/',
     folders: [
       {
-        id: 'raze_root',
-        name: 'Build Engine Game Files',
-        folderName: 'RazeXR',
-        targetPath: '/sdcard/RazeXR/',
+        id: 'raze_duke',
+        name: 'Duke Nukem 3D',
+        folderName: 'duke3d',
+        targetPath: '/sdcard/RazeXR/duke3d/',
+        altPaths: ['/sdcard/RazeXR/'],
+        campaignId: 'duke3d',
         required: true,
-        fileExtensionPattern: '\.(grp|rff|dat|def)$',
-        description: 'duke3d.grp, blood.rff, or sw.grp'
+        expectedFiles: ['duke3d.grp'],
+        description: 'Duke Nukem 3D GRP in the duke3d subfolder or the RazeXR root'
+      },
+      {
+        id: 'raze_blood',
+        name: 'Blood',
+        folderName: 'blood',
+        targetPath: '/sdcard/RazeXR/blood/',
+        altPaths: ['/sdcard/RazeXR/'],
+        campaignId: 'blood',
+        required: false,
+        expectedFiles: ['blood.rff'],
+        description: 'Blood RFF in the blood subfolder or the RazeXR root'
+      },
+      {
+        id: 'raze_sw',
+        name: 'Shadow Warrior',
+        folderName: 'sw',
+        targetPath: '/sdcard/RazeXR/sw/',
+        altPaths: ['/sdcard/RazeXR/'],
+        campaignId: 'sw',
+        required: false,
+        expectedFiles: ['sw.grp'],
+        description: 'Shadow Warrior GRP in the sw subfolder or the RazeXR root'
       }
     ]
   },
@@ -482,6 +547,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         targetPath: '/sdcard/SimpsonsHitRun/art/',
         altPaths: ['/sdcard/SHAR/art/'],
         required: true,
+        fileExtensionPattern: '\\.p3d$',
         description: 'Original Hit & Run art resources'
       },
       {
@@ -491,6 +557,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         targetPath: '/sdcard/SimpsonsHitRun/sound/',
         altPaths: ['/sdcard/SHAR/sound/'],
         required: true,
+        fileExtensionPattern: '\\.rcf$',
         description: 'Hit & Run audio dialogues and music'
       }
     ]
@@ -513,6 +580,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'texdb',
         targetPath: '/sdcard/Android/data/com.rockstargames.gtasa/files/texdb/',
         required: true,
+        expectedFiles: ['gta3.img'],
         description: 'gta3.img, gta_int.img, and texture archives'
       },
       {
@@ -521,6 +589,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'audio',
         targetPath: '/sdcard/Android/data/com.rockstargames.gtasa/files/audio/',
         required: true,
+        expectedFiles: ['streams'],
         description: 'Radio stations, sound effects, and voices'
       }
     ]
@@ -543,6 +612,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'audio',
         targetPath: '/sdcard/Android/data/com.revc.miamivr/files/audio/',
         required: true,
+        expectedFiles: ['streams'],
         description: 'Radio stations and SFX'
       },
       {
@@ -551,6 +621,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'data',
         targetPath: '/sdcard/Android/data/com.revc.miamivr/files/data/',
         required: true,
+        expectedFiles: ['gta3.img'],
         description: 'Game configurations, maps, and models'
       }
     ]
@@ -562,19 +633,24 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
     criticalFiles: ['SE1_00.gro'],
-    fileGuidance: 'Copy your Serious Sam Classic (First or Second Encounter) .gro files into QuestSam.',
+    fileGuidance: 'Copy Serious Sam .gro archives into Android/data/com.github.maranone.questsam/files (the default ADB destination) or the legacy /sdcard/questsam folder. The game treats the folder that contains SE1_00.gro as home and also finds that file under Download/Serious Sam/TSE. A different .gro does not count.',
     sourceStoreName: 'Steam',
-    targetPath: '/sdcard/QuestSam/',
+    targetPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+    altPaths: ['/sdcard/questsam/', '/sdcard/Download/Serious Sam/TSE/'],
     folders: [
       {
         id: 'sam_gro',
         name: 'Serious Sam GRO Archives',
-        folderName: 'QuestSam',
-        targetPath: '/sdcard/QuestSam/',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.github.maranone.questsam/files/',
+        altPaths: [
+          '/sdcard/questsam/',
+          '/sdcard/QuestSam/',
+          '/sdcard/Download/Serious Sam/TSE/'
+        ],
         required: true,
         expectedFiles: ['SE1_00.gro'],
-        fileExtensionPattern: '\.gro$',
-        description: 'Original Serious Sam game resource archives'
+        description: 'SE1_00.gro in the app files directory, legacy questsam folder, or Download/Serious Sam/TSE'
       }
     ]
   },
@@ -595,6 +671,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'TimeCrisisVR',
         targetPath: '/sdcard/TimeCrisisVR/',
         required: true,
+        expectedFiles: ['TIME_CRISIS.BIN'],
         description: 'Time Crisis game data and audio tracks'
       }
     ]
@@ -661,9 +738,40 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         name: 'Half-Life 2 Data (hl2)',
         folderName: 'hl2',
         targetPath: '/sdcard/SourceVRPort/common/hl2/',
+        campaignId: 'hl2',
         required: true,
         expectedFiles: ['gameinfo.txt'],
         description: 'Official Half-Life 2 assets from Steam'
+      },
+      {
+        id: 'hl2_ep1',
+        name: 'Episode One',
+        folderName: 'episodic',
+        targetPath: '/sdcard/SourceVRPort/common/episodic/',
+        campaignId: 'ep1',
+        required: false,
+        expectedFiles: ['gameinfo.txt'],
+        description: 'Half-Life 2 Episode One'
+      },
+      {
+        id: 'hl2_ep2',
+        name: 'Episode Two',
+        folderName: 'ep2',
+        targetPath: '/sdcard/SourceVRPort/common/ep2/',
+        campaignId: 'ep2',
+        required: false,
+        expectedFiles: ['gameinfo.txt'],
+        description: 'Half-Life 2 Episode Two'
+      },
+      {
+        id: 'hl2_portal',
+        name: 'Portal',
+        folderName: 'portal',
+        targetPath: '/sdcard/SourceVRPort/common/portal/',
+        campaignId: 'portal',
+        required: false,
+        expectedFiles: ['gameinfo.txt'],
+        description: 'Portal 1'
       }
     ]
   },
@@ -674,7 +782,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
     criticalFiles: ['maps/ui.map', 'maps/bloodgulch.map'],
-    fileGuidance: 'Requires the ORIGINAL Xbox (2001) Halo: Combat Evolved disc dumped as ISO/XISO (import it in-game) or its extracted maps in Documents/HaloCE/maps. The Steam MCC / Anniversary PC version does NOT work.',
+    fileGuidance: 'The Quest build plays /sdcard/Documents/HaloCE when maps/ui.map is there (LauncherActivity.baseRoot). Otherwise it uses Android/data/com.halo.decomp.vr/files, including maps copied by the in-app ISO/XISO import. Ready means ui.map and bloodgulch.map are both present, or an .iso/.xiso is in the maps folder. A single unrelated .map does not count. The Steam MCC / Anniversary PC version does not work.',
     sourceStoreName: 'Other',
     targetPath: '/sdcard/Documents/HaloCE/',
     altPaths: ['/sdcard/Android/data/com.halo.decomp.vr/files/', '/sdcard/HaloCEQuest/'],
@@ -684,10 +792,15 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         name: 'Halo CE Maps & Data',
         folderName: 'maps',
         targetPath: '/sdcard/Documents/HaloCE/maps/',
-        altPaths: ['/sdcard/Android/data/com.halo.decomp.vr/files/maps/', '/sdcard/HaloCEQuest/maps/'],
+        altPaths: [
+          '/sdcard/Android/data/com.halo.decomp.vr/files/maps/',
+          '/sdcard/HaloCEQuest/maps/'
+        ],
         required: true,
-        fileExtensionPattern: '\\.(map|iso|xiso)$',
-        description: 'Halo maps (ui.map, bitmaps.map, sounds.map) or Xbox ISO'
+        expectedFiles: ['ui.map', 'bloodgulch.map'],
+        fileExtensionPattern: '\\.(iso|xiso)$',
+        acceptance: 'expected-or-extension',
+        description: 'ui.map and bloodgulch.map, or an Xbox ISO/XISO in the maps folder'
       }
     ]
   },
@@ -728,20 +841,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.mrsco.goldeneyevr'],
     installType: 'apk_and_assets',
     workflowType: 'smart_converter',
-    criticalFiles: ['baserom.us.z64'],
-    fileGuidance: 'Console decompilation. Requires your legal GoldenEye 007 (N64) USA ROM.',
+    criticalFiles: ['ge.z64'],
+    fileGuidance: 'Put the USA ROM in Download, then use Choose ROM file inside the app. The launcher copies it to Android/data/com.gevr.port/files/data and renames it to ge.z64 (any .z64/.n64/.v64 name in that folder also counts). A ROM that is only in Download is not imported yet. Do not create the app folder by hand before the first launch. If USB cannot list Android/data, confirm after you have imported the ROM.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/GoldenEyeVR/',
+    targetPath: '/sdcard/Android/data/com.gevr.port/files/data/',
     folders: [
       {
         id: 'ge_rom',
         name: 'GoldenEye 007 N64 ROM',
-        folderName: 'GoldenEyeVR',
-        targetPath: '/sdcard/GoldenEyeVR/',
+        folderName: 'data',
+        targetPath: '/sdcard/Android/data/com.gevr.port/files/data/',
         required: true,
-        expectedFiles: ['baserom.us.z64'],
-        fileExtensionPattern: '\\.z64$',
-        description: 'USA N64 ROM (baserom.us.z64)'
+        expectedFiles: ['ge.z64'],
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        acceptance: 'expected-or-extension',
+        description: 'Imported USA ROM (ge.z64, or any .z64/.n64/.v64 already in the app data folder)'
       }
     ]
   },
@@ -751,19 +865,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.maranone.carnage'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['DATA/OPTIONS.TXT'],
-    fileGuidance: 'Copy your Carmageddon 1 (Steam or GOG) DATA folder into CarNage.',
+    criticalFiles: ['DATA/GENERAL.TXT'],
+    fileGuidance: 'Copy the Carmageddon DATA folder (the one that contains GENERAL.TXT) into Android/data/com.github.maranone.questcarnage/files. Legacy shared storage /sdcard/questcarnage/DATA is also valid. OPTIONS.TXT alone does not count.',
     sourceStoreName: 'Steam',
-    targetPath: '/sdcard/CarNage/',
+    targetPath: '/sdcard/Android/data/com.github.maranone.questcarnage/files/',
+    altPaths: ['/sdcard/questcarnage/'],
     folders: [
       {
         id: 'carnage_data',
         name: 'Carmageddon DATA',
         folderName: 'DATA',
-        targetPath: '/sdcard/CarNage/DATA/',
+        targetPath: '/sdcard/Android/data/com.github.maranone.questcarnage/files/DATA/',
+        altPaths: ['/sdcard/questcarnage/DATA/'],
         required: true,
-        expectedFiles: ['OPTIONS.TXT'],
-        description: 'Original Carmageddon DATA folder'
+        expectedFiles: ['GENERAL.TXT'],
+        description: 'DATA/GENERAL.TXT in the app files directory or legacy /sdcard/questcarnage/DATA'
       }
     ]
   },
@@ -774,20 +890,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'direct_apk',
     workflowType: 'emulator_roms',
     criticalFiles: [],
-    fileGuidance: 'Drop your legal PlayStation 1 Gran Turismo 2 simulation or arcade disc image into GT2VR.',
+    fileGuidance: 'The Quest installer (INSTALL-QUEST) extracts your BIN/CUE discs into Android/data/io.github.gt2pc.quest/files. A loose disc image in /sdcard/GT2VR is not the data the port loads. Release builds are not debuggable, so USB usually cannot list that private folder. Confirm after the installer has finished instead of treating a stray file as ready.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/GT2VR/',
+    targetPath: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
     romExtensions: ['.bin', '.cue', '.iso', '.chd', '.pbp'],
-    romDirectories: ['/sdcard/GT2VR/'],
+    romDirectories: ['/sdcard/Android/data/io.github.gt2pc.quest/files/'],
     folders: [
       {
-        id: 'gt2_roms',
-        name: 'Gran Turismo 2 Disc Image',
-        folderName: 'GT2VR',
-        targetPath: '/sdcard/GT2VR/',
+        id: 'gt2_data',
+        name: 'Gran Turismo 2 Extracted Data',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
         required: true,
-        fileExtensionPattern: '\\.(bin|cue|iso|chd|pbp)$',
-        description: 'Legal PS1 Gran Turismo 2 disc dump'
+        acceptance: 'confirm',
+        description: 'Installer-extracted disc data. USB cannot prove this folder on a release APK.'
       }
     ]
   },
@@ -865,20 +981,19 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.alexletux.perfectdarkvr'],
     installType: 'apk_and_assets',
     workflowType: 'smart_converter',
-    criticalFiles: ['pd.z64'],
-    fileGuidance: 'Console decompilation. Requires your legal Perfect Dark (N64) USA ROM.',
+    criticalFiles: ['pd.ntsc-final.z64'],
+    fileGuidance: 'Select ROM inside the app (it starts in Download) or copy the file directly. The launcher only starts when Android/data/com.perfectdark.port/files/data/pd.ntsc-final.z64 exists. A differently named ROM, including pd.z64, does not count. If USB cannot list Android/data, confirm after Select ROM has finished.',
     sourceStoreName: 'Other',
-    targetPath: '/sdcard/PerfectDarkVR/',
+    targetPath: '/sdcard/Android/data/com.perfectdark.port/files/data/',
     folders: [
       {
         id: 'pd_rom',
         name: 'Perfect Dark N64 ROM',
-        folderName: 'PerfectDarkVR',
-        targetPath: '/sdcard/PerfectDarkVR/',
+        folderName: 'data',
+        targetPath: '/sdcard/Android/data/com.perfectdark.port/files/data/',
         required: true,
-        expectedFiles: ['pd.z64'],
-        fileExtensionPattern: '\\.z64$',
-        description: 'USA N64 ROM (pd.z64)'
+        expectedFiles: ['pd.ntsc-final.z64'],
+        description: 'NTSC ROM copied by the launcher as pd.ntsc-final.z64'
       }
     ]
   },
@@ -995,13 +1110,45 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'nolf',
         targetPath: '/sdcard/nolf/',
         altPaths: ['/sdcard/Android/data/net.relith.nolf/files/nolf/'],
+        campaignId: 'nolf_base',
         required: true,
         expectedFiles: ['NOLF.REZ', 'NOLF2.REZ', 'nolfu003.rez', 'nolfu003cres.rez'],
-        fileExtensionPattern: '\\.rez$',
         description: 'Original No One Lives Forever .REZ archives (engine reads them directly)'
+      },
+      {
+        id: 'nolf_goty',
+        name: 'Rest and Relaxation',
+        folderName: 'nolf',
+        targetPath: '/sdcard/nolf/',
+        altPaths: ['/sdcard/Android/data/net.relith.nolf/files/nolf/'],
+        campaignId: 'nolf_goty',
+        required: false,
+        expectedFiles: ['NOLFGOTY.REZ'],
+        description: 'Optional GOTY bonus chapter'
       }
     ]
   }
+}
+
+/** CitraVR, PPSSPP VR, and PrimedGun stay on the loose "any file in the ROM folder" check. */
+export const LOOSE_FILE_CHECK_SLUGS = new Set(['citravr', 'ppsspp-vr', 'primedgun'])
+
+export function campaignPresenceIsAnyFile(slug: string): boolean {
+  return LOOSE_FILE_CHECK_SLUGS.has(slug)
+}
+
+export class RemoteDirDeniedError extends Error {
+  readonly path: string
+  constructor(path: string) {
+    super(`Permission denied listing ${path}`)
+    this.name = 'RemoteDirDeniedError'
+    this.path = path
+  }
+}
+
+export function isRemoteDirDenied(err: unknown): boolean {
+  if (err instanceof RemoteDirDeniedError) return true
+  return err instanceof Error && err.name === 'RemoteDirDeniedError'
 }
 
 export function normalizeQuestPath(path: string | null | undefined): string {
@@ -1053,6 +1200,128 @@ export function matchFolderRequirement(filePath: string, folderDef: PortFolderRe
   return true
 }
 
+export function folderAcceptance(folder: PortFolderRequirement): FolderAcceptance {
+  if (folder.acceptance) return folder.acceptance
+  if (folder.expectedFiles && folder.expectedFiles.length > 0 && folder.fileExtensionPattern) return 'expected'
+  if (folder.expectedFiles && folder.expectedFiles.length > 0) return 'expected'
+  if (folder.fileExtensionPattern) return 'expected'
+  return 'any-file'
+}
+
+function trailingSlash(path: string): string {
+  const trimmed = path.trim()
+  if (!trimmed) return trimmed
+  return trimmed.endsWith('/') ? trimmed : `${trimmed}/`
+}
+
+/** Primary path, declared alternates, and the /sdcard ↔ /storage/emulated/0 alias. */
+export function folderCandidatePaths(folder: PortFolderRequirement): string[] {
+  const raw = [folder.targetPath, ...(folder.altPaths || [])]
+  const out: string[] = []
+  for (const path of raw) {
+    const norm = trailingSlash(path)
+    if (!norm) continue
+    out.push(norm)
+    out.push(norm.toLowerCase())
+    if (norm.startsWith('/sdcard/')) {
+      out.push(`/storage/emulated/0/${norm.slice('/sdcard/'.length)}`)
+    } else if (norm.startsWith('/storage/emulated/0/')) {
+      out.push(`/sdcard/${norm.slice('/storage/emulated/0/'.length)}`)
+    }
+  }
+  return Array.from(new Set(out))
+}
+
+export function firstDistinctAltPath(folder: PortFolderRequirement): string | null {
+  const target = trailingSlash(folder.targetPath).toLowerCase()
+  for (const alt of folder.altPaths || []) {
+    const norm = trailingSlash(alt)
+    if (norm.toLowerCase() !== target) return norm
+  }
+  const primary = trailingSlash(folder.targetPath)
+  if (primary.startsWith('/sdcard/')) {
+    return `/storage/emulated/0/${primary.slice('/sdcard/'.length)}`
+  }
+  return null
+}
+
+function evaluateListing(folder: PortFolderRequirement, files: string[]): { ok: boolean; missing: string[] } {
+  const acceptance = folderAcceptance(folder)
+  if (acceptance === 'confirm') return { ok: false, missing: [] }
+  const names = files.map(file => file.toLowerCase())
+  const expected = folder.expectedFiles || []
+  const missing = expected.filter(exp => !names.includes(exp.toLowerCase()))
+  let patternHit = false
+  if (folder.fileExtensionPattern) {
+    try {
+      const reg = new RegExp(folder.fileExtensionPattern, 'i')
+      patternHit = files.some(file => reg.test(file))
+    } catch {
+      patternHit = false
+    }
+  }
+  if (acceptance === 'expected-or-extension') {
+    if (expected.length > 0 && missing.length === 0) return { ok: true, missing: [] }
+    if (patternHit) return { ok: true, missing: [] }
+    return { ok: false, missing }
+  }
+  if (expected.length > 0) return { ok: missing.length === 0, missing }
+  if (folder.fileExtensionPattern) return { ok: patternHit, missing: [] }
+  return { ok: files.length > 0, missing: [] }
+}
+
+export async function verifyFolderOnQuest(
+  folderDef: PortFolderRequirement,
+  listRemoteDirFn: (path: string) => Promise<string[]>
+): Promise<FolderCheckResult> {
+  const acceptance = folderAcceptance(folderDef)
+  let resolvedFiles: string[] = []
+  let resolvedPath = folderDef.targetPath
+  let resolvedStatus: FolderCheckResult['status'] = 'missing'
+  let missingFiles: string[] = []
+  let listingDenied = false
+  let foundReady = false
+
+  for (const testPath of folderCandidatePaths(folderDef)) {
+    try {
+      const files = await listRemoteDirFn(testPath)
+      if (!files || files.length === 0) continue
+      const verdict = evaluateListing(folderDef, files)
+      if (verdict.ok) {
+        resolvedPath = testPath
+        resolvedFiles = files
+        resolvedStatus = 'ready'
+        missingFiles = []
+        foundReady = true
+        break
+      }
+      if (resolvedStatus !== 'incomplete') {
+        resolvedPath = testPath
+        resolvedFiles = files
+        resolvedStatus = 'incomplete'
+        missingFiles = verdict.missing
+      }
+    } catch (err) {
+      if (isRemoteDirDenied(err)) listingDenied = true
+    }
+  }
+
+  if (!foundReady && listingDenied && resolvedStatus === 'missing') {
+    resolvedStatus = 'unreadable'
+  }
+
+  const needsUserConfirm = acceptance === 'confirm' || (!foundReady && listingDenied)
+  return {
+    folderDef,
+    status: foundReady ? 'ready' : resolvedStatus,
+    detectedPath: resolvedPath,
+    filesFound: resolvedFiles,
+    missingExpectedFiles: foundReady ? [] : missingFiles,
+    listingDenied,
+    needsUserConfirm
+  }
+}
+
 export async function verifyPortFoldersOnQuest(
   slug: string,
   listRemoteDirFn: (path: string) => Promise<string[]>
@@ -1063,56 +1332,72 @@ export async function verifyPortFoldersOnQuest(
   }
 
   const results: FolderCheckResult[] = []
-
   for (const folderDef of cfg.folders) {
-    const candidatePaths = Array.from(new Set([
-      folderDef.targetPath,
-      folderDef.targetPath.toLowerCase(),
-      ...(folderDef.altPaths || []),
-      ...(folderDef.altPaths || []).map(p => p.toLowerCase())
-    ]))
-
-    let resolvedFiles: string[] = []
-    let resolvedPath = folderDef.targetPath
-    let resolvedStatus: 'ready' | 'incomplete' | 'missing' = 'missing'
-    let missingFiles: string[] = []
-
-    for (const testPath of candidatePaths) {
-      try {
-        const files = await listRemoteDirFn(testPath)
-        if (files && files.length > 0) {
-          resolvedPath = testPath
-          resolvedFiles = files
-
-          if (folderDef.expectedFiles && folderDef.expectedFiles.length > 0) {
-            const filesLower = files.map(f => f.toLowerCase())
-            missingFiles = folderDef.expectedFiles.filter(exp => !filesLower.includes(exp.toLowerCase()))
-            resolvedStatus = missingFiles.length === 0 ? 'ready' : 'incomplete'
-          } else if (folderDef.fileExtensionPattern) {
-            const reg = new RegExp(folderDef.fileExtensionPattern, 'i')
-            const hasMatch = files.some(f => reg.test(f))
-            resolvedStatus = hasMatch ? 'ready' : 'incomplete'
-          } else {
-            resolvedStatus = 'ready'
-          }
-          break
-        }
-      } catch {
-        // Path didn't exist or error reading
-      }
-    }
-
-    results.push({
-      folderDef,
-      status: resolvedStatus,
-      detectedPath: resolvedPath,
-      filesFound: resolvedFiles,
-      missingExpectedFiles: resolvedStatus === 'ready' ? [] : missingFiles
-    })
+    results.push(await verifyFolderOnQuest(folderDef, listRemoteDirFn))
   }
 
   const isOverallReady = results.filter(r => r.folderDef.required).every(r => r.status === 'ready')
   return { folders: results, isOverallReady }
+}
+
+export interface CampaignLocation {
+  id: string
+  fullPath: string
+  folder: string
+}
+
+export function foldersForCampaign(slug: string, campaign: CampaignLocation): PortFolderRequirement[] {
+  const folders = PORT_PACKAGE_CONFIGS[slug]?.folders || []
+  const tagged = folders.filter(folder => folder.campaignId === campaign.id)
+  if (tagged.length) return tagged
+  const campaignPath = trailingSlash(campaign.fullPath).toLowerCase()
+  const exact = folders.filter(folder => !folder.campaignId && trailingSlash(folder.targetPath).toLowerCase() === campaignPath)
+  if (exact.length) return exact
+  const nested = folders.filter(folder => !folder.campaignId && trailingSlash(folder.targetPath).toLowerCase().startsWith(campaignPath))
+  if (nested.length) {
+    const required = nested.filter(folder => folder.required)
+    return required.length ? required : nested
+  }
+  const byName = folders.filter(folder => !folder.campaignId && folder.folderName.toLowerCase() === campaign.folder.toLowerCase())
+  if (byName.length) return byName
+  return folders.filter(folder => folder.required)
+}
+
+export interface CampaignFileAssessment {
+  exists: boolean
+  matchedPath: string
+  files: string[]
+  confirmReason: 'unreadable' | 'unproven' | null
+}
+
+export async function assessCampaignOnQuest(
+  slug: string,
+  campaign: CampaignLocation,
+  listRemoteDirFn: (path: string) => Promise<string[]>
+): Promise<CampaignFileAssessment> {
+  const folders = foldersForCampaign(slug, campaign)
+  if (folders.length === 0) {
+    return { exists: false, matchedPath: campaign.fullPath, files: [], confirmReason: null }
+  }
+  const checks = []
+  for (const folder of folders) checks.push(await verifyFolderOnQuest(folder, listRemoteDirFn))
+  const exists = checks.every(check => check.status === 'ready')
+  const withFiles = checks.find(check => check.filesFound.length > 0)
+  const chosen = checks.find(check => check.status === 'ready') || withFiles || checks[0]
+  let confirmReason: CampaignFileAssessment['confirmReason'] = null
+  if (!exists) {
+    if (checks.some(check => folderAcceptance(check.folderDef) === 'confirm')) confirmReason = 'unproven'
+    else if (checks.some(check => check.needsUserConfirm)) confirmReason = 'unreadable'
+  }
+  const matchedPath = checks.length > 1 && exists
+    ? campaign.fullPath
+    : (chosen?.detectedPath || campaign.fullPath)
+  return {
+    exists,
+    matchedPath,
+    files: exists ? checks.flatMap(check => check.filesFound) : (withFiles?.filesFound || []),
+    confirmReason
+  }
 }
 
 export interface WorkflowBadgeInfo {

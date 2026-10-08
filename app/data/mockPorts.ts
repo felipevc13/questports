@@ -802,7 +802,7 @@ export const INITIAL_PORTS: Port[] = [
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale', 'Two-Handed Grip', 'Full-Body IK'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/HaloCEQuest/',
+    internal_storage_path: '/sdcard/Documents/HaloCE/',
     base_game_url: 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved',
     base_game_store: 'Original Xbox disc (ISO/XISO dump)',
     port_download_url: 'https://github.com/moistman42069/HaloCE-Quest-VR/releases/latest',
@@ -827,7 +827,10 @@ export const INITIAL_PORTS: Port[] = [
 3. **Import Game Files:**
    * Transfer your Halo CE Xbox ISO/XISO file to your Quest storage (e.g., inside \`Download/\`).
    * Launch **Halo CE VR** from **App Library → Unknown Sources**.
-   * Use the built-in file picker/launcher to select your ISO file. The game will automatically extract all required maps, textures, and audio into place.
+   * Use the built-in file picker/launcher to select your ISO file. The game extracts maps into its app storage. The Quest build also plays \`/sdcard/Documents/HaloCE\` when \`maps/ui.map\` and \`maps/bloodgulch.map\` are already there. You can push that maps folder with:
+   \`\`\`bash
+   adb push /path/to/maps/. /sdcard/Documents/HaloCE/maps/
+   \`\`\`
 4. **Recenter & Configure VR:**
    * Stand at normal playing height and click **both thumbsticks** simultaneously to recenter height and origin.
    * Open the campaign pause menu → **VR Settings** to configure locomotion, snap/smooth turn, and weapon handling.
@@ -977,7 +980,7 @@ export const INITIAL_PORTS: Port[] = [
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale', 'Two-Handed Grip', 'Motion Melee', 'Virtual Screen Mode'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/GoldenEyeVR/',
+    internal_storage_path: '/sdcard/Android/data/com.gevr.port/files/data/',
     base_game_url: 'https://en.wikipedia.org/wiki/GoldenEye_007_(1997_video_game)',
     base_game_store: 'Nintendo 64 ROM (NTSC-U USA)',
     port_download_url: 'https://github.com/MrSco/goldeneye-vr/releases/latest',
@@ -1001,7 +1004,10 @@ export const INITIAL_PORTS: Port[] = [
    adb install -r GoldenEye-VR-v0.1.11.apk
    \`\`\`
 3. **Copy your USA ROM to your Headset:**
-   Copy your \`GoldenEye 007 (USA).z64\` file to your Quest storage (e.g., inside \`Download/\` or \`/sdcard/GoldenEye-VR/\`).
+   Copy your USA ROM into the Quest **Download** folder, open the app, and press **Choose ROM file...**. The launcher copies it to \`/sdcard/Android/data/com.gevr.port/files/data/ge.z64\`. After the app has been opened once you can also push it directly:
+   \`\`\`bash
+   adb push "GoldenEye 007 (USA).z64" /sdcard/Android/data/com.gevr.port/files/data/ge.z64
+   \`\`\`
 4. **Launch & Play:**
    * Put on your headset and open **GoldenEye VR** from **App Library → Unknown Sources**.
    * On first boot, use the in-VR launcher to select your ROM file.
@@ -1030,7 +1036,7 @@ export const INITIAL_PORTS: Port[] = [
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Cockpit VR', 'Stereo 6DoF', 'Snap Turn', 'VR Shell Menus', '120Hz Refresh Rate'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/CarNage/',
+    internal_storage_path: '/sdcard/Android/data/com.github.maranone.questcarnage/files/',
     base_game_url: 'https://store.steampowered.com/app/282010/Carmageddon_Max_Pack/',
     base_game_store: 'Steam / GOG',
     port_download_url: 'https://github.com/maranone/carnage/releases/latest',
@@ -1202,7 +1208,7 @@ To update to future releases without redownloading game assets, simply connect y
     supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Cockpit VR', 'Virtual Wheel', 'Motion Steering', 'Stick Driving', 'Theatre Menus'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/GT2VR/',
+    internal_storage_path: '/sdcard/Android/data/io.github.gt2pc.quest/files/',
     base_game_url: 'https://www.mobygames.com/game/1597/gran-turismo-2/',
     base_game_store: 'PlayStation PS1 Disc (BIN/CUE)',
     github_url: 'https://github.com/dubrovskiy-yevhen-stakelogic/gt-2-pc',
@@ -1455,7 +1461,7 @@ To update to future releases without redownloading game assets, simply connect y
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Smooth Turn', '6DoF Weapon Aiming', 'Dual Wielding'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/PerfectDarkVR/',
+    internal_storage_path: '/sdcard/Android/data/com.perfectdark.port/files/data/',
     base_game_url: 'https://en.wikipedia.org/wiki/Perfect_Dark',
     base_game_store: 'Nintendo 64 ROM (NTSC Final .z64)',
     port_download_url: 'https://github.com/Alex-LeTux/perfect_dark_VR/releases/download/v1.1-beta/Perfect_Dark_VR_Standalone_v1.1-beta.apk',
@@ -1497,7 +1503,7 @@ To update to future releases without redownloading game assets, simply connect y
 #### 3. Select ROM in VR
 - Put on your Quest headset and go to **App Library → Unknown Sources**.
 - Launch **Perfect Dark VR**.
-- On the startup screen, press **"Select ROM"** and pick your NTSC ROM from your **Download** folder using the system file picker.
+- On the startup screen, press **"Select ROM"** and pick your NTSC ROM from your **Download** folder using the system file picker. The launcher copies it to \`/sdcard/Android/data/com.perfectdark.port/files/data/pd.ntsc-final.z64\`. That exact filename is what the game reads.
 
 ---
 
@@ -1604,7 +1610,7 @@ This VR port includes full support for the **Community Texture Packs** maintaine
     supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
     locomotion_types: ['Dual Wielding', '6DoF Motion Tracking', 'Smooth Locomotion', 'Snap / Smooth Turn', 'Diorama / 3rd-Person Mode'],
     has_6dof_controls: true,
-    internal_storage_path: '/sdcard/QuestSam/',
+    internal_storage_path: '/sdcard/Android/data/com.github.maranone.questsam/files/',
     base_game_url: 'https://store.steampowered.com/app/41050/Serious_Sam_Classic_The_First_Encounter/',
     base_game_store: 'Steam / GOG (Serious Sam Classic: TFE / TSE)',
     port_download_url: 'https://github.com/maranone/QuestSam/releases/download/b002/questsam.apk',

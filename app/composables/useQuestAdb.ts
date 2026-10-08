@@ -18,6 +18,7 @@ import {
   waitForMockChoice,
   writeMockSearch
 } from '~/lib/mockQuest'
+import { RemoteDirDeniedError } from '~/data/portPackageMap'
 
 export interface InstallProgress {
   title: string
@@ -666,25 +667,30 @@ export const useQuestAdb = () => {
     }
   }
 
-  // Check files inside a remote storage directory (combines shell and native ADB sync)
+  // Check files inside a remote storage directory (combines shell and native ADB sync).
+  // Permission denied is thrown so callers can tell "private" from "empty".
   const listRemoteDir = async (remotePath: string): Promise<string[]> => {
     if (!isConnected.value || !adbInstance) return []
     const cleanPath = remotePath.replace(/\/+$/, '')
+    let sawDenied = false
+    const denied = (output: string) => /permission denied/i.test(output)
+    const missing = (output: string) => /no such file|not found|permission denied/i.test(output)
 
-    // Strategy 1: Shell ls
     try {
       let output = ''
       try {
         output = await runShell(`ls -1 "${cleanPath}" 2>/dev/null`)
       } catch {}
+      if (denied(output)) sawDenied = true
 
-      if (!output || output.toLowerCase().includes('no such file') || output.toLowerCase().includes('not found')) {
+      if (!output || missing(output)) {
         try {
           output = await runShell(`ls -1 "${cleanPath}"`)
         } catch {}
       }
+      if (denied(output)) sawDenied = true
 
-      if (output && !output.toLowerCase().includes('no such file') && !output.toLowerCase().includes('not found') && !output.toLowerCase().includes('permission denied')) {
+      if (output && !missing(output)) {
         const parsed = output
           .split('\n')
           .map(f => f.trim())
@@ -693,7 +699,6 @@ export const useQuestAdb = () => {
       }
     } catch {}
 
-    // Strategy 2: Native ADB Sync readdir (daemon level)
     try {
       const sync = await adbInstance.sync()
       try {
@@ -706,8 +711,12 @@ export const useQuestAdb = () => {
       } finally {
         await sync.dispose().catch(() => {})
       }
-    } catch {}
+    } catch (err: any) {
+      const message = String(err?.message || err || '')
+      if (/permission denied/i.test(message)) sawDenied = true
+    }
 
+    if (sawDenied) throw new RemoteDirDeniedError(cleanPath)
     return []
   }
 
