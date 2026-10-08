@@ -1,4 +1,5 @@
 import { INITIAL_PORTS } from '~/data/mockPorts'
+import { applyRecordedFeatures } from '~/data/recordedPortFeatures'
 import { resolveCoverUrl } from '~/data/coverUrl'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 
@@ -28,7 +29,7 @@ export const usePorts = () => {
         console.warn('Failed to connect to Supabase, falling back to local dataset:', err)
       }
     }
-    return INITIAL_PORTS.map(withLocalCover)
+    return INITIAL_PORTS.map(port => applyRecordedFeatures(withLocalCover(port)))
   }
 
   const fetchPortBySlug = async (slug: string): Promise<Port | null> => {
@@ -48,7 +49,7 @@ export const usePorts = () => {
       }
     }
     const local = INITIAL_PORTS.find(p => p.slug === slug)
-    return local ? withLocalCover(local) : null
+    return local ? applyRecordedFeatures(withLocalCover(local)) : null
   }
 
   return {

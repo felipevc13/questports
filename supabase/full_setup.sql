@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS public.ports (
   supported_hardware text[] NOT NULL DEFAULT '{"Quest 2", "Quest 3", "Quest 3S"}',
   locomotion_types text[] DEFAULT '{"Smooth Locomotion"}',
   has_6dof_controls boolean NOT NULL DEFAULT true,
+  -- Optional recorded VR claims. See supabase/migrations/20261008230000_port_features.sql.
+  features jsonb,
   
   -- Installation details & Links
   internal_storage_path text,
