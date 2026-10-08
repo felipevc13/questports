@@ -55,7 +55,7 @@ async function run() {
     internal_storage_path: '/sdcard/GalaxyQuest/',
     base_game_url: 'https://en.wikipedia.org/wiki/Super_Mario_Galaxy',
     base_game_store: 'Nintendo Wii Disc (ISO/RVZ/WBFS)',
-    port_download_url: 'https://github.com/bigmak94/GalaxyQuest/releases/latest',
+    port_download_url: 'https://github.com/bigmak94/GalaxyQuest/releases/latest/download/GalaxyQuest.apk',
     port_download_source: 'GitHub Releases',
     github_url: 'https://github.com/bigmak94/GalaxyQuest',
     latest_version: 'v0.1.3',

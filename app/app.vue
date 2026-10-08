@@ -5,13 +5,24 @@
       <NuxtPage />
     </main>
     <Footer />
-    <!-- Global Suggest Modal (mounts on top of everything) -->
+    <!-- Global Suggest / Feedback modals -->
     <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
-    <!-- Global WebADB Quest Connect & Manager Modal -->
-    <QuestConnectModal />
+    <FeedbackModal :is-open="feedbackModal.isOpen.value" :initial-page-path="feedbackModal.pagePath.value" @close="feedbackModal.close" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useSuggestModal } from '~/composables/useSuggestModal'
+import { useFeedbackModal } from '~/composables/useFeedbackModal'
+import { useQuestAdb } from '~/composables/useQuestAdb'
+
 const suggestModal = useSuggestModal()
+const feedbackModal = useFeedbackModal()
+const questAdb = useQuestAdb()
+
+onMounted(() => {
+  questAdb.setupUsbEventListeners()
+  questAdb.tryAutoConnect()
+})
 </script>

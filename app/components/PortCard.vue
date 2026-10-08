@@ -1,9 +1,10 @@
 <template>
   <NuxtLink
-    :to="`/ports/${port.slug}`"
+    :to="`${toPrefix || '/ports'}/${port.slug}`"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
-    class="group flex flex-col bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors block text-card-foreground"
+    :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
+    class="group flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
   >
     <!-- Steam Capsule Header (460x215 aspect ratio) -->
     <div class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
@@ -45,9 +46,18 @@
         v-if="!isPlayingPreview"
         class="absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-1 pointer-events-none"
       >
-        <span class="inline-flex items-center text-[10px] uppercase font-mono font-semibold tracking-wider px-2 py-0.5 rounded bg-black/85 text-slate-100 border border-white/20 shadow-md">
-          {{ formatCategory(port.category) }}
-        </span>
+        <div class="flex items-center gap-1.5">
+          <span class="inline-flex items-center text-[10px] uppercase font-mono font-semibold tracking-wider px-2 py-0.5 rounded bg-black/85 text-slate-100 border border-white/20 shadow-md">
+            {{ formatCategory(port.category) }}
+          </span>
+          <span
+            v-if="isInstalledOnQuest"
+            class="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-950/95 text-emerald-300 border border-emerald-400/50 shadow-md shadow-emerald-950/40"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Installed</span>
+          </span>
+        </div>
 
         <span
           :class="port.status === 'released'
@@ -126,8 +136,20 @@
           </UiBadge>
         </div>
 
-        <span class="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:underline">
-          <span>View</span>
+        <span
+          v-if="isInstalledOnQuest"
+          class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 group-hover:underline"
+        >
+          <span>Manage Files</span>
+          <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:underline"
+        >
+          <span>View Guide & Files</span>
           <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
@@ -138,12 +160,24 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
+import { useQuestAdb } from '~/composables/useQuestAdb'
+import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   port: Port
-}>()
+  toPrefix?: string
+}>(), {})
+
+const questAdb = useQuestAdb()
+
+const isInstalledOnQuest = computed(() => {
+  if (!questAdb.isConnected.value) return false
+  return isPortInstalledOnQuest(props.port.slug, questAdb.installedPackages.value)
+})
 
 const router = useRouter()
 const navigateToDev = (dev: string) => {

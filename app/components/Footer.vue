@@ -20,6 +20,12 @@
         >
           Suggest a Game
         </button>
+        <button
+          @click="feedbackModal.open(route.fullPath)"
+          class="hover:text-foreground transition-colors cursor-pointer text-xs"
+        >
+          Feature or bug
+        </button>
         <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">GitHub</a>
         <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">SideQuest</a>
       </div>
@@ -29,4 +35,6 @@
 
 <script setup lang="ts">
 const suggestModal = useSuggestModal()
+const feedbackModal = useFeedbackModal()
+const route = useRoute()
 </script>

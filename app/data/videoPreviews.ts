@@ -32,6 +32,7 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  */
 export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'astroquest',
+  'avp-vr',
   'beefraiderxr',
   'citravr',
   'csvr',
@@ -62,6 +63,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'simpsonshitrun',
   'sourcevr',
   'time-crisis-vr',
+  'ut99-vr-quest',
   'vice-city-vr-quest',
   'winlatorxr'
 ]
@@ -182,5 +184,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Hexen II VR
   'hexen2vr': { start: '0:17', end: '1:17' },
-  'wKyfjeuv46o': { start: '0:17', end: '1:17' }
+  'wKyfjeuv46o': { start: '0:17', end: '1:17' },
+
+  // Unreal Tournament '99 VR (UT99 Quest)
+  'ut99-vr-quest': { start: '3:48', end: '4:20' },
+  'DnLHVDp9o0Q': { start: '3:48', end: '4:20' },
+
+  // Aliens Versus Predator VR (middle 1 minute of the video)
+  'avp-vr': { start: '1:25', end: '2:25' },
+  'IxnrIYhSEMs': { start: '1:25', end: '2:25' }
 }

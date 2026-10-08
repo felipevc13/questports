@@ -8,17 +8,20 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "build:og": "node scripts/build-modern-og.js",
+    "test": "vitest run",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@supabase/supabase-js": "^2.117.2",
+    "@types/jszip": "^3.4.0",
     "@yume-chan/adb": "^2.6.4",
     "@yume-chan/adb-credential-web": "^2.1.0",
     "@yume-chan/adb-daemon-webusb": "^2.3.2",
     "@yume-chan/stream-extra": "^2.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jszip": "^3.10.2",
     "lucide-vue-next": "^1.0.0",
     "marked": "^18.0.14",
     "nuxt": "^4.5.2",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
-    "@types/node": "^26.6.4"
+    "@types/node": "^26.6.4",
+    "vitest": "^4.1.11"
   }
 }

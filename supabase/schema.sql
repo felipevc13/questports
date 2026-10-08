@@ -57,3 +57,24 @@ alter table public.ports enable row level security;
 create policy "Allow public read-only access on ports"
   on public.ports for select
   using (true);
+
+-- Anonymous product feedback (features / bugs). Insert-only for the public API.
+create table if not exists public.site_feedback (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('feature', 'bug')),
+  message text not null check (char_length(btrim(message)) >= 8 and char_length(message) <= 4000),
+  page_path text,
+  submitted_by text,
+  status text not null default 'pending' check (status in ('pending', 'reviewed', 'done')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.site_feedback enable row level security;
+
+create policy "Allow anonymous insert on site_feedback"
+  on public.site_feedback
+  for insert
+  to anon, authenticated
+  with check (true);
+
+grant insert on table public.site_feedback to anon, authenticated;

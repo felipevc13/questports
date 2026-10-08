@@ -8,9 +8,19 @@ export interface InstallProgress {
   error?: string
 }
 
+export interface AdbFileEntry {
+  name: string
+  isDirectory: boolean
+  size: number
+  mtime: number
+}
+
+export type AdbConnectionPhase = 'idle' | 'picker' | 'authorizing' | 'connected' | 'error'
+
 // Global singleton state so connection persists across page navigations
 const isConnected = ref(false)
 const isConnecting = ref(false)
+const connectionPhase = ref<AdbConnectionPhase>('idle')
 const connectionError = ref<string | null>(null)
 
 const deviceModel = ref<string>('')
@@ -32,6 +42,8 @@ const installProgress = ref<InstallProgress>({
 
 let adbInstance: any = null
 let syncInstance: any = null
+let currentDevice: any = null
+let activeAbortController: AbortController | null = null
 
 export const useQuestAdb = () => {
   const isWebUsbSupported = computed(() => {
@@ -58,12 +70,12 @@ export const useQuestAdb = () => {
     try {
       const text = await runShell('dumpsys battery')
       const levelMatch = text.match(/level:\s*(\d+)/i)
-      if (levelMatch) {
+      if (levelMatch && levelMatch[1]) {
         batteryLevel.value = parseInt(levelMatch[1], 10)
       }
       const pluggedMatch = text.match(/(AC powered|USB powered|Wireless powered):\s*(true|1)/i)
       const statusMatch = text.match(/status:\s*(\d+)/i)
-      isCharging.value = !!pluggedMatch || (statusMatch && statusMatch[1] === '2')
+      isCharging.value = Boolean(pluggedMatch || (statusMatch && statusMatch[1] === '2'))
     } catch (e) {
       console.warn('Could not fetch battery status:', e)
     }
@@ -74,13 +86,15 @@ export const useQuestAdb = () => {
     try {
       const text = await runShell('df -h /sdcard')
       const lines = text.trim().split('\n')
-      if (lines.length >= 2) {
-        const parts = lines[1].trim().split(/\s+/)
+      const targetLine = lines[1]
+      if (lines.length >= 2 && targetLine) {
+        const parts = targetLine.trim().split(/\s+/)
         if (parts.length >= 5) {
-          storageTotal.value = parts[1]
-          storageFree.value = parts[3]
-          const pctMatch = parts[4].match(/(\d+)%/)
-          if (pctMatch) {
+          storageTotal.value = parts[1] ?? null
+          storageFree.value = parts[3] ?? null
+          const pctPart = parts[4]
+          const pctMatch = pctPart ? pctPart.match(/(\d+)%/) : null
+          if (pctMatch && pctMatch[1]) {
             storagePercent.value = parseInt(pctMatch[1], 10)
           }
         }
@@ -93,12 +107,21 @@ export const useQuestAdb = () => {
   // List third-party installed packages
   const updatePackages = async () => {
     try {
-      const text = await runShell('pm list packages -3')
-      const list = text
+      const text3 = await runShell('pm list packages -3')
+      const list3 = text3
         .split('\n')
         .map(l => l.replace(/^package:/i, '').trim())
         .filter(Boolean)
-      installedPackages.value = list
+
+      // Query all packages to ensure full coverage of sideloaded apps
+      const textAll = await runShell('pm list packages')
+      const listAll = textAll
+        .split('\n')
+        .map(l => l.replace(/^package:/i, '').trim())
+        .filter(Boolean)
+
+      const merged = Array.from(new Set([...list3, ...listAll]))
+      installedPackages.value = merged
     } catch (e) {
       console.warn('Could not list packages:', e)
     }
@@ -114,15 +137,117 @@ export const useQuestAdb = () => {
     ])
   }
 
-  // Connect via WebUSB
-  const connect = async () => {
-    if (!import.meta.client) return false
-    if (!isWebUsbSupported.value) {
-      connectionError.value = 'WebUSB is not supported in this browser. Please use Chrome, Edge, or Brave.'
+  let isListenerSetup = false
+  let pollTimer: any = null
+
+  const startPolling = () => {
+    if (pollTimer) clearInterval(pollTimer)
+    pollTimer = setInterval(async () => {
+      if (isConnected.value && adbInstance && !isConnecting.value) {
+        await updatePackages()
+      }
+    }, 4000)
+  }
+
+  const stopPolling = () => {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
+    }
+  }
+
+  const setupUsbEventListeners = () => {
+    if (!import.meta.client || isListenerSetup) return
+    const nav = typeof navigator !== 'undefined' ? (navigator as any) : null
+    if (nav?.usb) {
+      isListenerSetup = true
+      nav.usb.addEventListener('connect', () => {
+        console.log('[QuestPorts] USB device connected, attempting auto-reconnect...')
+        setTimeout(() => {
+          tryAutoConnect()
+        }, 600)
+      })
+      nav.usb.addEventListener('disconnect', (event: any) => {
+        if (currentDevice?.raw === event.device || isConnected.value) {
+          console.log('[QuestPorts] Quest USB device detached')
+          disconnect()
+        }
+      })
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => {
+        if (isConnected.value && !isConnecting.value) {
+          updatePackages()
+        }
+      })
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && isConnected.value && !isConnecting.value) {
+          updatePackages()
+        }
+      })
+    }
+  }
+
+  // Silently reconnect to previously authorized WebUSB device without opening picker
+  const tryAutoConnect = async () => {
+    if (!import.meta.client || isConnected.value || isConnecting.value) return false
+    if (!isWebUsbSupported.value) return false
+
+    if (sessionStorage.getItem('quest_manual_disconnect') === 'true') {
       return false
     }
 
+    try {
+      const { AdbDaemonWebUsbDeviceManager } = await import('@yume-chan/adb-daemon-webusb')
+      const manager = AdbDaemonWebUsbDeviceManager.BROWSER
+      if (!manager) return false
+
+      const devices = await manager.getDevices()
+      const firstDevice = devices?.[0]
+      if (firstDevice) {
+        console.log('[QuestPorts] Previously authorized device found, auto-connecting...', firstDevice.serial)
+        const success = await connect(firstDevice)
+        if (!success) {
+          connectionError.value = null
+          connectionPhase.value = 'idle'
+        }
+        return success
+      }
+    } catch (e) {
+      console.debug('[QuestPorts] Auto-connect skipped:', e)
+      connectionError.value = null
+      connectionPhase.value = 'idle'
+    }
+    return false
+  }
+
+  const cancelConnect = async () => {
+    if (currentDevice?.raw?.opened) {
+      try {
+        await currentDevice.raw.close()
+      } catch {}
+      currentDevice = null
+    }
+    isConnecting.value = false
+    connectionPhase.value = 'idle'
+  }
+
+  // Connect via WebUSB (accepts optional paired device to avoid picker popup)
+  const connect = async (targetDevice?: any) => {
+    if (!import.meta.client) return false
+    if (!isWebUsbSupported.value) {
+      connectionError.value = 'WebUSB is not supported in this browser. Please use Chrome, Edge, or Brave.'
+      connectionPhase.value = 'error'
+      return false
+    }
+
+    if (sessionStorage.getItem('quest_manual_disconnect')) {
+      sessionStorage.removeItem('quest_manual_disconnect')
+    }
+
     isConnecting.value = true
+    connectionPhase.value = targetDevice ? 'authorizing' : 'picker'
     connectionError.value = null
 
     try {
@@ -135,22 +260,45 @@ export const useQuestAdb = () => {
         throw new Error('WebUSB manager not available in browser')
       }
 
-      // Browser device picker popup
-      const device = await manager.requestDevice()
+      let device = targetDevice
+      if (!device) {
+        // Browser device picker popup
+        device = await manager.requestDevice()
+      }
+
       if (!device) {
         isConnecting.value = false
+        connectionPhase.value = 'idle'
         return false
       }
 
+      isConnecting.value = true
+      connectionPhase.value = 'authorizing'
+      currentDevice = device
+      console.log('[QuestPorts] Device selected:', device.serial)
+
+      console.log('[QuestPorts] Opening WebUSB connection...')
       const connection = await device.connect()
+      console.log('[QuestPorts] WebUSB connection opened. Authenticating ADB (check headset for RSA prompt)...')
+
       const credentialStore = new AdbWebCredentialStore()
 
-      const transport = await AdbDaemonTransport.authenticate({
+      // Add a 90s authorization timeout so the user has ample time to put on the visor
+      const authPromise = AdbDaemonTransport.authenticate({
         serial: device.serial,
         connection,
         credentialStore
       })
 
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Headset authorization timed out. Put on your Meta Quest so the screen stays awake, then click Connect and accept the "Allow USB debugging" prompt inside the visor.'))
+        }, 90000)
+      })
+
+      const transport = await Promise.race([authPromise, timeoutPromise]) as any
+
+      console.log('[QuestPorts] ADB Authenticated! Initializing ADB instance...')
       adbInstance = new Adb(transport)
       deviceSerial.value = device.serial
 
@@ -171,9 +319,11 @@ export const useQuestAdb = () => {
 
       isConnected.value = true
       isConnecting.value = false
+      connectionPhase.value = 'connected'
 
       // Fetch initial diagnostics
       await refreshStats()
+      startPolling()
 
       // Handle disconnection event
       adbInstance.disconnected.then(() => {
@@ -185,27 +335,53 @@ export const useQuestAdb = () => {
       return true
     } catch (err: any) {
       console.error('Failed to connect to Quest via WebUSB:', err)
-      connectionError.value = err?.message || 'Connection failed. Ensure headset is unlocked with Developer Mode enabled.'
+      connectionPhase.value = 'error'
+      
+      const msg = err?.message || ''
+      if (msg.toLowerCase().includes('already in use') || msg.toLowerCase().includes('already in used') || msg.toLowerCase().includes('claim') || msg.toLowerCase().includes('busy')) {
+        connectionError.value = 'The Quest USB interface is locked by another program (Android File Transfer, SideQuest, Meta Developer Hub, or native ADB). Unplug and replug the USB cable, close background VR apps, then click connect.'
+      } else if (msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('transferin') || msg.toLowerCase().includes('aborterror')) {
+        connectionError.value = 'Connection was cancelled by the headset. Put on your Meta Quest so the display stays awake, then click connect and accept the "Allow USB debugging" prompt inside the visor.'
+      } else {
+        connectionError.value = msg || 'Connection failed. Ensure headset is unlocked with Developer Mode enabled.'
+      }
+
+      if (currentDevice?.raw?.opened) {
+        try {
+          await currentDevice.raw.close()
+        } catch {}
+        currentDevice = null
+      }
+
       isConnecting.value = false
       isConnected.value = false
       return false
     }
   }
 
-  const disconnect = () => {
+  const disconnect = async (manual = false) => {
+    stopPolling()
+    if (manual && import.meta.client) {
+      sessionStorage.setItem('quest_manual_disconnect', 'true')
+    }
     try {
       if (syncInstance) {
-        syncInstance.dispose().catch(() => {})
+        await syncInstance.dispose().catch(() => {})
         syncInstance = null
       }
       if (adbInstance) {
-        adbInstance.close().catch(() => {})
+        await adbInstance.close().catch(() => {})
         adbInstance = null
+      }
+      if (currentDevice?.raw?.opened) {
+        await currentDevice.raw.close().catch(() => {})
+        currentDevice = null
       }
     } catch {}
 
     isConnected.value = false
     isConnecting.value = false
+    connectionPhase.value = 'idle'
     deviceModel.value = ''
     deviceSerial.value = ''
     batteryLevel.value = null
@@ -221,7 +397,7 @@ export const useQuestAdb = () => {
       throw new Error('Meta Quest not connected! Please connect your headset first.')
     }
 
-    const { Consumable, WrapReadableStream } = await import('@yume-chan/stream-extra')
+    const { WrapReadableStream } = await import('@yume-chan/stream-extra')
 
     installProgress.value = {
       title,
@@ -236,6 +412,10 @@ export const useQuestAdb = () => {
     let loaded = 0
     const progressTransform = new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
+        if (activeAbortController?.signal.aborted) {
+          controller.error(new Error('Installation cancelled by user'))
+          return
+        }
         loaded += chunk.byteLength
         if (totalBytes > 0) {
           const pct = Math.min(85, Math.round(5 + (loaded / totalBytes) * 80))
@@ -243,23 +423,33 @@ export const useQuestAdb = () => {
           const mbUploaded = (loaded / (1024 * 1024)).toFixed(1)
           const mbTotal = (totalBytes / (1024 * 1024)).toFixed(1)
           installProgress.value.message = `Transferring APK to Quest (${mbUploaded} MB / ${mbTotal} MB)...`
+        } else {
+          const mbUploaded = (loaded / (1024 * 1024)).toFixed(1)
+          const pct = Math.min(80, Math.round(5 + (loaded / (loaded + 30 * 1024 * 1024)) * 75))
+          installProgress.value.percent = pct
+          installProgress.value.message = `Transferring APK to Quest (${mbUploaded} MB transferred)...`
         }
         controller.enqueue(chunk)
       }
     })
 
     const monitoredStream = stream.pipeThrough(progressTransform)
-    const consumableStream = new Consumable.ReadableStream(monitoredStream)
+    const wrappedStream = new WrapReadableStream(monitoredStream as any)
 
     // Open ADB sync session
     const sync = await adbInstance.sync()
     try {
       await sync.write({
         filename: tempPath,
-        file: consumableStream
+        file: wrappedStream
       })
     } finally {
       await sync.dispose().catch(() => {})
+    }
+
+    if (activeAbortController?.signal.aborted) {
+      await runShell(`rm -f ${tempPath}`).catch(() => {})
+      throw new Error('Installation cancelled by user')
     }
 
     // Step 2: Trigger native Android package manager install (pm install -r)
@@ -275,7 +465,11 @@ export const useQuestAdb = () => {
     // Clean up temporary APK
     await runShell(`rm -f ${tempPath}`).catch(() => {})
 
-    if (resultText.toLowerCase().includes('success')) {
+    if (activeAbortController?.signal.aborted) {
+      throw new Error('Installation cancelled by user')
+    }
+
+    if (/^\s*success/im.test(resultText) && !/failure|INSTALL_FAILED/i.test(resultText)) {
       installProgress.value = {
         title,
         step: 'completed',
@@ -298,11 +492,40 @@ export const useQuestAdb = () => {
     }
   }
 
+  // Cancel an ongoing installation
+  const cancelInstall = async () => {
+    if (activeAbortController) {
+      activeAbortController.abort()
+      activeAbortController = null
+    }
+    try {
+      if (isConnected.value && adbInstance) {
+        await runShell('rm -f /data/local/tmp/questports_installer.apk').catch(() => {})
+      }
+    } catch {}
+    installProgress.value = {
+      title: '',
+      step: 'idle',
+      percent: 0,
+      message: ''
+    }
+  }
+
   // Install from local File
   const installApkFile = async (file: File, title: string) => {
+    activeAbortController = new AbortController()
     try {
       await installApkStream(file.stream(), file.size, title)
     } catch (err: any) {
+      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
+        installProgress.value = {
+          title: '',
+          step: 'idle',
+          percent: 0,
+          message: ''
+        }
+        return
+      }
       installProgress.value = {
         title,
         step: 'error',
@@ -311,11 +534,14 @@ export const useQuestAdb = () => {
         error: err?.message
       }
       throw err
+    } finally {
+      activeAbortController = null
     }
   }
 
   // Install from URL (via our streaming proxy to avoid CORS)
   const installApkUrl = async (url: string, title: string) => {
+    activeAbortController = new AbortController()
     try {
       installProgress.value = {
         title,
@@ -326,10 +552,17 @@ export const useQuestAdb = () => {
 
       // Use local server proxy
       const proxyUrl = `/api/apk-proxy?url=${encodeURIComponent(url)}`
-      const res = await fetch(proxyUrl)
+      const res = await fetch(proxyUrl, { signal: activeAbortController.signal })
 
       if (!res.ok) {
-        throw new Error(`Failed to download APK: HTTP ${res.status}`)
+        let detail = `HTTP ${res.status}`
+        try {
+          const body = await res.json() as { statusMessage?: string; message?: string }
+          detail = body.statusMessage || body.message || detail
+        } catch {
+          // Keep the status code if the proxy did not return JSON.
+        }
+        throw new Error(`Failed to download APK: ${detail}`)
       }
 
       const contentLength = res.headers.get('content-length')
@@ -341,6 +574,15 @@ export const useQuestAdb = () => {
 
       await installApkStream(res.body, totalBytes, title)
     } catch (err: any) {
+      if (err.name === 'AbortError' || err.message?.includes('cancelled')) {
+        installProgress.value = {
+          title: '',
+          step: 'idle',
+          percent: 0,
+          message: ''
+        }
+        return
+      }
       installProgress.value = {
         title,
         step: 'error',
@@ -349,19 +591,229 @@ export const useQuestAdb = () => {
         error: err?.message
       }
       throw err
+    } finally {
+      activeAbortController = null
     }
   }
 
-  // Check files inside a remote storage directory
+  // Check files inside a remote storage directory (combines shell and native ADB sync)
   const listRemoteDir = async (remotePath: string): Promise<string[]> => {
     if (!isConnected.value || !adbInstance) return []
+    const cleanPath = remotePath.replace(/\/+$/, '')
+
+    // Strategy 1: Shell ls
     try {
-      const output = await runShell(`ls -1 "${remotePath}"`)
-      if (output.toLowerCase().includes('no such file')) return []
-      return output
-        .split('\n')
-        .map(f => f.trim())
-        .filter(f => f && !f.startsWith('ls:'))
+      let output = ''
+      try {
+        output = await runShell(`ls -1 "${cleanPath}" 2>/dev/null`)
+      } catch {}
+
+      if (!output || output.toLowerCase().includes('no such file') || output.toLowerCase().includes('not found')) {
+        try {
+          output = await runShell(`ls -1 "${cleanPath}"`)
+        } catch {}
+      }
+
+      if (output && !output.toLowerCase().includes('no such file') && !output.toLowerCase().includes('not found') && !output.toLowerCase().includes('permission denied')) {
+        const parsed = output
+          .split('\n')
+          .map(f => f.trim())
+          .filter(f => f && !f.startsWith('ls:') && f !== '.' && f !== '..')
+        if (parsed.length > 0) return parsed
+      }
+    } catch {}
+
+    // Strategy 2: Native ADB Sync readdir (daemon level)
+    try {
+      const sync = await adbInstance.sync()
+      try {
+        const entries = await sync.readdir(cleanPath)
+        if (entries && entries.length > 0) {
+          return entries
+            .map((e: any) => e.name)
+            .filter((name: string) => name && name !== '.' && name !== '..')
+        }
+      } finally {
+        await sync.dispose().catch(() => {})
+      }
+    } catch {}
+
+    return []
+  }
+
+  // Scan Quest storage for campaign files across multiple possible directory conventions
+  const checkCampaignFilesOnQuest = async (
+    campaign: { id: string; folder: string; fullPath: string }
+  ): Promise<{ campaignId: string; exists: boolean; matchedPath: string; fileCount: number; files: string[] }> => {
+    if (!isConnected.value || !adbInstance) {
+      return { campaignId: campaign.id, exists: false, matchedPath: campaign.fullPath, fileCount: 0, files: [] }
+    }
+
+    const rawPath = campaign.fullPath.trim().replace(/\/+$/, '')
+    const folder = campaign.folder.trim().toLowerCase()
+
+    // Build candidate paths to test
+    const candidates = new Set<string>()
+
+    // 1. Exact rawPath
+    candidates.add(rawPath)
+
+    // 2. /storage/emulated/0 alternative for /sdcard
+    if (rawPath.startsWith('/sdcard')) {
+      candidates.add(rawPath.replace(/^\/sdcard/, '/storage/emulated/0'))
+    } else if (rawPath.startsWith('/storage/emulated/0')) {
+      candidates.add(rawPath.replace(/^\/storage\/emulated\/0/, '/sdcard'))
+    }
+
+    // 3. Lowercase & uppercase variants
+    candidates.add(rawPath.toLowerCase())
+
+    // 4. Case variations of folder and parent folder
+    const parts = rawPath.split('/')
+    if (parts.length >= 3) {
+      const parentName = parts[parts.length - 2]
+      const dirName = parts[parts.length - 1]
+      const basePath = parts.slice(0, parts.length - 2).join('/')
+
+      if (parentName && dirName) {
+        // e.g. /sdcard/RTCWQuest/main vs /sdcard/rtcwquest/main vs /sdcard/RTCWQuest/MAIN
+        candidates.add(`${basePath}/${parentName.toLowerCase()}/${dirName.toLowerCase()}`)
+        candidates.add(`${basePath}/${parentName.toUpperCase()}/${dirName.toLowerCase()}`)
+        candidates.add(`${basePath}/${parentName}/${dirName.toUpperCase()}`)
+        candidates.add(`${basePath}/${parentName.toLowerCase()}/${dirName}`)
+      }
+    }
+
+    // 5. Check if parent directory itself contains the game files or the target subfolder
+    if (parts.length >= 3) {
+      const parentPath = parts.slice(0, parts.length - 1).join('/')
+      candidates.add(parentPath)
+      candidates.add(parentPath.toLowerCase())
+    }
+
+    for (const testPath of candidates) {
+      try {
+        const files = await listRemoteDir(testPath)
+        if (files && files.length > 0) {
+          // If we tested the parent directory, check if it contains the target subfolder OR if it directly contains asset files
+          if (testPath !== rawPath && testPath.toLowerCase() !== rawPath.toLowerCase()) {
+            const hasTargetSubfolder = files.some(f => f.toLowerCase() === folder)
+            if (hasTargetSubfolder) {
+              // Target subfolder exists inside parent! Check inside it
+              const subPath = `${testPath}/${folder}`
+              const subFiles = await listRemoteDir(subPath)
+              if (subFiles && subFiles.length > 0) {
+                return {
+                  campaignId: campaign.id,
+                  exists: true,
+                  matchedPath: `${subPath}/`,
+                  fileCount: subFiles.length,
+                  files: subFiles
+                }
+              }
+            }
+
+            // Or if files are placed directly in parent (e.g. pak files, pk3 files, wad files)
+            const hasGameAssets = files.some(f => {
+              const lower = f.toLowerCase()
+              return lower.endsWith('.pak') || lower.endsWith('.pk3') || lower.endsWith('.wad') ||
+                     lower.endsWith('.pk4') || lower.endsWith('.bsp') || lower.endsWith('.iso') ||
+                     lower.endsWith('.so') || lower.endsWith('.cfg') || lower.endsWith('.3ds')
+            })
+
+            if (hasGameAssets) {
+              return {
+                campaignId: campaign.id,
+                exists: true,
+                matchedPath: `${testPath}/`,
+                fileCount: files.length,
+                files
+              }
+            }
+          } else {
+            // Found files directly in the target directory!
+            return {
+              campaignId: campaign.id,
+              exists: true,
+              matchedPath: `${testPath}/`,
+              fileCount: files.length,
+              files
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`[QuestPorts] Error checking candidate path ${testPath}:`, err)
+      }
+    }
+
+    return {
+      campaignId: campaign.id,
+      exists: false,
+      matchedPath: campaign.fullPath,
+      fileCount: 0,
+      files: []
+    }
+  }
+
+  // Detailed file & directory listing with size, type, and modified timestamp
+  const listRemoteDirectoryDetails = async (remotePath: string): Promise<AdbFileEntry[]> => {
+    if (!isConnected.value || !adbInstance) return []
+    const cleanPath = remotePath.replace(/\/+$/, '')
+
+    // Method 1: Try adb sync.readdir
+    try {
+      const sync = await adbInstance.sync()
+      try {
+        const entries = await sync.readdir(cleanPath)
+        if (entries && entries.length > 0) {
+          return entries
+            .filter((e: any) => e.name !== '.' && e.name !== '..')
+            .map((e: any) => ({
+              name: e.name,
+              isDirectory: Number(e.type) === 4,
+              size: Number(e.size || 0),
+              mtime: Number(e.mtime || 0) * 1000
+            }))
+            .sort((a: AdbFileEntry, b: AdbFileEntry) => {
+              if (a.isDirectory && !b.isDirectory) return -1
+              if (!a.isDirectory && b.isDirectory) return 1
+              return a.name.localeCompare(b.name)
+            })
+        }
+      } finally {
+        await sync.dispose().catch(() => {})
+      }
+    } catch {}
+
+    // Method 2: Shell fallback ls -la
+    try {
+      const output = await runShell(`ls -la "${cleanPath}" 2>/dev/null`)
+      if (!output || output.toLowerCase().includes('no such file') || output.toLowerCase().includes('not found')) {
+        return []
+      }
+      const lines = output.split('\n').filter(Boolean)
+      const parsed: AdbFileEntry[] = []
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/)
+        if (parts.length < 8) continue
+        const perms = parts[0]
+        if (!perms || perms.startsWith('total')) continue
+        const isDir = perms.startsWith('d')
+        const size = parseInt(parts[4] || '0', 10) || 0
+        const name = parts.slice(parts.length > 8 ? 7 : 6).join(' ')
+        if (!name || name === '.' || name === '..') continue
+        parsed.push({
+          name,
+          isDirectory: isDir,
+          size,
+          mtime: Date.now()
+        })
+      }
+      return parsed.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1
+        if (!a.isDirectory && b.isDirectory) return 1
+        return a.name.localeCompare(b.name)
+      })
     } catch {
       return []
     }
@@ -384,7 +836,7 @@ export const useQuestAdb = () => {
       throw new Error('Quest not connected')
     }
 
-    const { Consumable } = await import('@yume-chan/stream-extra')
+    const { WrapReadableStream } = await import('@yume-chan/stream-extra')
 
     // Ensure remote directory exists
     await createRemoteDir(remoteDirectory)
@@ -409,13 +861,13 @@ export const useQuestAdb = () => {
     })
 
     const stream = file.stream().pipeThrough(progressTransform)
-    const consumableStream = new Consumable.ReadableStream(stream)
+    const wrappedStream = new WrapReadableStream(stream as any)
 
     const sync = await adbInstance.sync()
     try {
       await sync.write({
         filename: targetFilePath,
-        file: consumableStream
+        file: wrappedStream
       })
     } finally {
       await sync.dispose().catch(() => {})
@@ -435,6 +887,38 @@ export const useQuestAdb = () => {
     }
   }
 
+  // Uninstall app package from headset
+  const uninstallPackage = async (packageName: string): Promise<boolean> => {
+    if (!isConnected.value || !adbInstance) {
+      throw new Error('Quest not connected')
+    }
+    const res = await runShell(`pm uninstall ${packageName}`)
+    await updatePackages()
+    return res.toLowerCase().includes('success')
+  }
+
+  // Delete remote file or directory on Quest
+  const deleteRemotePath = async (remotePath: string): Promise<boolean> => {
+    if (!isConnected.value || !adbInstance) {
+      throw new Error('Quest not connected')
+    }
+    const clean = remotePath.replace(/\/+$/, '')
+    await runShell(`rm -rf "${clean}"`)
+    return true
+  }
+
+  // Get installed version of a package
+  const getPackageVersion = async (packageName: string): Promise<string | null> => {
+    if (!isConnected.value || !adbInstance) return null
+    try {
+      const dump = await runShell(`dumpsys package ${packageName}`)
+      const match = dump.match(/versionName=([^\s]+)/i)
+      return match && match[1] ? match[1] : null
+    } catch {
+      return null
+    }
+  }
+
   const isPackageInstalled = (pkgName: string) => {
     return installedPackages.value.includes(pkgName)
   }
@@ -443,6 +927,7 @@ export const useQuestAdb = () => {
     isWebUsbSupported,
     isConnected,
     isConnecting,
+    connectionPhase,
     connectionError,
     deviceModel,
     deviceSerial,
@@ -455,15 +940,26 @@ export const useQuestAdb = () => {
     installedPackages,
     installProgress,
     connect,
+    cancelConnect,
+    tryAutoConnect,
+    setupUsbEventListeners,
     disconnect,
     refreshStats,
+    updatePackages,
     installApkFile,
     installApkUrl,
+    cancelInstall,
+    uninstallPackage,
+    deleteRemotePath,
+    getPackageVersion,
     isPackageInstalled,
     listRemoteDir,
+    listRemoteDirectoryDetails,
     createRemoteDir,
     pushFileToPath,
+    checkCampaignFilesOnQuest,
     launchApp,
     runShell
   }
 }
+

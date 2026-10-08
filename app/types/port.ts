@@ -9,6 +9,13 @@ export type PortCategory =
 
 export type PortStatus = 'released' | 'playable_beta' | 'in_development'
 
+export type PortWorkflowType =
+  | 'direct'           // ⚡ Direct Sideload (APK only)
+  | 'pc_assets'        // 📁 Steam / PC Original Files
+  | 'obb_extractor'    // 📦 Android OBB / Mobile Extractor (GTA SA, VC)
+  | 'smart_converter'  // ⚙️ Console Decomp / Endian Converter (Mario Galaxy, Zelda OOT)
+  | 'emulator_roms'    // 🕹️ Emulator & ROMs Manager (Citra VR, PPSSPP VR)
+
 export interface Port {
   id: string
   slug: string
@@ -18,6 +25,7 @@ export interface Port {
   developer_url?: string | null
   category: PortCategory
   status: PortStatus
+  install_workflow?: PortWorkflowType
   cover_image_url: string | null
   youtube_video_id: string | null
   video_url?: string | null
