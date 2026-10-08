@@ -8,6 +8,9 @@
     <!-- Global Suggest / Feedback modals -->
     <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
     <FeedbackModal :is-open="feedbackModal.isOpen.value" :initial-page-path="feedbackModal.pagePath.value" @close="feedbackModal.close" />
+    <ClientOnly>
+      <ConnectPreviewChooser />
+    </ClientOnly>
   </div>
 </template>
 
@@ -21,8 +24,9 @@ const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()
 const questAdb = useQuestAdb()
 
-onMounted(() => {
+onMounted(async () => {
   questAdb.setupUsbEventListeners()
-  questAdb.tryAutoConnect()
+  await questAdb.tryAutoConnect()
+  questAdb.applyConnectPreview()
 })
 </script>

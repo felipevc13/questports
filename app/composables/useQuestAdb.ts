@@ -1,4 +1,10 @@
 import { ref, computed } from 'vue'
+import {
+  QUEST_NO_DEVICE_HINT,
+  connectPreviewState,
+  isUsbChooserDismissed,
+  parseConnectPreview
+} from '~/lib/questConnectUx'
 
 export interface InstallProgress {
   title: string
@@ -22,6 +28,7 @@ const isConnected = ref(false)
 const isConnecting = ref(false)
 const connectionPhase = ref<AdbConnectionPhase>('idle')
 const connectionError = ref<string | null>(null)
+const connectNotice = ref<string | null>(null)
 
 const deviceModel = ref<string>('')
 const deviceSerial = ref<string>('')
@@ -249,6 +256,7 @@ export const useQuestAdb = () => {
     isConnecting.value = true
     connectionPhase.value = targetDevice ? 'authorizing' : 'picker'
     connectionError.value = null
+    connectNotice.value = null
 
     try {
       const { AdbDaemonWebUsbDeviceManager } = await import('@yume-chan/adb-daemon-webusb')
@@ -267,8 +275,7 @@ export const useQuestAdb = () => {
       }
 
       if (!device) {
-        isConnecting.value = false
-        connectionPhase.value = 'idle'
+        markChooserDismissed()
         return false
       }
 
@@ -320,6 +327,7 @@ export const useQuestAdb = () => {
       isConnected.value = true
       isConnecting.value = false
       connectionPhase.value = 'connected'
+      connectNotice.value = null
 
       // Fetch initial diagnostics
       await refreshStats()
@@ -334,8 +342,21 @@ export const useQuestAdb = () => {
 
       return true
     } catch (err: any) {
+      if (currentDevice?.raw?.opened) {
+        try {
+          await currentDevice.raw.close()
+        } catch {}
+        currentDevice = null
+      }
+
+      if (isUsbChooserDismissed(err)) {
+        markChooserDismissed()
+        return false
+      }
+
       console.error('Failed to connect to Quest via WebUSB:', err)
       connectionPhase.value = 'error'
+      connectNotice.value = null
       
       const msg = err?.message || ''
       if (msg.toLowerCase().includes('already in use') || msg.toLowerCase().includes('already in used') || msg.toLowerCase().includes('claim') || msg.toLowerCase().includes('busy')) {
@@ -346,17 +367,34 @@ export const useQuestAdb = () => {
         connectionError.value = msg || 'Connection failed. Ensure headset is unlocked with Developer Mode enabled.'
       }
 
-      if (currentDevice?.raw?.opened) {
-        try {
-          await currentDevice.raw.close()
-        } catch {}
-        currentDevice = null
-      }
-
       isConnecting.value = false
       isConnected.value = false
       return false
     }
+  }
+
+  const dismissConnectNotice = () => {
+    connectNotice.value = null
+  }
+
+  const markChooserDismissed = () => {
+    isConnecting.value = false
+    isConnected.value = false
+    connectionPhase.value = 'idle'
+    connectionError.value = null
+    connectNotice.value = QUEST_NO_DEVICE_HINT
+  }
+
+  const applyConnectPreview = () => {
+    if (!import.meta.client) return
+    const mode = parseConnectPreview(window.location.search)
+    if (!mode) return
+    const next = connectPreviewState(mode)
+    isConnected.value = false
+    isConnecting.value = next.isConnecting
+    connectionPhase.value = next.phase
+    connectionError.value = null
+    connectNotice.value = next.notice
   }
 
   const disconnect = async (manual = false) => {
@@ -382,6 +420,7 @@ export const useQuestAdb = () => {
     isConnected.value = false
     isConnecting.value = false
     connectionPhase.value = 'idle'
+    connectNotice.value = null
     deviceModel.value = ''
     deviceSerial.value = ''
     batteryLevel.value = null
@@ -929,6 +968,9 @@ export const useQuestAdb = () => {
     isConnecting,
     connectionPhase,
     connectionError,
+    connectNotice,
+    dismissConnectNotice,
+    applyConnectPreview,
     deviceModel,
     deviceSerial,
     androidVersion,
