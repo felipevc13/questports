@@ -1097,6 +1097,13 @@
             <span class="text-muted-foreground">↗</span>
           </a>
         </div>
+
+        <VerificationPanel
+          :records="verificationRecords"
+          :slug="port.slug"
+          :latest-version="port.latest_version"
+          :connected-headset="connectedVerificationHeadset"
+        />
       </div>
     </div>
 
@@ -1300,6 +1307,9 @@ import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
+import { isMockQuestEnabled } from '~/lib/mockQuest'
+import { buildInstallVerificationBody } from '~/lib/installVerification'
+import { canonicalHeadset } from '~/lib/verification'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import TransferProgress from '~/components/TransferProgress.vue'
 
@@ -1310,6 +1320,11 @@ const questAdb = useQuestAdb()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
+const { data: verificationData, refresh: refreshVerifications } = await useAsyncData(
+  'port-verifications',
+  () => fetchVerificationRecords()
+)
+const verificationRecords = computed(() => verificationData.value || [])
 
 useSeoMeta({
   title: () => port.value ? `${port.value.title} — QuestPorts` : 'QuestPorts',
@@ -1351,6 +1366,10 @@ const comfortBadgeClass = computed(() => {
 // Quest connection state (tied to global questAdb singleton so Navbar & Card are 100% in sync)
 const isQuestConnected = computed(() => questAdb.isConnected.value)
 const questDeviceModel = computed(() => questAdb.deviceModel.value || 'Meta Quest Connected')
+const connectedVerificationHeadset = computed(() => {
+  if (!questAdb.isConnected.value) return null
+  return canonicalHeadset(questAdb.deviceModel.value)
+})
 const questDeviceInfoText = computed(() => {
   const parts: string[] = []
   if (questAdb.batteryLevel.value !== null) {
@@ -1767,6 +1786,38 @@ const executeUninstallApp = async () => {
   }
 }
 
+const recordInstallVerification = async () => {
+  if (!port.value) return
+  const selfContained = isDirectApkOnly.value
+  const campaigns = campaignList.value
+  const gameFilesDetected = selfContained
+    ? null
+    : campaigns.length > 0 && campaigns.every(campaign => detectedCampaigns.value[campaign.id]?.exists)
+  const storagePathConfirmed = selfContained
+    ? null
+    : Boolean(gameFilesDetected) && campaigns.every(campaign => {
+      const detected = detectedCampaigns.value[campaign.id]
+      return Boolean(detected?.exists && detected.matchedPath)
+    })
+  const body = buildInstallVerificationBody({
+    mockEnabled: isMockQuestEnabled(),
+    deviceSerial: questAdb.deviceSerial.value,
+    deviceModel: questAdb.deviceModel.value,
+    slug: port.value.slug,
+    testedVersion: headsetApkVersion.value || port.value.latest_version || '',
+    apkInstalled: true,
+    gameFilesDetected,
+    storagePathConfirmed
+  })
+  if (!body) return
+  try {
+    await $fetch('/api/verifications', { method: 'POST', body })
+    await refreshVerifications()
+  } catch (err) {
+    console.warn('[QuestPorts] Install verification was not recorded:', err)
+  }
+}
+
 // 1-Click APK Install Handler
 const noteInstallFailure = (err: any) => {
   if (isUserCancel(err)) {
@@ -1863,6 +1914,7 @@ const handleApkInstall = async () => {
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
       await scanCampaignFiles()
+      await recordInstallVerification()
     }
   } catch (err: any) {
     noteInstallFailure(err)

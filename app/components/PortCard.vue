@@ -94,7 +94,7 @@
             {{ port.title }}
           </h3>
 
-          <div class="flex items-center justify-between text-xs text-muted-foreground mt-0.5">
+          <div class="flex items-center justify-between gap-2 text-xs text-muted-foreground mt-0.5">
             <div class="flex items-center gap-1 min-w-0">
               <span class="text-muted-foreground/70">by</span>
               <span
@@ -106,7 +106,6 @@
               </span>
             </div>
 
-            <!-- Version / Update Tag -->
             <span v-if="port.latest_version" class="text-[10px] font-mono text-muted-foreground shrink-0">
               v{{ formatVersion(port.latest_version) }}
             </span>
@@ -114,6 +113,11 @@
               {{ formatRelativeTime(port.last_github_update) }}
             </span>
           </div>
+          <VerificationBadge
+            :records="verifications"
+            :slug="port.slug"
+            :latest-version="port.latest_version"
+          />
         </div>
 
         <!-- Description (compact 2-line preview) -->
@@ -163,6 +167,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
+import type { PortVerification } from '~/lib/verification'
 import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
@@ -170,7 +175,10 @@ import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 const props = withDefaults(defineProps<{
   port: Port
   toPrefix?: string
-}>(), {})
+  verifications?: PortVerification[] | null
+}>(), {
+  verifications: () => []
+})
 
 const questAdb = useQuestAdb()
 

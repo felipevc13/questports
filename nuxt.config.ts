@@ -6,6 +6,8 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss'
   ],
   runtimeConfig: {
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    verificationAdminSecret: process.env.VERIFICATION_ADMIN_SECRET || '',
     public: {
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseKey: process.env.SUPABASE_KEY || ''
