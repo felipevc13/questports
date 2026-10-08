@@ -347,15 +347,54 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       expect(root.matchedPath).toBe('/sdcard/RazeXR/')
     })
 
-    it('leaves CitraVR, PPSSPP VR, and PrimedGun on the loose any-file check', () => {
-      expect(campaignPresenceIsAnyFile('citravr')).toBe(true)
-      expect(campaignPresenceIsAnyFile('ppsspp-vr')).toBe(true)
-      expect(campaignPresenceIsAnyFile('primedgun')).toBe(true)
-      expect(campaignPresenceIsAnyFile('perfect-dark-vr')).toBe(false)
-      expect(campaignPresenceIsAnyFile('halocequest')).toBe(false)
-      expect(PORT_PACKAGE_CONFIGS.citravr.folders?.[0].required).toBe(false)
-      expect(PORT_PACKAGE_CONFIGS['ppsspp-vr'].folders?.[0].required).toBe(false)
-      expect(PORT_PACKAGE_CONFIGS.primedgun.folders?.[0].required).toBe(false)
+    it('requires a real ROM for CitraVR, PPSSPP VR, and PrimedGun', async () => {
+      expect(campaignPresenceIsAnyFile('citravr')).toBe(false)
+      expect(campaignPresenceIsAnyFile('ppsspp-vr')).toBe(false)
+      expect(campaignPresenceIsAnyFile('primedgun')).toBe(false)
+      expect(PORT_PACKAGE_CONFIGS.citravr.folders?.[0].required).toBe(true)
+      expect(PORT_PACKAGE_CONFIGS['ppsspp-vr'].folders?.[0].required).toBe(true)
+      expect(PORT_PACKAGE_CONFIGS.primedgun.folders?.[0].required).toBe(true)
+
+      const prime = { id: 'base', fullPath: '/sdcard/PrimedGun/', folder: 'PrimedGun' }
+      const strayPrime = await assessCampaignOnQuest('primedgun', prime, async () => ['unrelated-note.txt'])
+      expect(strayPrime.exists).toBe(false)
+      const iso = await assessCampaignOnQuest('primedgun', prime, async () => ['Metroid Prime (USA) (Rev 0).iso'])
+      expect(iso.exists).toBe(true)
+      const nkit = await assessCampaignOnQuest('primedgun', prime, async () => ['Metroid Prime (USA).nkit.iso'])
+      expect(nkit.exists).toBe(true)
+      const ciso = await assessCampaignOnQuest('primedgun', prime, async () => ['prime.ciso'])
+      expect(ciso.exists).toBe(true)
+      const gcz = await assessCampaignOnQuest('primedgun', prime, async () => ['prime.gcz'])
+      expect(gcz.exists).toBe(true)
+      const homebrew = await assessCampaignOnQuest('primedgun', prime, async () => ['boot.dol', 'notes.json'])
+      expect(homebrew.exists).toBe(false)
+
+      const citra = { id: 'base', fullPath: '/sdcard/CitraVR/roms/', folder: 'roms' }
+      const strayCitra = await assessCampaignOnQuest('citravr', citra, async () => ['unrelated-note.txt'])
+      expect(strayCitra.exists).toBe(false)
+      const rom = await assessCampaignOnQuest('citravr', citra, async () => ['game.3ds'])
+      expect(rom.exists).toBe(true)
+      const homebrew3ds = await assessCampaignOnQuest('citravr', citra, async () => ['homebrew.3dsx'])
+      expect(homebrew3ds.exists).toBe(true)
+      const cia = await assessCampaignOnQuest('citravr', citra, async () => ['game.cia'])
+      expect(cia.exists).toBe(true)
+      const wikiFolder = await assessCampaignOnQuest('citravr', citra, async (path) => {
+        if (path === '/sdcard/3DS Games/') return ['game.cci']
+        return []
+      })
+      expect(wikiFolder.exists).toBe(true)
+      expect(wikiFolder.matchedPath).toBe('/sdcard/3DS Games/')
+
+      const psp = { id: 'base', fullPath: '/sdcard/PSP/GAME/', folder: 'GAME' }
+      const strayPsp = await assessCampaignOnQuest('ppsspp-vr', psp, async () => ['unrelated-note.txt', 'homebrew.elf'])
+      expect(strayPsp.exists).toBe(false)
+      const chd = await assessCampaignOnQuest('ppsspp-vr', psp, async () => ['game.chd'])
+      expect(chd.exists).toBe(true)
+      const alias = await assessCampaignOnQuest('ppsspp-vr', psp, async (path) => {
+        if (path === '/storage/emulated/0/PSP/GAME/') return ['game.pbp']
+        return []
+      })
+      expect(alias.exists).toBe(true)
     })
   })
 })

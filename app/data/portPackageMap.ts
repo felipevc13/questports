@@ -456,20 +456,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'direct_apk',
     workflowType: 'emulator_roms',
     criticalFiles: [],
-    fileGuidance: 'Self-contained Nintendo 3DS emulator. Place decrypted 3DS ROMs (.3ds, .cia, .cxi) in your CitraVR/roms directory.',
+    fileGuidance: 'CitraVR needs a 3DS game. It lists .3ds, .cci, .cxi, .app, .3dsx, and the compressed .zcci/.zcxi/.z3dsx forms, plus homebrew .elf/.axf. The loader also accepts .cia/.zcia (those are installed, not shown as loose ROMs). Put them in /sdcard/CitraVR/roms/ and choose that folder in Select Game Directory. The backup wiki’s example folder /sdcard/3DS Games is detected too. A text file does not count.',
     sourceStoreName: 'Other',
     targetPath: '/sdcard/CitraVR/',
-    romExtensions: ['.3ds', '.cia', '.cxi', '.app'],
-    romDirectories: ['/sdcard/CitraVR/', '/sdcard/citra-emu/roms/', '/sdcard/Roms/3DS/'],
+    romExtensions: ['.3ds', '.3dsx', '.cci', '.cxi', '.cia', '.app', '.axf', '.elf', '.z3dsx', '.zcci', '.zcxi', '.zcia'],
+    romDirectories: ['/sdcard/CitraVR/roms/', '/sdcard/3DS Games/'],
     folders: [
       {
         id: 'citra_roms',
         name: 'Nintendo 3DS ROMs',
         folderName: 'roms',
         targetPath: '/sdcard/CitraVR/roms/',
-        required: false,
-        fileExtensionPattern: '\.(3ds|cia|cxi|app)$',
-        description: 'Decrypted Nintendo 3DS game files'
+        altPaths: ['/sdcard/3DS Games/'],
+        required: true,
+        fileExtensionPattern: '\\.(3ds|3dsx|cci|cxi|cia|app|axf|elf|z3dsx|zcci|zcxi|zcia)$',
+        description: '3DS ROM CitraVR can open (.3ds, .cci, .cxi, .cia, .app, .3dsx, and compressed variants)'
       }
     ]
   },
@@ -480,20 +481,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'direct_apk',
     workflowType: 'emulator_roms',
     criticalFiles: [],
-    fileGuidance: 'Self-contained Sony PSP emulator. Place your PSP ISO or CSO games in PSP/GAME.',
+    fileGuidance: 'PPSSPP VR needs a PSP game. The game browser accepts .iso, .cso, .pbp, and .chd in the memstick PSP/GAME folder, which is /sdcard/PSP/GAME/ when the memory stick is internal storage. A text file does not count. Homebrew .elf/.prx and .ppdmp dumps are ignored here.',
     sourceStoreName: 'Other',
     targetPath: '/sdcard/PSP/',
-    romExtensions: ['.iso', '.cso', '.pbp'],
+    romExtensions: ['.iso', '.cso', '.pbp', '.chd'],
     romDirectories: ['/sdcard/PSP/GAME/'],
     folders: [
       {
         id: 'psp_games',
-        name: 'PSP Game ISOs & CSOs',
+        name: 'PSP Games',
         folderName: 'GAME',
         targetPath: '/sdcard/PSP/GAME/',
-        required: false,
-        fileExtensionPattern: '\.(iso|cso|pbp)$',
-        description: 'Sony PlayStation Portable game dumps'
+        required: true,
+        fileExtensionPattern: '\\.(iso|cso|pbp|chd)$',
+        description: 'PSP game in /sdcard/PSP/GAME (.iso, .cso, .pbp, or .chd)'
       }
     ]
   },
@@ -683,19 +684,19 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'direct_apk',
     workflowType: 'emulator_roms',
     criticalFiles: [],
-    fileGuidance: 'Drop your legal Metroid Prime (GameCube ISO/GCM v1.0) into the PrimedGun directory.',
+    fileGuidance: 'PrimedGun needs a Metroid Prime (USA) GameCube disc image. The Quest file list accepts .iso (including .nkit.iso), .gcm, .ciso, .gcz, .rvz, .wia, .wbfs, .tgc, and .nfs. Put the disc in /sdcard/PrimedGun/ and pick it in the launcher. Homebrew .dol/.elf, .wad, .json, and a stray text file do not count.',
     sourceStoreName: 'Other',
-    romExtensions: ['.iso', '.gcm', '.rvz'],
-    romDirectories: ['/sdcard/PrimedGun/', '/sdcard/DolphinVR/GC/'],
+    romExtensions: ['.iso', '.gcm', '.ciso', '.gcz', '.rvz', '.wia', '.wbfs', '.tgc', '.nfs'],
+    romDirectories: ['/sdcard/PrimedGun/'],
     folders: [
       {
         id: 'prime_roms',
-        name: 'Metroid Prime GameCube ISO',
+        name: 'Metroid Prime GameCube disc',
         folderName: 'PrimedGun',
         targetPath: '/sdcard/PrimedGun/',
-        required: false,
-        fileExtensionPattern: '\.(iso|gcm|rvz)$',
-        description: 'GameCube disc image (.iso, .gcm, .rvz)'
+        required: true,
+        fileExtensionPattern: '\\.(iso|gcm|ciso|gcz|rvz|wia|wbfs|tgc|nfs)$',
+        description: 'GameCube disc image (.iso, .nkit.iso, .gcm, .ciso, .gcz, .rvz, .wia, .wbfs, .tgc, .nfs)'
       }
     ]
   },
@@ -1130,8 +1131,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   }
 }
 
-/** CitraVR, PPSSPP VR, and PrimedGun stay on the loose "any file in the ROM folder" check. */
-export const LOOSE_FILE_CHECK_SLUGS = new Set(['citravr', 'ppsspp-vr', 'primedgun'])
+/** No catalog game uses the loose "any file in the folder" scan. Emulator ROMs use extension checks. */
+export const LOOSE_FILE_CHECK_SLUGS = new Set<string>()
 
 export function campaignPresenceIsAnyFile(slug: string): boolean {
   return LOOSE_FILE_CHECK_SLUGS.has(slug)

@@ -20,7 +20,7 @@ A **Simulated Quest** panel sits at the bottom-left while the flag is on. It is 
 | `mockNext` | `ok` (default), `picker-cancel`, `unauthorized`, `usb-locked`, `cancelled`, `timeout`, `generic` | What the next **Connect** click does after the simulated USB prompt |
 | `mockInstall` | `ok` (default), `hold-downloading`, `hold-pushing`, `hold-installing`, `hold-success`, `download-failed`, `storage`, `disconnect`, `unauthorized`, `pm-failed` | What the next **Install APK** click does |
 | `mockGame` | `absent` (default), `installed`, `outdated` | Whether every catalog package is on the headset, and whether `versionName` is older than the catalog |
-| `mockFiles` | `missing` (default), `stray`, `primary`, `alternate`, `present` | `missing` leaves storage empty. `stray` puts only `unrelated-note.txt` in each scanned folder (the send-files box stays up, except CitraVR / PPSSPP VR / PrimedGun, which still treat any file as present). `primary` and `present` place each game's required filenames in its main folder. `alternate` places them in the first real alternate folder, or the `/storage/emulated/0` alias when the game has no second folder. |
+| `mockFiles` | `missing` (default), `stray`, `primary`, `alternate`, `present` | `missing` leaves storage empty. `stray` puts only `unrelated-note.txt` in each scanned folder, so the send-files box stays up. `primary` and `present` place each game's required filenames in its main folder. `alternate` places them in the first real alternate folder, or the `/storage/emulated/0` alias when the game has no second folder. |
 | `mockUninstall` | `ok` (default), `fail` | `pm uninstall` result |
 | `mockTransfer` | `ok` (default), `hold` | Pause a drag-and-drop file copy mid-transfer |
 | `mockLaunch` | `ok` (default), `slow` | Keep **Launching...** on screen long enough to see it |
@@ -78,6 +78,11 @@ Click **Connect Meta Quest via USB** with `mockNext=ok` to walk the happy path y
 
 ## Game files
 
-`mockGame=installed` puts every catalog package on the fake headset. `mockFiles=primary` (and `present`) writes the required filenames into each port's main folder. `mockFiles=alternate` writes those filenames into the alternate folder instead. `mockFiles=stray` writes only an unrelated text file, which does not count as ready. `mockFiles=missing` leaves storage empty, so the send-files box stays up. CitraVR, PPSSPP VR, and PrimedGun still become ready when their ROM folder is non-empty, including a stray file.
+`mockGame=installed` puts every catalog package on the fake headset. `mockFiles=primary` (and `present`) writes the required filenames into each port's main folder. `mockFiles=alternate` writes those filenames into the alternate folder instead. `mockFiles=stray` writes only an unrelated text file, which does not count as ready. `mockFiles=missing` leaves storage empty, so the send-files box stays up.
 
-That is the same check the page uses after a real `ls` over ADB. It does not require the critical filenames from `portPackageMap` to be present; any file in the scanned folder counts.
+That is the same check the page uses after a real `ls` over ADB. A folder counts as ready only when its required filenames or accepted ROM extensions are present. CitraVR, PPSSPP VR, and PrimedGun follow that rule: a stray text file stays on the send-files box, and a real ROM shows Ready and Launch.
+
+| What you want to see | Open |
+| --- | --- |
+| PrimedGun stray file, send-files stays up | `/ports/primedgun?mockQuest=1&mockPhase=connected&mockGame=installed&mockFiles=stray&mockSpeed=instant&mockChrome=0` |
+| PrimedGun disc image, Ready and Launch | `/ports/primedgun?mockQuest=1&mockPhase=connected&mockGame=installed&mockFiles=primary&mockSpeed=instant&mockChrome=0` |

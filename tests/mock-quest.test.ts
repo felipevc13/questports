@@ -101,12 +101,16 @@ describe('mock Quest device', () => {
     expect(stray.fs.list('/sdcard/Documents/HaloCE/maps')).toEqual(['unrelated-note.txt'])
     expect(stray.fs.list('/sdcard/Android/data/com.perfectdark.port/files/data')).toEqual(['unrelated-note.txt'])
     expect(stray.fs.list('/sdcard/Android/data/com.github.maranone.questsam/files')).toEqual(['unrelated-note.txt'])
+    expect(stray.fs.list('/sdcard/PrimedGun')).toEqual(['unrelated-note.txt'])
 
     const primary = createMockQuestDevice({ ...base, files: 'primary' })
     expect(primary.fs.list('/sdcard/Documents/HaloCE/maps')).toEqual(expect.arrayContaining(['ui.map', 'bloodgulch.map']))
     expect(primary.fs.list('/sdcard/Android/data/com.perfectdark.port/files/data')).toContain('pd.ntsc-final.z64')
     expect(primary.fs.list('/sdcard/Android/data/com.github.maranone.questsam/files')).toContain('SE1_00.gro')
     expect(primary.fs.list('/sdcard/questsam')).toBeNull()
+    expect(primary.fs.list('/sdcard/PrimedGun')).toEqual(['primedgun.iso'])
+    expect(primary.fs.list('/sdcard/CitraVR/roms')).toEqual(['roms.3ds'])
+    expect(primary.fs.list('/sdcard/PSP/GAME')).toEqual(['game.iso'])
 
     const alternate = createMockQuestDevice({ ...base, files: 'alternate' })
     expect(alternate.fs.list('/sdcard/Documents/HaloCE/maps')).toBeNull()
