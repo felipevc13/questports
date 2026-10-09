@@ -654,6 +654,9 @@ watch(searchQuery, (value) => {
   if (!query) return
   searchTrackTimer = setTimeout(() => {
     track('search', { path: route.path, props: { q: query, length: query.length } })
+    if (filteredPorts.value.length === 0) {
+      track('search_no_results', { path: route.path, props: { q: query } })
+    }
   }, 600)
 })
 

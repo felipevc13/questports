@@ -4,17 +4,31 @@ import { describe, expect, it } from 'vitest'
 import {
   ANALYTICS_EVENTS,
   ANALYTICS_HOURLY_LIMIT,
+  CAMPAIGN_REF_STORAGE_KEY,
   FILTER_NAMES,
   INSTALL_ERROR_REASONS,
+  INSTALL_STEPS,
+  PREVIEW_PLAY_STORAGE_KEY,
   browserFamilyFromUserAgent,
+  campaignRefFromSearch,
+  claimVideoPreviewPlay,
+  cleanCampaignRef,
   clientAnalyticsPayload,
   connectFailureReason,
+  createInstallStepLedger,
   deviceFromUserAgent,
   hasMockQuestFlag,
   installErrorReason,
+  installStepEventsForConnectPhase,
+  installStepEventsForConnectResult,
+  installStepEventsForProgress,
   isAnalyticsEnabled,
   isBotUserAgent,
-  searchProps
+  rememberCampaignRef,
+  searchNoResultsQuery,
+  searchProps,
+  withSessionCampaignRef,
+  type AnalyticsSessionStore
 } from '../app/lib/analytics'
 import { parseMockScenario } from '../app/lib/mockQuest'
 import {
@@ -33,6 +47,21 @@ const IPAD_UA =
 
 function sha(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function memoryStore(initial: Record<string, string> = {}): AnalyticsSessionStore & { dump(): Record<string, string> } {
+  const data = { ...initial }
+  return {
+    getItem(key: string) {
+      return Object.prototype.hasOwnProperty.call(data, key) ? data[key]! : null
+    },
+    setItem(key: string, value: string) {
+      data[key] = value
+    },
+    dump() {
+      return { ...data }
+    }
+  }
 }
 
 function decide(overrides: Partial<AnalyticsRequestInput> = {}) {
@@ -59,21 +88,29 @@ describe('analytics allowlist', () => {
       'install_click',
       'install_success',
       'install_error',
+      'install_step',
       'manual_download_click',
       'github_click',
       'suggest_submit',
       'feedback_submit',
       'filter_used',
       'search',
-      'unsupported_browser_view'
+      'search_no_results',
+      'unsupported_browser_view',
+      'video_preview_play'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
       const body: Record<string, unknown> = { event, path: '/' }
-      if (event === 'port_view' || event.startsWith('install_')) body.portSlug = 'rtcwquest'
+      if (event === 'port_view' || event.startsWith('install_') || event === 'video_preview_play') {
+        body.portSlug = 'rtcwquest'
+      }
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
+      if (event === 'install_step') body.props = { step: 'connect', status: 'start' }
       if (event === 'search') body.props = { q: 'doom', length: 4 }
+      if (event === 'search_no_results') body.props = { q: 'no such game' }
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
+      if (event === 'video_preview_play') body.props = { surface: 'card' }
       const decision = decide({ body })
       expect(decision.record, event).toBe(true)
       expect(decision.row?.event).toBe(event)
@@ -89,7 +126,22 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261009200000_analytics_events.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(sql).toContain(`'${event}'`)
+    const funnel = readFileSync(
+      new URL('../supabase/migrations/20261009230000_analytics_funnel_events.sql', import.meta.url),
+      'utf8'
+    )
+    const originalEvents = ANALYTICS_EVENTS.filter(event =>
+      !['install_step', 'search_no_results', 'video_preview_play'].includes(event)
+    )
+    for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) expect(funnel).toContain(`'${event}'`)
+    for (const step of INSTALL_STEPS) expect(funnel).toContain(`'${step}'`)
+    expect(funnel).toContain('drop constraint if exists analytics_events_event_check')
+    expect(funnel).toContain('analytics_events_install_step_check')
+    expect(funnel).toContain('analytics_events_search_no_results_check')
+    expect(funnel).toContain('analytics_events_video_preview_play_check')
+    expect(funnel).toContain('analytics_events_campaign_ref_check')
+    expect(funnel).not.toMatch(/create or replace view/i)
     for (const reason of INSTALL_ERROR_REASONS) expect(sql).toContain(`'${reason}'`)
     for (const filter of FILTER_NAMES) expect(sql).toContain(`'${filter}'`)
     expect(sql).toContain('enable row level security')
@@ -346,8 +398,143 @@ describe('analytics validation', () => {
     expect(successAt).toBeGreaterThan(0)
     expect(postAt).toBeGreaterThan(successAt)
     expect(source).toContain("trackInstall('install_click')")
+    expect(source).toContain("track('install_step'")
+    expect(source).toContain("surface: 'detail'")
+    expect(source).toContain('copy_game_files')
+    const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
+    expect(index).toContain("track('search_no_results'")
+    const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
+    expect(card).toContain("surface: 'card'")
+    expect(card).toContain('claimVideoPreviewPlay')
+    expect(readFileSync(new URL('../app/composables/useTrack.ts', import.meta.url), 'utf8'))
+      .toContain('sessionStorage')
     expect(readFileSync(new URL('../app/components/Footer.vue', import.meta.url), 'utf8'))
       .toContain('Anonymous usage stats, no cookies.')
+  })
+
+  it('records install success with port, headset, and session ref', () => {
+    const store = memoryStore()
+    rememberCampaignRef(store, '?ref=Reddit')
+    const input = withSessionCampaignRef('install_success', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      headset: 'Quest 3'
+    }, store, '')
+    const payload = clientAnalyticsPayload('install_success', input)
+    expect(payload?.portSlug).toBe('rtcwquest')
+    expect(payload?.headset).toBe('Quest 3')
+    expect(payload?.props).toEqual({ ref: 'reddit' })
+    expect(payload).not.toHaveProperty('browser')
+
+    const decision = decide({ body: payload, userAgent: CHROME_UA })
+    expect(decision.record).toBe(true)
+    expect(decision.row?.browser).toBe('Chrome')
+    expect(decision.row?.headset).toBe('Quest 3')
+    expect(decision.row?.port_slug).toBe('rtcwquest')
+    expect(decision.row?.props).toEqual({ ref: 'reddit' })
+  })
+
+  it('keeps one install step outcome and a normalized empty-search query', () => {
+    const ledger = createInstallStepLedger()
+    const seen: string[] = []
+    const apply = (events: Array<{ step: string; status: string }>) => {
+      for (const event of events) {
+        const accepted = event.status === 'start'
+          ? ledger.start(event.step)
+          : ledger.finish(event.step, event.status)
+        if (accepted) seen.push(`${event.step}:${event.status}`)
+      }
+    }
+    apply([{ step: 'connect', status: 'start' }])
+    apply(installStepEventsForConnectPhase('picker'))
+    apply(installStepEventsForConnectPhase('authorizing'))
+    apply(installStepEventsForConnectPhase('authorizing'))
+    apply(installStepEventsForConnectResult({ connected: true, sawAuthorize: true }))
+    apply(installStepEventsForProgress('idle', 'downloading'))
+    apply(installStepEventsForProgress('downloading', 'pushing'))
+    apply(installStepEventsForProgress('pushing', 'downloading'))
+    apply(installStepEventsForProgress('downloading', 'installing'))
+    apply(installStepEventsForProgress('installing', 'completed'))
+    expect(seen).toEqual([
+      'connect:start',
+      'connect:ok',
+      'authorize:start',
+      'authorize:ok',
+      'download_apk:start',
+      'download_apk:ok',
+      'install_apk:start',
+      'install_apk:ok'
+    ])
+
+    const failed = createInstallStepLedger()
+    expect(failed.start('download_apk')).toBe(true)
+    expect(failed.finish('install_apk', 'fail')).toBe(false)
+    expect(failed.finish('download_apk', 'fail')).toBe(true)
+    expect(failed.finish('download_apk', 'ok')).toBe(false)
+    expect(installStepEventsForConnectResult({ connected: false, sawAuthorize: false }))
+      .toEqual([{ step: 'connect', status: 'fail' }])
+    expect(installStepEventsForProgress('downloading', 'idle')).toEqual([
+      { step: 'install_apk', status: 'fail' },
+      { step: 'download_apk', status: 'fail' }
+    ])
+
+    expect(searchNoResultsQuery('  No Such GAME  ')).toBe('no such game')
+    expect(searchNoResultsQuery(` ${'A'.repeat(90)} `)).toHaveLength(80)
+    expect(searchNoResultsQuery('   ')).toBeNull()
+    expect(clientAnalyticsPayload('search_no_results', {
+      path: '/',
+      props: { q: '  Missing Port  ', ref: 'leak' }
+    })?.props).toEqual({ q: 'missing port' })
+    expect(clientAnalyticsPayload('search_no_results', { path: '/', props: { q: '   ' } })).toBeNull()
+    expect(clientAnalyticsPayload('install_step', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      props: { step: 'copy_game_files', status: 'ok', ref: 'hn' }
+    })?.props).toEqual({ step: 'copy_game_files', status: 'ok', ref: 'hn' })
+    expect(clientAnalyticsPayload('install_step', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      props: { step: 'reboot', status: 'start' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('video_preview_play', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      props: { surface: 'detail' }
+    })?.props).toEqual({ surface: 'detail' })
+    expect(clientAnalyticsPayload('video_preview_play', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      props: { surface: 'modal' }
+    })).toBeNull()
+  })
+
+  it('stores ref for the session and keeps it off search events', () => {
+    expect(campaignRefFromSearch('?utm_source=Newsletter')).toBe('newsletter')
+    expect(campaignRefFromSearch('?ref=Reddit&utm_source=other')).toBe('reddit')
+    expect(cleanCampaignRef('!!!')).toBeNull()
+    expect(cleanCampaignRef('a'.repeat(80))).toHaveLength(40)
+
+    const store = memoryStore()
+    expect(rememberCampaignRef(store, '?ref=discord')).toBe('discord')
+    expect(store.getItem(CAMPAIGN_REF_STORAGE_KEY)).toBe('discord')
+    expect(rememberCampaignRef(store, '')).toBe('discord')
+    expect(rememberCampaignRef(store, '?utm_source=hn')).toBe('hn')
+
+    const page = withSessionCampaignRef('page_view', { path: '/' }, store, '')
+    expect(clientAnalyticsPayload('page_view', page)?.props).toEqual({ ref: 'hn' })
+    const search = withSessionCampaignRef('search', {
+      path: '/',
+      props: { q: 'doom', length: 4 }
+    }, store, '')
+    expect(clientAnalyticsPayload('search', search)?.props).toEqual({ q: 'doom', length: 4 })
+    expect(decide({ dnt: '1', body: { event: 'install_success', path: '/ports/rtcwquest', portSlug: 'rtcwquest' } }).reason)
+      .toBe('dnt')
+
+    expect(claimVideoPreviewPlay(store, 'RTCWQuest')).toBe(true)
+    expect(claimVideoPreviewPlay(store, 'rtcwquest')).toBe(false)
+    expect(claimVideoPreviewPlay(store, 'doom3quest')).toBe(true)
+    expect(store.getItem(PREVIEW_PLAY_STORAGE_KEY)).toBe('rtcwquest,doom3quest')
+    expect(claimVideoPreviewPlay(null, 'quakequest')).toBe(false)
   })
 
   it('rate limits each visitor hash to 120 events per hour', () => {
