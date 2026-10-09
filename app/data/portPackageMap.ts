@@ -61,20 +61,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.drbeef.rtcwquest',
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['main/pak0.pk3'],
-    fileGuidance: 'Place official Return to Castle Wolfenstein pak files (.pk3) in RTCWQuest/main.',
+    criticalFiles: ['Main/pak0.pk3', 'Main/sp_pak1.pk3', 'Main/sp_pak2.pk3', 'Main/sp_pak3.pk3', 'Main/sp_pak4.pk3'],
+    fileGuidance: 'Copy the full-game pk3 set (pak0.pk3 and sp_pak1.pk3 through sp_pak4.pk3) into /sdcard/RTCWQuest/Main/. The first launch copies a demo pak0.pk3 there, so pak0.pk3 alone is not the full game.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/RTCWQuest/',
     folders: [
       {
         id: 'rtcw_main',
         name: 'RTCW Main Assets',
-        folderName: 'main',
-        targetPath: '/sdcard/RTCWQuest/main/',
+        folderName: 'Main',
+        targetPath: '/sdcard/RTCWQuest/Main/',
+        altPaths: ['/sdcard/RTCWQuest/main/'],
         required: true,
-        expectedFiles: ['pak0.pk3'],
-        fileExtensionPattern: '\.pk3$',
-        description: 'Original Wolfenstein game asset archives'
+        acceptance: 'expected',
+        expectedFiles: ['pak0.pk3', 'sp_pak1.pk3', 'sp_pak2.pk3', 'sp_pak3.pk3', 'sp_pak4.pk3'],
+        description: 'Full-game single-player pk3 set. The demo pak0.pk3 the app copies on first launch is not enough.'
       }
     ]
   },
@@ -84,8 +85,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['mod.drbeef.lambda1vr', 'su.xash.oldroot', 'su.xash.engine'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['valve/halflife.wad', 'valve/pak0.pak'],
-    fileGuidance: 'Copy your Steam Half-Life "valve" directory into xash/valve.',
+    criticalFiles: ['valve/liblist.gam'],
+    fileGuidance: 'Copy the Steam Half-Life valve folder into /sdcard/xash/valve/. A Steam install includes liblist.gam and loose files; it does not include the old WON pak0.pak. The 25th anniversary update may require the steam_legacy branch.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/xash/',
     folders: [
@@ -95,8 +96,9 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'valve',
         targetPath: '/sdcard/xash/valve/',
         required: true,
-        expectedFiles: ['halflife.wad'],
-        description: 'Original Half-Life 1 base assets'
+        acceptance: 'expected',
+        expectedFiles: ['liblist.gam'],
+        description: 'Steam Half-Life valve folder. liblist.gam is the loose game descriptor; pak0.pak is not part of a Steam install.'
       },
       {
         id: 'bshift',
@@ -125,8 +127,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.drbeef.doom3quest',
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['base/pak000.pk4'],
-    fileGuidance: 'Copy pak000-pak008.pk4 from your Steam Doom 3 "base" folder into Doom3Quest/base.',
+    criticalFiles: ['base/game00.pk4', 'base/pak000.pk4', 'base/pak008.pk4'],
+    fileGuidance: 'From the original Doom 3 base folder (Steam install folder "Doom 3", not DOOM 3 BFG Edition), copy game00.pk4–game03.pk4 and pak000.pk4–pak008.pk4 into /sdcard/Doom3Quest/base/. BFG Edition does not work.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/Doom3Quest/',
     folders: [
@@ -136,9 +138,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'base',
         targetPath: '/sdcard/Doom3Quest/base/',
         required: true,
-        expectedFiles: ['pak000.pk4', 'pak001.pk4'],
-        fileExtensionPattern: '\.pk4$',
-        description: 'Original Doom 3 game data pk4 archives'
+        acceptance: 'expected',
+        expectedFiles: [
+          'game00.pk4', 'game01.pk4', 'game02.pk4', 'game03.pk4',
+          'pak000.pk4', 'pak001.pk4', 'pak002.pk4', 'pak003.pk4', 'pak004.pk4',
+          'pak005.pk4', 'pak006.pk4', 'pak007.pk4', 'pak008.pk4'
+        ],
+        description: 'Original Doom 3 base pk4 set. The port pak399.pk4 and BFG Edition files do not count.'
       },
       {
         id: 'd3_d3xp',
@@ -209,20 +215,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.drbeef.quake2quest',
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['baseq2/pak0.pak'],
-    fileGuidance: 'Copy pak0.pak from Quake II "baseq2" into Quake2Quest/baseq2.',
+    criticalFiles: ['pak0.pak', 'pak1.pak', 'pak2.pak'],
+    fileGuidance: 'Copy the original Quake 2 baseq2 pak0.pak, pak1.pak, and pak2.pak into /sdcard/Quake2Quest/ (the folder itself, not a baseq2 subfolder, and not rerelease/). The first launch copies a shareware pak0.pak plus pak6.pak and pak99.pak there, so those files alone are not the full game.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/Quake2Quest/',
     folders: [
       {
         id: 'q2_base',
         name: 'Quake II Base Data',
-        folderName: 'baseq2',
-        targetPath: '/sdcard/Quake2Quest/baseq2/',
+        folderName: 'Quake2Quest',
+        targetPath: '/sdcard/Quake2Quest/',
         required: true,
-        expectedFiles: ['pak0.pak'],
-        fileExtensionPattern: '\.pak$',
-        description: 'Quake II official pak archives'
+        acceptance: 'expected',
+        expectedFiles: ['pak0.pak', 'pak1.pak', 'pak2.pak'],
+        description: 'Original Quake II pak0.pak, pak1.pak, and pak2.pak in the Quake2Quest folder. Shareware pak0.pak is not enough.'
       },
       {
         id: 'q2_xatrix',
@@ -252,8 +258,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     altPackages: ['com.drbeef.preyvr'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['preybase/pak000.pk4', 'base/pak000.pk4'],
-    fileGuidance: 'Copy pak000-pak004.pk4 from Prey (2006) into preyvr/preybase/ or PreyVR/base/.',
+    criticalFiles: ['preybase/pak000.pk4'],
+    fileGuidance: 'Copy all .pk4 files from the original Prey (2006) prey/base folder into /sdcard/preyvr/preybase/.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/preyvr/',
     folders: [
@@ -304,8 +310,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.drbeef.quakequest',
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
-    criticalFiles: ['id1/pak0.pak'],
-    fileGuidance: 'Copy pak0.pak and pak1.pak from Quake "id1" into QuakeQuest/id1.',
+    criticalFiles: ['id1/pak0.pak', 'id1/pak1.pak'],
+    fileGuidance: 'Copy the original Quake id1 pak0.pak and pak1.pak into /sdcard/QuakeQuest/id1/. Do not use rerelease/id1. The first launch copies a shareware pak0.pak, so pak0.pak alone is not the full game.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/QuakeQuest/',
     folders: [
@@ -315,9 +321,9 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         folderName: 'id1',
         targetPath: '/sdcard/QuakeQuest/id1/',
         required: true,
-        expectedFiles: ['pak0.pak'],
-        fileExtensionPattern: '\.pak$',
-        description: 'Original Quake 1 id1 data pak archives'
+        acceptance: 'expected',
+        expectedFiles: ['pak0.pak', 'pak1.pak'],
+        description: 'Original Quake id1 pak0.pak and pak1.pak. Shareware pak0.pak and the rerelease pak are not the full game.'
       }
     ]
   },

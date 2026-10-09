@@ -124,19 +124,20 @@ INSERT INTO public.ports (
 
 ### Step-by-Step Installation
 1. Install the **RTCWQuest** APK using SideQuest or run `adb install rtcwquest.apk`.
-2. Launch RTCWQuest once inside your headset to allow it to initialize folder permissions, then exit.
-3. On your computer, open your base game''s installation directory in Steam:
-   `steamapps/common/Return to Castle Wolfenstein/Main/`
-4. Copy the following `.pk3` game files:
+2. Launch RTCWQuest once inside your headset. The app creates `/sdcard/RTCWQuest/Main/` and, when `pak0.pk3` is missing, copies a demo `pak0.pk3` into it. Exit before you copy the full game.
+3. On your computer, open the full game Main folder. On Steam that is `steamapps/common/Return to Castle Wolfenstein/Main/` (install folder `Return to Castle Wolfenstein`).
+4. Copy the full-game pk3 set:
    * `pak0.pk3`
    * `sp_pak1.pk3`
    * `sp_pak2.pk3`
    * `sp_pak3.pk3`
    * `sp_pak4.pk3`
 5. Connect your Quest to your PC via USB and copy these files into:
-   `/sdcard/RTCWQuest/main/`
-6. Put on your headset and launch RTCWQuest from the "Unknown Sources" library tab.',
-  'If the game crashes on startup, ensure that all .pk3 file extensions are in lowercase on the Quest storage.'
+   `/sdcard/RTCWQuest/Main/`
+6. Put on your headset and launch RTCWQuest from the "Unknown Sources" library tab.
+
+The demo `pak0.pk3`, plus the VR files the app also copies (`z_vr_assets.pk3`, `z_zvr_weapons.pk3`, and `sp_vpak8.pk3`), does not count as the full game. The check counts the game as installed only when `pak0.pk3` and `sp_pak1.pk3` through `sp_pak4.pk3` are all present.',
+  'If the game crashes on startup, ensure that all .pk3 file extensions are in lowercase on the Quest storage. pak0.pk3 alone is the demo the app copies on first launch. The full game also needs sp_pak1.pk3 through sp_pak4.pk3.'
 ),
 (
   'lambda1vr',
@@ -158,17 +159,21 @@ INSERT INTO public.ports (
   'Official Website / SideQuest',
   true,
   '### Prerequisites
-* Original Half-Life 1 on Steam.
+* Original Half-Life on Steam. Half-Life: Source is not compatible.
 * Lambda1VR launcher installed via SideQuest.
 
 ### Step-by-Step Installation
 1. Install **Lambda1VR** through SideQuest.
-2. Launch the app once on the headset so it generates the `/sdcard/xash/` directory structure.
-3. On your PC, navigate to your Steam installation of Half-Life: `Half-Life/valve/`.
-4. Copy the contents of the `valve` folder.
-5. Paste the copied files into `/sdcard/xash/valve/` on your Meta Quest.
-6. Launch Lambda1VR from "Unknown Sources" in your app library.',
-  'For high-resolution textures and enhanced models, download the optional HD Mod Pack from the official Lambda1VR website.'
+2. Launch the app once on the headset so it generates the `/sdcard/xash/` directory structure, then exit.
+3. On your PC, open the Steam Half-Life `valve` folder: `steamapps/common/Half-Life/valve/` (install folder `Half-Life`). The Lambda1VR README example writes this as `steamApps/common/HalfLife/`.
+4. Copy the contents of the `valve` folder. A Steam install is loose files, including `liblist.gam`. It does not include the old WON `pak0.pak`.
+5. Paste the copied files into `/sdcard/xash/valve/` on your Meta Quest. Copying the whole folder takes a long time.
+6. Restart the Quest, then launch Lambda1VR from "Unknown Sources".
+
+Optional HD models are the `valve_hd` folder from the Lambda1VR README. On a Mac that folder can be hidden; follow the README Mac note or the game can crash.
+
+Note: as of 2025-04-04, the hl-paker README says the Half-Life 25th anniversary update broke Lambda1VR and to downgrade. Steam lists a `steam_legacy` beta described as "Pre-25th Anniversary Build" (Properties, Betas). Whether the current public build still fails has not been retested on a headset.',
+  'Restart the Quest after copying files into /sdcard/xash/valve/. If the 25th anniversary update still breaks the port, switch the Steam Half-Life install to the steam_legacy beta and copy that valve folder. Optional HD content is valve_hd; on Mac that folder can be hidden.'
 ),
 (
   'doom3quest',
@@ -190,16 +195,21 @@ INSERT INTO public.ports (
   'Doom3Quest.com',
   true,
   '### Prerequisites
-* **Original 2004 Doom 3** (Note: Doom 3: BFG Edition is **NOT** compatible).
+* **Original 2004 Doom 3**. Doom 3: BFG Edition does **not** work.
 * SideQuest or ADB installed on your computer.
 
 ### Step-by-Step Installation
 1. Install the Doom3Quest APK launcher via SideQuest.
-2. Connect your Quest and open file explorer at `/sdcard/Doom3Quest/base/`.
-3. From your original 2004 Doom 3 install on PC (`DOOM 3/base/`), copy all `.pk4` files (`pak000.pk4` through `pak008.pk4`).
-4. Paste the `.pk4` files into `/sdcard/Doom3Quest/base/`.
-5. Launch Doom3Quest on your headset.',
-  'Do not use files from the BFG Edition or modern remasters. Only the classic 2004 release is supported.'
+2. Launch the app once so it creates the Doom3Quest folders, then exit. Connect your Quest and open `/sdcard/Doom3Quest/base/`.
+3. From the original 2004 Doom 3 `base` folder, copy both sets of pk4 files:
+   * `game00.pk4` through `game03.pk4`
+   * `pak000.pk4` through `pak008.pk4`
+   Steam install folder for the original game is `Doom 3` (`steamapps/common/Doom 3/base/`). The Doom3Quest site example writes this as `steamApps/common/Doom3/`. Do not use the install folder `DOOM 3 BFG Edition`.
+4. Paste those pk4 files into `/sdcard/Doom3Quest/base/`.
+5. Launch Doom3Quest on your headset.
+
+The port copies its own `pak399.pk4` into base. That file does not replace `game00.pk4` through `game03.pk4` or `pak000.pk4` through `pak008.pk4`.',
+  'Doom 3: BFG Edition does not work with this port. The original base folder must include game00.pk4 through game03.pk4 and pak000.pk4 through pak008.pk4.'
 ),
 (
   'citravr',
@@ -304,9 +314,13 @@ INSERT INTO public.ports (
   false,
   '### Step-by-Step Installation
 1. Install Quake II Quest via SideQuest.
-2. Copy the `baseq2` folder from your PC game installation (`pak0.pak` and official mission packs).
-3. Paste into `/sdcard/Quake2Quest/baseq2/` on your Meta Quest.',
-  'Original soundtrack files can be placed in an optional music subfolder in OGG or MP3 format.'
+2. Launch the app once, then exit. The first launch creates `/sdcard/Quake2Quest/` and, when they are missing, copies a shareware `pak0.pak` plus `pak6.pak` and `pak99.pak` into that folder.
+3. On your PC, open the original Quake 2 install. On Steam the folder is `steamapps/common/Quake 2/` (install folder `Quake 2`, not `Quake II`).
+4. From the original `baseq2` folder, copy `pak0.pak`, `pak1.pak`, and `pak2.pak`. Do not copy files from the `rerelease` folder. The Steam default launch executable is `rerelease/quake2ex_steam.exe`; the original game is `quake2.exe`.
+5. Paste those three pak files into `/sdcard/Quake2Quest/` on your Meta Quest (the Quake2Quest folder itself, not a baseq2 subfolder).
+
+The full game is present only when `pak0.pak`, `pak1.pak`, and `pak2.pak` are all in that folder. `pak0.pak`, `pak6.pak`, and `pak99.pak` are files the app can copy; they are not the full game.',
+  'Original soundtrack OGG files go in /sdcard/Quake2Quest/music/. Do not use the rerelease folder. pak0.pak, pak6.pak, and pak99.pak can be copied by the app; the full game also needs pak1.pak and pak2.pak.'
 ),
 (
   'preyvr',
@@ -328,9 +342,10 @@ INSERT INTO public.ports (
   'Team Beef Patreon',
   false,
   '### Installation
-1. Install the beta APK build provided through Team Beef.
-2. Copy the `.pk4` files from your original retail Prey (2006) PC installation into `/sdcard/PreyVR/base/`.
-3. Launch the game from Unknown Sources.',
+1. Install the APK from GitHub or SideQuest.
+2. Open Prey VR once on the headset so the app creates `preyvr/preybase`, then exit.
+3. Copy all `.pk4` files from your original Prey (2006) PC `prey/base` folder into `/sdcard/preyvr/preybase/`.
+4. Launch the game from Unknown Sources.',
   'Requires strong VR motion tolerance due to disorienting wall-walking and inverted gravity physics.'
 )
 ON CONFLICT (slug) DO UPDATE SET

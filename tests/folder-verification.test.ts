@@ -61,7 +61,7 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
   describe('verifyPortFoldersOnQuest simulated filesystem tests', () => {
     it('returns ready when all required files are present (RTCWQuest)', async () => {
       const mockFs: Record<string, string[]> = {
-        '/sdcard/RTCWQuest/main/': ['pak0.pk3', 'autoexec.cfg', 'mp_pak0.pk3']
+        '/sdcard/RTCWQuest/Main/': ['pak0.pk3', 'sp_pak1.pk3', 'sp_pak2.pk3', 'sp_pak3.pk3', 'sp_pak4.pk3', 'autoexec.cfg']
       }
 
       const listRemoteDirFn = async (path: string) => mockFs[path] || []
@@ -75,7 +75,7 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
 
     it('handles uppercase file names on Android filesystem (case insensitivity)', async () => {
       const mockFs: Record<string, string[]> = {
-        '/sdcard/RTCWQuest/main/': ['PAK0.PK3']
+        '/sdcard/RTCWQuest/Main/': ['PAK0.PK3', 'SP_PAK1.PK3', 'SP_PAK2.PK3', 'SP_PAK3.PK3', 'SP_PAK4.PK3']
       }
 
       const listRemoteDirFn = async (path: string) => mockFs[path] || []
@@ -156,9 +156,13 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
     })
 
     it('handles multiple folders where required folder is ready and optional is missing', async () => {
-      // Doom 3: base is required (needs pak000.pk4 & pak001.pk4), d3xp (expansion) is optional
+      const doom3Base = [
+        'game00.pk4', 'game01.pk4', 'game02.pk4', 'game03.pk4',
+        'pak000.pk4', 'pak001.pk4', 'pak002.pk4', 'pak003.pk4', 'pak004.pk4',
+        'pak005.pk4', 'pak006.pk4', 'pak007.pk4', 'pak008.pk4'
+      ]
       const mockFs: Record<string, string[]> = {
-        '/sdcard/Doom3Quest/base/': ['pak000.pk4', 'pak001.pk4']
+        '/sdcard/Doom3Quest/base/': doom3Base
       }
 
       const listRemoteDirFn = async (path: string) => mockFs[path] || []
@@ -216,7 +220,7 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
 
     it('keeps RTCW incomplete when the folder only has a stray pk3', async () => {
       const listRemoteDirFn = async (path: string) => {
-        if (path === '/sdcard/RTCWQuest/main/') return ['readme.txt', 'pak1.pk3']
+        if (path === '/sdcard/RTCWQuest/Main/') return ['readme.txt', 'pak1.pk3']
         return []
       }
       const result = await verifyPortFoldersOnQuest('rtcwquest', listRemoteDirFn)
@@ -395,6 +399,98 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
         return []
       })
       expect(alias.exists).toBe(true)
+    })
+
+    const rtcwFull = ['pak0.pk3', 'sp_pak1.pk3', 'sp_pak2.pk3', 'sp_pak3.pk3', 'sp_pak4.pk3']
+    const doom3Full = [
+      'game00.pk4', 'game01.pk4', 'game02.pk4', 'game03.pk4',
+      'pak000.pk4', 'pak001.pk4', 'pak002.pk4', 'pak003.pk4', 'pak004.pk4',
+      'pak005.pk4', 'pak006.pk4', 'pak007.pk4', 'pak008.pk4'
+    ]
+
+    it('does not treat an RTCW demo pak0 as the full game', async () => {
+      const demo = await verifyPortFoldersOnQuest('rtcwquest', async (path) => {
+        if (path === '/sdcard/RTCWQuest/Main/') return ['pak0.pk3', 'z_vr_assets.pk3', 'z_zvr_weapons.pk3', 'sp_vpak8.pk3']
+        return []
+      })
+      expect(demo.folders[0].status).toBe('incomplete')
+      expect(demo.folders[0].missingExpectedFiles).toContain('sp_pak1.pk3')
+      expect(demo.isOverallReady).toBe(false)
+
+      const legacy = await verifyPortFoldersOnQuest('rtcwquest', async (path) => {
+        if (path === '/sdcard/RTCWQuest/main/') return rtcwFull
+        return []
+      })
+      expect(legacy.isOverallReady).toBe(true)
+      expect(legacy.folders[0].detectedPath).toBe('/sdcard/RTCWQuest/main/')
+    })
+
+    it('requires Quake pak1 and does not accept shareware pak0 alone', async () => {
+      const shareware = await verifyPortFoldersOnQuest('quakequest', async (path) => {
+        if (path === '/sdcard/QuakeQuest/id1/') return ['pak0.pak', 'config.cfg']
+        return []
+      })
+      expect(shareware.isOverallReady).toBe(false)
+      expect(shareware.folders[0].missingExpectedFiles).toContain('pak1.pak')
+
+      const full = await verifyPortFoldersOnQuest('quakequest', async (path) => {
+        if (path === '/sdcard/QuakeQuest/id1/') return ['pak0.pak', 'pak1.pak']
+        return []
+      })
+      expect(full.isOverallReady).toBe(true)
+    })
+
+    it('requires original Quake II paks in the Quake2Quest folder, not a baseq2 subfolder', async () => {
+      const shareware = await verifyPortFoldersOnQuest('quake2quest', async (path) => {
+        if (path === '/sdcard/Quake2Quest/') return ['pak0.pak', 'pak6.pak', 'pak99.pak']
+        return []
+      })
+      expect(shareware.isOverallReady).toBe(false)
+      expect(shareware.folders[0].missingExpectedFiles).toEqual(expect.arrayContaining(['pak1.pak', 'pak2.pak']))
+
+      const nested = await verifyPortFoldersOnQuest('quake2quest', async (path) => {
+        if (path === '/sdcard/Quake2Quest/baseq2/') return ['pak0.pak', 'pak1.pak', 'pak2.pak']
+        return []
+      })
+      expect(nested.isOverallReady).toBe(false)
+
+      const full = await verifyPortFoldersOnQuest('quake2quest', async (path) => {
+        if (path === '/sdcard/Quake2Quest/') return ['pak0.pak', 'pak1.pak', 'pak2.pak']
+        return []
+      })
+      expect(full.isOverallReady).toBe(true)
+      expect(full.folders[0].detectedPath).toBe('/sdcard/Quake2Quest/')
+    })
+
+    it('requires the original Doom 3 game and pak pk4 set, not pak399 alone', async () => {
+      const partial = await verifyPortFoldersOnQuest('doom3quest', async (path) => {
+        if (path === '/sdcard/Doom3Quest/base/') return ['pak000.pk4', 'pak001.pk4']
+        return []
+      })
+      expect(partial.isOverallReady).toBe(false)
+      expect(partial.folders[0].missingExpectedFiles).toContain('game00.pk4')
+
+      const vrPak = await verifyPortFoldersOnQuest('doom3quest', async (path) => {
+        if (path === '/sdcard/Doom3Quest/base/') return ['pak399.pk4']
+        return []
+      })
+      expect(vrPak.isOverallReady).toBe(false)
+    })
+
+    it('accepts a Steam Half-Life valve folder via liblist.gam, not a lone pak0.pak', async () => {
+      expect(PORT_PACKAGE_CONFIGS.lambda1vr.criticalFiles).toEqual(['valve/liblist.gam'])
+      const pak = await verifyPortFoldersOnQuest('lambda1vr', async (path) => {
+        if (path === '/sdcard/xash/valve/') return ['pak0.pak', 'halflife.wad']
+        return []
+      })
+      expect(pak.isOverallReady).toBe(false)
+      expect(pak.folders[0].missingExpectedFiles).toContain('liblist.gam')
+
+      const steam = await verifyPortFoldersOnQuest('lambda1vr', async (path) => {
+        if (path === '/sdcard/xash/valve/') return ['liblist.gam', 'halflife.wad']
+        return []
+      })
+      expect(steam.isOverallReady).toBe(true)
     })
   })
 })

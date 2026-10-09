@@ -25,8 +25,8 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       folder: 'valve',
       fullPath: '/sdcard/xash/valve/',
       steamPath: 'Half-Life/valve/',
-      exampleFiles: 'pak0.pak, valve folder contents',
-      instruction: 'Drop the "valve" folder from Half-Life 1',
+      exampleFiles: 'liblist.gam and the rest of the valve folder',
+      instruction: 'Drop the Steam Half-Life valve folder. A Steam install does not include the old pak0.pak.',
       storeUrl: 'https://store.steampowered.com/app/70/HalfLife/',
       storeName: 'Steam ($9.99)'
     },
@@ -119,9 +119,9 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       isBase: true,
       folder: 'base',
       fullPath: '/sdcard/Doom3Quest/base/',
-      steamPath: 'DOOM 3/base/',
-      exampleFiles: 'pak000.pk4 through pak008.pk4',
-      instruction: 'Drop the "base" folder or .pk4 files',
+      steamPath: 'Doom 3/base/',
+      exampleFiles: 'game00.pk4–game03.pk4 and pak000.pk4–pak008.pk4',
+      instruction: 'Copy game00–game03.pk4 and pak000–pak008.pk4 from the original Doom 3 base folder. BFG Edition does not work.',
       storeUrl: 'https://store.steampowered.com/app/9050/DOOM_3/',
       storeName: 'Steam'
     },
@@ -132,7 +132,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       isBase: false,
       folder: 'd3xp',
       fullPath: '/sdcard/Doom3Quest/d3xp/',
-      steamPath: 'DOOM 3/d3xp/',
+      steamPath: 'Doom 3/d3xp/',
       exampleFiles: 'pak000.pk4 from d3xp folder',
       instruction: 'Drop the "d3xp" folder from Resurrection of Evil',
       storeUrl: 'https://store.steampowered.com/app/9050/DOOM_3/',
@@ -145,11 +145,11 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       name: 'Quake II',
       badge: 'Base Game',
       isBase: true,
-      folder: 'baseq2',
-      fullPath: '/sdcard/Quake2Quest/baseq2/',
-      steamPath: 'Quake II/baseq2/',
-      exampleFiles: 'pak0.pak, baseq2 game data',
-      instruction: 'Drop the "baseq2" folder or pak0.pak',
+      folder: 'Quake2Quest',
+      fullPath: '/sdcard/Quake2Quest/',
+      steamPath: 'Quake 2/baseq2/',
+      exampleFiles: 'original baseq2/pak0.pak, pak1.pak, pak2.pak',
+      instruction: 'Copy original Quake 2 baseq2 pak0.pak, pak1.pak, and pak2.pak into /sdcard/Quake2Quest/. Do not use rerelease/.',
       storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
       storeName: 'Steam'
     },
@@ -160,7 +160,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       isBase: false,
       folder: 'xatrix',
       fullPath: '/sdcard/Quake2Quest/xatrix/',
-      steamPath: 'Quake II/xatrix/',
+      steamPath: 'Quake 2/xatrix/',
       exampleFiles: 'pak0.pak from xatrix folder',
       instruction: 'Drop the "xatrix" folder from Mission Pack 1',
       storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
@@ -173,7 +173,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       isBase: false,
       folder: 'rogue',
       fullPath: '/sdcard/Quake2Quest/rogue/',
-      steamPath: 'Quake II/rogue/',
+      steamPath: 'Quake 2/rogue/',
       exampleFiles: 'pak0.pak from rogue folder',
       instruction: 'Drop the "rogue" folder from Mission Pack 2',
       storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
@@ -284,10 +284,10 @@ export function getDefaultFolderInfo(port: Port): {
   }
   const map: Record<string, { folder: string; fullPath: string; exampleFiles: string; instruction: string }> = {
     rtcwquest: {
-      folder: 'main',
-      fullPath: '/sdcard/RTCWQuest/main/',
-      exampleFiles: 'pak0.pk3, sp_pak1.pk3, sp_pak2.pk3...',
-      instruction: 'Drop the "main" folder or its .pk3 files'
+      folder: 'Main',
+      fullPath: '/sdcard/RTCWQuest/Main/',
+      exampleFiles: 'pak0.pk3, sp_pak1.pk3, sp_pak2.pk3, sp_pak3.pk3, sp_pak4.pk3',
+      instruction: 'Copy the full-game pk3 set into /sdcard/RTCWQuest/Main/. A demo pak0.pk3 alone is not enough.'
     },
     questzdoom: {
       folder: 'wads',
@@ -304,8 +304,8 @@ export function getDefaultFolderInfo(port: Port): {
     quakequest: {
       folder: 'id1',
       fullPath: '/sdcard/QuakeQuest/id1/',
-      exampleFiles: 'pak0.pak, pak1.pak',
-      instruction: 'Drop the "id1" folder with pak files'
+      exampleFiles: 'original id1/pak0.pak and pak1.pak',
+      instruction: 'Copy original id1 pak0.pak and pak1.pak. Do not use rerelease/. pak0.pak alone is the shareware file.'
     },
     csvr: {
       folder: 'cstrike',
@@ -323,7 +323,7 @@ export function getDefaultFolderInfo(port: Port): {
       folder: 'preybase',
       fullPath: '/sdcard/preyvr/preybase/',
       exampleFiles: 'pak000.pk4 through pak004.pk4',
-      instruction: 'Drop pak000.pk4 into preyvr/preybase. PreyVR/base is also detected.'
+      instruction: 'Copy all PK4 files from prey/base into /sdcard/preyvr/preybase/.'
     },
     beefraiderxr: {
       folder: 'BeefRaiderXR',
