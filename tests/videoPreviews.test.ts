@@ -11,7 +11,8 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['xrkart-64', '30bVFznHI3M', '1:00', '2:00'],
   ['wiicompiled-vr-plus', 'DnO2lIeBW2g', '0:10', '1:00'],
   ['twilight-princess-vr', '1OZPe0AD2Zs', '2:22', '3:22'],
-  ['majoras-mask-vr', 'ZRu6Zk5BnFY', '5:47', '6:47']
+  ['majoras-mask-vr', 'ZRu6Zk5BnFY', '5:47', '6:47'],
+  ['generals-zero-hour-xr', 'BYddTICZH9g', '3:58', '4:58']
 ]
 
 describe('local hover previews', () => {

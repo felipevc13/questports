@@ -20,7 +20,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/dc2b690516158a874dd8aabe1365c6a0.png', '/covers/wiicompiled-vr-plus.png'],
     ['https://cdn2.steamgriddb.com/grid/7877afc63a2644aeee47db29ff48412b.jpg', '/covers/magic-carpet-vr.jpg'],
     ['https://cdn2.steamgriddb.com/grid/a073416fbe3a75be1c9dabe1a85176ca.png', '/covers/twilight-princess-vr.png'],
-    ['https://cdn2.steamgriddb.com/grid/3258bb70c96330b7eaadc3458bc8f00d.png', '/covers/majoras-mask-vr.png']
+    ['https://cdn2.steamgriddb.com/grid/3258bb70c96330b7eaadc3458bc8f00d.png', '/covers/majoras-mask-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/a6c39c820081dd442cedc35851851de9.png', '/covers/generals-zero-hour-xr.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })

@@ -38,6 +38,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'csvr',
   'doom3quest',
   'galaxyquest',
+  'generals-zero-hour-xr',
   'goldeneye-vr',
   'gran-turismo-2-vr',
   'gta-sa-vr-quest',
@@ -247,5 +248,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Majora's Mask VR (2Ship2Harkinian VR)
   'majoras-mask-vr': { start: '5:47', end: '6:47' },
-  'ZRu6Zk5BnFY': { start: '5:47', end: '6:47' }
+  'ZRu6Zk5BnFY': { start: '5:47', end: '6:47' },
+
+  // Generals: Zero Hour XR (C&C Generals Zero Hour)
+  'generals-zero-hour-xr': { start: '3:58', end: '4:58' },
+  'BYddTICZH9g': { start: '3:58', end: '4:58' }
 }
