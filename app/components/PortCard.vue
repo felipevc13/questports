@@ -73,16 +73,32 @@
         </span>
       </div>
 
-      <!-- Video trailer badge if available (hidden when preview is active) -->
-      <div
+      <!-- Video trailer badge. On touch, tap opens the preview instead of following the card link. -->
+      <span
         v-if="hasVideo && !isPlayingPreview"
-        class="absolute bottom-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-muted-foreground border border-border"
+        role="button"
+        tabindex="0"
+        class="absolute bottom-2 right-2 z-30 flex min-h-11 min-w-11 items-center justify-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:min-h-0 md:min-w-0 md:px-1.5 md:py-0.5"
+        aria-label="Play preview"
+        @click.stop.prevent="onPreviewTap"
+        @keydown.enter.stop.prevent="onPreviewTap"
+        @keydown.space.stop.prevent="onPreviewTap"
       >
-        <svg class="w-3 h-3 text-primary" viewBox="0 0 24 24" fill="currentColor">
+        <svg class="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M8 5v14l11-7z"/>
         </svg>
         <span>Preview</span>
-      </div>
+      </span>
+      <span
+        v-else-if="hasVideo && isPlayingPreview"
+        role="button"
+        tabindex="0"
+        class="absolute bottom-2 right-2 z-30 flex min-h-11 min-w-11 items-center justify-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:hidden"
+        aria-label="Close preview"
+        @click.stop.prevent="onPreviewTap"
+      >
+        Close
+      </span>
     </div>
 
     <!-- Info Area -->
@@ -99,7 +115,7 @@
               <span class="text-muted-foreground/70">by</span>
               <span
                 @click.stop.prevent="navigateToDev(port.developer)"
-                class="font-medium hover:text-foreground hover:underline transition-colors cursor-pointer truncate"
+                class="inline-flex min-h-11 max-w-full items-center truncate font-medium transition-colors hover:text-foreground hover:underline md:min-h-0 md:inline"
                 :title="`Filter ports by ${port.developer}`"
               >
                 {{ port.developer }}
@@ -217,8 +233,22 @@ const handleVideoError = () => {
   isPlayingPreview.value = false
 }
 
-const onMouseEnter = () => {
+const prefersHover = () => {
+  if (typeof window === 'undefined') return true
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
+const onPreviewTap = () => {
   if (!hasVideo.value) return
+  if (hoverTimer) {
+    clearTimeout(hoverTimer)
+    hoverTimer = null
+  }
+  isPlayingPreview.value = !isPlayingPreview.value
+}
+
+const onMouseEnter = () => {
+  if (!hasVideo.value || !prefersHover()) return
   // 350ms debounce so rapid page scrolling does not mount iframes
   hoverTimer = setTimeout(() => {
     isPlayingPreview.value = true

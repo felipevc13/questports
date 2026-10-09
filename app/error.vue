@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-background text-foreground">
+  <div class="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground">
     <Navbar />
     <main class="flex-1">
       <div class="max-w-xl mx-auto px-4 sm:px-6 py-16 space-y-8">
@@ -29,11 +29,11 @@
             type="search"
             name="q"
             placeholder="Search by game, engine, or developer..."
-            class="flex-1 px-3 py-2 bg-muted/80 border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            class="min-h-11 flex-1 rounded-md border border-border bg-muted/80 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring md:min-h-0 md:text-sm"
           />
           <button
             type="submit"
-            class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+            class="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 md:min-h-0"
           >
             Search
           </button>
@@ -42,14 +42,14 @@
         <div class="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+            class="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 md:min-h-0"
             @click="goTo('/')"
           >
             Browse all ports
           </button>
           <button
             type="button"
-            class="px-4 py-2 rounded-md border border-border text-sm font-medium text-foreground hover:bg-muted"
+            class="min-h-11 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted md:min-h-0"
             @click="retry"
           >
             Try again
@@ -62,7 +62,7 @@
             <li v-for="port in popularPorts" :key="port.slug">
               <button
                 type="button"
-                class="text-sm text-primary hover:underline text-left"
+                class="inline-flex min-h-11 items-center text-left text-sm text-primary hover:underline md:min-h-0"
                 @click="goTo(`/ports/${port.slug}`)"
               >
                 {{ port.title }}

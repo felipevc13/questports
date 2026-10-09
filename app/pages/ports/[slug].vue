@@ -1,28 +1,29 @@
 <template>
-  <div v-if="port" class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+  <div v-if="port" class="mx-auto w-full min-w-0 max-w-[1720px] space-y-6 px-4 py-4 sm:px-6 md:py-6 lg:px-10">
     <!-- Breadcrumb & Top Bar -->
-    <div class="flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border/50">
-      <NuxtLink to="/" class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer font-medium">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="flex min-w-0 items-center justify-between gap-2 border-b border-border/50 pb-2 text-xs text-muted-foreground">
+      <NuxtLink to="/" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 font-medium transition-colors hover:text-foreground md:min-h-0">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span>Back to Database</span>
+        <span class="md:hidden">Back</span>
+        <span class="hidden md:inline">Back to Database</span>
       </NuxtLink>
 
-      <div class="flex items-center gap-3">
+      <div class="flex min-w-0 items-center gap-2 md:gap-3">
         <a
           v-if="port.github_url"
           :href="port.github_url"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-md text-xs font-medium text-foreground hover:bg-muted/50 transition-colors"
+          class="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 md:min-h-0"
         >
-          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+          <svg class="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
           </svg>
           <span>GitHub</span>
         </a>
-        <span class="font-mono text-muted-foreground/80">ID: {{ port.slug }}</span>
+        <span class="hidden truncate font-mono text-muted-foreground/80 sm:inline">ID: {{ port.slug }}</span>
       </div>
     </div>
 
@@ -48,15 +49,15 @@
         />
       </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+      <div class="flex min-w-0 flex-col justify-between gap-2 sm:flex-row sm:items-baseline">
+        <h1 class="min-w-0 break-words text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
           {{ port.title }}
         </h1>
-        <div class="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground shrink-0">
+        <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground sm:text-sm">
           <span>Developed by</span>
           <NuxtLink
             :to="`/?dev=${encodeURIComponent(port.developer)}`"
-            class="font-semibold text-foreground hover:text-primary hover:underline transition-colors"
+            class="inline-flex min-h-11 items-center font-semibold text-foreground transition-colors hover:text-primary hover:underline md:min-h-0"
           >
             {{ port.developer }}
           </NuxtLink>
@@ -65,7 +66,7 @@
             :href="port.developer_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center text-xs text-primary hover:underline ml-1"
+            class="inline-flex min-h-11 items-center text-xs text-primary hover:underline md:min-h-0 md:ml-1"
           >
             Official Page ↗
           </a>
@@ -73,15 +74,15 @@
       </div>
 
       <!-- Port Short Description / Tagline -->
-      <p class="text-sm text-muted-foreground max-w-4xl leading-relaxed pt-0.5">
+      <p class="max-w-4xl pt-0.5 text-sm leading-relaxed text-muted-foreground line-clamp-3 md:line-clamp-none">
         {{ port.short_description }}
       </p>
     </div>
 
     <!-- HERO SPLIT SECTION (Trailer/Media on Left, Action Hub on Right) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- LEFT HERO: Media Player + Feature Compatibility Matrix (7 Cols) -->
-      <div class="lg:col-span-7 space-y-3">
+      <!-- LEFT HERO: Media Player + Feature Compatibility Matrix (7 Cols). Below lg the install card is first. -->
+      <div class="order-2 space-y-3 lg:order-1 lg:col-span-7">
         <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl">
           <iframe
             v-if="port.youtube_video_id"
@@ -104,7 +105,7 @@
       </div>
 
       <!-- RIGHT HERO: Unified Smart Action Card (5 Cols) -->
-      <div class="lg:col-span-5 p-5 rounded-xl bg-card border border-border shadow-xl space-y-4">
+      <div id="install-card" class="order-1 space-y-4 rounded-xl border border-border bg-card p-4 shadow-xl md:p-5 lg:order-2 lg:col-span-5">
         <!-- Headset connection status. Not an install button. -->
         <div class="flex items-center justify-between pb-3 border-b border-border">
           <div class="flex items-center gap-2" role="status" aria-live="polite" data-testid="port-quest-status">
@@ -130,7 +131,7 @@
             v-else-if="showUsbStepsLink"
             type="button"
             data-testid="show-usb-steps"
-            class="text-[11px] text-muted-foreground hover:text-foreground underline font-medium cursor-pointer"
+            class="inline-flex min-h-11 items-center text-[11px] font-medium text-muted-foreground underline hover:text-foreground md:min-h-0"
             @click="requestUsbPrepAgain"
           >
             Show USB setup steps
@@ -142,7 +143,7 @@
           <div
             v-if="showUsbPrep"
             data-testid="usb-prep"
-            class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3"
+            class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4"
             role="region"
             aria-labelledby="usb-prep-title"
           >
@@ -162,19 +163,19 @@
                 <span>{{ step }}</span>
               </li>
             </ol>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
               <button
                 ref="usbPrepContinueRef"
                 type="button"
                 data-testid="usb-prep-continue"
-                class="px-3 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+                class="min-h-11 w-full rounded-lg bg-primary px-3 py-3 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 sm:w-auto sm:py-2 md:min-h-0"
                 @click="beginInstall({ skipPrep: true })"
               >
                 Continue
               </button>
               <button
                 type="button"
-                class="px-3 py-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                class="min-h-11 w-full rounded-lg px-3 py-3 text-xs text-muted-foreground hover:text-foreground sm:w-auto sm:py-2 md:min-h-0"
                 @click="dismissUsbPrep"
               >
                 Not now
@@ -241,7 +242,7 @@
             <button
               type="button"
               data-testid="chooser-retry"
-              class="px-3 py-1.5 rounded bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+              class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
               @click="beginInstall({ skipPrep: true })"
             >
               Try again
@@ -264,7 +265,7 @@
             <div class="pt-1">
               <button
                 type="button"
-                class="px-3 py-1.5 rounded bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+                class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
                 @click="beginInstall({ skipPrep: true })"
               >
                 Try again
@@ -273,7 +274,7 @@
           </div>
 
           <!-- APK not installed yet. One install action, whether or not the headset is connected. -->
-          <div v-if="!isApkInstalled" class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3">
+          <div v-if="!isApkInstalled" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
             <!-- Case A: PC Builder Required (GTA SA / Vice City) -->
             <template v-if="isPcBuilderRequired">
               <div class="flex items-center justify-between">
@@ -301,14 +302,15 @@
                 </a>
               </div>
 
-              <div class="pt-1 flex items-center justify-between text-[11px] font-mono">
+              <div class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
                 <button
+                  type="button"
                   @click="recheckHeadsetInstalled"
-                  class="text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                  class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
                 >
                   <span>🔄 Check Headset</span>
                 </button>
-                <label class="text-muted-foreground hover:text-foreground cursor-pointer underline text-[10px]">
+                <label class="inline-flex min-h-11 cursor-pointer items-center text-[10px] text-muted-foreground underline hover:text-foreground md:min-h-0">
                   <span>Select built .apk from PC</span>
                   <input type="file" accept=".apk" class="hidden" @change="handleLocalApkSelected" />
                 </label>
@@ -344,7 +346,7 @@
                 <button
                   type="button"
                   data-testid="manual-install-toggle"
-                  class="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                  class="inline-flex min-h-11 items-center text-[11px] font-semibold text-primary hover:underline md:min-h-0"
                   :aria-expanded="manualInstallOpen"
                   @click="manualInstallOpen = !manualInstallOpen"
                 >
@@ -356,11 +358,11 @@
                     :href="port.port_download_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="block text-primary underline"
+                    class="inline-flex min-h-11 items-center text-primary underline md:min-h-0"
                   >
                     Download the APK ({{ port.port_download_source || 'SideQuest' }})
                   </a>
-                  <a href="#install-guide" class="block text-primary underline">
+                  <a href="#install-guide" class="inline-flex min-h-11 items-center text-primary underline md:min-h-0">
                     Step-by-step installation guide
                   </a>
                 </div>
@@ -376,22 +378,23 @@
                   type="button"
                   data-testid="install-on-quest"
                   @click="beginInstall()"
-                  class="w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primary/25"
+                  class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   <span>{{ INSTALL_ACTION_LABEL }}</span>
                 </button>
-                <div class="flex items-center justify-between text-[10px] text-muted-foreground font-mono pt-0.5">
+                <div class="flex flex-col gap-1 pt-0.5 font-mono text-[10px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                   <button
+                    type="button"
                     @click="recheckHeadsetInstalled"
-                    class="text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                    class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
                     title="Check connected Quest for installed APK"
                   >
                     <span>🔄 Check Headset</span>
                   </button>
-                  <label class="hover:text-foreground cursor-pointer underline">
+                  <label class="inline-flex min-h-11 cursor-pointer items-center underline hover:text-foreground md:min-h-0">
                     <span>Select local .apk</span>
                     <input type="file" accept=".apk" class="hidden" @change="handleLocalApkSelected" />
                   </label>
@@ -639,7 +642,7 @@
             </div>
 
             <!-- Data Files / ROMs Box (For ports requiring assets) -->
-            <div v-else class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3">
+            <div v-else class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-mono text-xs font-bold flex items-center justify-center">2</span>
@@ -944,7 +947,7 @@
             :href="port.base_game_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full flex items-center justify-between text-xs py-2 px-3 rounded-lg border border-border hover:bg-muted/50 transition-colors text-foreground"
+            class="flex min-h-11 w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-xs text-foreground transition-colors hover:bg-muted/50 md:min-h-0"
           >
             <div class="flex items-center gap-2">
               <svg v-if="isLegitimateStoreUrl(port.base_game_url)" class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -960,11 +963,11 @@
           </a>
 
           <a
-            v-if="port.port_download_url"
+            v-if="port.port_download_url && installSupport !== 'unsupported'"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full flex items-center justify-between text-xs py-2 px-3 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+            class="flex min-h-11 w-full items-center justify-between rounded-lg bg-secondary px-3 py-2 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80 md:min-h-0"
           >
             <div class="flex items-center gap-2">
               <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -990,7 +993,7 @@
       <!-- LEFT LOWER: Installation Guide & Troubleshooting (8 Cols) -->
       <div class="lg:col-span-8 space-y-6">
         <!-- Installation Guide (Rendered Markdown) -->
-        <div id="install-guide" class="p-6 rounded-xl bg-card border border-border space-y-4">
+        <div id="install-guide" class="space-y-4 rounded-xl border border-border bg-card p-4 md:p-6">
           <div class="flex items-center gap-2 pb-3 border-b border-border">
             <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1042,7 +1045,7 @@
                     :href="port.base_game_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-[10px] text-primary hover:underline font-mono"
+                    class="inline-flex min-h-11 items-center font-mono text-[10px] text-primary hover:underline md:min-h-0"
                   >
                     {{ isLegitimateStoreUrl(port.base_game_url) ? 'Store Page ↗' : 'About ↗' }}
                   </a>
@@ -1108,7 +1111,7 @@
                       target="_blank"
                       rel="noopener noreferrer"
                       @click.stop
-                      class="text-[10px] text-primary hover:underline font-mono shrink-0"
+                      class="inline-flex min-h-11 shrink-0 items-center font-mono text-[10px] text-primary hover:underline md:min-h-0"
                       :title="isLegitimateStoreUrl(c.storeUrl) ? 'View on Store' : 'About the original game'"
                     >
                       {{ isLegitimateStoreUrl(c.storeUrl) ? c.storeName : 'About' }} ↗
@@ -1148,7 +1151,7 @@
               :href="port.developer_url"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center justify-between p-2 rounded bg-muted/30 hover:bg-muted/60 border border-border/60 text-foreground transition-colors"
+              class="flex min-h-11 items-center justify-between rounded border border-border/60 bg-muted/30 p-2 text-foreground transition-colors hover:bg-muted/60 md:min-h-0"
             >
               <span>Support {{ port.developer }}</span>
               <span class="text-muted-foreground">↗</span>
@@ -1158,7 +1161,7 @@
               :href="port.github_url"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center justify-between p-2 rounded bg-muted/30 hover:bg-muted/60 border border-border/60 text-foreground transition-colors"
+              class="flex min-h-11 items-center justify-between rounded border border-border/60 bg-muted/30 p-2 text-foreground transition-colors hover:bg-muted/60 md:min-h-0"
             >
               <span>GitHub Repository & Issues</span>
               <span class="text-muted-foreground">↗</span>
@@ -1197,6 +1200,7 @@ import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { absoluteCoverUrl } from '~/data/coverUrl'
+import { softenGuideHtml } from '~/lib/guideHtml'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
@@ -1292,6 +1296,13 @@ watch(showUsbPrep, async (open) => {
   if (!open) return
   await nextTick()
   usbPrepContinueRef.value?.focus()
+  if (import.meta.client && window.matchMedia('(max-width: 767px)').matches) {
+    document.querySelector('[data-testid="usb-prep"]')?.scrollIntoView({ block: 'center' })
+  }
+})
+
+watch(installSupport, (support) => {
+  if (support === 'unsupported') manualInstallOpen.value = true
 })
 
 watch(() => questAdb.isConnected.value, (connected) => {
@@ -2035,7 +2046,8 @@ const renderedGuide = computed(() => {
   if (!port.value || !port.value.installation_guide) {
     return '<p class="text-muted-foreground">No installation tutorial registered for this port yet.</p>'
   }
-  return marked.parse(port.value.installation_guide)
+  const parsed = marked.parse(port.value.installation_guide)
+  return softenGuideHtml(typeof parsed === 'string' ? parsed : '')
 })
 
 const formatCategory = (cat: PortCategory) => {

@@ -22,7 +22,7 @@ export default defineNuxtConfig({
       },
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content' },
         { name: 'description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. No PC, no cables, zero streaming. Step-by-step install guides & file paths.' },
         { name: 'theme-color', content: '#06b6d4' },
         

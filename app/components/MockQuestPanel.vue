@@ -2,7 +2,7 @@
   <div v-if="enabled">
     <div
       v-if="overlay === 'usb-picker'"
-      class="fixed left-4 top-20 z-[80] w-[380px] rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl"
+      class="fixed left-4 top-20 z-[80] w-[min(380px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl"
       role="dialog"
       aria-label="Simulated WebUSB device picker"
     >
@@ -34,7 +34,7 @@
 
     <div
       v-if="overlay === 'visor'"
-      class="fixed left-4 top-20 z-[80] w-[340px] rounded-2xl border border-zinc-600 bg-black text-white shadow-2xl"
+      class="fixed left-4 top-20 z-[80] w-[min(340px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-2xl border border-zinc-600 bg-black text-white shadow-2xl"
       role="dialog"
       aria-label="Simulated Quest USB debugging prompt"
     >
@@ -59,9 +59,18 @@
       </div>
     </div>
 
+    <button
+      v-if="scenario?.chrome !== false && minimized"
+      type="button"
+      class="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 z-[70] inline-flex min-h-11 items-center rounded-full border border-amber-400/50 bg-zinc-950/95 px-3 text-xs font-semibold text-amber-300 shadow-2xl"
+      @click="minimized = false"
+    >
+      Simulated Quest
+    </button>
+
     <form
-      v-if="scenario?.chrome !== false"
-      class="fixed bottom-4 left-4 z-[70] w-[320px] space-y-2 rounded-xl border border-amber-400/50 bg-zinc-950/95 p-3 text-[11px] text-zinc-100 shadow-2xl backdrop-blur"
+      v-else-if="scenario?.chrome !== false"
+      class="fixed bottom-4 left-4 z-[70] w-[min(320px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] space-y-2 rounded-xl border border-amber-400/50 bg-zinc-950/95 p-3 text-[11px] text-zinc-100 shadow-2xl backdrop-blur"
       @submit.prevent
     >
       <div class="flex items-center justify-between gap-2">
@@ -69,7 +78,10 @@
           <div class="font-semibold text-amber-300">Simulated Quest</div>
           <div class="text-[10px] text-zinc-400">Test-only. Not shown without <span class="font-mono">?mockQuest=1</span>.</div>
         </div>
-        <button type="button" class="text-[10px] text-zinc-400 underline" @click="hideChrome">Hide</button>
+        <div class="flex items-center gap-2">
+          <button type="button" class="min-h-11 text-[10px] text-zinc-400 underline md:min-h-0" @click="minimized = true">Minimize</button>
+          <button type="button" class="min-h-11 text-[10px] text-zinc-400 underline md:min-h-0" @click="hideChrome">Hide</button>
+        </div>
       </div>
 
       <label class="block space-y-1">
@@ -156,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   isMockQuestEnabled,
   mockOverlay,
@@ -169,6 +181,11 @@ import { useQuestAdb } from '~/composables/useQuestAdb'
 
 const questAdb = useQuestAdb()
 const overlay = mockOverlay
+const minimized = ref(false)
+
+onMounted(() => {
+  minimized.value = window.matchMedia('(max-width: 767px)').matches
+})
 
 const enabled = computed(() => {
   void mockScenarioRevision.value

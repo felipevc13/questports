@@ -81,7 +81,7 @@
             v-model="form.notes"
             rows="2"
             placeholder="e.g. Full 6DoF motion controls, runs on Quest 2/3, requires PC assets..."
-            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none md:text-xs"
           ></textarea>
         </div>
 
@@ -102,11 +102,12 @@
         </div>
 
         <!-- Actions -->
-        <div class="pt-2 flex items-center justify-end gap-2">
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
           <UiButton
             type="button"
             variant="ghost"
             size="sm"
+            class="w-full sm:w-auto"
             @click="closeModal"
           >
             Cancel
@@ -114,6 +115,7 @@
           <UiButton
             type="submit"
             size="sm"
+            class="w-full sm:w-auto"
             :disabled="loading"
           >
             <span v-if="loading" class="w-3 h-3 mr-1.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>

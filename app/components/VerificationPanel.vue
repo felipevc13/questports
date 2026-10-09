@@ -11,7 +11,7 @@
       </div>
       <button
         type="button"
-        class="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-primary hover:underline focus:outline-none focus:ring-1 focus:ring-ring"
+        class="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium text-primary hover:underline focus:outline-none focus:ring-1 focus:ring-ring md:min-h-0 md:px-1.5"
         :aria-expanded="expanded"
         aria-controls="port-verification-details"
         @click="expanded = !expanded"

@@ -32,7 +32,7 @@ function valueClass(claim: FeatureClaim): string {
         :key="claim.id"
         class="p-2 rounded-lg bg-muted/20 border border-border/50 min-w-[8.5rem]"
       >
-        <div class="text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
+        <div class="text-muted-foreground text-[11px] uppercase font-mono tracking-wider md:text-[10px]">
           {{ claim.label }}
         </div>
         <div
@@ -56,14 +56,14 @@ function valueClass(claim: FeatureClaim): string {
         :key="group.id"
         class="space-y-1"
       >
-        <div class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+        <div class="font-mono text-[11px] uppercase tracking-wider text-muted-foreground font-semibold md:text-[10px]">
           {{ group.label }}
         </div>
         <ul class="m-0 p-0 list-none flex flex-wrap gap-1" :aria-label="group.label">
           <li
             v-for="chip in group.chips"
             :key="chip"
-            class="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] font-mono"
+            class="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-xs font-mono md:text-[10px]"
           >
             {{ chip }}
           </li>

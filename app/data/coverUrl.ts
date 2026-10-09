@@ -38,3 +38,32 @@ export function absoluteCoverUrl(url: string | null | undefined): string {
   if (resolved.startsWith('http')) return resolved
   return `${SITE_ORIGIN}${resolved}`
 }
+
+const THUMB_FALLBACK = 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=120&h=72&q=70'
+
+/** Small same-origin cover for table thumbnails (about 120px wide). */
+export function coverThumbUrl(url: string | null | undefined): string {
+  const resolved = resolveCoverUrl(url)
+  if (!resolved) return THUMB_FALLBACK
+
+  if (resolved.startsWith('/covers/')) {
+    const file = resolved.slice('/covers/'.length)
+    const base = file.replace(/\.(png|jpe?g|webp)$/i, '')
+    if (base && base !== file) return `/covers/thumbs/${base}.jpg`
+  }
+
+  if (resolved.includes('images.unsplash.com')) {
+    try {
+      const parsed = new URL(resolved)
+      parsed.searchParams.set('w', '120')
+      parsed.searchParams.set('h', '72')
+      parsed.searchParams.set('fit', 'crop')
+      parsed.searchParams.set('q', '70')
+      return parsed.toString()
+    } catch {
+      return resolved
+    }
+  }
+
+  return resolved
+}
