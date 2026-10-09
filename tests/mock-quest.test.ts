@@ -59,7 +59,7 @@ describe('mock Quest device', () => {
     const df = await device.shell('df -h /sdcard')
     expect(df).toContain('88G')
     expect(df).toContain('32%')
-    expect(device.fs.list('/sdcard/RTCWQuest/main')).toBeNull()
+    expect(device.fs.list('/sdcard/RTCWQuest/Main')).toBeNull()
   })
 
   it('installs every catalog package and seeds external files when asked', async () => {
@@ -80,8 +80,9 @@ describe('mock Quest device', () => {
     expect(packages).toContain('package:com.qcxr.qcxr')
     const version = await device.shell('dumpsys package com.drbeef.rtcwquest')
     expect(version).toContain('versionName=v1.4.1')
-    const files = device.fs.list('/sdcard/RTCWQuest/main')
+    const files = device.fs.list('/sdcard/RTCWQuest/Main')
     expect(files).toContain('pak0.pk3')
+    expect(files).toContain('sp_pak1.pk3')
     expect(collectPresentSeedPaths().length).toBeGreaterThan(30)
   })
 

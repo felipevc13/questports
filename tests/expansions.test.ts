@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { PORT_EXPANSIONS, getPortCampaigns, getDefaultFolderInfo } from '../app/data/expansions'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
+import { catalogInstallFacts } from '../app/lib/catalogInstallFacts'
 
 describe('Port Campaigns & Expansions Engine', () => {
   describe('PORT_EXPANSIONS Multi-campaign integrity', () => {
@@ -74,6 +75,8 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(base?.isBase).toBe(true)
       expect(base?.folder).toBe('base')
       expect(base?.fullPath).toBe('/sdcard/Doom3Quest/base/')
+      expect(base?.steamPath).toBe('Doom 3/base/')
+      expect(base?.exampleFiles).toContain('game00.pk4')
 
       expect(d3xp?.isBase).toBe(false)
       expect(d3xp?.folder).toBe('d3xp')
@@ -90,8 +93,9 @@ describe('Port Campaigns & Expansions Engine', () => {
       const groundZero = q2.find(c => c.id === 'rogue')
 
       expect(base?.isBase).toBe(true)
-      expect(base?.folder).toBe('baseq2')
-      expect(base?.fullPath).toBe('/sdcard/Quake2Quest/baseq2/')
+      expect(base?.folder).toBe('Quake2Quest')
+      expect(base?.fullPath).toBe('/sdcard/Quake2Quest/')
+      expect(base?.steamPath).toBe('Quake 2/baseq2/')
 
       expect(reckoning?.folder).toBe('xatrix')
       expect(groundZero?.folder).toBe('rogue')
@@ -156,6 +160,24 @@ describe('Port Campaigns & Expansions Engine', () => {
       } as any)
       expect(bundled.fullPath).toBe('N/A (ROM set bundled in the release APK)')
       expect(bundled.exampleFiles).toBe('No extra files needed')
+    })
+
+    it('keeps the corrected install guides on paths the file check scans', () => {
+      const facts = catalogInstallFacts()
+      for (const slug of ['rtcwquest', 'quakequest', 'quake2quest', 'doom3quest', 'preyvr', 'lambda1vr']) {
+        const fact = facts.find(item => item.slug === slug)
+        expect(fact, slug).toBeTruthy()
+        expect(fact!.guidePathsIgnoredByCard, `${slug}: ${fact!.guidePathsIgnoredByCard.join(', ')}`).toEqual([])
+      }
+      const prey = INITIAL_PORTS.find(port => port.slug === 'preyvr')
+      expect(prey?.installation_guide).toContain('/sdcard/preyvr/preybase/')
+      expect(prey?.installation_guide).not.toContain('/sdcard/PreyVR/base/')
+      const quake2 = INITIAL_PORTS.find(port => port.slug === 'quake2quest')
+      expect(quake2?.installation_guide).toContain('/sdcard/Quake2Quest/')
+      expect(quake2?.installation_guide).not.toContain('/sdcard/Quake2Quest/baseq2/')
+      expect(quake2?.installation_guide).toContain('Quake 2')
+      const rtcw = getDefaultFolderInfo(INITIAL_PORTS.find(port => port.slug === 'rtcwquest')!)
+      expect(rtcw.fullPath).toBe('/sdcard/RTCWQuest/Main/')
     })
 
     it('does not call bundled ports base game assets', () => {

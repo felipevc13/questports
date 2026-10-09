@@ -34,8 +34,9 @@ describe('Port Package Map & Workflow Verification', () => {
     expect(rtcw).toBeDefined()
     expect(rtcw.packageName).toBe('com.drbeef.rtcwquest')
     expect(rtcw.targetPath).toBe('/sdcard/RTCWQuest/')
-    expect(rtcw.folders?.[0].folderName).toBe('main')
-    expect(rtcw.folders?.[0].targetPath).toBe('/sdcard/RTCWQuest/main/')
+    expect(rtcw.folders?.[0].folderName).toBe('Main')
+    expect(rtcw.folders?.[0].targetPath).toBe('/sdcard/RTCWQuest/Main/')
+    expect(rtcw.folders?.[0].altPaths).toContain('/sdcard/RTCWQuest/main/')
   })
 
   it('correctly maps Prey VR (preyvr) with Luboš Vonásek package and folder path', () => {
