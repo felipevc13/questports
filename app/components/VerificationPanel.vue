@@ -62,7 +62,7 @@
               </td>
               <td class="py-1.5 pr-2 font-mono text-muted-foreground">
                 <template v-if="row.record">
-                  {{ formatVerificationVersion(row.record.tested_version) }}
+                  <span :title="formatVerificationVersion(row.record.tested_version) || undefined">{{ formatVerificationVersion(row.record.tested_version) || '—' }}</span>
                   · {{ formatVerificationAge(row.record.checked_at) }}
                 </template>
                 <template v-else>—</template>

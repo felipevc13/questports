@@ -106,9 +106,11 @@
               </span>
             </div>
 
-            <span v-if="port.latest_version" class="text-[10px] font-mono text-muted-foreground shrink-0">
-              v{{ formatVersion(port.latest_version) }}
-            </span>
+            <PortVersion
+              v-if="displayVersion"
+              :version="port.latest_version"
+              class="max-w-[8.5rem] shrink text-[10px] text-muted-foreground"
+            />
             <span v-else-if="formatRelativeTime(port.last_github_update)" class="text-[10px] font-mono text-muted-foreground shrink-0">
               {{ formatRelativeTime(port.last_github_update) }}
             </span>
@@ -171,6 +173,7 @@ import type { PortVerification } from '~/lib/verification'
 import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
+import { formatPortVersion } from '~/lib/portVersion'
 
 const props = withDefaults(defineProps<{
   port: Port
@@ -246,14 +249,7 @@ const formatRelativeTime = (dateStr?: string | null) => {
   return `${Math.floor(diffDays / 365)}y ago`
 }
 
-const formatVersion = (ver?: string | null) => {
-  if (!ver) return ''
-  let v = ver.trim().replace(/^winlatorxr[_-]/i, '')
-  if (v.length > 10) {
-    v = v.slice(0, 9) + '…'
-  }
-  return v
-}
+const displayVersion = computed(() => formatPortVersion(props.port.latest_version))
 
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {
