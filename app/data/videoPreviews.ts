@@ -69,6 +69,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sourcevr',
   'starfox-enhanced-vr',
   'time-crisis-vr',
+  'twilight-princess-vr',
   'unreal-gold-vr',
   'ut99-vr-quest',
   'vice-city-vr-quest',
@@ -237,5 +238,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Wiicompiled VR PLUS (Mario Kart Wii VR)
   'wiicompiled-vr-plus': { start: '0:10', end: '1:00' },
-  'DnO2lIeBW2g': { start: '0:10', end: '1:00' }
+  'DnO2lIeBW2g': { start: '0:10', end: '1:00' },
+
+  // TPVR (Zelda: Twilight Princess VR)
+  'twilight-princess-vr': { start: '2:17', end: '3:17' },
+  '1OZPe0AD2Zs': { start: '2:17', end: '3:17' }
 }
