@@ -68,6 +68,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sclerosis-vr',
   'sega-rally-vr',
   'simpsonshitrun',
+  'sm64-coop-dx-vr',
   'sourcevr',
   'starfox-enhanced-vr',
   'time-crisis-vr',
@@ -252,5 +253,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Generals: Zero Hour XR (C&C Generals Zero Hour)
   'generals-zero-hour-xr': { start: '3:58', end: '4:58' },
-  'BYddTICZH9g': { start: '3:58', end: '4:58' }
+  'BYddTICZH9g': { start: '3:58', end: '4:58' },
+
+  // SM64 Co-Op DX VR Standalone
+  'sm64-coop-dx-vr': { start: '0:12', end: '1:12' },
+  'nmeVViFqVG8': { start: '0:12', end: '1:12' }
 }

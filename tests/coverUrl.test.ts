@@ -22,7 +22,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/a073416fbe3a75be1c9dabe1a85176ca.png', '/covers/twilight-princess-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/3258bb70c96330b7eaadc3458bc8f00d.png', '/covers/majoras-mask-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/a6c39c820081dd442cedc35851851de9.png', '/covers/generals-zero-hour-xr.png'],
-    ['https://cdn2.steamgriddb.com/grid/933bae66e5dfe59043d3d2cbbe9c7fc3.png', '/covers/generals-zero-hour-xr.png']
+    ['https://cdn2.steamgriddb.com/grid/933bae66e5dfe59043d3d2cbbe9c7fc3.png', '/covers/generals-zero-hour-xr.png'],
+    ['https://cdn2.steamgriddb.com/grid/fe895c991a5152476a051ae74fcbf8ac.png', '/covers/sm64-coop-dx-vr.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })
