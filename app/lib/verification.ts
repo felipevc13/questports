@@ -276,6 +276,30 @@ export function verificationSummaryLine(
   }
 }
 
+export interface CardVerificationLabel {
+  tone: 'verified' | 'issues' | 'stale'
+  text: string
+  detail: string
+}
+
+/** One quiet line for a catalog card. No date. Nothing when the port is untested. */
+export function buildCardVerificationLabel(
+  latest: PortVerification | null | undefined,
+  catalogVersion: string | null | undefined
+): CardVerificationLabel | null {
+  const state = verificationBadgeState(latest, catalogVersion)
+  if (!latest || state === 'none') return null
+  const headset = canonicalHeadset(latest.headset_model) ?? latest.headset_model
+  const detail = buildVerificationBadge(latest, catalogVersion)?.detail ?? ''
+  if (state === 'stale') {
+    return { tone: 'stale', text: `⚠ Update not tested · ${headset}`, detail }
+  }
+  if (latest.result === 'works_with_issues') {
+    return { tone: 'issues', text: `⚠ Works with issues · ${headset}`, detail }
+  }
+  return { tone: 'verified', text: `✓ Verified · ${headset}`, detail }
+}
+
 export function buildVerificationBadge(
   latest: PortVerification | null | undefined,
   catalogVersion: string | null | undefined,

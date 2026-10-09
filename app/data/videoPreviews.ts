@@ -241,9 +241,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   'wiicompiled-vr-plus': { start: '0:10', end: '1:00' },
   'DnO2lIeBW2g': { start: '0:10', end: '1:00' },
 
-  // TPVR (Zelda: Twilight Princess VR)
-  'twilight-princess-vr': { start: '2:17', end: '3:17' },
-  '1OZPe0AD2Zs': { start: '2:17', end: '3:17' },
+  // TPVR (Zelda: Twilight Princess VR). The source clip opens on a white frame, so the window starts 5s later.
+  'twilight-princess-vr': { start: '2:22', end: '3:22' },
+  '1OZPe0AD2Zs': { start: '2:22', end: '3:22' },
 
   // Majora's Mask VR (2Ship2Harkinian VR)
   'majoras-mask-vr': { start: '5:47', end: '6:47' },
