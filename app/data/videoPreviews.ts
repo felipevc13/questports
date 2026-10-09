@@ -48,6 +48,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'iron-lung-vr',
   'jkxr',
   'lambda1vr',
+  'majoras-mask-vr',
   'nolf-vr',
   'ocarina-of-time-vr',
   'perfect-dark-vr',
@@ -242,5 +243,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // TPVR (Zelda: Twilight Princess VR). The source clip opens on a white frame, so the window starts 5s later.
   'twilight-princess-vr': { start: '2:22', end: '3:22' },
-  '1OZPe0AD2Zs': { start: '2:22', end: '3:22' }
+  '1OZPe0AD2Zs': { start: '2:22', end: '3:22' },
+
+  // Majora's Mask VR (2Ship2Harkinian VR)
+  'majoras-mask-vr': { start: '5:47', end: '6:47' },
+  'ZRu6Zk5BnFY': { start: '5:47', end: '6:47' }
 }
