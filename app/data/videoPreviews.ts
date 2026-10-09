@@ -61,6 +61,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'razexr',
   'road-rash-jailbreak-vr',
   'rtcwquest',
+  'sclerosis-vr',
   'simpsonshitrun',
   'sourcevr',
   'time-crisis-vr',
@@ -197,5 +198,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // No One Lives ForeVR (ReLith / NOLF)
   'nolf-vr': { start: '5:00', end: '6:00' },
-  '6NsGBkCp9ro': { start: '5:00', end: '6:00' }
+  '6NsGBkCp9ro': { start: '5:00', end: '6:00' },
+
+  // Sclerosis (Amnesia: The Dark Descent VR remake)
+  'sclerosis-vr': { start: '36:20', end: '37:20' },
+  'UpTDQZr0TWw': { start: '36:20', end: '37:20' }
 }

@@ -14,6 +14,12 @@ describe('resolveCoverUrl', () => {
     )).toBe('/covers/ut99vr.png')
   })
 
+  it('maps the Sclerosis SteamGridDB hotlink onto the local file', () => {
+    expect(resolveCoverUrl(
+      'https://cdn2.steamgriddb.com/grid/efa57a13caff2c0bef9bb12e2e734d31.png'
+    )).toBe('/covers/sclerosis-vr.png')
+  })
+
   it('leaves same-origin covers unchanged', () => {
     expect(resolveCoverUrl('/covers/rtcwquest.jpg')).toBe('/covers/rtcwquest.jpg')
   })

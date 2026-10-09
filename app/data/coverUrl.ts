@@ -2,6 +2,7 @@ const STORAGE_MARKER = '/storage/v1/object/public/port-covers/'
 const SITE_ORIGIN = 'https://questports.vercel.app'
 const DEFAULT_OG = '/covers/questports-og.png'
 const UT99_STEAMGRID = '7adb6a50e7687b45a00b35796f18f17d'
+const SCLEROSIS_STEAMGRID = 'efa57a13caff2c0bef9bb12e2e734d31'
 
 /** Map Storage / hotlink covers onto same-origin /covers files. */
 export function resolveCoverUrl(url: string | null | undefined): string | null {
@@ -15,6 +16,7 @@ export function resolveCoverUrl(url: string | null | undefined): string | null {
   }
 
   if (clean.includes(UT99_STEAMGRID)) return '/covers/ut99vr.png'
+  if (clean.includes(SCLEROSIS_STEAMGRID)) return '/covers/sclerosis-vr.png'
 
   return url
 }
