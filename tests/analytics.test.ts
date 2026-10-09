@@ -11,6 +11,7 @@ import {
   FILTER_NAMES,
   INSTALL_ERROR_REASONS,
   INSTALL_STEPS,
+  IN_APP_BROWSER_FAMILIES,
   PREVIEW_PLAY_STORAGE_KEY,
   browserFamilyFromUserAgent,
   campaignRefFromSearch,
@@ -27,6 +28,7 @@ import {
   installStepEventsForProgress,
   isAnalyticsEnabled,
   isBotUserAgent,
+  isInAppBrowserFamily,
   rememberCampaignRef,
   searchNoResultsQuery,
   searchProps,
@@ -161,6 +163,8 @@ describe('analytics allowlist', () => {
     expect(sql).toContain('revoke all on table public.analytics_daily from public, anon, authenticated')
     expect(sql).not.toMatch(/grant select on table public\.analytics_events to anon/i)
     expect(sql).toContain("device in ('mobile', 'desktop', 'tablet')")
+    expect(sql).toContain('char_length(browser) between 1 and 32')
+    expect(sql).not.toMatch(/browser in \(/i)
   })
 })
 
@@ -173,6 +177,8 @@ describe('analytics privacy gates', () => {
     expect(isBotUserAgent('Mozilla/5.0 Slackbot-LinkExpanding 1.0')).toBe(true)
     expect(isBotUserAgent(CHROME_UA)).toBe(false)
     expect(isBotUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 OculusBrowser/33.0 Chrome/120.0.0.0 Safari/537.36')).toBe(false)
+    expect(isBotUserAgent('WhatsApp/2.23.20.0')).toBe(true)
+    expect(isBotUserAgent('Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 WhatsApp/2.24.10.78')).toBe(false)
 
     expect(decide({ userAgent: 'Mozilla/5.0 (compatible; Googlebot/2.1)' }).reason).toBe('bot')
     expect(decide({ userAgent: '' }).reason).toBe('bot')
@@ -341,9 +347,10 @@ describe('analytics validation', () => {
     expect(installErrorReason(new Error('Meta Quest not connected!'))).toBe('adb_fail')
     expect(installErrorReason(new Error('something unexpected'))).toBe('other')
     expect(connectFailureReason({ webusb: false, notice: null, error: null })).toBe('no_webusb')
+    expect(installErrorReason(new Error('Your Quest is being used by another app on this computer. adb kill-server'))).toBe('usb_locked')
     expect(connectFailureReason({
       webusb: true,
-      notice: 'No headset selected. Try again when ready.',
+      notice: "Don't see your Quest in the list?",
       error: null
     })).toBe('user_cancelled')
   })
@@ -358,6 +365,37 @@ describe('analytics validation', () => {
     expect(browserFamilyFromUserAgent('Mozilla/5.0 Firefox/121.0')).toBe('Firefox')
     expect(browserFamilyFromUserAgent('Mozilla/5.0 OculusBrowser/33.0 Chrome/120.0.0.0 Safari/537.36')).toBe('Oculus')
     expect(browserFamilyFromUserAgent(IPHONE_UA)).toBe('Safari')
+    expect(browserFamilyFromUserAgent(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1'
+    )).toBe('Chrome iOS')
+    expect(deviceFromUserAgent(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1'
+    )).toBe('mobile')
+
+    const inApp = {
+      Discord: 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 Discord',
+      Reddit: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Reddit/Version 2024.10.0',
+      Instagram: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 Instagram 302.0',
+      Facebook: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/450.0]',
+      Telegram: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 Telegram-Android/10.14.0',
+      WhatsApp: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 WhatsApp/2.24.10.78',
+      X: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 TwitterAndroid',
+      Line: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 Line/14.0.0',
+      'In-app': 'Mozilla/5.0 (Linux; Android 13; Pixel 7 Build/TQ3A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36'
+    }
+    for (const [label, ua] of Object.entries(inApp)) {
+      expect(browserFamilyFromUserAgent(ua), label).toBe(label)
+      expect(isInAppBrowserFamily(label)).toBe(true)
+      expect(label.length).toBeGreaterThanOrEqual(1)
+      expect(label.length).toBeLessThanOrEqual(32)
+    }
+    expect(browserFamilyFromUserAgent(
+      'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36 X/10.45'
+    )).toBe('X')
+    expect(IN_APP_BROWSER_FAMILIES).toContain('In-app')
+    expect('Chrome iOS'.length).toBeLessThanOrEqual(32)
+    expect(isInAppBrowserFamily('Chrome')).toBe(false)
+    expect(isInAppBrowserFamily('Other')).toBe(false)
   })
 
   it('reuses unsupported_browser_view for the Quest browser notice', () => {

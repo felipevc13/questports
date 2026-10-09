@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   CHOOSER_DISMISSED_MESSAGE,
+  CHOOSER_DISMISSED_STEPS,
+  CHOOSER_DISMISSED_TITLE,
   INSTALL_ACTION_LABEL,
   USB_PREP_STEPS,
   WEBUSB_UNSUPPORTED_NOTICE,
@@ -60,9 +62,18 @@ describe('usb setup steps', () => {
 })
 
 describe('chooser dismissal copy', () => {
-  it('uses one calm message instead of an error', () => {
-    expect(CHOOSER_DISMISSED_MESSAGE).toBe('No headset selected. Try again when ready.')
-    expect(CHOOSER_DISMISSED_MESSAGE.toLowerCase()).not.toContain('failed')
+  it('uses a calm checklist instead of an error', () => {
+    expect(CHOOSER_DISMISSED_TITLE).toBe("Don't see your Quest in the list?")
+    expect(CHOOSER_DISMISSED_MESSAGE).toBe(CHOOSER_DISMISSED_TITLE)
+    expect(CHOOSER_DISMISSED_STEPS).toEqual([
+      'Use a data cable (not charge-only).',
+      'Headset on and unlocked.',
+      'Accept the "Allow USB debugging" prompt inside the headset (tick Always allow).',
+      'Developer Mode enabled.',
+      'Try another USB port.'
+    ])
+    const copy = [CHOOSER_DISMISSED_TITLE, ...CHOOSER_DISMISSED_STEPS].join(' ').toLowerCase()
+    expect(copy).not.toMatch(/fail|error|unable|denied/)
     expect(primaryInstallBlocked({
       showPrep: false,
       picker: false,
@@ -94,9 +105,7 @@ describe('chooser dismissal copy', () => {
 
 describe('unsupported browser notice', () => {
   it('names Chrome or Edge and leaves room for the manual path', () => {
-    expect(WEBUSB_UNSUPPORTED_NOTICE).toBe(
-      'One-click install needs Chrome or Edge on desktop or Android.'
-    )
+    expect(WEBUSB_UNSUPPORTED_NOTICE).toBe('Use Chrome or Edge')
   })
 })
 

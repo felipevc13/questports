@@ -266,24 +266,57 @@
           </p>
 
           <div
-            v-else-if="!questBrowser && questAdb.connectNotice.value"
+            v-else-if="showChooserHelp"
             data-testid="chooser-dismissed"
             role="status"
             class="p-3.5 rounded-lg bg-muted/40 border border-border text-xs text-left space-y-2"
           >
-            <p class="text-[11px] text-muted-foreground leading-relaxed">{{ QUEST_NO_DEVICE_HINT }}</p>
+            <p class="text-xs font-semibold text-foreground">{{ CHOOSER_DISMISSED_TITLE }}</p>
+            <ul class="space-y-1">
+              <li
+                v-for="step in CHOOSER_DISMISSED_STEPS"
+                :key="step"
+                class="flex items-start gap-2 text-[11px] text-muted-foreground leading-relaxed"
+              >
+                <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/70" aria-hidden="true"></span>
+                <span>{{ step }}</span>
+              </li>
+            </ul>
             <button
               type="button"
               data-testid="chooser-retry"
               class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
-              @click="beginInstall({ skipPrep: true })"
+              @click="retryUsbConnect"
             >
               Try again
             </button>
           </div>
 
           <div
-            v-else-if="!questBrowser && questAdb.connectionError.value && installSupport === 'supported'"
+            v-else-if="showUsbLocked"
+            data-testid="usb-locked"
+            role="status"
+            class="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-left space-y-2 animate-in fade-in duration-200"
+          >
+            <p class="font-semibold text-amber-200">{{ USB_LOCKED_TITLE }}</p>
+            <p class="text-[11px] text-amber-100/90 leading-relaxed">{{ USB_LOCKED_BODY }}</p>
+            <p class="text-[11px] text-muted-foreground leading-relaxed">
+              {{ USB_LOCKED_PLATFORM }}
+              <code class="rounded bg-black/40 px-1 py-0.5 font-mono text-[10px] text-foreground">{{ USB_LOCKED_COMMAND }}</code>.
+              {{ USB_LOCKED_AFTER }}
+            </p>
+            <button
+              type="button"
+              data-testid="usb-locked-retry"
+              class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
+              @click="retryUsbConnect"
+            >
+              Try again
+            </button>
+          </div>
+
+          <div
+            v-else-if="showOtherConnectionError"
             class="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs space-y-2 text-left animate-in fade-in duration-200"
           >
             <div class="font-semibold flex items-center gap-1.5 text-destructive">
@@ -299,7 +332,7 @@
               <button
                 type="button"
                 class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
-                @click="beginInstall({ skipPrep: true })"
+                @click="retryUsbConnect"
               >
                 Try again
               </button>
@@ -375,11 +408,7 @@
 
               <QuestBrowserNotice v-if="questBrowser" />
 
-              <div v-else-if="installSupport === 'unsupported'" data-testid="webusb-unsupported" class="space-y-2">
-                <p class="text-xs font-semibold text-foreground">{{ WEBUSB_UNSUPPORTED_NOTICE }}</p>
-                <p class="text-[11px] text-muted-foreground leading-relaxed">
-                  Safari, Firefox, and iOS cannot install over USB from this page.
-                </p>
+              <UnsupportedBrowserNotice v-else-if="installSupport === 'unsupported'">
                 <button
                   type="button"
                   data-testid="manual-install-toggle"
@@ -404,7 +433,7 @@
                     Step-by-step installation guide
                   </a>
                 </div>
-              </div>
+              </UnsupportedBrowserNotice>
 
               <p v-else-if="installSupport === 'unknown'" class="text-[11px] text-muted-foreground">
                 Checking browser support…
@@ -1223,20 +1252,30 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
-import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import { QUEST_PICKER_HINT, mockUsbErrorFromSearch, questConnectChrome, isUsbChooserDismissed } from '~/lib/questConnectUx'
 import {
+  CHOOSER_DISMISSED_STEPS,
+  CHOOSER_DISMISSED_TITLE,
   INSTALL_ACTION_LABEL,
   USB_PREP_STEPS,
-  WEBUSB_UNSUPPORTED_NOTICE,
   hasRememberedQuestConnection,
   primaryInstallBlocked,
   shouldShowUsbPrep
 } from '~/lib/questInstallUx'
+import {
+  USB_LOCKED_AFTER,
+  USB_LOCKED_BODY,
+  USB_LOCKED_COMMAND,
+  USB_LOCKED_PLATFORM,
+  USB_LOCKED_TITLE,
+  QUEST_USB_MESSAGES
+} from '~/lib/questUsbMessages'
+import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
@@ -1265,6 +1304,7 @@ import { useTrack } from '~/composables/useTrack'
 import TransferProgress from '~/components/TransferProgress.vue'
 
 const route = useRoute()
+const router = useRouter()
 const slug = route.params.slug as string
 const { fetchPortBySlug } = usePorts()
 const questAdb = useQuestAdb()
@@ -1320,10 +1360,33 @@ const installSupportReady = ref(false)
 const manualInstallOpen = ref(false)
 const usbPrepContinueRef = ref<HTMLButtonElement | null>(null)
 
+const previewUserAgent = computed(() => mockUserAgentFromSearch(route.fullPath))
+const mockUsbError = computed(() => mockUsbErrorFromSearch(route.fullPath))
+
 const installSupport = computed<'unknown' | 'supported' | 'unsupported'>(() => {
+  if (previewUserAgent.value) return 'unsupported'
   if (!installSupportReady.value) return 'unknown'
   return questAdb.isWebUsbSupported.value ? 'supported' : 'unsupported'
 })
+
+const showChooserHelp = computed(() =>
+  !questBrowser.value && (Boolean(questAdb.connectNotice.value) || mockUsbError.value === 'cancelled')
+)
+
+const showUsbLocked = computed(() => {
+  if (questBrowser.value || showChooserHelp.value) return false
+  if (mockUsbError.value === 'locked') return true
+  return installSupport.value === 'supported'
+    && questAdb.connectionError.value === QUEST_USB_MESSAGES.usbLocked
+})
+
+const showOtherConnectionError = computed(() =>
+  !questBrowser.value
+  && !showChooserHelp.value
+  && !showUsbLocked.value
+  && installSupport.value === 'supported'
+  && Boolean(questAdb.connectionError.value)
+)
 
 const headsetStatusLabel = computed(() => {
   if (isQuestConnected.value) return questDeviceModel.value || 'Meta Quest connected'
@@ -1336,7 +1399,8 @@ const installFlowChrome = computed(() => {
   return showUsbPrep.value
     || connectChrome.value.showPickerHint
     || connectChrome.value.showHeadsetBanner
-    || Boolean(questAdb.connectNotice.value)
+    || showChooserHelp.value
+    || showUsbLocked.value
     || Boolean(questAdb.connectionError.value)
 })
 
@@ -1359,7 +1423,9 @@ watch(showUsbPrep, async (open) => {
 })
 
 watch(installSupport, (support) => {
-  if (support === 'unsupported') manualInstallOpen.value = true
+  if (support !== 'unsupported') return
+  const userAgent = previewUserAgent.value || (import.meta.client ? navigator.userAgent : '')
+  if (!unsupportedNoticeForUserAgent(userAgent).copyLink) manualInstallOpen.value = true
 })
 
 watch(() => questAdb.isConnected.value, (connected) => {
@@ -1617,8 +1683,8 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   showPrep: showUsbPrep.value,
   picker: connectChrome.value.showPickerHint,
   authorizing: connectChrome.value.showHeadsetBanner,
-  dismissed: Boolean(questAdb.connectNotice.value),
-  connectionError: Boolean(questAdb.connectionError.value),
+  dismissed: showChooserHelp.value,
+  connectionError: showUsbLocked.value || showOtherConnectionError.value,
   installing: isInstallingApk.value,
   supported: installSupport.value === 'supported'
 }))
@@ -1632,6 +1698,9 @@ const showUsbStepsLink = computed(() => {
     && !showUsbPrep.value
     && !connectChrome.value.showPickerHint
     && !connectChrome.value.showHeadsetBanner
+    && !showChooserHelp.value
+    && !showUsbLocked.value
+    && !showOtherConnectionError.value
 })
 
 const isDirectApkOnly = computed(() => isSelfContainedSideload(currentPackageConfig.value))
@@ -1923,6 +1992,15 @@ const noteInstallFailure = (err: any) => {
   console.error('Failed to install APK via WebADB:', err)
   apkInstallError.value = message
   trackInstall('install_error', installErrorReason(err))
+}
+
+const retryUsbConnect = async () => {
+  if (mockUsbError.value) {
+    const query = { ...route.query }
+    delete query.mockUsbError
+    await router.replace({ path: route.path, query })
+  }
+  await beginInstall({ skipPrep: true })
 }
 
 const beginInstall = async (options?: { skipPrep?: boolean }) => {

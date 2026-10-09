@@ -3,6 +3,7 @@ import {
   QUEST_NO_DEVICE_HINT,
   QUEST_PICKER_HINT,
   isUsbChooserDismissed,
+  mockUsbErrorFromSearch,
   questConnectChrome
 } from '../app/lib/questConnectUx'
 
@@ -49,6 +50,18 @@ describe('usb chooser dismissal', () => {
     expect(isUsbChooserDismissed({ name: 'NetworkError', message: 'The transfer was cancelled.' })).toBe(false)
     expect(isUsbChooserDismissed({ message: 'The Quest USB interface is locked' })).toBe(false)
     expect(isUsbChooserDismissed(null)).toBe(false)
-    expect(QUEST_NO_DEVICE_HINT).toBe('No headset selected. Try again when ready.')
+    expect(QUEST_NO_DEVICE_HINT).toBe("Don't see your Quest in the list?")
+  })
+})
+
+describe('mock usb error query', () => {
+  it('accepts locked and cancelled only', () => {
+    expect(mockUsbErrorFromSearch('?mockUsbError=locked')).toBe('locked')
+    expect(mockUsbErrorFromSearch('/ports/rtcwquest?mockUsbError=cancelled')).toBe('cancelled')
+    expect(mockUsbErrorFromSearch('?x=1&mockUsbError=locked#guide')).toBe('locked')
+    expect(mockUsbErrorFromSearch('?mockUsbError=timeout')).toBeNull()
+    expect(mockUsbErrorFromSearch('?mockUsbError=')).toBeNull()
+    expect(mockUsbErrorFromSearch('?mockUa=ios')).toBeNull()
+    expect(mockUsbErrorFromSearch(null)).toBeNull()
   })
 })

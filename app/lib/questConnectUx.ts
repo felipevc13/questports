@@ -6,6 +6,19 @@ export const QUEST_PICKER_HINT = 'Select your Quest in the browser window.'
 
 export const QUEST_NO_DEVICE_HINT = CHOOSER_DISMISSED_MESSAGE
 
+export type MockUsbError = 'locked' | 'cancelled'
+
+/** `?mockUsbError=locked` or `?mockUsbError=cancelled`, for screenshots and tests. */
+export function mockUsbErrorFromSearch(value: string | null | undefined): MockUsbError | null {
+  if (!value) return null
+  const hashless = value.split('#')[0] || ''
+  const queryIndex = hashless.indexOf('?')
+  const query = queryIndex >= 0 ? hashless.slice(queryIndex + 1) : hashless
+  const flag = new URLSearchParams(query).get('mockUsbError')
+  if (flag === 'locked' || flag === 'cancelled') return flag
+  return null
+}
+
 export interface QuestConnectChrome {
   /** Amber “put on the headset / Allow USB debugging” banner. */
   showHeadsetBanner: boolean
