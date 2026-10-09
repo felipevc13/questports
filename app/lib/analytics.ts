@@ -582,6 +582,66 @@ export interface AnalyticsTrackInput {
   props?: Record<string, unknown> | null
 }
 
+/**
+ * install_success is recorded after a long WebUSB session, often while the tab is in the background.
+ * sendBeacon can return true and then never flush. A normal fetch is the transport that already
+ * lands the matching verification write.
+ * Other events use sendBeacon only while the tab is visible.
+ */
+export function analyticsDeliveryPlan(input: {
+  event: string
+  visibility?: string | null
+  beaconAvailable?: boolean
+}): 'beacon' | 'fetch' {
+  if (input.event === 'install_success') return 'fetch'
+  if (input.visibility && input.visibility !== 'visible') return 'fetch'
+  if (!input.beaconAvailable) return 'fetch'
+  return 'beacon'
+}
+
+export async function deliverAnalyticsPayload(input: {
+  event: string
+  body: string
+  visibility?: string | null
+  url?: string
+  sendBeacon?: (url: string, data: Blob) => boolean
+  fetchImpl: (url: string, init: { method: string; body: string; headers: Record<string, string>; keepalive: boolean }) => Promise<unknown>
+}): Promise<'beacon' | 'fetch'> {
+  const url = input.url || '/api/track'
+  const plan = analyticsDeliveryPlan({
+    event: input.event,
+    visibility: input.visibility,
+    beaconAvailable: typeof input.sendBeacon === 'function'
+  })
+  if (plan === 'beacon' && input.sendBeacon) {
+    try {
+      const blob = new Blob([input.body], { type: 'application/json' })
+      if (input.sendBeacon(url, blob)) return 'beacon'
+    } catch {
+      // Fall through to fetch.
+    }
+  }
+  await input.fetchImpl(url, {
+    method: 'POST',
+    body: input.body,
+    headers: { 'content-type': 'application/json' },
+    keepalive: true
+  })
+  return 'fetch'
+}
+
+/**
+ * The WebUSB installer records a success only after pm install reports success.
+ * A cancelled or unfinished transfer is an install_error, not a success.
+ */
+export function apkInstallOutcome(input: {
+  installed: boolean
+  progressStep?: string | null
+}): 'success' | 'cancelled' {
+  if (input.installed || input.progressStep === 'completed') return 'success'
+  return 'cancelled'
+}
+
 /** Payload safe to send. Search queries are truncated before they leave the browser. */
 export function clientAnalyticsPayload(
   event: AnalyticsEventName,

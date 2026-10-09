@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest'
 import {
   ANALYTICS_EVENTS,
   ANALYTICS_HOURLY_LIMIT,
+  analyticsDeliveryPlan,
+  apkInstallOutcome,
+  deliverAnalyticsPayload,
   CAMPAIGN_REF_STORAGE_KEY,
   FILTER_NAMES,
   INSTALL_ERROR_REASONS,
@@ -393,7 +396,7 @@ describe('analytics validation', () => {
   it('records install success at the verification step', () => {
     const source = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     const fn = source.slice(source.indexOf('const recordInstallVerification'))
-    const successAt = fn.indexOf("trackInstall('install_success')")
+    const successAt = fn.indexOf("await trackInstall('install_success')")
     const postAt = fn.indexOf("'/api/verifications'")
     expect(successAt).toBeGreaterThan(0)
     expect(postAt).toBeGreaterThan(successAt)
@@ -410,6 +413,82 @@ describe('analytics validation', () => {
       .toContain('sessionStorage')
     expect(readFileSync(new URL('../app/components/Footer.vue', import.meta.url), 'utf8'))
       .toContain('Anonymous usage stats, no cookies.')
+  })
+
+  it('records a finished WebUSB install with fetch before the verification post', async () => {
+    expect(apkInstallOutcome({ installed: true, progressStep: 'installing' })).toBe('success')
+    expect(apkInstallOutcome({ installed: false, progressStep: 'completed' })).toBe('success')
+    expect(apkInstallOutcome({ installed: false, progressStep: 'error' })).toBe('cancelled')
+    expect(apkInstallOutcome({ installed: false, progressStep: 'idle' })).toBe('cancelled')
+
+    const payload = clientAnalyticsPayload('install_success', {
+      path: '/ports/gran-turismo-2-vr',
+      portSlug: 'gran-turismo-2-vr',
+      headset: 'Quest 3S',
+      webusb: true
+    })
+    const decision = decide({ body: payload, userAgent: CHROME_UA })
+    expect(decision.record).toBe(true)
+    expect(decision.row?.event).toBe('install_success')
+    expect(decision.row?.port_slug).toBe('gran-turismo-2-vr')
+    expect(decision.row?.headset).toBe('Quest 3S')
+    expect(decision.row?.browser).toBe('Chrome')
+    expect(decision.row?.props).toBeNull()
+
+    expect(analyticsDeliveryPlan({
+      event: 'install_success',
+      visibility: 'visible',
+      beaconAvailable: true
+    })).toBe('fetch')
+    expect(analyticsDeliveryPlan({
+      event: 'install_success',
+      visibility: 'hidden',
+      beaconAvailable: true
+    })).toBe('fetch')
+    expect(analyticsDeliveryPlan({
+      event: 'install_click',
+      visibility: 'visible',
+      beaconAvailable: true
+    })).toBe('beacon')
+    expect(analyticsDeliveryPlan({
+      event: 'install_click',
+      visibility: 'hidden',
+      beaconAvailable: true
+    })).toBe('fetch')
+
+    let beacons = 0
+    let fetched = ''
+    const mode = await deliverAnalyticsPayload({
+      event: 'install_success',
+      body: JSON.stringify(payload),
+      visibility: 'hidden',
+      sendBeacon: () => {
+        beacons += 1
+        return true
+      },
+      fetchImpl: async (_url, init) => {
+        fetched = init.body
+      }
+    })
+    expect(mode).toBe('fetch')
+    expect(beacons).toBe(0)
+    expect(fetched).toContain('"event":"install_success"')
+    expect(fetched).toContain('gran-turismo-2-vr')
+    expect(fetched).toContain('Quest 3S')
+
+    const source = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
+    const handler = source.slice(source.indexOf('const handleApkInstall'))
+    const outcomeAt = handler.indexOf('apkInstallOutcome(')
+    const verifyAt = handler.indexOf('await recordInstallVerification()')
+    const cancelledAt = handler.indexOf("trackInstall('install_error', 'user_cancelled')")
+    expect(outcomeAt).toBeGreaterThan(0)
+    expect(verifyAt).toBeGreaterThan(outcomeAt)
+    expect(cancelledAt).toBeGreaterThan(verifyAt)
+    const record = source.slice(source.indexOf('const recordInstallVerification'))
+    expect(record.indexOf("await trackInstall('install_success')")).toBeGreaterThan(0)
+    expect(record.indexOf("'/api/verifications'")).toBeGreaterThan(record.indexOf("await trackInstall('install_success')"))
+    expect(readFileSync(new URL('../app/composables/useTrack.ts', import.meta.url), 'utf8'))
+      .toContain('deliverAnalyticsPayload')
   })
 
   it('records install success with port, headset, and session ref', () => {

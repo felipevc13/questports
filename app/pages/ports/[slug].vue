@@ -1249,6 +1249,7 @@ import { canonicalHeadset } from '~/lib/verification'
 import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import {
+  apkInstallOutcome,
   claimVideoPreviewPlay,
   connectFailureReason,
   createInstallStepLedger,
@@ -1873,7 +1874,7 @@ const applyInstallSteps = (
 
 const recordInstallVerification = async () => {
   if (!port.value) return
-  trackInstall('install_success')
+  await trackInstall('install_success')
   const selfContained = isDirectApkOnly.value
   const campaigns = campaignList.value
   const gameFilesDetected = selfContained
@@ -2041,7 +2042,10 @@ const handleApkInstall = async () => {
       spaceNotice.value = questAdb.installSpaceWarning.value
       spaceNoticeKind.value = 'warn'
     }
-    if (installed || questAdb.installProgress.value.step === 'completed') {
+    if (apkInstallOutcome({
+      installed: Boolean(installed),
+      progressStep: questAdb.installProgress.value.step
+    }) === 'success') {
       isApkInstalled.value = true
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()

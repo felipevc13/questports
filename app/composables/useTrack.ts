@@ -1,8 +1,9 @@
-import { browserOptsOut, clientAnalyticsPayload, withSessionCampaignRef, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
+import { browserOptsOut, clientAnalyticsPayload, deliverAnalyticsPayload, withSessionCampaignRef, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 
 /**
- * Fire-and-forget usage events. sendBeacon first, then fetch keepalive.
+ * Fire-and-forget usage events. Visible events use sendBeacon, then fetch keepalive.
+ * install_success always uses fetch: sendBeacon was accepting that event and never flushing it.
  * No cookies and no localStorage id. Failures are ignored.
  */
 export function useTrack() {
@@ -20,17 +21,16 @@ export function useTrack() {
       }, window.sessionStorage, window.location.search))
       if (!payload) return
       const body = JSON.stringify(payload)
-      const url = '/api/track'
-      if (typeof navigator.sendBeacon === 'function') {
-        const blob = new Blob([body], { type: 'application/json' })
-        if (navigator.sendBeacon(url, blob)) return
-      }
-      void fetch(url, {
-        method: 'POST',
+      const sendBeacon = typeof navigator.sendBeacon === 'function'
+        ? (url: string, data: Blob) => navigator.sendBeacon(url, data)
+        : undefined
+      return deliverAnalyticsPayload({
+        event,
         body,
-        headers: { 'content-type': 'application/json' },
-        keepalive: true
-      }).catch(() => {})
+        visibility: document.visibilityState,
+        sendBeacon,
+        fetchImpl: (url, init) => fetch(url, init).catch(() => {})
+      }).then(() => {})
     } catch {
       // Analytics must never break the page.
     }
