@@ -1,6 +1,8 @@
 const STORAGE_MARKER = '/storage/v1/object/public/port-covers/'
 const SITE_ORIGIN = 'https://questports.vercel.app'
 const DEFAULT_OG = '/covers/questports-og.png'
+/** Cache-busted absolute URL for the site-wide 1200×630 share card. */
+export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=2`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
 const STEAMGRID_COVERS: Record<string, string> = {
   '7adb6a50e7687b45a00b35796f18f17d': '/covers/ut99vr.png',
@@ -44,6 +46,7 @@ export function resolveCoverUrl(url: string | null | undefined): string | null {
 export function absoluteCoverUrl(url: string | null | undefined): string {
   const resolved = resolveCoverUrl(url) || DEFAULT_OG
   if (resolved.startsWith('http')) return resolved
+  if (resolved === DEFAULT_OG) return DEFAULT_OG_URL
   return `${SITE_ORIGIN}${resolved}`
 }
 
