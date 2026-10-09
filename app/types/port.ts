@@ -84,4 +84,10 @@ export interface Port {
   troubleshooting_notes: string | null
   created_at?: string
   updated_at?: string
+  /**
+   * Distinct devices that installed this port through QuestPorts, all versions.
+   * Attached by the catalog query from port_install_counts. Missing means unknown
+   * or zero, not "installed on this headset".
+   */
+  installs?: number
 }

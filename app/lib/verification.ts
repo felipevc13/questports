@@ -294,8 +294,9 @@ function approvedRecords(
 
 /**
  * Manual checks own Verified, Issues, and broken.
- * An automatic install is only Installed, including rows stored as
- * works_with_issues because game files were not copied through the site.
+ * An automatic install is not a quality label. The card shows a usage count
+ * from port_install_counts instead, including rows stored as works_with_issues
+ * because game files were not copied through the site.
  * A check for an older catalog version is stale and stays off the card.
  */
 export function portVerificationSignal(
@@ -349,8 +350,8 @@ function summaryForRecord(
     if (state === 'stale') {
       return {
         text: connected
-          ? `${connected}: installed on ${version} · update not tested`
-          : `Installed on ${version} · update not tested`,
+          ? `${connected}: last install through QuestPorts was ${version} · update not tested`
+          : `Last install through QuestPorts was ${version} · update not tested`,
         tone: 'stale'
       }
     }
@@ -359,8 +360,8 @@ function summaryForRecord(
       const noteText = note ? ` · ${note}` : ''
       return {
         text: connected
-          ? `${connected}: installed via QuestPorts${noteText}`
-          : `Installed via QuestPorts on ${version} · ${headset} · ${age}${noteText}`,
+          ? `${connected}: install via QuestPorts${noteText}`
+          : `Install via QuestPorts on ${version} · ${headset} · ${age}${noteText}`,
         tone: 'installed'
       }
     }
@@ -428,12 +429,22 @@ export function verificationSummaryLine(
   return summaryForRecord(signal.record, catalogVersion, now, null)
 }
 
-export type CardVerificationTone = 'verified' | 'installed' | 'issues'
+export type CardVerificationTone = 'verified' | 'installs' | 'issues'
 
 export interface CardVerificationLabel {
   tone: CardVerificationTone
+  /** Quality or usage lead. The count, when present, is suffix and stays muted. */
+  lead: string
+  /** Includes the separator, for example " · 12 installs". Empty when there is no count. */
+  suffix: string
   text: string
   detail: string
+}
+
+export interface PortInstallCount {
+  port_slug: string
+  installs: number
+  last_install_at: string | null
 }
 
 function cardDetail(record: PortVerification, lead: string, now: number): string {
@@ -445,41 +456,92 @@ function cardDetail(record: PortVerification, lead: string, now: number): string
   return `${lead} on ${headsetName(record)}.${tested}${noteText}`
 }
 
+/** Compact number for counts: 1, 12, 1.2k. Null when there is nothing to show. */
+export function formatInstallCompact(count: number): string | null {
+  if (!Number.isFinite(count) || count < 1) return null
+  const whole = Math.floor(count)
+  if (whole < 1000) return String(whole)
+  const thousands = Math.round(whole / 100) / 10
+  return Number.isInteger(thousands) ? `${thousands}k` : `${thousands.toFixed(1)}k`
+}
+
+/** "1 install", "12 installs", "1.2k installs". Null for 0. */
+export function formatInstallCount(count: number): string | null {
+  const compact = formatInstallCompact(count)
+  if (!compact) return null
+  return `${compact} ${Math.floor(count) === 1 ? 'install' : 'installs'}`
+}
+
+/** Detail-page sentence. "1 person", otherwise "people", including 1.2k. */
+export function installedByPeopleLine(count: number): string | null {
+  const compact = formatInstallCompact(count)
+  if (!compact) return null
+  const noun = Math.floor(count) === 1 ? 'person' : 'people'
+  return `Installed by ${compact} ${noun} through QuestPorts`
+}
+
+function newestAutomaticInstall(
+  records: PortVerification[] | null | undefined,
+  slug: string
+): PortVerification | null {
+  return newestRecord(approvedRecords(records, slug).filter(record => isAutomaticInstallSignal(record)))
+}
+
+function cardLabelFromParts(
+  tone: CardVerificationTone,
+  lead: string,
+  suffix: string,
+  detail: string
+): CardVerificationLabel {
+  return { tone, lead, suffix, text: `${lead}${suffix}`, detail }
+}
+
 /**
  * One short line under the author on a catalog card.
  * Headset, version, and the game-file note stay in the title.
- * Nothing when this catalog version is untested.
+ * Manual issues win. Manual works may add a muted install count.
+ * Installs alone are a usage count, not a quality claim.
+ * Nothing when this catalog version is untested and nobody has installed it.
  */
 export function buildCardVerificationLabel(
   records: PortVerification[] | null | undefined,
   slug: string,
   catalogVersion: string | null | undefined,
-  now = Date.now()
+  now = Date.now(),
+  installCount = 0
 ): CardVerificationLabel | null {
   const signal = portVerificationSignal(records, slug, catalogVersion)
-  if (!signal.record) return null
-  if (signal.kind === 'verified') {
-    return {
-      tone: 'verified',
-      text: '✓ Verified',
-      detail: cardDetail(signal.record, 'Verified', now)
-    }
+  const countText = formatInstallCount(installCount)
+
+  if (signal.kind === 'issues' && signal.record) {
+    return cardLabelFromParts(
+      'issues',
+      '⚠ Issues',
+      '',
+      cardDetail(signal.record, 'Known issues', now)
+    )
   }
-  if (signal.kind === 'installed') {
-    return {
-      tone: 'installed',
-      text: '✓ Installed',
-      detail: cardDetail(signal.record, 'Installed via QuestPorts', now)
-    }
+  if (signal.kind === 'verified' && signal.record) {
+    const suffix = countText ? ` · ${countText}` : ''
+    return cardLabelFromParts(
+      'verified',
+      '✓ Verified',
+      suffix,
+      cardDetail(signal.record, 'Verified', now)
+    )
   }
-  if (signal.kind === 'issues') {
-    return {
-      tone: 'issues',
-      text: '⚠ Issues',
-      detail: cardDetail(signal.record, 'Known issues', now)
-    }
-  }
-  return null
+  if (signal.kind === 'broken') return null
+  if (!countText) return null
+
+  const record = signal.record ?? newestAutomaticInstall(records, slug)
+  return cardLabelFromParts(
+    'installs',
+    `↓ ${countText}`,
+    '',
+    record
+      ? cardDetail(record, 'Install via QuestPorts', now)
+      : `${countText} through QuestPorts.`
+  )
 }
 
 export function buildVerificationBadge(
@@ -497,22 +559,7 @@ export function buildVerificationBadge(
   const age = formatVerificationAge(latest.checked_at, now)
   const version = formatVerificationVersion(latest.tested_version)
   const who = sourceLabel(latest.source)
-  if (isAutomaticInstallSignal(latest)) {
-    if (state === 'current') {
-      return {
-        state,
-        tone: 'installed',
-        text: `Installed · ${headset} · ${age}`,
-        detail: cardDetail(latest, 'Installed via QuestPorts', now)
-      }
-    }
-    return {
-      state: 'stale',
-      tone: 'stale',
-      text: `Installed on ${version} · update not tested`,
-      detail: `Last install was ${version} on ${headset} (${age}). The current catalog version has not been installed through the site.`
-    }
-  }
+  if (isAutomaticInstallSignal(latest)) return null
   if (state === 'current' && latest.result === 'works_with_issues') {
     return {
       state,

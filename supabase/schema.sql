@@ -181,3 +181,69 @@ order by port_slug, headset_model, checked_at desc;
 
 revoke all on table public.port_verification_summaries from public, anon, authenticated;
 grant select on table public.port_verification_summaries to anon, authenticated, service_role;
+
+-- Distinct devices that installed each port through the site. The public view
+-- is security_invoker and only returns aggregates. Fingerprints stay in
+-- private.port_install_count_rows. See
+-- supabase/migrations/20261009201000_port_install_counts.sql.
+create schema if not exists private;
+
+revoke all on schema private from public;
+grant usage on schema private to anon, authenticated, service_role;
+
+create or replace function private.port_install_count_rows()
+returns table (
+  port_slug text,
+  installs bigint,
+  last_install_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    v.port_slug,
+    (
+      count(distinct v.device_fingerprint) filter (where v.device_fingerprint is not null)
+      + count(*) filter (where v.device_fingerprint is null)
+    )::bigint as installs,
+    max(v.checked_at) as last_install_at
+  from public.port_verifications v
+  where v.moderation_status = 'approved'
+    and v.source = 'install'
+    and v.result in ('works', 'works_with_issues')
+  group by v.port_slug
+$$;
+
+revoke all on function private.port_install_count_rows() from public, anon, authenticated;
+grant execute on function private.port_install_count_rows() to anon, authenticated, service_role;
+
+create or replace view public.port_install_counts
+with (security_invoker = true) as
+select port_slug, installs, last_install_at
+from private.port_install_count_rows();
+
+revoke all on table public.port_install_counts from public, anon, authenticated;
+grant select on table public.port_install_counts to anon, authenticated, service_role;
+
+create index if not exists port_verifications_install_count_idx
+  on public.port_verifications (port_slug, device_fingerprint, checked_at desc)
+  where moderation_status = 'approved'
+    and source = 'install'
+    and result in ('works', 'works_with_issues');
+
+create or replace function public.ports_install_count(port public.ports)
+returns setof public.port_install_counts
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select c.port_slug, c.installs, c.last_install_at
+  from public.port_install_counts c
+  where c.port_slug = port.slug
+$$;
+
+revoke all on function public.ports_install_count(public.ports) from public, anon, authenticated;
+grant execute on function public.ports_install_count(public.ports) to anon, authenticated, service_role;

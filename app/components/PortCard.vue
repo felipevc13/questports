@@ -137,6 +137,7 @@
             :records="verifications"
             :slug="port.slug"
             :latest-version="port.latest_version"
+            :install-count="port.installs ?? 0"
           />
         </div>
 

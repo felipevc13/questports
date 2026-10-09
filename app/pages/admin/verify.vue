@@ -5,10 +5,10 @@
       Felipe only. The secret stays in this form until you submit it. The server checks it and writes with the service role. Nothing here is linked from the catalog.
     </p>
     <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
-      These statuses are a real playtest. Only this form can mark a port as having issues or as broken. A one-click install never does: if the APK installs, the card shows <span class="text-green-300">✓ Installed</span>, even when the game files were copied with SideQuest or a file manager instead of through the site.
+      These statuses are a real playtest. Only this form can mark a port as having issues or as broken. A one-click install never does. It only adds a usage count, such as <span class="text-muted-foreground">↓ 12 installs</span>. That is how many devices installed through QuestPorts, not a claim the port works, and not a claim it is on your headset. Game files copied with SideQuest or a file manager still count.
     </p>
     <ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-muted-foreground">
-      <li><span class="text-foreground">Works</span> — you played it and it runs. The card shows <span class="text-green-400">✓ Verified</span>.</li>
+      <li><span class="text-foreground">Works</span> — you played it and it runs. The card shows <span class="text-green-400">✓ Verified</span>. When people have installed it through the site, a muted count follows, such as <span class="text-muted-foreground">· 12 installs</span>.</li>
       <li><span class="text-foreground">Works with issues</span> — real problems, such as crashes or broken controls. The card shows <span class="text-amber-400">⚠ Issues</span>.</li>
       <li><span class="text-foreground">Doesn't work</span> — it does not run. The port page says so. The card stays blank.</li>
     </ul>

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { buildInstallVerificationBody } from '../app/lib/installVerification'
 import {
@@ -6,7 +6,9 @@ import {
   buildVerificationBadge,
   canonicalHeadset,
   describeChecks,
+  formatInstallCount,
   installFilesNote,
+  installedByPeopleLine,
   verificationSummaryLine,
   formatVerificationVersion,
   isMockDeviceSerial,
@@ -119,12 +121,29 @@ describe('verification staleness', () => {
   })
 })
 
+describe('install count formatting', () => {
+  it('pluralizes and compacts the count', () => {
+    expect(formatInstallCount(0)).toBeNull()
+    expect(formatInstallCount(1)).toBe('1 install')
+    expect(formatInstallCount(12)).toBe('12 installs')
+    expect(formatInstallCount(999)).toBe('999 installs')
+    expect(formatInstallCount(1000)).toBe('1k installs')
+    expect(formatInstallCount(1200)).toBe('1.2k installs')
+    expect(formatInstallCount(1200.9)).toBe('1.2k installs')
+    expect(installedByPeopleLine(0)).toBeNull()
+    expect(installedByPeopleLine(1)).toBe('Installed by 1 person through QuestPorts')
+    expect(installedByPeopleLine(12)).toBe('Installed by 12 people through QuestPorts')
+    expect(installedByPeopleLine(1200)).toBe('Installed by 1.2k people through QuestPorts')
+  })
+})
+
 describe('card verification label', () => {
   const label = (
     records: PortVerification[] | null | undefined,
     version = 'v1.0.16',
-    slug = 'halocequest'
-  ) => buildCardVerificationLabel(records, slug, version, NOW)
+    slug = 'halocequest',
+    installCount = 0
+  ) => buildCardVerificationLabel(records, slug, version, NOW, installCount)
 
   it('maps a manual works check to a short verified line', () => {
     const row = label([check()])
@@ -134,7 +153,7 @@ describe('card verification label', () => {
     expect(row?.detail).toContain('v1.0.16')
   })
 
-  it('maps only-automatic installs to installed, including a legacy issues result', () => {
+  it('maps only-automatic installs to a usage count, including a legacy issues result', () => {
     const legacy = check({
       id: 'sega',
       port_slug: 'sega-rally-vr',
@@ -144,9 +163,9 @@ describe('card verification label', () => {
       tested_version: 'v0.2.3',
       checks: { apk_installed: true, game_files_detected: false, storage_path_confirmed: false }
     })
-    const copiedElsewhere = label([legacy], 'v0.2.3', 'sega-rally-vr')
-    expect(copiedElsewhere).toMatchObject({ tone: 'installed', text: '✓ Installed' })
-    expect(copiedElsewhere?.text).not.toMatch(/Quest|issue/i)
+    const copiedElsewhere = label([legacy], 'v0.2.3', 'sega-rally-vr', 12)
+    expect(copiedElsewhere).toMatchObject({ tone: 'installs', text: '↓ 12 installs', lead: '↓ 12 installs', suffix: '' })
+    expect(copiedElsewhere?.text).not.toMatch(/Quest|issue|Verified|Installed/)
     expect(copiedElsewhere?.detail).toContain('Quest 2')
     expect(copiedElsewhere?.detail).toContain('Game files not sent through the site')
 
@@ -156,9 +175,11 @@ describe('card verification label', () => {
       headset_model: 'Quest 2',
       checks: { apk_installed: true }
     })
-    const installed = label([apkOnly])
-    expect(installed).toMatchObject({ tone: 'installed', text: '✓ Installed' })
-    expect(installed?.detail).not.toContain('Game files not sent through the site')
+    const one = label([apkOnly], 'v1.0.16', 'halocequest', 1)
+    expect(one).toMatchObject({ tone: 'installs', text: '↓ 1 install' })
+    expect(one?.detail).not.toContain('Game files not sent through the site')
+    expect(label([apkOnly], 'v1.0.16', 'halocequest', 1200)?.text).toBe('↓ 1.2k installs')
+    expect(label([apkOnly])).toBeNull()
   })
 
   it('lets the latest manual check own issues, and ignores installs for that label', () => {
@@ -177,9 +198,9 @@ describe('card verification label', () => {
       checked_at: '2026-10-08T12:00:00.000Z',
       checks: { apk_installed: true, game_files_detected: false }
     })
-    const row = label([newerInstall, issues])
-    expect(row).toMatchObject({ tone: 'issues', text: '⚠ Issues' })
-    expect(row?.text).not.toMatch(/Quest/)
+    const row = label([newerInstall, issues], 'v1.0.16', 'halocequest', 12)
+    expect(row).toMatchObject({ tone: 'issues', text: '⚠ Issues', suffix: '' })
+    expect(row?.text).not.toMatch(/Quest|install/i)
     expect(row?.detail).toContain('Quest 2')
     expect(row?.detail).not.toContain('Game files not sent through the site')
   })
@@ -193,15 +214,27 @@ describe('card verification label', () => {
       headset_model: 'Quest 2',
       checked_at: '2026-10-08T00:00:00.000Z'
     })
-    expect(label([install, manual])).toMatchObject({ tone: 'verified', text: '✓ Verified' })
+    expect(label([install, manual])).toMatchObject({ tone: 'verified', text: '✓ Verified', suffix: '' })
+    const withCount = label([install, manual], 'v1.0.16', 'halocequest', 12)
+    expect(withCount).toMatchObject({
+      tone: 'verified',
+      lead: '✓ Verified',
+      suffix: ' · 12 installs',
+      text: '✓ Verified · 12 installs'
+    })
+    expect(withCount?.text.startsWith('✓ Verified')).toBe(true)
+    expect(label([install, manual], 'v1.0.16', 'halocequest', 1)?.text).toBe('✓ Verified · 1 install')
   })
 
   it('shows nothing when untested, broken, or only checked on an older version', () => {
     expect(label(null)).toBeNull()
     expect(label([])).toBeNull()
     expect(label([check({ result: 'doesnt_work' })])).toBeNull()
+    expect(label([check({ result: 'doesnt_work' })], 'v1.0.16', 'halocequest', 4)).toBeNull()
     expect(label([check()])).not.toBeNull()
     expect(label([check()], 'v1.0.17')).toBeNull()
+    expect(label([check()], 'v1.0.17', 'halocequest', 4)?.text).toBe('↓ 4 installs')
+    expect(label(null, 'v1.0.16', 'halocequest', 4)?.text).toBe('↓ 4 installs')
   })
 
   it('keeps the card label on one 13px line and leaves the headset in the title', () => {
@@ -217,8 +250,12 @@ describe('card verification label', () => {
       result: 'works_with_issues',
       checks: { apk_installed: true, game_files_detected: false }
     })
-    expect(buildVerificationBadge(legacy, 'v1.0.16', NOW)?.text).toBe('Installed · Quest 3 · 5 days ago')
-    expect(buildVerificationBadge(legacy, 'v1.0.16', NOW)?.text).not.toMatch(/issues/i)
+    expect(buildVerificationBadge(legacy, 'v1.0.16', NOW)).toBeNull()
+    expect(label([legacy], 'v1.0.16', 'halocequest', 12)?.text).toBe('↓ 12 installs')
+    const sourceBadge = readFileSync(new URL('../app/components/VerificationBadge.vue', import.meta.url), 'utf8')
+    expect(sourceBadge).toContain("case 'installs': return 'font-medium text-muted-foreground'")
+    expect(sourceBadge).toContain('text-muted-foreground')
+    expect(sourceBadge).not.toContain('✓ Installed')
   })
 })
 
@@ -286,11 +323,11 @@ describe('detail verification summary', () => {
       checks: { apk_installed: true, game_files_detected: false, storage_path_confirmed: false }
     })
     expect(verificationSummaryLine([install], 'sega-rally-vr', 'v0.2.3', null, NOW)).toEqual({
-      text: 'Installed via QuestPorts on v0.2.3 · Quest 2 · today · Game files not sent through the site',
+      text: 'Install via QuestPorts on v0.2.3 · Quest 2 · today · Game files not sent through the site',
       tone: 'installed'
     })
     expect(verificationSummaryLine([install], 'sega-rally-vr', 'v0.2.3', 'Quest 2', NOW).text)
-      .toBe('Quest 2: installed via QuestPorts · Game files not sent through the site')
+      .toBe('Quest 2: install via QuestPorts · Game files not sent through the site')
     expect(verificationStatusLabel(install)).toBe('Installed via QuestPorts')
     expect(installFilesNote(install)).toBe('Game files not sent through the site')
     expect(describeChecks(install.checks, 'install')).toContain('Game files not sent through the site')
@@ -319,6 +356,28 @@ describe('detail verification summary', () => {
     expect(source).toContain('const expanded = ref(false)')
     expect(source).toContain('See details')
     expect(source).toContain('Hide details')
+    expect(source).toContain('installedByPeopleLine')
+    expect(source).toContain('peopleLine')
+  })
+})
+
+describe('port install count migration', () => {
+  it('aggregates approved installs without granting the fingerprint column', () => {
+    const dir = new URL('../supabase/migrations/', import.meta.url)
+    const name = readdirSync(dir).find(file => file.endsWith('_port_install_counts.sql'))
+    expect(name).toBeTruthy()
+    const sql = readFileSync(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8')
+    expect(sql).toContain('with (security_invoker = true)')
+    expect(sql).toContain('security definer')
+    expect(sql).toContain('private.port_install_count_rows')
+    expect(sql).toContain('count(distinct v.device_fingerprint)')
+    expect(sql).toContain('count(*) filter (where v.device_fingerprint is null)')
+    expect(sql).toContain("v.source = 'install'")
+    expect(sql).toContain("v.result in ('works', 'works_with_issues')")
+    expect(sql).toContain("v.moderation_status = 'approved'")
+    expect(sql).toContain('grant select on table public.port_install_counts to anon, authenticated, service_role')
+    expect(sql).toContain('public.ports_install_count(port public.ports)')
+    expect(sql).not.toMatch(/grant select\s*\([^)]*device_fingerprint/i)
   })
 })
 
