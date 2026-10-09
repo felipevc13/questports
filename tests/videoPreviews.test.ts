@@ -31,4 +31,10 @@ describe('local hover previews', () => {
     expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('magic-carpet-vr')
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
   })
+
+  it('leaves Descent 3 VR without a hover preview', () => {
+    expect(hasVideoPreview('descent-3-vr')).toBe(false)
+    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('descent-3-vr')
+    expect(GAME_VIDEO_PREVIEWS['descent-3-vr']).toBeUndefined()
+  })
 })

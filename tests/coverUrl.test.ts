@@ -25,7 +25,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/933bae66e5dfe59043d3d2cbbe9c7fc3.png', '/covers/generals-zero-hour-xr.png'],
     ['https://cdn2.steamgriddb.com/grid/fe895c991a5152476a051ae74fcbf8ac.png', '/covers/sm64-coop-dx-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/317799a8c9027ed5e9cbb1deb38238d9.jpg', '/covers/f-zero-x-vr.jpg'],
-    ['https://cdn2.steamgriddb.com/grid/bb6db65a8d0f04a0f9a0a8e708da18d2.png', '/covers/quake3quest.png']
+    ['https://cdn2.steamgriddb.com/grid/bb6db65a8d0f04a0f9a0a8e708da18d2.png', '/covers/quake3quest.png'],
+    ['https://cdn2.steamgriddb.com/grid/a885e2694d4d70bb6e531289081bcb7e.jpg', '/covers/descent-3-vr.jpg']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })
