@@ -15,7 +15,7 @@ function asChecks(value: unknown): VerificationChecks {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
   const source = parsed as Record<string, unknown>
   const checks: VerificationChecks = {}
-  for (const key of ['apk_installed', 'game_files_detected', 'storage_path_confirmed'] as const) {
+  for (const key of ['apk_installed', 'game_files_detected', 'storage_path_confirmed', 'data_copied_by_site'] as const) {
     if (typeof source[key] === 'boolean') checks[key] = source[key]
   }
   return checks

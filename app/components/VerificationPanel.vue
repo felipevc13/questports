@@ -56,9 +56,12 @@
                 {{ row.headset }}
               </th>
               <td class="py-1.5 pr-2">
-                <span :class="statusClass(row.record?.result)">
-                  {{ row.record ? resultLabel(row.record.result) : 'Not tested' }}
+                <span :class="statusClass(row.record)">
+                  {{ row.record ? verificationStatusLabel(row.record) : 'Not tested' }}
                 </span>
+                <p v-if="filesNote(row.record)" class="mt-0.5 font-normal text-muted-foreground">
+                  {{ filesNote(row.record) }}
+                </p>
               </td>
               <td class="py-1.5 pr-2 font-mono text-muted-foreground">
                 <template v-if="row.record">
@@ -103,11 +106,12 @@ import {
   formatVerificationAge,
   formatVerificationVersion,
   headsetVerificationRows,
-  resultLabel,
+  installFilesNote,
+  isAutomaticInstallSignal,
   sourceLabel,
+  verificationStatusLabel,
   verificationSummaryLine,
   type PortVerification,
-  type VerificationResult,
   type VerificationSummaryTone
 } from '~/lib/verification'
 
@@ -133,6 +137,7 @@ const summaryClass = computed(() => toneClass(summary.value.tone))
 const toneClass = (tone: VerificationSummaryTone) => {
   switch (tone) {
     case 'verified': return 'text-emerald-300'
+    case 'installed': return 'text-green-300'
     case 'issues': return 'text-amber-200'
     case 'stale': return 'text-amber-200'
     case 'failed': return 'text-rose-300'
@@ -142,14 +147,18 @@ const toneClass = (tone: VerificationSummaryTone) => {
 
 const checkText = (record: PortVerification | null) => {
   if (!record) return ''
-  const lines = describeChecks(record.checks)
+  const lines = describeChecks(record.checks, record.source)
   return lines.length ? lines.join(' · ') : 'No individual checks were recorded.'
 }
 
-const statusClass = (result?: VerificationResult) => {
-  if (result === 'works') return 'font-medium text-emerald-300'
-  if (result === 'works_with_issues') return 'font-medium text-amber-200'
-  if (result === 'doesnt_work') return 'font-medium text-rose-300'
+const filesNote = (record: PortVerification | null) => installFilesNote(record)
+
+const statusClass = (record?: PortVerification | null) => {
+  if (!record) return 'text-muted-foreground'
+  if (isAutomaticInstallSignal(record)) return 'font-medium text-green-300'
+  if (record.result === 'works') return 'font-medium text-emerald-300'
+  if (record.result === 'works_with_issues') return 'font-medium text-amber-200'
+  if (record.result === 'doesnt_work') return 'font-medium text-rose-300'
   return 'text-muted-foreground'
 }
 </script>

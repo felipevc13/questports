@@ -7,7 +7,6 @@ import {
   fingerprintValue,
   installRateLimited,
   parseInstallReport,
-  portRequiresGameFiles,
   simulatedReportReason,
   type CatalogVersionRow
 } from '../utils/verificationIngest'
@@ -42,7 +41,7 @@ export default defineEventHandler(async (event) => {
     catalog = data as CatalogVersionRow | null
   }
 
-  const parsed = parseInstallReport(body, catalog, portRequiresGameFiles(slug))
+  const parsed = parseInstallReport(body, catalog)
   if (!parsed.ok) {
     throw createError({ statusCode: parsed.status, statusMessage: parsed.error })
   }

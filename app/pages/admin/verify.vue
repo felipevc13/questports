@@ -4,6 +4,14 @@
     <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
       Felipe only. The secret stays in this form until you submit it. The server checks it and writes with the service role. Nothing here is linked from the catalog.
     </p>
+    <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+      These statuses are a real playtest. Only this form can mark a port as having issues or as broken. A one-click install never does: if the APK installs, the card shows <span class="text-green-300">✓ Installed</span>, even when the game files were copied with SideQuest or a file manager instead of through the site.
+    </p>
+    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-muted-foreground">
+      <li><span class="text-foreground">Works</span> — you played it and it runs. The card shows <span class="text-green-400">✓ Verified</span>.</li>
+      <li><span class="text-foreground">Works with issues</span> — real problems, such as crashes or broken controls. The card shows <span class="text-amber-400">⚠ Issues</span>.</li>
+      <li><span class="text-foreground">Doesn't work</span> — it does not run. The port page says so. The card stays blank.</li>
+    </ul>
 
     <form class="mt-6 space-y-3" @submit.prevent="submit">
       <label class="block text-xs text-muted-foreground">
