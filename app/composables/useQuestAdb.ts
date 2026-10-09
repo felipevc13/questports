@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { QUEST_NO_DEVICE_HINT, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import { isWebUsbAvailable, rememberQuestConnection } from '~/lib/questInstallUx'
 import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
 import {
   activateMockDevice,
@@ -105,7 +106,11 @@ export const useQuestAdb = () => {
     if (isMockQuestEnabled()) {
       return readMockScenario()?.phase !== 'unsupported'
     }
-    return typeof navigator !== 'undefined' && 'usb' in navigator
+    const secure = typeof window !== 'undefined' && window.isSecureContext
+    const nav = typeof navigator !== 'undefined' ? navigator : null
+    const forceUnsupported = typeof window !== 'undefined'
+      && new URLSearchParams(window.location.search).get('noWebUsb') === '1'
+    return isWebUsbAvailable(nav, secure, { forceUnsupported })
   })
 
   // Helper to execute raw shell commands through ADB
@@ -391,6 +396,7 @@ export const useQuestAdb = () => {
       isConnecting.value = false
       connectionPhase.value = 'connected'
       connectNotice.value = null
+      rememberQuestConnection(window.localStorage)
 
       // Fetch initial diagnostics
       await refreshStats()
@@ -1177,6 +1183,7 @@ export const useQuestAdb = () => {
     isConnecting.value = false
     isConnected.value = true
     connectionPhase.value = 'connected'
+    rememberQuestConnection(window.localStorage)
     if (publishConnectedPhase && scenario.phase !== 'connected' && scenario.phase !== 'scanning') {
       writeMockSearch({ mockPhase: 'connected' })
     }
@@ -1249,7 +1256,7 @@ export const useQuestAdb = () => {
     await disconnect(false)
     if (gen !== mockConnectGen) return false
     const scenario = readMockScenario()
-    if (!scenario || scenario.phase === 'disconnected') return false
+    if (!scenario || scenario.phase === 'disconnected' || scenario.phase === 'unsupported') return false
 
     const presetError = connectionErrorForPhase(scenario.phase)
     if (presetError) {

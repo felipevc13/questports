@@ -105,49 +105,88 @@
 
       <!-- RIGHT HERO: Unified Smart Action Card (5 Cols) -->
       <div class="lg:col-span-5 p-5 rounded-xl bg-card border border-border shadow-xl space-y-4">
-        <!-- Headset Connection Status Pill -->
+        <!-- Headset connection status. Not an install button. -->
         <div class="flex items-center justify-between pb-3 border-b border-border">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2" role="status" aria-live="polite" data-testid="port-quest-status">
             <span
               class="w-2.5 h-2.5 rounded-full"
               :class="isQuestConnected ? 'bg-emerald-400 animate-pulse' : connectChrome.showHeadsetBanner ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
             ></span>
             <span class="text-xs font-semibold text-foreground">
-              {{ isQuestConnected ? (questDeviceModel || 'Meta Quest Connected') : connectChrome.showHeadsetBanner ? 'Authorizing Quest...' : 'No Quest Connected' }}
+              {{ headsetStatusLabel }}
             </span>
           </div>
           <span v-if="isQuestConnected" class="text-xs font-mono text-muted-foreground">
             {{ questDeviceInfoText }}
           </span>
           <span v-else-if="connectChrome.showHeadsetBanner" class="text-xs text-amber-400 font-mono flex items-center gap-1.5">
-            <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
             <span>Waiting for visor...</span>
           </span>
           <button
-            v-else-if="!connectChrome.showPickerHint"
-            @click="connectQuest"
-            class="text-xs text-primary hover:underline font-medium cursor-pointer"
+            v-else-if="showUsbStepsLink"
+            type="button"
+            data-testid="show-usb-steps"
+            class="text-[11px] text-muted-foreground hover:text-foreground underline font-medium cursor-pointer"
+            @click="requestUsbPrepAgain"
           >
-            Connect via USB →
+            Show USB setup steps
           </button>
         </div>
 
         <!-- UNIFIED INSTALLATION & DATA FILES FLOW -->
         <div class="space-y-3 pt-1">
-          <!-- STATE 1: QUEST DISCONNECTED / CONNECTING -->
-          <div v-if="!isQuestConnected" class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3">
-            <div class="text-xs text-muted-foreground leading-relaxed">
-              Connect your Meta Quest via USB cable to install the APK in 1-click and transfer game data files directly in your browser.
+          <div
+            v-if="showUsbPrep"
+            data-testid="usb-prep"
+            class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3"
+            role="region"
+            aria-labelledby="usb-prep-title"
+          >
+            <div>
+              <h2 id="usb-prep-title" class="text-xs font-bold text-foreground">Before the USB prompt</h2>
+              <p class="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                The browser will ask which USB device to use. Do this first:
+              </p>
             </div>
+            <ol class="space-y-1.5">
+              <li
+                v-for="(step, index) in USB_PREP_STEPS"
+                :key="step"
+                class="flex items-start gap-2 text-[11px] text-foreground"
+              >
+                <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{{ index + 1 }}</span>
+                <span>{{ step }}</span>
+              </li>
+            </ol>
+            <div class="flex items-center gap-2">
+              <button
+                ref="usbPrepContinueRef"
+                type="button"
+                data-testid="usb-prep-continue"
+                class="px-3 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+                @click="beginInstall({ skipPrep: true })"
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                class="px-3 py-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                @click="dismissUsbPrep"
+              >
+                Not now
+              </button>
+            </div>
+          </div>
 
-            <!-- Live Authorizing Guidance Banner -->
-            <div
-              v-if="connectChrome.showHeadsetBanner"
-              class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 text-left animate-in fade-in duration-200"
-            >
+          <!-- Live Authorizing Guidance Banner -->
+          <div
+            v-else-if="connectChrome.showHeadsetBanner"
+            class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 text-left animate-in fade-in duration-200"
+          >
               <div class="font-bold flex items-center gap-2 text-amber-300">
                 <span class="relative flex h-2.5 w-2.5">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -183,80 +222,58 @@
               </div>
             </div>
 
-            <div
-              v-else-if="questAdb.connectNotice.value"
-              class="p-3.5 rounded-lg bg-muted/40 border border-border text-xs text-left animate-in fade-in duration-200"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <p class="text-[11px] text-muted-foreground leading-relaxed">{{ QUEST_NO_DEVICE_HINT }}</p>
-                <button
-                  type="button"
-                  class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
-                  aria-label="Dismiss"
-                  @click="questAdb.dismissConnectNotice()"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
+          <p
+            v-else-if="connectChrome.showPickerHint"
+            data-testid="usb-picker-hint"
+            role="status"
+            class="p-3 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed"
+          >
+            {{ QUEST_PICKER_HINT }}
+          </p>
 
-            <!-- Error Banner -->
-            <div
-              v-else-if="questAdb.connectionError.value"
-              class="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs space-y-2 text-left animate-in fade-in duration-200"
-            >
-              <div class="font-semibold flex items-center gap-1.5 text-destructive">
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>Connection Failed</span>
-              </div>
-              <p class="text-[11px] text-muted-foreground leading-relaxed">
-                {{ questAdb.connectionError.value }}
-              </p>
-              <div class="pt-1">
-                <button
-                  @click="connectQuest"
-                  class="px-3 py-1.5 rounded bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-
-            <!-- Connect Button -->
+          <div
+            v-else-if="questAdb.connectNotice.value"
+            data-testid="chooser-dismissed"
+            role="status"
+            class="p-3.5 rounded-lg bg-muted/40 border border-border text-xs text-left space-y-2"
+          >
+            <p class="text-[11px] text-muted-foreground leading-relaxed">{{ QUEST_NO_DEVICE_HINT }}</p>
             <button
-              v-if="!connectChrome.showHeadsetBanner && !connectChrome.showPickerHint"
-              @click="connectQuest"
-              class="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-primary/20"
+              type="button"
+              data-testid="chooser-retry"
+              class="px-3 py-1.5 rounded bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+              @click="beginInstall({ skipPrep: true })"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>Connect Meta Quest via USB</span>
-            </button>
-            <button
-              v-else-if="connectChrome.showPickerHint"
-              disabled
-              class="w-full py-2.5 px-4 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-2 cursor-wait border border-border"
-            >
-              <span>{{ QUEST_PICKER_HINT }}</span>
-            </button>
-            <button
-              v-else
-              disabled
-              class="w-full py-2.5 px-4 rounded-lg bg-primary/60 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-2 cursor-wait"
-            >
-              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span>Waiting for headset authorization...</span>
+              Try again
             </button>
           </div>
 
-          <!-- STATE 2: QUEST CONNECTED & APK NOT INSTALLED -->
-          <div v-else-if="!isApkInstalled" class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3">
+          <div
+            v-else-if="questAdb.connectionError.value && installSupport === 'supported'"
+            class="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs space-y-2 text-left animate-in fade-in duration-200"
+          >
+            <div class="font-semibold flex items-center gap-1.5 text-destructive">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Connection Failed</span>
+            </div>
+            <p class="text-[11px] text-muted-foreground leading-relaxed">
+              {{ questAdb.connectionError.value }}
+            </p>
+            <div class="pt-1">
+              <button
+                type="button"
+                class="px-3 py-1.5 rounded bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all cursor-pointer"
+                @click="beginInstall({ skipPrep: true })"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+
+          <!-- APK not installed yet. One install action, whether or not the headset is connected. -->
+          <div v-if="!isApkInstalled" class="p-4 rounded-lg bg-muted/20 border border-border/80 space-y-3">
             <!-- Case A: PC Builder Required (GTA SA / Vice City) -->
             <template v-if="isPcBuilderRequired">
               <div class="flex items-center justify-between">
@@ -305,7 +322,7 @@
                   <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-mono text-xs font-bold flex items-center justify-center">1</span>
                   <span class="text-xs font-bold text-foreground">Step 1: Install Port APK</span>
                 </div>
-                <span class="text-[11px] font-mono text-primary">WebADB Ready</span>
+                <span v-if="isQuestConnected" class="text-[11px] font-mono text-primary">WebADB Ready</span>
               </div>
 
               <div
@@ -319,15 +336,52 @@
                 {{ spaceNotice || questAdb.installSpaceWarning.value }}
               </div>
 
-              <div v-if="!isInstallingApk" class="space-y-2">
+              <div v-if="installSupport === 'unsupported'" data-testid="webusb-unsupported" class="space-y-2">
+                <p class="text-xs font-semibold text-foreground">{{ WEBUSB_UNSUPPORTED_NOTICE }}</p>
+                <p class="text-[11px] text-muted-foreground leading-relaxed">
+                  Safari, Firefox, and iOS cannot install over USB from this page.
+                </p>
                 <button
-                  @click="handleApkInstall"
+                  type="button"
+                  data-testid="manual-install-toggle"
+                  class="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                  :aria-expanded="manualInstallOpen"
+                  @click="manualInstallOpen = !manualInstallOpen"
+                >
+                  {{ manualInstallOpen ? 'Hide manual install' : 'Manual install' }}
+                </button>
+                <div v-if="manualInstallOpen" data-testid="manual-install" class="space-y-1.5 text-[11px]">
+                  <a
+                    v-if="port.port_download_url"
+                    :href="port.port_download_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block text-primary underline"
+                  >
+                    Download the APK ({{ port.port_download_source || 'SideQuest' }})
+                  </a>
+                  <a href="#install-guide" class="block text-primary underline">
+                    Step-by-step installation guide
+                  </a>
+                </div>
+              </div>
+
+              <p v-else-if="installSupport === 'unknown'" class="text-[11px] text-muted-foreground">
+                Checking browser support…
+              </p>
+
+              <div v-else-if="!isInstallingApk" class="space-y-2">
+                <button
+                  v-if="showPrimaryInstall"
+                  type="button"
+                  data-testid="install-on-quest"
+                  @click="beginInstall()"
                   class="w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primary/25"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  <span>Install APK on Quest (1-Click)</span>
+                  <span>{{ INSTALL_ACTION_LABEL }}</span>
                 </button>
                 <div class="flex items-center justify-between text-[10px] text-muted-foreground font-mono pt-0.5">
                   <button
@@ -397,15 +451,15 @@
               </div>
               <div class="flex items-center gap-2">
                 <button
-                  v-if="isApkOutdated && !isInstallingApk"
-                  @click="handleApkInstall"
+                  v-if="isApkOutdated && !isInstallingApk && !installFlowChrome"
+                  @click="beginInstall()"
                   class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500 hover:bg-amber-400 text-black cursor-pointer"
                   title="Installs over the current app with pm install -r and keeps data"
                 >
                   Update to {{ catalogVersion }}
                 </button>
                 <button
-                  v-else-if="!isInstallingApk"
+                  v-else-if="!isInstallingApk && !installFlowChrome"
                   @click="openReinstallPrompt"
                   class="text-[11px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
@@ -936,13 +990,17 @@
       <!-- LEFT LOWER: Installation Guide & Troubleshooting (8 Cols) -->
       <div class="lg:col-span-8 space-y-6">
         <!-- Installation Guide (Rendered Markdown) -->
-        <div class="p-6 rounded-xl bg-card border border-border space-y-4">
+        <div id="install-guide" class="p-6 rounded-xl bg-card border border-border space-y-4">
           <div class="flex items-center gap-2 pb-3 border-b border-border">
             <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h2 class="text-lg font-bold text-foreground tracking-tight">Step-by-Step Installation Guide</h2>
           </div>
+
+          <p class="text-xs text-muted-foreground leading-relaxed">
+            Install on Quest, in the card above, is the one-click USB install. These steps are the manual path (SideQuest or ADB).
+          </p>
 
           <!-- Parsed markdown content -->
           <div class="guide-content" v-html="renderedGuide"></div>
@@ -1119,13 +1177,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
 import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
-import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
+import { QUEST_NO_DEVICE_HINT, QUEST_PICKER_HINT, questConnectChrome, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import {
+  INSTALL_ACTION_LABEL,
+  USB_PREP_STEPS,
+  WEBUSB_UNSUPPORTED_NOTICE,
+  hasRememberedQuestConnection,
+  primaryInstallBlocked,
+  shouldShowUsbPrep
+} from '~/lib/questInstallUx'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
@@ -1181,11 +1247,52 @@ const questDeviceInfoText = computed(() => {
   return parts.join(' • ')
 })
 
-const connectQuest = async () => {
-  if (questAdb.isWebUsbSupported.value) {
-    await questAdb.connect()
-  }
+const showUsbPrep = ref(false)
+const usbPrepRemembered = ref(false)
+const installSupportReady = ref(false)
+const manualInstallOpen = ref(false)
+const usbPrepContinueRef = ref<HTMLButtonElement | null>(null)
+
+const installSupport = computed<'unknown' | 'supported' | 'unsupported'>(() => {
+  if (!installSupportReady.value) return 'unknown'
+  return questAdb.isWebUsbSupported.value ? 'supported' : 'unsupported'
+})
+
+const headsetStatusLabel = computed(() => {
+  if (isQuestConnected.value) return questDeviceModel.value || 'Meta Quest connected'
+  if (connectChrome.value.showHeadsetBanner) return 'Authorizing Quest...'
+  if (connectChrome.value.showPickerHint) return 'Select your Quest...'
+  return 'No Quest connected'
+})
+
+const installFlowChrome = computed(() => {
+  return showUsbPrep.value
+    || connectChrome.value.showPickerHint
+    || connectChrome.value.showHeadsetBanner
+    || Boolean(questAdb.connectNotice.value)
+    || Boolean(questAdb.connectionError.value)
+})
+
+const requestUsbPrepAgain = () => {
+  questAdb.dismissConnectNotice()
+  showUsbPrep.value = true
 }
+
+const dismissUsbPrep = () => {
+  showUsbPrep.value = false
+}
+
+watch(showUsbPrep, async (open) => {
+  if (!open) return
+  await nextTick()
+  usbPrepContinueRef.value?.focus()
+})
+
+watch(() => questAdb.isConnected.value, (connected) => {
+  if (!connected) return
+  usbPrepRemembered.value = true
+  showUsbPrep.value = false
+})
 
 // Installation and Campaigns State
 const isDetectedOnConnectedQuest = computed(() => {
@@ -1218,6 +1325,8 @@ onMounted(() => {
   if (getPersistedInstalled()) {
     isApkInstalled.value = true
   }
+  installSupportReady.value = true
+  usbPrepRemembered.value = hasRememberedQuestConnection(window.localStorage)
 })
 
 // Persist installed state to localStorage
@@ -1430,6 +1539,26 @@ const isPcBuilderRequired = computed(() => {
   return currentPackageConfig.value?.installType === 'pc_builder_required'
 })
 
+const showPrimaryInstall = computed(() => !primaryInstallBlocked({
+  showPrep: showUsbPrep.value,
+  picker: connectChrome.value.showPickerHint,
+  authorizing: connectChrome.value.showHeadsetBanner,
+  dismissed: Boolean(questAdb.connectNotice.value),
+  connectionError: Boolean(questAdb.connectionError.value),
+  installing: isInstallingApk.value,
+  supported: installSupport.value === 'supported'
+}))
+
+const showUsbStepsLink = computed(() => {
+  return usbPrepRemembered.value
+    && installSupport.value === 'supported'
+    && !isPcBuilderRequired.value
+    && !isQuestConnected.value
+    && !showUsbPrep.value
+    && !connectChrome.value.showPickerHint
+    && !connectChrome.value.showHeadsetBanner
+})
+
 const isDirectApkOnly = computed(() => isSelfContainedSideload(currentPackageConfig.value))
 
 const step2Title = computed(() => {
@@ -1621,7 +1750,7 @@ const recordInstallVerification = async () => {
 
 // 1-Click APK Install Handler
 const noteInstallFailure = (err: any) => {
-  if (isUserCancel(err)) {
+  if (isUserCancel(err) || isUsbChooserDismissed(err)) {
     apkInstallError.value = null
     return
   }
@@ -1634,6 +1763,18 @@ const noteInstallFailure = (err: any) => {
   }
   console.error('Failed to install APK via WebADB:', err)
   apkInstallError.value = message
+}
+
+const beginInstall = async (options?: { skipPrep?: boolean }) => {
+  if (isInstallingApk.value || !port.value) return
+  if (installSupport.value !== 'supported') return
+  const skipPrep = Boolean(options?.skipPrep) || questAdb.isConnected.value
+  if (!skipPrep && shouldShowUsbPrep(usbPrepRemembered.value, false)) {
+    showUsbPrep.value = true
+    return
+  }
+  showUsbPrep.value = false
+  await handleApkInstall()
 }
 
 const cancelApkInstall = async () => {
@@ -1652,7 +1793,7 @@ const openReinstallPrompt = () => {
 
 const installKeepingData = async () => {
   showReinstallPrompt.value = false
-  await handleApkInstall()
+  await beginInstall()
 }
 
 const executeReinstall = async () => {
@@ -1691,15 +1832,11 @@ const handleApkInstall = async () => {
     return
   }
 
-  // Never simulate: the headset must be connected via ADB to actually install.
+  // The headset must be connected via ADB. A cancelled USB chooser already has its own notice.
   if (!questAdb.isConnected.value) {
-    if (questAdb.isWebUsbSupported.value) {
-      await questAdb.connect()
-    }
-    if (!questAdb.isConnected.value) {
-      apkInstallError.value = 'Quest not connected. Plug in your headset via USB, accept "Allow USB debugging" inside the visor, then try again.'
-      return
-    }
+    if (!questAdb.isWebUsbSupported.value) return
+    await questAdb.connect()
+    if (!questAdb.isConnected.value) return
   }
 
   isInstallingApk.value = true

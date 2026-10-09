@@ -98,44 +98,27 @@
               </svg>
             </button>
 
-            <!-- Disconnected / Authorizing State Button -->
-            <button
+            <!-- Disconnected status. Install starts from the port card, not from here. -->
+            <div
               v-else
-              @click="handleConnectQuest"
-              :disabled="questAdb.isConnecting.value"
-              class="inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground hover:text-foreground text-xs font-medium transition-colors cursor-pointer shadow-sm disabled:cursor-wait disabled:opacity-60 select-none"
-              :title="connectChrome.navbar === 'authorizing' ? 'Waiting for authorization inside Quest headset visor' : connectChrome.navbar === 'picker' ? QUEST_PICKER_HINT : 'Connect Meta Quest via USB Cable'"
+              role="status"
+              aria-live="polite"
+              data-testid="quest-connection-status"
+              class="inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border bg-background text-muted-foreground text-xs font-medium shadow-sm select-none"
             >
               <span
                 class="w-2 h-2 rounded-full"
                 :class="connectChrome.navbar === 'authorizing' ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'"
               ></span>
               <span v-if="connectChrome.navbar === 'authorizing'" class="flex items-center gap-1.5 text-amber-300 font-medium">
-                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                 </svg>
                 <span>Authorizing Quest...</span>
               </span>
-              <span v-else-if="connectChrome.navbar === 'picker'">Select your Quest...</span>
-              <span v-else>Connect Quest</span>
-            </button>
-
-            <div
-              v-if="questAdb.connectNotice.value && connectChrome.navbar === 'connect'"
-              class="absolute right-0 mt-2 w-72 rounded-lg bg-card border border-border p-3 shadow-2xl z-50 text-xs"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <p class="text-[11px] text-muted-foreground leading-relaxed">{{ questAdb.connectNotice.value }}</p>
-                <button
-                  type="button"
-                  class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
-                  aria-label="Dismiss"
-                  @click.stop="questAdb.dismissConnectNotice()"
-                >
-                  ✕
-                </button>
-              </div>
+              <span v-else-if="connectChrome.navbar === 'picker'">{{ QUEST_PICKER_HINT }}</span>
+              <span v-else>No Quest connected</span>
             </div>
 
             <!-- Dropdown Menu -->
@@ -239,13 +222,4 @@ const onDocumentClick = (event: MouseEvent) => {
 
 onMounted(() => document.addEventListener('click', onDocumentClick))
 onUnmounted(() => document.removeEventListener('click', onDocumentClick))
-
-const handleConnectQuest = async () => {
-  if (questAdb.isWebUsbSupported.value) {
-    const success = await questAdb.connect()
-    if (success) {
-      isDropdownOpen.value = true
-    }
-  }
-}
 </script>
