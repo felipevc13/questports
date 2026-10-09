@@ -67,7 +67,28 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
 const MOCK_QUEST_OFF = new Set(['0', 'false', 'off', 'no'])
 
 const BOT_UA =
-  /bot\b|spider|crawler|\bcrawl\b|slurp|archiver|headless|lighthouse|pagespeed|wget\/|curl\/|python-requests|go-http-client|scrapy|petalbot|semrush|ahrefs|mj12|dotbot|bytespider|gptbot|claudebot|amazonbot|applebot|bingpreview|facebookexternal|embedly|whatsapp|telegrambot|discordbot|slackbot|twitterbot|linkedinbot|pinterestbot|yandex|baiduspider|duckduckbot/i
+  /bot\b|spider|crawler|\bcrawl\b|slurp|archiver|headless|lighthouse|pagespeed|wget\/|curl\/|python-requests|go-http-client|scrapy|petalbot|semrush|ahrefs|mj12|dotbot|bytespider|gptbot|claudebot|amazonbot|applebot|bingpreview|facebookexternal|embedly|telegrambot|discordbot|slackbot|twitterbot|linkedinbot|pinterestbot|yandex|baiduspider|duckduckbot/i
+
+/** In-app browsers. Checked before Chrome, which these user-agents also contain. */
+const IN_APP_BROWSER_RULES: ReadonlyArray<{ label: string; pattern: RegExp }> = [
+  { label: 'Discord', pattern: /discord/i },
+  { label: 'Reddit', pattern: /reddit/i },
+  { label: 'Instagram', pattern: /instagram/i },
+  { label: 'Facebook', pattern: /FBAN|FBAV|FB_IAB|FBIOS|FB4A/i },
+  { label: 'Telegram', pattern: /telegram/i },
+  { label: 'WhatsApp', pattern: /whatsapp/i },
+  { label: 'X', pattern: /twitter|\bX\/\d/i },
+  { label: 'Line', pattern: /\bLine\/\d/i }
+]
+
+export const IN_APP_BROWSER_FAMILIES = [
+  ...IN_APP_BROWSER_RULES.map(rule => rule.label),
+  'In-app'
+] as const
+
+export function isInAppBrowserFamily(value: string | null | undefined): boolean {
+  return !!value && (IN_APP_BROWSER_FAMILIES as readonly string[]).includes(value)
+}
 
 export function isAnalyticsEvent(value: unknown): value is AnalyticsEventName {
   return typeof value === 'string' && ANALYTICS_EVENT_SET.has(value)
@@ -89,7 +110,10 @@ export function isAnalyticsEnabled(env: {
 
 export function isBotUserAgent(userAgent: string | null | undefined): boolean {
   if (!userAgent || !userAgent.trim()) return true
-  return BOT_UA.test(userAgent)
+  if (BOT_UA.test(userAgent)) return true
+  // WhatsApp's link-preview crawler is a bare product token. The in-app browser is a Mozilla UA.
+  if (/whatsapp/i.test(userAgent) && !/mozilla\//i.test(userAgent)) return true
+  return false
 }
 
 export function hasDoNotTrack(dnt: string | null | undefined, gpc: string | null | undefined): boolean {
@@ -133,12 +157,18 @@ export function deviceFromUserAgent(userAgent: string | null | undefined): 'mobi
 /** Browser family only. Version tokens from the user-agent are dropped. */
 export function browserFamilyFromUserAgent(userAgent: string | null | undefined): string | null {
   if (!userAgent || !userAgent.trim()) return null
+  for (const rule of IN_APP_BROWSER_RULES) {
+    if (rule.pattern.test(userAgent)) return rule.label
+  }
+  // Android System WebView. Named apps above also use a WebView, so they win first.
+  if (/;\s*wv\)/i.test(userAgent)) return 'In-app'
   if (/edg\//i.test(userAgent) || /edgios|edge\//i.test(userAgent)) return 'Edge'
   if (/opr\/|opera/i.test(userAgent)) return 'Opera'
   if (/samsungbrowser/i.test(userAgent)) return 'Samsung'
   if (/oculusbrowser/i.test(userAgent)) return 'Oculus'
   if (/firefox\/|fxios/i.test(userAgent)) return 'Firefox'
-  if (/chrome\/|crios/i.test(userAgent)) return 'Chrome'
+  if (/crios/i.test(userAgent)) return 'Chrome iOS'
+  if (/chrome\//i.test(userAgent)) return 'Chrome'
   if (/safari\//i.test(userAgent)) return 'Safari'
   return 'Other'
 }
@@ -213,7 +243,7 @@ export function installErrorReason(err: unknown): InstallErrorReason {
   if (/webusb|not supported in this browser|no_webusb/.test(text)) return 'no_webusb'
   if (/not enough free space|insufficient_storage|install_failed_insufficient/.test(text)) return 'storage'
   if (/unauthorized/.test(text)) return 'unauthorized'
-  if (/usb interface is locked|already in use|usb_locked|interface is locked/.test(text)) return 'usb_locked'
+  if (/usb interface is locked|already in use|usb_locked|interface is locked|being used by another app|adb kill-server/.test(text)) return 'usb_locked'
   if (/timed out|timeout/.test(text)) return 'timeout'
   if (/failed to download|download apk|download stream/.test(text)) return 'download_fail'
   if (/install_failed|package manager|pm install|failure \[/.test(text)) return 'pm_fail'
@@ -230,7 +260,8 @@ export function connectFailureReason(input: {
   const notice = input.notice || ''
   const error = input.error || ''
   if (!notice.trim() && !error.trim()) return 'user_cancelled'
-  if (/no headset selected/i.test(notice)) return 'user_cancelled'
+  if (notice.trim() && !error.trim()) return 'user_cancelled'
+  if (/no headset selected|don't see your quest/i.test(notice)) return 'user_cancelled'
   return installErrorReason(error || notice)
 }
 

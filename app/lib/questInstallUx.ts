@@ -4,10 +4,20 @@ export const INSTALL_ACTION_LABEL = 'Install on Quest'
 
 export const USB_PREP_STORAGE_KEY = 'questports_usb_connected'
 
-export const CHOOSER_DISMISSED_MESSAGE = 'No headset selected. Try again when ready.'
+export const CHOOSER_DISMISSED_TITLE = "Don't see your Quest in the list?"
 
-export const WEBUSB_UNSUPPORTED_NOTICE =
-  'One-click install needs Chrome or Edge on desktop or Android.'
+export const CHOOSER_DISMISSED_MESSAGE = CHOOSER_DISMISSED_TITLE
+
+/** Compact checklist after the USB picker is closed. Calm on purpose: the visitor may have cancelled. */
+export const CHOOSER_DISMISSED_STEPS = [
+  'Use a data cable (not charge-only).',
+  'Headset on and unlocked.',
+  'Accept the "Allow USB debugging" prompt inside the headset (tick Always allow).',
+  'Developer Mode enabled.',
+  'Try another USB port.'
+] as const
+
+export const WEBUSB_UNSUPPORTED_NOTICE = 'Use Chrome or Edge'
 
 export const USB_PREP_STEPS = [
   'Plug the Quest in with a USB cable.',

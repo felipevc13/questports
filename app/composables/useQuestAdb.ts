@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { QUEST_NO_DEVICE_HINT, isUsbChooserDismissed } from '~/lib/questConnectUx'
 import { isWebUsbAvailable, rememberQuestConnection } from '~/lib/questInstallUx'
-import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
+import { QUEST_USB_MESSAGES, connectionMessageForUsbError } from '~/lib/questUsbMessages'
 import {
   activateMockDevice,
   armMockInstall,
@@ -431,14 +431,7 @@ export const useQuestAdb = () => {
       connectionPhase.value = 'error'
       connectNotice.value = null
       
-      const msg = err?.message || ''
-      if (msg.toLowerCase().includes('already in use') || msg.toLowerCase().includes('already in used') || msg.toLowerCase().includes('claim') || msg.toLowerCase().includes('busy')) {
-        connectionError.value = QUEST_USB_MESSAGES.usbLocked
-      } else if (msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('transferin') || msg.toLowerCase().includes('aborterror')) {
-        connectionError.value = QUEST_USB_MESSAGES.cancelled
-      } else {
-        connectionError.value = msg || QUEST_USB_MESSAGES.generic
-      }
+      connectionError.value = connectionMessageForUsbError(err)
 
       isConnecting.value = false
       isConnected.value = false

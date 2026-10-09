@@ -153,7 +153,8 @@ describe('mock Quest device', () => {
     expect(QUEST_USB_MESSAGES.unsupported).toBe(
       'WebUSB is not supported in this browser. Please use Chrome, Edge, or Brave.'
     )
-    expect(QUEST_USB_MESSAGES.usbLocked).toContain('USB interface is locked')
+    expect(QUEST_USB_MESSAGES.usbLocked).toContain('being used by another app')
+    expect(QUEST_USB_MESSAGES.usbLocked).toContain('adb kill-server')
     expect(QUEST_USB_MESSAGES.generic).toContain('Developer Mode')
   })
 
