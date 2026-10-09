@@ -5,6 +5,7 @@ import type {
   HapticSupport,
   PortFeatures
 } from '~/types/port'
+import { normalizeHeadsetList } from '~/lib/headsets'
 
 /** Fields the detail page is allowed to read. Extra catalog fields are ignored. */
 export interface PortFeatureSource {
@@ -140,7 +141,7 @@ export function buildPortFeatureView(port: PortFeatureSource | null | undefined)
 
   const features = readFeatures(port.features)
   const locomotion = cleanList(port.locomotion_types)
-  const hardware = cleanList(port.supported_hardware)
+  const hardware = normalizeHeadsetList(port.supported_hardware)
   const summary: FeatureClaim[] = []
 
   if (port.has_6dof_controls === true) {

@@ -15,10 +15,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useSuggestModal } from '~/composables/useSuggestModal'
 import { useFeedbackModal } from '~/composables/useFeedbackModal'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { canonicalPageUrl } from '~/lib/siteUrl'
+
+const route = useRoute()
+const pageUrl = computed(() => canonicalPageUrl(route.path))
+
+useHead(() => ({
+  link: [{ rel: 'canonical', href: pageUrl.value }]
+}))
+
+useSeoMeta({
+  ogUrl: () => pageUrl.value
+})
 
 const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()

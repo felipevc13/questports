@@ -1200,6 +1200,7 @@ import { absoluteCoverUrl } from '~/data/coverUrl'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
+import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import TransferProgress from '~/components/TransferProgress.vue'
 
@@ -1210,6 +1211,11 @@ const questAdb = useQuestAdb()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
+
+if (missingPortError(port.value)) {
+  throw createError({ statusCode: 404, fatal: true, statusMessage: 'Port not found' })
+}
+
 const { data: verificationData, refresh: refreshVerifications } = await useAsyncData(
   'port-verifications',
   () => fetchVerificationRecords()
