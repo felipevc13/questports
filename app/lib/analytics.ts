@@ -48,6 +48,11 @@ export const FILTER_NAMES = [
 
 export type AnalyticsFilterName = (typeof FILTER_NAMES)[number]
 
+/** Details on the existing unsupported_browser_view event. No new event name. */
+export const UNSUPPORTED_BROWSER_ACTIONS = ['shown', 'copy_link'] as const
+
+export type UnsupportedBrowserAction = (typeof UNSUPPORTED_BROWSER_ACTIONS)[number]
+
 export const SEARCH_QUERY_MAX = 60
 export const SEARCH_LENGTH_MAX = 500
 export const ANALYTICS_HOURLY_LIMIT = 120
@@ -266,6 +271,16 @@ function installErrorProps(props: Record<string, unknown> | null): { reason: Ins
   return { reason: 'other' }
 }
 
+function unsupportedBrowserProps(
+  props: Record<string, unknown> | null
+): { action: UnsupportedBrowserAction } | null {
+  const action = props && typeof props.action === 'string' ? props.action : ''
+  if ((UNSUPPORTED_BROWSER_ACTIONS as readonly string[]).includes(action)) {
+    return { action: action as UnsupportedBrowserAction }
+  }
+  return null
+}
+
 export interface NormalizedAnalyticsEvent {
   event: AnalyticsEventName
   path: string | null
@@ -308,6 +323,8 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const filter = props ? filterProps(props) : null
     if (!filter) return null
     storedProps = filter
+  } else if (record.event === 'unsupported_browser_view') {
+    storedProps = unsupportedBrowserProps(props)
   }
 
   return {

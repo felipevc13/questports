@@ -305,6 +305,39 @@ describe('analytics validation', () => {
     expect(browserFamilyFromUserAgent(IPHONE_UA)).toBe('Safari')
   })
 
+  it('reuses unsupported_browser_view for the Quest browser notice', () => {
+    const shown = clientAnalyticsPayload('unsupported_browser_view', {
+      path: '/ports/rtcwquest',
+      portSlug: 'rtcwquest',
+      webusb: true,
+      props: { action: 'shown', userAgent: 'OculusBrowser/33' }
+    })
+    expect(shown?.event).toBe('unsupported_browser_view')
+    expect(shown?.props).toEqual({ action: 'shown' })
+    expect(JSON.stringify(shown)).not.toContain('OculusBrowser')
+
+    const copied = decide({
+      body: {
+        event: 'unsupported_browser_view',
+        path: '/ports/rtcwquest',
+        portSlug: 'rtcwquest',
+        webusb: true,
+        props: { action: 'copy_link', extra: 'drop me' }
+      }
+    })
+    expect(copied.record).toBe(true)
+    expect(copied.row?.props).toEqual({ action: 'copy_link' })
+    expect(copied.row?.browser).toBe('Chrome')
+
+    const plain = decide({
+      body: { event: 'unsupported_browser_view', path: '/', props: { action: 'install' } }
+    })
+    expect(plain.record).toBe(true)
+    expect(plain.row?.props).toBeNull()
+
+    expect(ANALYTICS_EVENTS).not.toContain('quest_browser_notice')
+  })
+
   it('records install success at the verification step', () => {
     const source = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     const fn = source.slice(source.indexOf('const recordInstallVerification'))
