@@ -8,10 +8,19 @@ describe('resolveCoverUrl', () => {
     )).toBe('/covers/nolf-vr.png')
   })
 
-  it('maps the UT99 SteamGridDB hotlink onto the local file', () => {
-    expect(resolveCoverUrl(
-      'https://cdn2.steamgriddb.com/file/sgdb-cdn/grid/7adb6a50e7687b45a00b35796f18f17d.png'
-    )).toBe('/covers/ut99vr.png')
+  it.each([
+    ['https://cdn2.steamgriddb.com/file/sgdb-cdn/grid/7adb6a50e7687b45a00b35796f18f17d.png', '/covers/ut99vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/efa57a13caff2c0bef9bb12e2e734d31.png', '/covers/sclerosis-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/5a3560a50c0cde4c41fc6e5bd431c1b4.png', '/covers/sega-rally-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/7dab099bfda35ad14715763b75487b47.png', '/covers/starfox-enhanced-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/67b1f8c9fe38416ca4971598d0edac57.png', '/covers/unreal-gold-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/26fed7a27154ecf97dc1a617e8813926.jpg', '/covers/homeworld-unbound.jpg'],
+    ['https://cdn2.steamgriddb.com/grid/3976e8d9470abc7b3aed396293ab346a.png', '/covers/ocarina-of-time-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/c530fbfc90e6b52b488b3d5ab006e9b8.png', '/covers/xrkart-64.png'],
+    ['https://cdn2.steamgriddb.com/grid/dc2b690516158a874dd8aabe1365c6a0.png', '/covers/wiicompiled-vr-plus.png'],
+    ['https://cdn2.steamgriddb.com/grid/7877afc63a2644aeee47db29ff48412b.jpg', '/covers/magic-carpet-vr.jpg']
+  ])('maps %s onto %s', (url, local) => {
+    expect(resolveCoverUrl(url)).toBe(local)
   })
 
   it('leaves same-origin covers unchanged', () => {

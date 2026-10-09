@@ -44,10 +44,12 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'halocequest',
   'harry-potter-vr',
   'hexen2vr',
+  'homeworld-unbound',
   'iron-lung-vr',
   'jkxr',
   'lambda1vr',
   'nolf-vr',
+  'ocarina-of-time-vr',
   'perfect-dark-vr',
   'ppsspp-vr',
   'preyvr',
@@ -61,12 +63,18 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'razexr',
   'road-rash-jailbreak-vr',
   'rtcwquest',
+  'sclerosis-vr',
+  'sega-rally-vr',
   'simpsonshitrun',
   'sourcevr',
+  'starfox-enhanced-vr',
   'time-crisis-vr',
+  'unreal-gold-vr',
   'ut99-vr-quest',
   'vice-city-vr-quest',
-  'winlatorxr'
+  'wiicompiled-vr-plus',
+  'winlatorxr',
+  'xrkart-64'
 ]
 
 /**
@@ -197,5 +205,37 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // No One Lives ForeVR (ReLith / NOLF)
   'nolf-vr': { start: '5:00', end: '6:00' },
-  '6NsGBkCp9ro': { start: '5:00', end: '6:00' }
+  '6NsGBkCp9ro': { start: '5:00', end: '6:00' },
+
+  // Sclerosis (Amnesia: The Dark Descent VR remake)
+  'sclerosis-vr': { start: '36:20', end: '37:20' },
+  'UpTDQZr0TWw': { start: '36:20', end: '37:20' },
+
+  // Port0r: Rally VR (Sega Rally Championship)
+  'sega-rally-vr': { start: '0:11', end: '1:11' },
+  'FqwEK0hJ_Yc': { start: '0:11', end: '1:11' },
+
+  // Star Fox Enhanced (Quest 3 VR build)
+  'starfox-enhanced-vr': { start: '2:00', end: '3:00' },
+  'UAPKVEGoMvo': { start: '2:00', end: '3:00' },
+
+  // Unreal Gold VR
+  'unreal-gold-vr': { start: '6:40', end: '7:40' },
+  'ClQXAt0FhUo': { start: '6:40', end: '7:40' },
+
+  // Homeworld: Unbound
+  'homeworld-unbound': { start: '4:40', end: '5:40' },
+  'rhCOSpSf-NQ': { start: '4:40', end: '5:40' },
+
+  // Quest 3: OOT (Ocarina of Time VR)
+  'ocarina-of-time-vr': { start: '1:30', end: '2:30' },
+  'fzhbhrotI1Q': { start: '1:30', end: '2:30' },
+
+  // XRKart 64 (Mario Kart 64 VR)
+  'xrkart-64': { start: '1:00', end: '2:00' },
+  '30bVFznHI3M': { start: '1:00', end: '2:00' },
+
+  // Wiicompiled VR PLUS (Mario Kart Wii VR)
+  'wiicompiled-vr-plus': { start: '0:10', end: '1:00' },
+  'DnO2lIeBW2g': { start: '0:10', end: '1:00' }
 }
