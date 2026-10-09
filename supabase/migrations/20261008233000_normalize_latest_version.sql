@@ -1,5 +1,5 @@
 -- Normalize public.ports.latest_version to the same shape as formatPortVersion
--- in app/lib/versionFormat.js.
+-- in app/lib/versionFormat.ts.
 --
 -- Apply this manually in the Supabase SQL editor. Do not run it from CI,
 -- and do not apply it from an agent against production.

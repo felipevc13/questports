@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Run GitHub Releases Sync
         env:
@@ -31,7 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            node scripts/sync-github-stats.js --dry-run
+            node --experimental-strip-types scripts/sync-github-stats.js --dry-run
           else
-            node scripts/sync-github-stats.js
+            node --experimental-strip-types scripts/sync-github-stats.js
           fi

@@ -3,7 +3,7 @@
  * Quest or Android build.
  *
  * Dry-run (prints the writes, does not PATCH):
- *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-github-stats.js --dry-run
+ *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node --experimental-strip-types scripts/sync-github-stats.js --dry-run
  *
  * The service role key is a GitHub Actions secret. It is never printed.
  */
@@ -141,7 +141,7 @@ async function patchPort(slug, body) {
 
 async function run() {
   if (process.argv.includes('--help')) {
-    console.log('Usage: node scripts/sync-github-stats.js [--dry-run]')
+    console.log('Usage: node --experimental-strip-types scripts/sync-github-stats.js [--dry-run]')
     console.log('Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Optional GITHUB_TOKEN.')
     return
   }
@@ -149,7 +149,7 @@ async function run() {
   if (!supabaseUrl || !supabaseKey) {
     console.error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.')
     console.error('Set them as GitHub Actions secrets before this job writes to production.')
-    console.error('Preview: SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/sync-github-stats.js --dry-run')
+    console.error('Preview: SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node --experimental-strip-types scripts/sync-github-stats.js --dry-run')
     process.exit(1)
   }
 

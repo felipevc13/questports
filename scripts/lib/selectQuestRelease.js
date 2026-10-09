@@ -4,7 +4,7 @@ import {
   isPlaceholderVersion,
   normalizeVersionKey,
   versionIsDesktopTagged
-} from '../../app/lib/versionFormat.js'
+} from '../../app/lib/versionFormat.ts'
 
 /**
  * @param {string} name

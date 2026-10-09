@@ -8,4 +8,4 @@ export {
   numericVersionParts,
   comparePortVersions,
   isHeadsetApkOutdated
-} from './versionFormat.js'
+} from './versionFormat'

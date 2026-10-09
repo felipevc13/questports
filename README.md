@@ -81,7 +81,7 @@ Preview the writes without touching production:
 ```bash
 SUPABASE_URL=https://your-project.supabase.co \
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key \
-node scripts/sync-github-stats.js --dry-run
+node --experimental-strip-types scripts/sync-github-stats.js --dry-run
 ```
 
 The same two values are the GitHub Actions secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` on this repository. `GITHUB_TOKEN` is provided by Actions. After those secrets are set, the daily job and a manual run are safe to point at production. The manual run has a `dry_run` input that adds `--dry-run`.
