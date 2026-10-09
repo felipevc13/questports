@@ -38,7 +38,7 @@
           <div class="grid grid-cols-2 gap-2">
             <button
               type="button"
-              class="rounded-md border px-3 py-2 text-left text-xs transition-colors"
+              class="min-h-11 rounded-md border px-3 py-2 text-left text-xs transition-colors md:min-h-0"
               :class="kind === 'feature'
                 ? 'border-primary bg-primary/10 text-foreground'
                 : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
@@ -49,7 +49,7 @@
             </button>
             <button
               type="button"
-              class="rounded-md border px-3 py-2 text-left text-xs transition-colors"
+              class="min-h-11 rounded-md border px-3 py-2 text-left text-xs transition-colors md:min-h-0"
               :class="kind === 'bug'
                 ? 'border-primary bg-primary/10 text-foreground'
                 : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
@@ -75,7 +75,7 @@
             :placeholder="kind === 'bug'
               ? 'What were you doing, and what went wrong?'
               : 'Describe the feature you’d like to see…'"
-            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none md:text-xs"
           ></textarea>
         </div>
 
@@ -93,11 +93,11 @@
           {{ errorMessage }}
         </div>
 
-        <div class="pt-2 flex items-center justify-end gap-2">
-          <UiButton type="button" variant="ghost" size="sm" @click="closeModal">
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+          <UiButton type="button" variant="ghost" size="sm" class="w-full sm:w-auto" @click="closeModal">
             Cancel
           </UiButton>
-          <UiButton type="submit" size="sm" :disabled="loading">
+          <UiButton type="submit" size="sm" class="w-full sm:w-auto" :disabled="loading">
             <span v-if="loading" class="w-3 h-3 mr-1.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>
             <span>{{ loading ? 'Sending...' : 'Send feedback' }}</span>
           </UiButton>

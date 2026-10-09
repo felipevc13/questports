@@ -9,6 +9,7 @@
     "preview": "nuxt preview",
     "build:og": "node scripts/build-modern-og.js",
     "test": "vitest run",
+    "test:mobile": "node e2e/mobile-overflow.mjs",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@types/node": "^26.6.4",
+    "playwright-core": "^1.64.0",
     "vitest": "^4.1.11"
   }
 }

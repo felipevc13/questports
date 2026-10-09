@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+  <div class="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
     <Navbar />
     <main class="flex-1">
       <NuxtPage />

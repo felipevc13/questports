@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { absoluteCoverUrl, resolveCoverUrl } from '../app/data/coverUrl'
+import { absoluteCoverUrl, coverThumbUrl, resolveCoverUrl } from '../app/data/coverUrl'
 
 describe('resolveCoverUrl', () => {
   it('maps Supabase Storage covers onto /covers', () => {
@@ -25,6 +25,19 @@ describe('resolveCoverUrl', () => {
 
   it('leaves same-origin covers unchanged', () => {
     expect(resolveCoverUrl('/covers/rtcwquest.jpg')).toBe('/covers/rtcwquest.jpg')
+  })
+})
+
+describe('coverThumbUrl', () => {
+  it('points local covers at a small generated thumbnail', () => {
+    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg')
+    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg')
+  })
+
+  it('requests a small Unsplash crop for hotlinked photos', () => {
+    const thumb = coverThumbUrl('https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=1200&q=80')
+    expect(thumb).toContain('w=120')
+    expect(thumb).toContain('h=72')
   })
 })
 

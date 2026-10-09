@@ -1,9 +1,9 @@
 <template>
-  <footer class="mt-20 border-t border-border bg-card/50 py-10 text-muted-foreground text-xs">
-    <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 flex flex-col md:flex-row items-center justify-between gap-6">
+  <footer class="mt-12 border-t border-border bg-card/50 py-8 text-xs text-muted-foreground md:mt-20 md:py-10">
+    <div class="mx-auto flex w-full max-w-[1720px] flex-col items-center justify-between gap-6 px-4 sm:px-6 md:flex-row lg:px-10">
       <div class="flex items-center gap-3">
-        <div class="w-7 h-5 shrink-0">
-          <AppLogo class="w-full h-full" />
+        <div class="h-5 w-7 shrink-0">
+          <AppLogo class="h-full w-full" />
         </div>
         <div class="space-y-0.5 text-center md:text-left">
           <p class="font-medium text-foreground">QuestPorts — Standalone VR Database</p>
@@ -13,21 +13,21 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-6">
+      <div class="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center md:gap-6">
         <button
           @click="suggestModal.open()"
-          class="hover:text-foreground transition-colors cursor-pointer text-xs"
+          class="inline-flex min-h-11 items-center justify-center rounded-md px-2 text-center text-xs transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0 md:py-0"
         >
           Suggest a Game
         </button>
         <button
           @click="feedbackModal.open(route.fullPath)"
-          class="hover:text-foreground transition-colors cursor-pointer text-xs"
+          class="inline-flex min-h-11 items-center justify-center rounded-md px-2 text-center text-xs transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0 md:py-0"
         >
           Feature or bug
         </button>
-        <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">GitHub</a>
-        <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">SideQuest</a>
+        <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">GitHub</a>
+        <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">SideQuest</a>
       </div>
     </div>
   </footer>
