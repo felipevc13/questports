@@ -1,3 +1,5 @@
+import { isAnalyticsEnabled } from './app/lib/analytics'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -8,9 +10,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     verificationAdminSecret: process.env.VERIFICATION_ADMIN_SECRET || '',
+    analyticsSalt: process.env.ANALYTICS_SALT || '',
     public: {
       supabaseUrl: process.env.SUPABASE_URL || '',
-      supabaseKey: process.env.SUPABASE_KEY || ''
+      supabaseKey: process.env.SUPABASE_KEY || '',
+      analyticsEnabled: isAnalyticsEnabled(process.env)
     }
   },
   app: {
