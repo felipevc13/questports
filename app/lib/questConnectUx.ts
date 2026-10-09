@@ -1,9 +1,10 @@
+import { CHOOSER_DISMISSED_MESSAGE } from '~/lib/questInstallUx'
+
 export type ConnectPhase = 'idle' | 'picker' | 'authorizing' | 'connected' | 'error'
 
 export const QUEST_PICKER_HINT = 'Select your Quest in the browser window.'
 
-export const QUEST_NO_DEVICE_HINT =
-  'No Quest found. Check the USB cable and that Developer Mode is enabled.'
+export const QUEST_NO_DEVICE_HINT = CHOOSER_DISMISSED_MESSAGE
 
 export interface QuestConnectChrome {
   /** Amber “put on the headset / Allow USB debugging” banner. */

@@ -49,8 +49,6 @@ describe('usb chooser dismissal', () => {
     expect(isUsbChooserDismissed({ name: 'NetworkError', message: 'The transfer was cancelled.' })).toBe(false)
     expect(isUsbChooserDismissed({ message: 'The Quest USB interface is locked' })).toBe(false)
     expect(isUsbChooserDismissed(null)).toBe(false)
-    expect(QUEST_NO_DEVICE_HINT).toBe(
-      'No Quest found. Check the USB cable and that Developer Mode is enabled.'
-    )
+    expect(QUEST_NO_DEVICE_HINT).toBe('No headset selected. Try again when ready.')
   })
 })
