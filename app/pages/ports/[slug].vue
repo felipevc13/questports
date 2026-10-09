@@ -1038,14 +1038,14 @@
               <!-- Base Game Source -->
               <div class="space-y-1">
                 <span class="text-[11px] text-muted-foreground block font-mono">Original Game Required:</span>
-                <div class="flex items-center justify-between p-2 rounded bg-muted/40 border border-border/60">
-                  <span class="font-medium text-foreground">{{ port.base_game_store || 'PC Retail / Legal Copy' }}</span>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-border/60 bg-muted/40 p-2">
+                  <span class="min-w-0 flex-1 break-words font-medium text-foreground">{{ port.base_game_store || 'PC Retail / Legal Copy' }}</span>
                   <a
                     v-if="port.base_game_url"
                     :href="port.base_game_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex min-h-11 items-center font-mono text-[10px] text-primary hover:underline md:min-h-0"
+                    class="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[10px] text-primary hover:underline md:min-h-0"
                   >
                     {{ isLegitimateStoreUrl(port.base_game_url) ? 'Store Page ↗' : 'About ↗' }}
                   </a>
@@ -1055,14 +1055,14 @@
               <!-- Target Data Folder -->
               <div class="space-y-1">
                 <span class="text-[11px] text-muted-foreground block font-mono">Asset Directory on Quest:</span>
-                <div class="p-2 rounded bg-black/40 border border-border/70 font-mono text-[11px] text-primary truncate">
+                <div class="min-w-0 truncate rounded border border-border/70 bg-black/40 p-2 font-mono text-[11px] text-primary">
                   {{ currentCampaign?.fullPath }}
                 </div>
               </div>
 
               <div class="space-y-1">
                 <span class="text-[11px] text-muted-foreground block font-mono">{{ extraFilesHeading }}</span>
-                <div data-testid="extra-files" class="text-[11px] text-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
+                <div data-testid="extra-files" class="break-words rounded border border-border/50 bg-muted/30 p-2 font-mono text-[11px] text-foreground">
                   {{ currentCampaign?.exampleFiles }}
                 </div>
               </div>
@@ -1087,20 +1087,20 @@
                     ? 'bg-primary/10 border-primary/60 text-foreground'
                     : 'bg-muted/30 hover:bg-muted/50 border-border/60 text-muted-foreground'"
                 >
-                  <div class="flex items-center justify-between gap-1 mb-1">
-                    <div class="flex items-center gap-1.5 truncate">
-                      <span class="font-bold text-xs" :class="currentCampaign?.id === c.id ? 'text-primary' : 'text-foreground'">
+                  <div class="mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                    <div class="flex min-w-0 flex-1 items-center gap-1.5">
+                      <span class="truncate font-bold text-xs" :class="currentCampaign?.id === c.id ? 'text-primary' : 'text-foreground'">
                         {{ c.name }}
                       </span>
                       <span
                         v-if="transferredCampaigns[port.id + '-' + c.id]"
-                        class="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-400 font-mono font-medium"
+                        class="shrink-0 whitespace-nowrap rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
                       >
                         Ready
                       </span>
                       <span
                         v-else
-                        class="text-[9px] px-1 rounded bg-muted/80 text-muted-foreground font-mono"
+                        class="shrink-0 whitespace-nowrap rounded bg-muted/80 px-1 font-mono text-[9px] text-muted-foreground"
                       >
                         {{ c.badge }}
                       </span>
@@ -1111,7 +1111,7 @@
                       target="_blank"
                       rel="noopener noreferrer"
                       @click.stop
-                      class="inline-flex min-h-11 shrink-0 items-center font-mono text-[10px] text-primary hover:underline md:min-h-0"
+                      class="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[10px] text-primary hover:underline md:min-h-0"
                       :title="isLegitimateStoreUrl(c.storeUrl) ? 'View on Store' : 'About the original game'"
                     >
                       {{ isLegitimateStoreUrl(c.storeUrl) ? c.storeName : 'About' }} ↗
@@ -1126,7 +1126,7 @@
               <!-- Active Campaign Details -->
               <div class="space-y-1 pt-1 border-t border-border/60">
                 <span class="text-[11px] text-muted-foreground block font-mono">{{ extraFilesHeading }}</span>
-                <div class="text-[11px] text-foreground font-mono bg-muted/30 p-2 rounded border border-border/50">
+                <div class="break-words rounded border border-border/50 bg-muted/30 p-2 font-mono text-[11px] text-foreground">
                   {{ currentCampaign?.exampleFiles }}
                 </div>
               </div>
