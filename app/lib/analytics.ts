@@ -9,13 +9,16 @@ export const ANALYTICS_EVENTS = [
   'install_click',
   'install_success',
   'install_error',
+  'install_step',
   'manual_download_click',
   'github_click',
   'suggest_submit',
   'feedback_submit',
   'filter_used',
   'search',
-  'unsupported_browser_view'
+  'search_no_results',
+  'unsupported_browser_view',
+  'video_preview_play'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -55,13 +58,50 @@ export type UnsupportedBrowserAction = (typeof UNSUPPORTED_BROWSER_ACTIONS)[numb
 
 export const SEARCH_QUERY_MAX = 60
 export const SEARCH_LENGTH_MAX = 500
+export const SEARCH_NO_RESULTS_MAX = 80
+export const CAMPAIGN_REF_MAX = 40
 export const ANALYTICS_HOURLY_LIMIT = 120
+export const CAMPAIGN_REF_STORAGE_KEY = 'questports_ref'
+export const PREVIEW_PLAY_STORAGE_KEY = 'questports_preview_plays'
+
+export const INSTALL_STEPS = [
+  'connect',
+  'authorize',
+  'download_apk',
+  'install_apk',
+  'copy_game_files'
+] as const
+
+export type InstallStep = (typeof INSTALL_STEPS)[number]
+
+export const INSTALL_STEP_STATUSES = ['start', 'ok', 'fail'] as const
+
+export type InstallStepStatus = (typeof INSTALL_STEP_STATUSES)[number]
+
+export interface InstallStepEvent {
+  step: InstallStep
+  status: InstallStepStatus
+}
+
+export const VIDEO_PREVIEW_SURFACES = ['card', 'detail'] as const
+
+export type VideoPreviewSurface = (typeof VIDEO_PREVIEW_SURFACES)[number]
 
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'port_view',
   'install_click',
   'install_success',
-  'install_error'
+  'install_error',
+  'install_step',
+  'video_preview_play'
+])
+
+const EVENTS_WITH_REF: ReadonlySet<AnalyticsEventName> = new Set([
+  'page_view',
+  'install_click',
+  'install_success',
+  'install_error',
+  'install_step'
 ])
 
 const MOCK_QUEST_OFF = new Set(['0', 'false', 'off', 'no'])
@@ -269,6 +309,157 @@ function cleanSearchQuery(value: string): string {
   return value.replace(/[\u0000-\u001f]/g, '').trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
+/** Trim, lowercase, and cut a zero-result query. Empty text is dropped. */
+export function searchNoResultsQuery(query: string): string | null {
+  const normalized = query.replace(/[\u0000-\u001f]/g, '').trim().toLowerCase().slice(0, SEARCH_NO_RESULTS_MAX)
+  return normalized || null
+}
+
+/** Short campaign token. Prefer `ref`, otherwise `utm_source`. */
+export function cleanCampaignRef(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const value = input.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, CAMPAIGN_REF_MAX)
+  if (!/^[a-z0-9][a-z0-9._-]*$/.test(value)) return null
+  return value
+}
+
+export function campaignRefFromSearch(search: string | null | undefined): string | null {
+  if (!search) return null
+  const query = search.includes('?') ? search.slice(search.indexOf('?') + 1) : search
+  const params = new URLSearchParams(query.split('#')[0])
+  return cleanCampaignRef(params.get('ref') || params.get('utm_source'))
+}
+
+export interface AnalyticsSessionStore {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+}
+
+/** Keep the landing ref for this tab. A new `ref` or `utm_source` replaces it. */
+export function rememberCampaignRef(
+  storage: AnalyticsSessionStore | null,
+  search: string | null | undefined
+): string | null {
+  const fromUrl = campaignRefFromSearch(search)
+  if (!storage) return fromUrl
+  try {
+    if (fromUrl) {
+      storage.setItem(CAMPAIGN_REF_STORAGE_KEY, fromUrl)
+      return fromUrl
+    }
+    return cleanCampaignRef(storage.getItem(CAMPAIGN_REF_STORAGE_KEY))
+  } catch {
+    return fromUrl
+  }
+}
+
+/** First play of a port in this tab wins. Later card or detail plays are ignored. */
+export function claimVideoPreviewPlay(storage: AnalyticsSessionStore | null, slug: string): boolean {
+  const clean = cleanPortSlug(slug)
+  if (!clean || !storage) return false
+  try {
+    const current = storage.getItem(PREVIEW_PLAY_STORAGE_KEY) || ''
+    const played = current.split(',').filter(Boolean)
+    if (played.includes(clean)) return false
+    played.push(clean)
+    storage.setItem(PREVIEW_PLAY_STORAGE_KEY, played.slice(-80).join(','))
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** One start and one terminal outcome per step. Later calls are ignored. */
+export function createInstallStepLedger() {
+  const started = new Set<InstallStep>()
+  const finished = new Set<InstallStep>()
+  return {
+    start(step: string): boolean {
+      if (!(INSTALL_STEPS as readonly string[]).includes(step) || started.has(step as InstallStep)) return false
+      started.add(step as InstallStep)
+      return true
+    },
+    finish(step: string, status: string): boolean {
+      if (status !== 'ok' && status !== 'fail') return false
+      if (!(INSTALL_STEPS as readonly string[]).includes(step)) return false
+      const name = step as InstallStep
+      if (!started.has(name) || finished.has(name)) return false
+      finished.add(name)
+      return true
+    }
+  }
+}
+
+export type InstallProgressStep = 'idle' | 'downloading' | 'pushing' | 'installing' | 'completed' | 'error'
+
+/** Map an APK progress change to at most one outcome per step. The ledger drops repeats. */
+export function installStepEventsForProgress(
+  previous: InstallProgressStep | null,
+  next: InstallProgressStep
+): InstallStepEvent[] {
+  if (next === 'downloading' || next === 'pushing') {
+    return [{ step: 'download_apk', status: 'start' }]
+  }
+  if (next === 'installing') {
+    return [
+      { step: 'download_apk', status: 'ok' },
+      { step: 'install_apk', status: 'start' }
+    ]
+  }
+  if (next === 'completed') {
+    return [{ step: 'install_apk', status: 'ok' }]
+  }
+  const active = previous === 'downloading' || previous === 'pushing' || previous === 'installing'
+  if (next === 'error' || (next === 'idle' && active)) {
+    return [
+      { step: 'install_apk', status: 'fail' },
+      { step: 'download_apk', status: 'fail' }
+    ]
+  }
+  return []
+}
+
+export function installStepEventsForConnectPhase(phase: string): InstallStepEvent[] {
+  if (phase === 'authorizing') {
+    return [
+      { step: 'connect', status: 'ok' },
+      { step: 'authorize', status: 'start' }
+    ]
+  }
+  return []
+}
+
+export function installStepEventsForConnectResult(input: {
+  connected: boolean
+  sawAuthorize: boolean
+}): InstallStepEvent[] {
+  if (input.connected) {
+    const events: InstallStepEvent[] = []
+    if (!input.sawAuthorize) {
+      events.push({ step: 'connect', status: 'ok' }, { step: 'authorize', status: 'start' })
+    }
+    events.push({ step: 'authorize', status: 'ok' })
+    return events
+  }
+  if (input.sawAuthorize) return [{ step: 'authorize', status: 'fail' }]
+  return [{ step: 'connect', status: 'fail' }]
+}
+
+export function withSessionCampaignRef(
+  event: AnalyticsEventName,
+  input: AnalyticsTrackInput,
+  storage: AnalyticsSessionStore | null,
+  search: string | null | undefined
+): AnalyticsTrackInput {
+  const ref = rememberCampaignRef(storage, search)
+  if (!ref || !EVENTS_WITH_REF.has(event)) return input
+  const base = input.props && typeof input.props === 'object' && !Array.isArray(input.props)
+    ? { ...input.props }
+    : {}
+  if (cleanCampaignRef(base.ref)) return { ...input, props: base }
+  return { ...input, props: { ...base, ref } }
+}
+
 export function searchProps(query: string, reportedLength?: number): { q: string; length: number } | null {
   const normalized = cleanSearchQuery(query)
   if (!normalized) return null
@@ -294,12 +485,39 @@ function filterProps(props: Record<string, unknown>): { filter: AnalyticsFilterN
   return { filter: filter as AnalyticsFilterName, value }
 }
 
-function installErrorProps(props: Record<string, unknown> | null): { reason: InstallErrorReason } {
+function campaignRefProps(props: Record<string, unknown> | null): { ref?: string } {
+  const ref = cleanCampaignRef(props?.ref)
+  return ref ? { ref } : {}
+}
+
+function installErrorProps(props: Record<string, unknown> | null): { reason: InstallErrorReason; ref?: string } {
   const reason = props && typeof props.reason === 'string' ? props.reason : ''
-  if ((INSTALL_ERROR_REASONS as readonly string[]).includes(reason)) {
-    return { reason: reason as InstallErrorReason }
+  const code = (INSTALL_ERROR_REASONS as readonly string[]).includes(reason)
+    ? reason as InstallErrorReason
+    : 'other'
+  return { reason: code, ...campaignRefProps(props) }
+}
+
+function installStepProps(
+  props: Record<string, unknown> | null
+): { step: InstallStep; status: InstallStepStatus; ref?: string } | null {
+  const step = props && typeof props.step === 'string' ? props.step : ''
+  const status = props && typeof props.status === 'string' ? props.status : ''
+  if (!(INSTALL_STEPS as readonly string[]).includes(step)) return null
+  if (!(INSTALL_STEP_STATUSES as readonly string[]).includes(status)) return null
+  return {
+    step: step as InstallStep,
+    status: status as InstallStepStatus,
+    ...campaignRefProps(props)
   }
-  return { reason: 'other' }
+}
+
+function videoPreviewProps(
+  props: Record<string, unknown> | null
+): { surface: VideoPreviewSurface } | null {
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(VIDEO_PREVIEW_SURFACES as readonly string[]).includes(surface)) return null
+  return { surface: surface as VideoPreviewSurface }
 }
 
 function unsupportedBrowserProps(
@@ -326,7 +544,7 @@ function readProps(input: unknown): Record<string, unknown> | null {
   return input as Record<string, unknown>
 }
 
-/** Drops anything outside the allowlist. Search text is lowercased and cut to 60 characters. */
+/** Drops anything outside the allowlist. Search text is lowercased and cut before it is stored. */
 export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent | null {
   const record = readProps(body)
   if (!record || !isAnalyticsEvent(record.event)) return null
@@ -344,18 +562,37 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   let storedProps: Record<string, string | number> | null = null
   if (record.event === 'install_error') {
     storedProps = installErrorProps(props)
+  } else if (record.event === 'install_step') {
+    const step = installStepProps(props)
+    if (!step) return null
+    storedProps = step
+  } else if (record.event === 'install_click' || record.event === 'install_success') {
+    const ref = campaignRefProps(props)
+    storedProps = ref.ref ? ref : null
+  } else if (record.event === 'page_view') {
+    const ref = campaignRefProps(props)
+    storedProps = ref.ref ? ref : null
   } else if (record.event === 'search') {
     const query = props && typeof props.q === 'string' ? props.q : ''
     const length = props && typeof props.length === 'number' ? props.length : undefined
     const search = searchProps(query, length)
     if (!search) return null
     storedProps = search
+  } else if (record.event === 'search_no_results') {
+    const query = props && typeof props.q === 'string' ? props.q : ''
+    const q = searchNoResultsQuery(query)
+    if (!q) return null
+    storedProps = { q }
   } else if (record.event === 'filter_used') {
     const filter = props ? filterProps(props) : null
     if (!filter) return null
     storedProps = filter
   } else if (record.event === 'unsupported_browser_view') {
     storedProps = unsupportedBrowserProps(props)
+  } else if (record.event === 'video_preview_play') {
+    const preview = videoPreviewProps(props)
+    if (!preview) return null
+    storedProps = preview
   }
 
   return {
@@ -374,6 +611,66 @@ export interface AnalyticsTrackInput {
   headset?: string | null
   webusb?: boolean | null
   props?: Record<string, unknown> | null
+}
+
+/**
+ * install_success is recorded after a long WebUSB session, often while the tab is in the background.
+ * sendBeacon can return true and then never flush. A normal fetch is the transport that already
+ * lands the matching verification write.
+ * Other events use sendBeacon only while the tab is visible.
+ */
+export function analyticsDeliveryPlan(input: {
+  event: string
+  visibility?: string | null
+  beaconAvailable?: boolean
+}): 'beacon' | 'fetch' {
+  if (input.event === 'install_success') return 'fetch'
+  if (input.visibility && input.visibility !== 'visible') return 'fetch'
+  if (!input.beaconAvailable) return 'fetch'
+  return 'beacon'
+}
+
+export async function deliverAnalyticsPayload(input: {
+  event: string
+  body: string
+  visibility?: string | null
+  url?: string
+  sendBeacon?: (url: string, data: Blob) => boolean
+  fetchImpl: (url: string, init: { method: string; body: string; headers: Record<string, string>; keepalive: boolean }) => Promise<unknown>
+}): Promise<'beacon' | 'fetch'> {
+  const url = input.url || '/api/track'
+  const plan = analyticsDeliveryPlan({
+    event: input.event,
+    visibility: input.visibility,
+    beaconAvailable: typeof input.sendBeacon === 'function'
+  })
+  if (plan === 'beacon' && input.sendBeacon) {
+    try {
+      const blob = new Blob([input.body], { type: 'application/json' })
+      if (input.sendBeacon(url, blob)) return 'beacon'
+    } catch {
+      // Fall through to fetch.
+    }
+  }
+  await input.fetchImpl(url, {
+    method: 'POST',
+    body: input.body,
+    headers: { 'content-type': 'application/json' },
+    keepalive: true
+  })
+  return 'fetch'
+}
+
+/**
+ * The WebUSB installer records a success only after pm install reports success.
+ * A cancelled or unfinished transfer is an install_error, not a success.
+ */
+export function apkInstallOutcome(input: {
+  installed: boolean
+  progressStep?: string | null
+}): 'success' | 'cancelled' {
+  if (input.installed || input.progressStep === 'completed') return 'success'
+  return 'cancelled'
 }
 
 /** Payload safe to send. Search queries are truncated before they leave the browser. */

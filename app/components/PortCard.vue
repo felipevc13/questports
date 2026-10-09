@@ -185,11 +185,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 import type { PortVerification } from '~/lib/verification'
 import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
+import { claimVideoPreviewPlay } from '~/lib/analytics'
+import { useTrack } from '~/composables/useTrack'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
@@ -216,6 +218,17 @@ const navigateToDev = (dev: string) => {
 }
 
 const isPlayingPreview = ref(false)
+const { track } = useTrack()
+
+watch(isPlayingPreview, (playing) => {
+  if (!playing || !import.meta.client) return
+  if (!claimVideoPreviewPlay(window.sessionStorage, props.port.slug)) return
+  track('video_preview_play', {
+    path: `/ports/${props.port.slug}`,
+    portSlug: props.port.slug,
+    props: { surface: 'card' }
+  })
+})
 let hoverTimer: ReturnType<typeof setTimeout> | null = null
 const localVideoFailed = ref(false)
 

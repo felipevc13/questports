@@ -85,8 +85,20 @@
       <!-- LEFT HERO: Media Player + Feature Compatibility Matrix (7 Cols). Below lg the install card is first. -->
       <div class="order-2 space-y-3 lg:order-1 lg:col-span-7">
         <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl">
+          <video
+            v-if="detailPreviewPlaying && detailPreviewSource"
+            ref="detailPreviewVideo"
+            :src="detailPreviewSource"
+            autoplay
+            muted
+            loop
+            playsinline
+            class="h-full w-full object-cover"
+            data-testid="detail-preview-video"
+            @play="onDetailPreviewPlaying"
+          />
           <iframe
-            v-if="port.youtube_video_id"
+            v-else-if="port.youtube_video_id"
             :src="`https://www.youtube-nocookie.com/embed/${port.youtube_video_id}?autoplay=0&rel=0`"
             title="Gameplay / Devlog Video"
             class="w-full h-full"
@@ -100,6 +112,26 @@
             :alt="port.title"
             class="w-full h-full object-cover"
           />
+          <button
+            v-if="detailPreviewSource && !detailPreviewPlaying"
+            type="button"
+            data-testid="detail-preview"
+            class="absolute bottom-2 left-2 z-20 inline-flex min-h-11 items-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:min-h-0 md:px-1.5 md:py-0.5"
+            @click="playDetailPreview"
+          >
+            <svg class="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Preview
+          </button>
+          <button
+            v-else-if="detailPreviewPlaying"
+            type="button"
+            class="absolute bottom-2 left-2 z-20 inline-flex min-h-11 items-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:min-h-0"
+            @click="detailPreviewPlaying = false"
+          >
+            Close
+          </button>
         </div>
 
         <PortFeaturePanel :port="port" />
@@ -1255,7 +1287,19 @@ import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
 import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
-import { connectFailureReason, installErrorReason } from '~/lib/analytics'
+import {
+  apkInstallOutcome,
+  claimVideoPreviewPlay,
+  connectFailureReason,
+  createInstallStepLedger,
+  installErrorReason,
+  installStepEventsForConnectPhase,
+  installStepEventsForConnectResult,
+  installStepEventsForProgress,
+  type InstallStep,
+  type InstallStepStatus
+} from '~/lib/analytics'
+import { AVAILABLE_VIDEO_PREVIEWS } from '~/data/videoPreviews'
 import { useTrack } from '~/composables/useTrack'
 import TransferProgress from '~/components/TransferProgress.vue'
 
@@ -1847,9 +1891,59 @@ const trackInstall = (
   })
 }
 
+const detailPreviewPlaying = ref(false)
+const detailPreviewVideo = ref<HTMLVideoElement | null>(null)
+const detailPreviewSource = computed(() => {
+  const videoUrl = port.value?.video_preview_url
+  if (typeof videoUrl === 'string' && videoUrl.trim()) return videoUrl.trim()
+  const slug = port.value?.slug
+  if (slug && AVAILABLE_VIDEO_PREVIEWS.includes(slug)) return `/previews/${slug}.mp4`
+  return null
+})
+
+const onDetailPreviewPlaying = () => {
+  if (!import.meta.client || !port.value) return
+  if (!claimVideoPreviewPlay(window.sessionStorage, port.value.slug)) return
+  track('video_preview_play', {
+    ...trackContext(),
+    props: { surface: 'detail' }
+  })
+}
+
+const playDetailPreview = async () => {
+  if (!detailPreviewSource.value || !port.value) return
+  detailPreviewPlaying.value = true
+  await nextTick()
+  try {
+    await detailPreviewVideo.value?.play()
+  } catch {
+    // A blocked play still leaves the preview mounted. The event waits for playback.
+  }
+}
+
+const trackInstallStep = (
+  ledger: ReturnType<typeof createInstallStepLedger>,
+  step: InstallStep,
+  status: InstallStepStatus
+) => {
+  const accepted = status === 'start' ? ledger.start(step) : ledger.finish(step, status)
+  if (!accepted) return
+  track('install_step', {
+    ...trackContext(),
+    props: { step, status }
+  })
+}
+
+const applyInstallSteps = (
+  ledger: ReturnType<typeof createInstallStepLedger>,
+  events: Array<{ step: InstallStep; status: InstallStepStatus }>
+) => {
+  for (const event of events) trackInstallStep(ledger, event.step, event.status)
+}
+
 const recordInstallVerification = async () => {
   if (!port.value) return
-  trackInstall('install_success')
+  await trackInstall('install_success')
   const selfContained = isDirectApkOnly.value
   const campaigns = campaignList.value
   const gameFilesDetected = selfContained
@@ -1979,13 +2073,30 @@ const handleApkInstall = async () => {
     return
   }
 
+  const steps = createInstallStepLedger()
+
   // The headset must be connected via ADB. A cancelled USB chooser already has its own notice.
   if (!questAdb.isConnected.value) {
     if (!questAdb.isWebUsbSupported.value) {
       trackInstall('install_error', 'no_webusb')
       return
     }
-    await questAdb.connect()
+    trackInstallStep(steps, 'connect', 'start')
+    let sawAuthorize = false
+    const stopConnect = watch(questAdb.connectionPhase, (phase) => {
+      const phaseEvents = installStepEventsForConnectPhase(phase)
+      if (phaseEvents.some(event => event.step === 'authorize')) sawAuthorize = true
+      applyInstallSteps(steps, phaseEvents)
+    }, { flush: 'sync' })
+    try {
+      await questAdb.connect()
+    } finally {
+      stopConnect()
+    }
+    applyInstallSteps(steps, installStepEventsForConnectResult({
+      connected: questAdb.isConnected.value,
+      sawAuthorize
+    }))
     if (!questAdb.isConnected.value) {
       trackInstall('install_error', connectFailureReason({
         webusb: questAdb.isWebUsbSupported.value,
@@ -1998,13 +2109,21 @@ const handleApkInstall = async () => {
 
   isInstallingApk.value = true
   apkProgress.value = 0
+  let previousInstallStep = questAdb.installProgress.value.step
+  const stopProgress = watch(() => questAdb.installProgress.value.step, (step) => {
+    applyInstallSteps(steps, installStepEventsForProgress(previousInstallStep, step))
+    previousInstallStep = step
+  }, { flush: 'sync' })
   try {
     const installed = await questAdb.installApkUrl(downloadUrl, port.value.title)
     if (questAdb.installSpaceWarning.value) {
       spaceNotice.value = questAdb.installSpaceWarning.value
       spaceNoticeKind.value = 'warn'
     }
-    if (installed || questAdb.installProgress.value.step === 'completed') {
+    if (apkInstallOutcome({
+      installed: Boolean(installed),
+      progressStep: questAdb.installProgress.value.step
+    }) === 'success') {
       isApkInstalled.value = true
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
@@ -2016,6 +2135,7 @@ const handleApkInstall = async () => {
   } catch (err: any) {
     noteInstallFailure(err)
   } finally {
+    stopProgress()
     isInstallingApk.value = false
   }
 }
@@ -2112,11 +2232,17 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
   fileTransferIndeterminate.value = false
   fileTransferReceived.value = ''
   fileTransferStatusMsg.value = `Preparing ${files.length} file(s)...`
+  const copySteps = createInstallStepLedger()
+  trackInstallStep(copySteps, 'copy_game_files', 'start')
+  let copyOutcome: 'ok' | 'fail' = 'ok'
 
   try {
     const campaignPath = currentCampaign.value.fullPath
     for (let i = 0; i < files.length; i++) {
-      if (fileTransferCancelRequested.value) return
+      if (fileTransferCancelRequested.value) {
+        copyOutcome = 'fail'
+        return
+      }
       const entry = files[i]!
       const file = entry instanceof File ? entry : entry.file
       const relPath = entry instanceof File ? file.webkitRelativePath : (entry.relPath || file.webkitRelativePath)
@@ -2138,7 +2264,10 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
         fileTransferStatusMsg.value = msg
       })
     }
-    if (fileTransferCancelRequested.value) return
+    if (fileTransferCancelRequested.value) {
+      copyOutcome = 'fail'
+      return
+    }
     fileTransferIndeterminate.value = false
     fileTransferProgress.value = 100
     fileTransferStatusMsg.value = 'Files transferred successfully!'
@@ -2149,6 +2278,7 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
     allowFileTransferOverride.value = false
     await scanCampaignFiles()
   } catch (err: any) {
+    copyOutcome = 'fail'
     if (fileTransferCancelRequested.value || isUserCancel(err)) {
       fileTransferStatusMsg.value = ''
       fileTransferProgress.value = 0
@@ -2166,6 +2296,7 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
     console.error('File push failed:', err)
     fileTransferStatusMsg.value = `Error: ${err?.message || 'Failed to push files'}`
   } finally {
+    trackInstallStep(copySteps, 'copy_game_files', copyOutcome)
     if (!fileTransferCancelRequested.value) {
       setTimeout(() => {
         isTransferringFiles.value = false
