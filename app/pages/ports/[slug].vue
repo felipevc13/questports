@@ -1280,7 +1280,7 @@ import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQues
 import { destinationDirForDroppedFile } from '~/lib/dropPaths'
 import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
-import { absoluteCoverUrl } from '~/data/coverUrl'
+import { portShareMeta } from '~/lib/socialMeta'
 import { softenGuideHtml } from '~/lib/guideHtml'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
@@ -1323,17 +1323,25 @@ const { data: verificationData, refresh: refreshVerifications } = await useAsync
 )
 const verificationRecords = computed(() => verificationData.value || [])
 
+const share = computed(() => portShareMeta(port.value?.cover_image_url, port.value?.title))
+
 useSeoMeta({
   title: () => port.value ? `${port.value.title} — QuestPorts` : 'QuestPorts',
-  description: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
+  description: () => share.value.description,
   ogTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
-  ogDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
-  ogImage: () => absoluteCoverUrl(port.value?.cover_image_url),
+  ogDescription: () => share.value.description,
+  ogImage: () => share.value.image,
+  ogImageSecureUrl: () => share.value.image,
+  ogImageType: () => share.value.type,
+  ogImageWidth: () => share.value.width,
+  ogImageHeight: () => share.value.height,
+  ogImageAlt: () => share.value.alt,
   ogType: 'article',
   twitterCard: 'summary_large_image',
   twitterTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
-  twitterDescription: () => port.value?.short_description || 'Standalone VR Port details, guide, and files.',
-  twitterImage: () => absoluteCoverUrl(port.value?.cover_image_url),
+  twitterDescription: () => share.value.description,
+  twitterImage: () => share.value.image,
+  twitterImageAlt: () => share.value.alt,
 })
 
 // Quest connection state (tied to global questAdb singleton so Navbar & Card are 100% in sync)

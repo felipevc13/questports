@@ -1,4 +1,5 @@
 import { isAnalyticsEnabled } from './app/lib/analytics'
+import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -19,7 +20,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'QuestPorts — The Standalone VR Database (Zero PC Required)',
+      title: SOCIAL_TITLE,
       htmlAttrs: {
         lang: 'en',
         class: 'dark'
@@ -27,26 +28,9 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content' },
-        { name: 'description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. No PC, no cables, zero streaming. Step-by-step install guides & file paths.' },
+        { name: 'description', content: SOCIAL_DESCRIPTION },
         { name: 'theme-color', content: '#06b6d4' },
-        
-        // Open Graph / Facebook / Discord
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'QuestPorts' },
-        { property: 'og:title', content: 'QuestPorts — The Standalone VR Database' },
-        { property: 'og:description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required. Guides, APK downloads, and internal storage paths.' },
-        { property: 'og:image', content: 'https://questports.vercel.app/covers/questports-og.png' },
-        { property: 'og:image:secure_url', content: 'https://questports.vercel.app/covers/questports-og.png' },
-        { property: 'og:image:width', content: '1200' },
-        { property: 'og:image:height', content: '630' },
-        { property: 'og:image:type', content: 'image/png' },
-        { property: 'og:image:alt', content: 'QuestPorts - The Standalone VR Database' },
-
-        // Twitter / X / Discord Large Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'QuestPorts — The Standalone VR Database' },
-        { name: 'twitter:description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required.' },
-        { name: 'twitter:image', content: 'https://questports.vercel.app/covers/questports-og.png' }
+        ...defaultSocialMeta()
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=2' },

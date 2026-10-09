@@ -55,4 +55,10 @@ describe('absoluteCoverUrl', () => {
       'https://questports.vercel.app/covers/nolf-vr.png'
     )
   })
+
+  it('falls back to the cache-busted site card', () => {
+    expect(absoluteCoverUrl(null)).toBe(
+      'https://questports.vercel.app/covers/questports-og.png?v=2'
+    )
+  })
 })
