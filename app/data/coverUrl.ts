@@ -18,7 +18,8 @@ const STEAMGRID_COVERS: Record<string, string> = {
   'a6c39c820081dd442cedc35851851de9': '/covers/generals-zero-hour-xr.png',
   '933bae66e5dfe59043d3d2cbbe9c7fc3': '/covers/generals-zero-hour-xr.png',
   'fe895c991a5152476a051ae74fcbf8ac': '/covers/sm64-coop-dx-vr.png',
-  '317799a8c9027ed5e9cbb1deb38238d9': '/covers/f-zero-x-vr.jpg'
+  '317799a8c9027ed5e9cbb1deb38238d9': '/covers/f-zero-x-vr.jpg',
+  'bb6db65a8d0f04a0f9a0a8e708da18d2': '/covers/quake3quest.png'
 }
 
 /** Map Storage / hotlink covers onto same-origin /covers files. */
