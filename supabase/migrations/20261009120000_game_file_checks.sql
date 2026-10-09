@@ -21,6 +21,8 @@
 -- Quake2Quest README: copy all .pak files from baseq2 into the Quake2Quest folder
 -- (not a baseq2 subfolder). OGG soundtrack goes in Quake2Quest/music.
 -- https://github.com/DrBeef/Quake2Quest/blob/master/README.md
+-- Java copies shareware pak0.pak, pak6.pak, and pak99.pak into /sdcard/Quake2Quest when missing:
+-- https://github.com/DrBeef/Quake2Quest/blob/master/java/com/drbeef/quake2quest/GLES3JNIActivity.java
 -- Steam installdir "Quake 2"; default launch rerelease/quake2ex_steam.exe; original quake2.exe:
 -- https://api.steamcmd.net/v1/info/2320
 --
