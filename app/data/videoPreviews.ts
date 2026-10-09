@@ -37,6 +37,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'citravr',
   'csvr',
   'doom3quest',
+  'f-zero-x-vr',
   'galaxyquest',
   'generals-zero-hour-xr',
   'goldeneye-vr',
@@ -257,5 +258,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // SM64 Co-Op DX VR Standalone
   'sm64-coop-dx-vr': { start: '0:12', end: '1:12' },
-  'nmeVViFqVG8': { start: '0:12', end: '1:12' }
+  'nmeVViFqVG8': { start: '0:12', end: '1:12' },
+
+  // F-Zero X VR (Quest 3 standalone)
+  'f-zero-x-vr': { start: '1:00', end: '2:00' },
+  '0dr4OSkLeM4': { start: '1:00', end: '2:00' }
 }
