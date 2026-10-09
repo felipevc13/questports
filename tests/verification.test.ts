@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { buildInstallVerificationBody } from '../app/lib/installVerification'
 import {
+  buildCardVerificationLabel,
   buildVerificationBadge,
   canonicalHeadset,
   verificationSummaryLine,
@@ -112,6 +113,22 @@ describe('verification staleness', () => {
     })
     expect(latestVerification([older, newer], 'halocequest')?.id).toBe('new')
     expect(verificationBadgeState(latestVerification([older, newer], 'halocequest'), 'v1.0.16')).toBe('stale')
+  })
+})
+
+describe('card verification label', () => {
+  it('uses a short line with no date for a current check', () => {
+    expect(buildCardVerificationLabel(check(), 'v1.0.16')?.text).toBe('✓ Verified · Quest 3')
+    expect(buildCardVerificationLabel(check({ result: 'works_with_issues', headset_model: 'Quest 2' }), 'v1.0.16')?.text)
+      .toBe('⚠ Works with issues · Quest 2')
+  })
+
+  it('hides an untested port and keeps a stale check to one line', () => {
+    expect(buildCardVerificationLabel(null, 'v1.0.16')).toBeNull()
+    expect(buildCardVerificationLabel(check({ result: 'doesnt_work' }), 'v1.0.16')).toBeNull()
+    const stale = buildCardVerificationLabel(check(), 'v1.0.17')
+    expect(stale?.text).toBe('⚠ Update not tested · Quest 3')
+    expect(stale?.text).not.toMatch(/ago|today/)
   })
 })
 

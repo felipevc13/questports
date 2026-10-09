@@ -43,9 +43,9 @@
     </section>
 
     <!-- Catalog Section -->
-    <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-5">
+    <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-5 max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
       <!-- Search & Filters Toolbar -->
-      <div class="max-md:sticky max-md:top-14 max-md:z-30 max-md:-mx-4 max-md:border-x-0 max-md:bg-background/95 max-md:px-4 max-md:py-2 max-md:backdrop-blur space-y-3 rounded-lg border border-border bg-card p-3.5 md:static">
+      <div class="max-md:sticky max-md:top-14 max-md:z-40 max-md:-mx-4 max-md:border-x-0 max-md:bg-background/95 max-md:px-4 max-md:py-2 max-md:backdrop-blur space-y-3 rounded-lg border border-border bg-card p-3.5 md:static">
         <!-- Row 1: Search & Category Filter Pills -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <!-- Search Input -->
@@ -451,7 +451,7 @@
       <button
         v-if="showBackToTop"
         type="button"
-        class="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40 inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-lg md:hidden"
+        class="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-lg md:hidden"
         @click="scrollToTop"
       >
         Back to top

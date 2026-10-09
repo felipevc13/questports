@@ -4,7 +4,7 @@
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
     :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
-    class="group flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
+    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
   >
     <!-- Steam Capsule Header (460x215 aspect ratio) -->
     <div class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
@@ -78,7 +78,7 @@
         v-if="hasVideo && !isPlayingPreview"
         role="button"
         tabindex="0"
-        class="absolute bottom-2 right-2 z-30 flex min-h-11 min-w-11 items-center justify-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:min-h-0 md:min-w-0 md:px-1.5 md:py-0.5"
+        class="absolute bottom-2 left-2 right-auto flex min-h-11 min-w-11 items-center justify-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:left-auto md:right-2 md:min-h-0 md:min-w-0 md:px-1.5 md:py-0.5"
         aria-label="Play preview"
         @click.stop.prevent="onPreviewTap"
         @keydown.enter.stop.prevent="onPreviewTap"
@@ -93,7 +93,7 @@
         v-else-if="hasVideo && isPlayingPreview"
         role="button"
         tabindex="0"
-        class="absolute bottom-2 right-2 z-30 flex min-h-11 min-w-11 items-center justify-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:hidden"
+        class="absolute bottom-2 left-2 z-20 flex min-h-11 min-w-11 items-center justify-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:hidden"
         aria-label="Close preview"
         @click.stop.prevent="onPreviewTap"
       >
@@ -132,6 +132,8 @@
             </span>
           </div>
           <VerificationBadge
+            variant="inline"
+            class="mt-0.5"
             :records="verifications"
             :slug="port.slug"
             :latest-version="port.latest_version"
@@ -146,7 +148,7 @@
       </div>
 
       <!-- Hardware Badges & CTA Footer -->
-      <div class="pt-2.5 mt-2.5 border-t border-border flex items-center justify-between gap-2">
+      <div class="pt-2.5 mt-2.5 border-t border-border flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-wrap gap-1">
           <UiBadge
             v-for="hw in headsetLabels"
@@ -160,7 +162,7 @@
 
         <span
           v-if="isInstalledOnQuest"
-          class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 group-hover:underline"
+          class="inline-flex items-center gap-1 self-start text-xs font-semibold text-emerald-400 group-hover:underline md:self-auto"
         >
           <span>Manage Files</span>
           <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +171,7 @@
         </span>
         <span
           v-else
-          class="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:underline"
+          class="inline-flex items-center gap-1 self-start text-xs font-medium text-primary group-hover:underline md:self-auto"
         >
           <span>View Guide & Files</span>
           <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">

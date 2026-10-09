@@ -10,7 +10,7 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['ocarina-of-time-vr', 'fzhbhrotI1Q', '1:30', '2:30'],
   ['xrkart-64', '30bVFznHI3M', '1:00', '2:00'],
   ['wiicompiled-vr-plus', 'DnO2lIeBW2g', '0:10', '1:00'],
-  ['twilight-princess-vr', '1OZPe0AD2Zs', '2:17', '3:17']
+  ['twilight-princess-vr', '1OZPe0AD2Zs', '2:22', '3:22']
 ]
 
 describe('local hover previews', () => {
