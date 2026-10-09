@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { PORT_EXPANSIONS, getPortCampaigns, getDefaultFolderInfo } from '../app/data/expansions'
+import { PORT_PACKAGE_CONFIGS } from '../app/data/portPackageMap'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { catalogInstallFacts } from '../app/lib/catalogInstallFacts'
 
@@ -18,6 +20,8 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(base?.folder).toBe('valve')
       expect(base?.fullPath).toBe('/sdcard/xash/valve/')
       expect(base?.storeUrl).toContain('steampowered.com')
+      expect(base?.instruction).toContain('steam_legacy')
+      expect(base?.instruction).toContain('Pre-25th Anniversary Build')
 
       expect(opfor?.isBase).toBe(false)
       expect(opfor?.folder).toBe('gearbox')
@@ -83,22 +87,75 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(d3xp?.fullPath).toBe('/sdcard/Doom3Quest/d3xp/')
     })
 
-    it('defines Quake 2 Quest campaigns (Base and Mission Packs)', () => {
+    it('defines Quake 2 Quest as the base game only', () => {
       const q2 = PORT_EXPANSIONS['quake2quest']
       expect(q2).toBeDefined()
-      expect(q2.length).toBe(3)
+      expect(q2.length).toBe(1)
 
       const base = q2.find(c => c.id === 'baseq2')
-      const reckoning = q2.find(c => c.id === 'xatrix')
-      const groundZero = q2.find(c => c.id === 'rogue')
-
       expect(base?.isBase).toBe(true)
       expect(base?.folder).toBe('Quake2Quest')
       expect(base?.fullPath).toBe('/sdcard/Quake2Quest/')
       expect(base?.steamPath).toBe('Quake 2/baseq2/')
+      expect(q2.map(c => c.id)).not.toEqual(expect.arrayContaining(['xatrix', 'rogue']))
 
-      expect(reckoning?.folder).toBe('xatrix')
-      expect(groundZero?.folder).toBe('rogue')
+      const folders = PORT_PACKAGE_CONFIGS.quake2quest.folders || []
+      expect(folders.map(folder => folder.id)).toEqual(['q2_base'])
+      expect(folders.some(folder => folder.campaignId === 'xatrix' || folder.campaignId === 'rogue')).toBe(false)
+    })
+
+    it('does not publish Quake II mission-pack install paths', () => {
+      const catalog = [
+        JSON.stringify(PORT_EXPANSIONS),
+        JSON.stringify(PORT_PACKAGE_CONFIGS),
+        ...INITIAL_PORTS.flatMap(port => [port.installation_guide, port.troubleshooting_notes])
+      ].join('\n')
+      expect(catalog).not.toMatch(/\/sdcard\/Quake2Quest\/(?:xatrix|rogue)\//)
+
+      const quake2 = INITIAL_PORTS.find(port => port.slug === 'quake2quest')
+      const campaigns = getPortCampaigns(quake2!)
+      expect(campaigns).toHaveLength(1)
+      expect(campaigns[0]?.id).toBe('baseq2')
+    })
+
+    it('makes the steam_legacy beta the Lambda1VR copy step', () => {
+      const lambda = INITIAL_PORTS.find(port => port.slug === 'lambda1vr')
+      expect(lambda).toBeTruthy()
+      const guide = lambda!.installation_guide
+      const betaStep = guide.indexOf('steam_legacy')
+      const copyStep = guide.indexOf('/sdcard/xash/valve/')
+      expect(betaStep).toBeGreaterThan(-1)
+      expect(copyStep).toBeGreaterThan(betaStep)
+      expect(guide).toContain('Properties')
+      expect(guide).toContain('Betas')
+      expect(guide).toContain('Pre-25th Anniversary Build')
+      expect(guide).toContain('steamapps/common/Half-Life/valve/')
+      expect(guide).toContain('hl-paker README, 2025-04-04')
+      expect(guide).toContain('r/TeamBeef pinned post')
+      expect(guide).not.toContain('Whether the current public build still fails')
+      expect(guide).not.toContain('If the 25th anniversary update still breaks')
+
+      const notes = lambda!.troubleshooting_notes || ''
+      expect(notes).toContain('steam_legacy')
+      expect(notes).toContain('Pre-25th Anniversary Build')
+      expect(notes).not.toContain('If the 25th anniversary update still breaks')
+
+      const guidance = PORT_PACKAGE_CONFIGS.lambda1vr.fileGuidance || ''
+      expect(guidance).toContain('steam_legacy')
+      expect(guidance).toContain('/sdcard/xash/valve/')
+      expect(guidance).not.toContain('may require')
+
+      const migration = readFileSync('supabase/migrations/20261009160000_lambda1vr_steam_legacy.sql', 'utf8')
+      const seed = readFileSync('supabase/seed.sql', 'utf8')
+      const setup = readFileSync('supabase/full_setup.sql', 'utf8')
+      for (const source of [migration, seed, setup]) {
+        expect(source).toContain(guide)
+        expect(source).toContain(notes)
+        expect(source).not.toContain('/sdcard/Quake2Quest/xatrix/')
+        expect(source).not.toContain('/sdcard/Quake2Quest/rogue/')
+      }
+      expect(migration).toContain("where slug = 'lambda1vr'")
+      expect(migration).toContain('Do not run this from CI')
     })
 
     it('defines RazeXR Build Engine campaigns (Duke 3D, Blood, Shadow Warrior)', () => {

@@ -26,7 +26,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       fullPath: '/sdcard/xash/valve/',
       steamPath: 'Half-Life/valve/',
       exampleFiles: 'liblist.gam and the rest of the valve folder',
-      instruction: 'Drop the Steam Half-Life valve folder. A Steam install does not include the old pak0.pak.',
+      instruction: 'Select the Steam steam_legacy beta ("Pre-25th Anniversary Build"), let it update, then drop the valve folder contents here. A Steam install does not include the old pak0.pak.',
       storeUrl: 'https://store.steampowered.com/app/70/HalfLife/',
       storeName: 'Steam ($9.99)'
     },
@@ -39,7 +39,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       fullPath: '/sdcard/xash/gearbox/',
       steamPath: 'Half-Life/gearbox/',
       exampleFiles: 'opfor.pak, gearbox folder contents',
-      instruction: 'Drop the "gearbox" folder from Opposing Force',
+      instruction: 'Drop the gearbox folder from the steam_legacy Half-Life install (Opposing Force).',
       storeUrl: 'https://store.steampowered.com/app/50/HalfLife_Opposing_Force/',
       storeName: 'Steam ($4.99)'
     },
@@ -52,7 +52,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       fullPath: '/sdcard/xash/bshift/',
       steamPath: 'Half-Life/bshift/',
       exampleFiles: 'bshift.pak, bshift folder contents',
-      instruction: 'Drop the "bshift" folder from Blue Shift',
+      instruction: 'Drop the bshift folder from the steam_legacy Half-Life install (Blue Shift).',
       storeUrl: 'https://store.steampowered.com/app/130/HalfLife_Blue_Shift/',
       storeName: 'Steam ($4.99)'
     }
@@ -139,6 +139,7 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       storeName: 'Steam'
     }
   ],
+  // Base game only. Quake2Quest does not ship xatrix/rogue game libraries.
   quake2quest: [
     {
       id: 'baseq2',
@@ -150,32 +151,6 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       steamPath: 'Quake 2/baseq2/',
       exampleFiles: 'original baseq2/pak0.pak, pak1.pak, pak2.pak',
       instruction: 'Copy original Quake 2 baseq2 pak0.pak, pak1.pak, and pak2.pak into /sdcard/Quake2Quest/. Do not use rerelease/.',
-      storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
-      storeName: 'Steam'
-    },
-    {
-      id: 'xatrix',
-      name: 'The Reckoning',
-      badge: 'Mission Pack 1',
-      isBase: false,
-      folder: 'xatrix',
-      fullPath: '/sdcard/Quake2Quest/xatrix/',
-      steamPath: 'Quake 2/xatrix/',
-      exampleFiles: 'pak0.pak from xatrix folder',
-      instruction: 'Drop the "xatrix" folder from Mission Pack 1',
-      storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
-      storeName: 'Steam'
-    },
-    {
-      id: 'rogue',
-      name: 'Ground Zero',
-      badge: 'Mission Pack 2',
-      isBase: false,
-      folder: 'rogue',
-      fullPath: '/sdcard/Quake2Quest/rogue/',
-      steamPath: 'Quake 2/rogue/',
-      exampleFiles: 'pak0.pak from rogue folder',
-      instruction: 'Drop the "rogue" folder from Mission Pack 2',
       storeUrl: 'https://store.steampowered.com/app/2320/Quake_II/',
       storeName: 'Steam'
     }
