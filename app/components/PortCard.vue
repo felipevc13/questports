@@ -133,7 +133,7 @@
       <div class="pt-2.5 mt-2.5 border-t border-border flex items-center justify-between gap-2">
         <div class="flex flex-wrap gap-1">
           <UiBadge
-            v-for="hw in port.supported_hardware"
+            v-for="hw in headsetLabels"
             :key="hw"
             variant="outline"
             class="text-[10px] font-mono py-0 px-1.5"
@@ -174,6 +174,7 @@ import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
+import { normalizeHeadsetList } from '~/lib/headsets'
 
 const props = withDefaults(defineProps<{
   port: Port
@@ -250,6 +251,7 @@ const formatRelativeTime = (dateStr?: string | null) => {
 }
 
 const displayVersion = computed(() => formatPortVersion(props.port.latest_version))
+const headsetLabels = computed(() => normalizeHeadsetList(props.port.supported_hardware))
 
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {

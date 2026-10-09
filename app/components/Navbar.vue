@@ -2,7 +2,7 @@
   <header class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
     <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between">
       <!-- Brand Logo -->
-      <NuxtLink to="/" class="flex items-center gap-2.5 group">
+      <NuxtLink to="/" class="flex items-center gap-2.5 group" @click="leaveErrorPage">
         <div class="w-9 h-7 flex items-center justify-center">
           <AppLogo class="w-full h-full" />
         </div>
@@ -202,6 +202,12 @@ const route = useRoute()
 const isDropdownOpen = ref(false)
 const isSuggestMenuOpen = ref(false)
 const suggestMenuRef = ref<HTMLElement | null>(null)
+
+const leaveErrorPage = (event: MouseEvent) => {
+  if (!useError().value) return
+  event.preventDefault()
+  clearError({ redirect: '/' })
+}
 
 const openGameSuggestion = () => {
   isSuggestMenuOpen.value = false

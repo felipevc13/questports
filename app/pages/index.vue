@@ -7,7 +7,7 @@
           <div class="space-y-3 max-w-3xl">
             <div class="flex items-center gap-2">
               <UiBadge variant="outline" class="font-mono text-xs">
-                Meta Quest 2 • 3 • 3S • Pro
+                {{ headsetSummary }}
               </UiBadge>
               <UiBadge variant="success" class="text-xs">
                 Zero PC Required
@@ -122,12 +122,14 @@
             <div class="relative inline-flex items-center">
               <select
                 v-model="selectedHardware"
+                data-testid="headset-filter"
+                aria-label="Headset"
                 class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
               >
                 <option value="">All Headsets</option>
-                <option value="Quest 2">Quest 2</option>
-                <option value="Quest 3">Quest 3</option>
-                <option value="Quest 3S">Quest 3S</option>
+                <option v-for="headset in headsetOptions" :key="headset" :value="headset">
+                  {{ headset }}
+                </option>
               </select>
               <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -347,7 +349,7 @@
                 <!-- Hardware -->
                 <td class="py-2 px-3 text-muted-foreground whitespace-nowrap">
                   <span class="font-mono text-[10px]">
-                    {{ (port.supported_hardware || []).join(', ') }}
+                    {{ normalizeHeadsetList(port.supported_hardware).join(', ') }}
                   </span>
                 </td>
 
@@ -407,6 +409,7 @@ import type { Port, PortCategory, PortStatus } from '~/types/port'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
+import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 
 const route = useRoute()
 const router = useRouter()
@@ -420,7 +423,7 @@ const ports = computed(() => portsData.value || [])
 const { data: verificationData } = await useAsyncData('port-verifications', () => fetchVerificationRecords())
 const verificationRecords = computed(() => verificationData.value || [])
 
-const searchQuery = ref('')
+const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const selectedCategory = ref<string>('all')
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
@@ -443,6 +446,13 @@ const installedPortsCount = computed(() => {
 watch(() => route.query.dev, (newDev) => {
   selectedDeveloper.value = (newDev as string) || ''
 })
+
+watch(() => route.query.q, (q) => {
+  searchQuery.value = typeof q === 'string' ? q : ''
+})
+
+const headsetOptions = computed(() => headsetFilterOptions(ports.value.map(port => port.supported_hardware)))
+const headsetSummary = computed(() => headsetOptions.value.join(' • ') || 'Quest headsets')
 
 watch(selectedDeveloper, (newDev) => {
   if (newDev) {
@@ -552,7 +562,7 @@ const filteredPorts = computed(() => {
   }
 
   if (selectedHardware.value) {
-    list = list.filter(p => p.supported_hardware?.includes(selectedHardware.value))
+    list = list.filter(p => portSupportsHeadset(p.supported_hardware, selectedHardware.value))
   }
 
   if (selectedDeveloper.value) {

@@ -28,7 +28,6 @@ export default defineNuxtConfig({
         
         // Open Graph / Facebook / Discord
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: 'https://questports.vercel.app' },
         { property: 'og:site_name', content: 'QuestPorts' },
         { property: 'og:title', content: 'QuestPorts — The Standalone VR Database' },
         { property: 'og:description', content: 'Discover classic PC & console games running natively in 6DoF VR on Meta Quest. Zero PC required. Guides, APK downloads, and internal storage paths.' },
