@@ -12,7 +12,8 @@ const STEAMGRID_COVERS: Record<string, string> = {
   '3976e8d9470abc7b3aed396293ab346a': '/covers/ocarina-of-time-vr.png',
   'c530fbfc90e6b52b488b3d5ab006e9b8': '/covers/xrkart-64.png',
   'dc2b690516158a874dd8aabe1365c6a0': '/covers/wiicompiled-vr-plus.png',
-  '7877afc63a2644aeee47db29ff48412b': '/covers/magic-carpet-vr.jpg'
+  '7877afc63a2644aeee47db29ff48412b': '/covers/magic-carpet-vr.jpg',
+  'a073416fbe3a75be1c9dabe1a85176ca': '/covers/twilight-princess-vr.png'
 }
 
 /** Map Storage / hotlink covers onto same-origin /covers files. */
