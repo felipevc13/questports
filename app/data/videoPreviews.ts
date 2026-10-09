@@ -58,6 +58,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'preyvr',
   'primedgun',
   'quake2quest',
+  'quake3quest',
   'quakequest',
   'qualyx',
   'questcarnage',
@@ -262,5 +263,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // F-Zero X VR (Quest 3 standalone)
   'f-zero-x-vr': { start: '1:00', end: '2:00' },
-  '0dr4OSkLeM4': { start: '1:00', end: '2:00' }
+  '0dr4OSkLeM4': { start: '1:00', end: '2:00' },
+
+  // Quake3Quest (Quake III Arena VR)
+  'quake3quest': { start: '0:05', end: '1:05' },
+  'Q-MR6AVNu3E': { start: '0:05', end: '1:05' }
 }
