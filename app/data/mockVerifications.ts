@@ -35,8 +35,37 @@ export const MOCK_VERIFICATIONS: PortVerification[] = [
     checks: {
       apk_installed: true,
       game_files_detected: true,
-      storage_path_confirmed: true
+      storage_path_confirmed: true,
+      data_copied_by_site: true
     },
+    result: 'works',
+    notes: null,
+    moderation_status: 'approved'
+  },
+  {
+    id: 'local-galaxy-quest2',
+    port_slug: 'galaxyquest',
+    tested_version: 'v0.1.8',
+    headset_model: 'Quest 2',
+    checked_at: daysAgo(1),
+    source: 'install',
+    checks: {
+      apk_installed: true,
+      game_files_detected: false,
+      storage_path_confirmed: false
+    },
+    result: 'works_with_issues',
+    notes: null,
+    moderation_status: 'approved'
+  },
+  {
+    id: 'local-time-crisis-quest2',
+    port_slug: 'time-crisis-vr',
+    tested_version: '0.8.4',
+    headset_model: 'Quest 2',
+    checked_at: daysAgo(1),
+    source: 'install',
+    checks: { apk_installed: true },
     result: 'works',
     notes: null,
     moderation_status: 'approved'

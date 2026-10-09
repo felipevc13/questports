@@ -4,6 +4,11 @@
 -- This does not run from CI. One row is one check; run it again to add history.
 --
 -- result: 'works' | 'works_with_issues' | 'doesnt_work'
+--   works              → card shows ✓ Verified
+--   works_with_issues  → real crashes or broken controls. Card shows ⚠ Issues.
+--   doesnt_work        → the port page says it doesn't work. The card stays blank.
+-- Missing game files are not a result. One-click installs never use
+-- works_with_issues; they stay a positive install.
 -- headset_model: 'Quest 2' | 'Quest 3' | 'Quest 3S' | 'Quest Pro'
 -- source stays 'manual' so the site can tell this apart from a one-click install.
 -- moderation_status 'approved' is what the public site is allowed to read.

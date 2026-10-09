@@ -5,12 +5,15 @@ import {
   buildCardVerificationLabel,
   buildVerificationBadge,
   canonicalHeadset,
+  describeChecks,
+  installFilesNote,
   verificationSummaryLine,
   formatVerificationVersion,
   isMockDeviceSerial,
   latestVerification,
   normalizeVersionKey,
   verificationBadgeState,
+  verificationStatusLabel,
   versionsMatch,
   type PortVerification
 } from '../app/lib/verification'
@@ -117,18 +120,105 @@ describe('verification staleness', () => {
 })
 
 describe('card verification label', () => {
-  it('uses a short line with no date for a current check', () => {
-    expect(buildCardVerificationLabel(check(), 'v1.0.16')?.text).toBe('✓ Verified · Quest 3')
-    expect(buildCardVerificationLabel(check({ result: 'works_with_issues', headset_model: 'Quest 2' }), 'v1.0.16')?.text)
-      .toBe('⚠ Works with issues · Quest 2')
+  const label = (
+    records: PortVerification[] | null | undefined,
+    version = 'v1.0.16',
+    slug = 'halocequest'
+  ) => buildCardVerificationLabel(records, slug, version, NOW)
+
+  it('maps a manual works check to a short verified line', () => {
+    const row = label([check()])
+    expect(row).toMatchObject({ tone: 'verified', text: '✓ Verified' })
+    expect(row?.text).not.toMatch(/Quest|ago|today/)
+    expect(row?.detail).toContain('Quest 3')
+    expect(row?.detail).toContain('v1.0.16')
   })
 
-  it('hides an untested port and keeps a stale check to one line', () => {
-    expect(buildCardVerificationLabel(null, 'v1.0.16')).toBeNull()
-    expect(buildCardVerificationLabel(check({ result: 'doesnt_work' }), 'v1.0.16')).toBeNull()
-    const stale = buildCardVerificationLabel(check(), 'v1.0.17')
-    expect(stale?.text).toBe('⚠ Update not tested · Quest 3')
-    expect(stale?.text).not.toMatch(/ago|today/)
+  it('maps only-automatic installs to installed, including a legacy issues result', () => {
+    const legacy = check({
+      id: 'sega',
+      port_slug: 'sega-rally-vr',
+      source: 'install',
+      result: 'works_with_issues',
+      headset_model: 'Quest 2',
+      tested_version: 'v0.2.3',
+      checks: { apk_installed: true, game_files_detected: false, storage_path_confirmed: false }
+    })
+    const copiedElsewhere = label([legacy], 'v0.2.3', 'sega-rally-vr')
+    expect(copiedElsewhere).toMatchObject({ tone: 'installed', text: '✓ Installed' })
+    expect(copiedElsewhere?.text).not.toMatch(/Quest|issue/i)
+    expect(copiedElsewhere?.detail).toContain('Quest 2')
+    expect(copiedElsewhere?.detail).toContain('Game files not sent through the site')
+
+    const apkOnly = check({
+      source: 'install',
+      result: 'works',
+      headset_model: 'Quest 2',
+      checks: { apk_installed: true }
+    })
+    const installed = label([apkOnly])
+    expect(installed).toMatchObject({ tone: 'installed', text: '✓ Installed' })
+    expect(installed?.detail).not.toContain('Game files not sent through the site')
+  })
+
+  it('lets the latest manual check own issues, and ignores installs for that label', () => {
+    const issues = check({
+      id: 'manual-issues',
+      source: 'manual',
+      result: 'works_with_issues',
+      headset_model: 'Quest 2',
+      checked_at: '2026-10-07T12:00:00.000Z'
+    })
+    const newerInstall = check({
+      id: 'newer-install',
+      source: 'install',
+      result: 'works_with_issues',
+      headset_model: 'Quest 3',
+      checked_at: '2026-10-08T12:00:00.000Z',
+      checks: { apk_installed: true, game_files_detected: false }
+    })
+    const row = label([newerInstall, issues])
+    expect(row).toMatchObject({ tone: 'issues', text: '⚠ Issues' })
+    expect(row?.text).not.toMatch(/Quest/)
+    expect(row?.detail).toContain('Quest 2')
+    expect(row?.detail).not.toContain('Game files not sent through the site')
+  })
+
+  it('keeps verified when a manual works check exists beside an install', () => {
+    const manual = check({ id: 'manual', source: 'manual', result: 'works', headset_model: 'Quest 3' })
+    const install = check({
+      id: 'install',
+      source: 'install',
+      result: 'works',
+      headset_model: 'Quest 2',
+      checked_at: '2026-10-08T00:00:00.000Z'
+    })
+    expect(label([install, manual])).toMatchObject({ tone: 'verified', text: '✓ Verified' })
+  })
+
+  it('shows nothing when untested, broken, or only checked on an older version', () => {
+    expect(label(null)).toBeNull()
+    expect(label([])).toBeNull()
+    expect(label([check({ result: 'doesnt_work' })])).toBeNull()
+    expect(label([check()])).not.toBeNull()
+    expect(label([check()], 'v1.0.17')).toBeNull()
+  })
+
+  it('keeps the card label on one 13px line and leaves the headset in the title', () => {
+    const source = readFileSync(new URL('../app/components/VerificationBadge.vue', import.meta.url), 'utf8')
+    expect(source).toContain('whitespace-nowrap')
+    expect(source).toContain('text-[13px]')
+    expect(source).toContain('font-sans')
+    expect(source).toContain(':title="cardLabel.detail"')
+    const inline = source.split('v-else-if')[0]
+    expect(inline).not.toContain('border')
+    const legacy = check({
+      source: 'install',
+      result: 'works_with_issues',
+      checks: { apk_installed: true, game_files_detected: false }
+    })
+    expect(buildVerificationBadge(legacy, 'v1.0.16', NOW)?.text).toBe('Installed · Quest 3 · 5 days ago')
+    expect(buildVerificationBadge(legacy, 'v1.0.16', NOW)?.text).not.toMatch(/issues/i)
   })
 })
 
@@ -184,6 +274,44 @@ describe('detail verification summary', () => {
       .toBe('✅ Verified on v1.0.16 · Quest 3 · 5 days ago')
   })
 
+  it('describes an automatic install without calling missing game files a problem', () => {
+    const install = check({
+      id: 'sega',
+      port_slug: 'sega-rally-vr',
+      source: 'install',
+      result: 'works_with_issues',
+      headset_model: 'Quest 2',
+      tested_version: 'v0.2.3',
+      checked_at: '2026-10-09T10:18:17.584Z',
+      checks: { apk_installed: true, game_files_detected: false, storage_path_confirmed: false }
+    })
+    expect(verificationSummaryLine([install], 'sega-rally-vr', 'v0.2.3', null, NOW)).toEqual({
+      text: 'Installed via QuestPorts on v0.2.3 · Quest 2 · today · Game files not sent through the site',
+      tone: 'installed'
+    })
+    expect(verificationSummaryLine([install], 'sega-rally-vr', 'v0.2.3', 'Quest 2', NOW).text)
+      .toBe('Quest 2: installed via QuestPorts · Game files not sent through the site')
+    expect(verificationStatusLabel(install)).toBe('Installed via QuestPorts')
+    expect(installFilesNote(install)).toBe('Game files not sent through the site')
+    expect(describeChecks(install.checks, 'install')).toContain('Game files not sent through the site')
+    expect(describeChecks(install.checks, 'install').join(' ')).not.toMatch(/not detected/i)
+  })
+
+  it('keeps a manual issues check distinct from an install', () => {
+    const manual = check({
+      source: 'manual',
+      result: 'works_with_issues',
+      headset_model: 'Quest Pro',
+      notes: 'Comfort vignette.'
+    })
+    expect(verificationSummaryLine([manual], 'halocequest', 'v1.0.16', null, NOW).text)
+      .toBe('Known issues on v1.0.16 · Quest Pro · 5 days ago')
+    expect(verificationSummaryLine([manual], 'halocequest', 'v1.0.16', 'Quest Pro', NOW).text)
+      .toBe('Quest Pro: known issues')
+    expect(verificationStatusLabel(manual)).toBe('Works with issues')
+    expect(installFilesNote(manual)).toBeNull()
+  })
+
   it('keeps headset details behind a collapsed accessible toggle', () => {
     const source = readFileSync(new URL('../app/components/VerificationPanel.vue', import.meta.url), 'utf8')
     expect(source).toContain(':aria-expanded="expanded"')
@@ -205,7 +333,7 @@ describe('install verification endpoint validation', () => {
   }
 
   it('accepts a real headset report whose version matches the catalog', () => {
-    const parsed = parseInstallReport(validBody, halo, true)
+    const parsed = parseInstallReport(validBody, halo)
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return
     expect(parsed.report.headset).toBe('Quest 3')
@@ -214,41 +342,44 @@ describe('install verification endpoint validation', () => {
   })
 
   it('rejects unknown slugs, mismatched versions, and failed installs', () => {
-    expect(parseInstallReport({ ...validBody, slug: 'not-a-port' }, null, true)).toMatchObject({
+    expect(parseInstallReport({ ...validBody, slug: 'not-a-port' }, null)).toMatchObject({
       ok: false,
       status: 400,
       error: 'Unknown port'
     })
-    expect(parseInstallReport(validBody, { ...halo, latest_version: 'v1.0.15' }, true)).toMatchObject({
+    expect(parseInstallReport(validBody, { ...halo, latest_version: 'v1.0.15' })).toMatchObject({
       ok: false,
       error: 'Version does not match the catalog'
     })
     expect(parseInstallReport({
       ...validBody,
       checks: { apk_installed: false }
-    }, halo, true)).toMatchObject({
+    }, halo)).toMatchObject({
       ok: false,
       error: 'Install did not succeed'
     })
   })
 
-  it('ignores a client-supplied result and records missing game files as issues', () => {
+  it('ignores a client-supplied result and records missing game files as a neutral flag', () => {
     const parsed = parseInstallReport({
       ...validBody,
-      result: 'works',
+      result: 'works_with_issues',
       checks: { apk_installed: true, game_files_detected: false }
-    }, halo, true)
+    }, halo)
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return
-    expect(parsed.report.result).toBe('works_with_issues')
-    expect(deriveInstallResult({ apk_installed: true }, false)).toBe('works')
+    expect(parsed.report.result).toBe('works')
+    expect(parsed.report.checks.data_copied_by_site).toBe(false)
+    expect(deriveInstallResult({ apk_installed: true })).toBe('works')
+    expect(deriveInstallResult({ apk_installed: true, game_files_detected: false })).toBe('works')
+    expect(deriveInstallResult({ apk_installed: false })).toBeNull()
   })
 
   it('rejects mock mode and the simulated Quest serial before they count as evidence', () => {
     expect(isMockDeviceSerial('MOCK-QUEST-001')).toBe(true)
     expect(simulatedReportReason({ ...validBody, mock: true })).toMatch(/simulated/i)
     expect(simulatedReportReason({ ...validBody, deviceSerial: 'MOCK-QUEST-001' })).toMatch(/simulated/i)
-    expect(parseInstallReport({ ...validBody, mock: true }, halo, true)).toMatchObject({
+    expect(parseInstallReport({ ...validBody, mock: true }, halo)).toMatchObject({
       ok: false,
       status: 400
     })
@@ -267,8 +398,8 @@ describe('install verification endpoint validation', () => {
   it('recognizes Quest Pro and Quest 3S, and rejects an unknown headset', () => {
     expect(canonicalHeadset('Quest Pro')).toBe('Quest Pro')
     expect(canonicalHeadset('Meta Quest 3S')).toBe('Quest 3S')
-    expect(parseInstallReport({ ...validBody, headsetModel: 'Quest Pro' }, halo, false).ok).toBe(true)
-    expect(parseInstallReport({ ...validBody, headsetModel: 'Gear VR' }, halo, false)).toMatchObject({
+    expect(parseInstallReport({ ...validBody, headsetModel: 'Quest Pro' }, halo).ok).toBe(true)
+    expect(parseInstallReport({ ...validBody, headsetModel: 'Gear VR' }, halo)).toMatchObject({
       ok: false,
       error: 'Unknown headset'
     })

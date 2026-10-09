@@ -20,7 +20,10 @@ export function buildInstallVerificationBody(input: InstallVerificationInput): R
   if (!testedVersion) return null
 
   const checks: VerificationChecks = { apk_installed: true }
-  if (input.gameFilesDetected !== null) checks.game_files_detected = input.gameFilesDetected
+  if (input.gameFilesDetected !== null) {
+    checks.game_files_detected = input.gameFilesDetected
+    checks.data_copied_by_site = input.gameFilesDetected
+  }
   if (input.storagePathConfirmed !== null) checks.storage_path_confirmed = input.storagePathConfirmed
 
   return {

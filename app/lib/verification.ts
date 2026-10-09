@@ -22,6 +22,11 @@ export interface VerificationChecks {
   apk_installed?: boolean
   game_files_detected?: boolean
   storage_path_confirmed?: boolean
+  /**
+   * Neutral attribute on an automatic install. False means QuestPorts did not
+   * copy the game files. The player may have used SideQuest or a file manager.
+   */
+  data_copied_by_site?: boolean
 }
 
 export interface PortVerification {
@@ -40,6 +45,7 @@ export interface PortVerification {
 
 export interface VerificationBadge {
   state: Exclude<BadgeState, 'none'>
+  tone: 'verified' | 'installed' | 'issues' | 'stale'
   text: string
   detail: string
 }
@@ -117,13 +123,53 @@ export function resultLabel(result: VerificationResult): string {
   }
 }
 
-export function describeChecks(checks: VerificationChecks | null | undefined): string[] {
+/**
+ * True, false, or unknown. The neutral flag wins. Older install rows only
+ * stored game_files_detected, which means the same thing for source = install.
+ */
+export function dataCopiedBySite(checks: VerificationChecks | null | undefined): boolean | null {
+  if (!checks) return null
+  if (typeof checks.data_copied_by_site === 'boolean') return checks.data_copied_by_site
+  if (typeof checks.game_files_detected === 'boolean') return checks.game_files_detected
+  return null
+}
+
+/** APK install recorded by the site. Missing game files do not cancel this. */
+export function isAutomaticInstallSignal(record: PortVerification | null | undefined): boolean {
+  if (!record || record.source !== 'install') return false
+  if (record.result === 'doesnt_work') return false
+  if (record.checks?.apk_installed === false) return false
+  return true
+}
+
+export function installFilesNote(record: PortVerification | null | undefined): string | null {
+  if (!isAutomaticInstallSignal(record)) return null
+  if (dataCopiedBySite(record?.checks) === false) return 'Game files not sent through the site'
+  return null
+}
+
+export function verificationStatusLabel(record: PortVerification): string {
+  if (isAutomaticInstallSignal(record)) return 'Installed via QuestPorts'
+  return resultLabel(record.result)
+}
+
+export function describeChecks(
+  checks: VerificationChecks | null | undefined,
+  source?: VerificationSource | null
+): string[] {
   if (!checks) return []
   const lines: string[] = []
   if (checks.apk_installed === true) lines.push('APK installed')
   else if (checks.apk_installed === false) lines.push('APK not installed')
-  if (checks.game_files_detected === true) lines.push('Game files detected in the expected folder')
-  else if (checks.game_files_detected === false) lines.push('Game files not detected')
+  if (source === 'install') {
+    const copied = dataCopiedBySite(checks)
+    if (copied === true) lines.push('Game files sent through the site')
+    else if (copied === false) lines.push('Game files not sent through the site')
+  } else if (checks.game_files_detected === true) {
+    lines.push('Game files detected in the expected folder')
+  } else if (checks.game_files_detected === false) {
+    lines.push('Game files not detected')
+  }
   if (checks.storage_path_confirmed === true) lines.push('Storage path confirmed')
   else if (checks.storage_path_confirmed === false) lines.push('Storage path not confirmed')
   return lines
@@ -196,15 +242,26 @@ export function headsetVerificationRows(
   return rows
 }
 
-export type VerificationSummaryTone = 'verified' | 'issues' | 'stale' | 'failed' | 'untested'
+export type VerificationSummaryTone = 'verified' | 'installed' | 'issues' | 'stale' | 'failed' | 'untested'
 
 export interface VerificationSummaryLine {
   text: string
   tone: VerificationSummaryTone
 }
 
+export type PortSignalKind = 'verified' | 'installed' | 'issues' | 'broken' | 'stale' | 'none'
+
+export interface PortVerificationSignal {
+  kind: PortSignalKind
+  record: PortVerification | null
+}
+
 function headsetLabel(raw: string): string {
   return canonicalHeadset(raw) ?? raw
+}
+
+function headsetName(record: PortVerification): string {
+  return canonicalHeadset(record.headset_model) ?? record.headset_model
 }
 
 function connectedStatusPhrase(result: VerificationResult): string {
@@ -215,9 +272,142 @@ function connectedStatusPhrase(result: VerificationResult): string {
   }
 }
 
+function newestRecord(records: PortVerification[]): PortVerification | null {
+  let latest: PortVerification | null = null
+  let latestAt = Number.NEGATIVE_INFINITY
+  for (const record of records) {
+    const at = Date.parse(record.checked_at)
+    if (!Number.isFinite(at) || at < latestAt) continue
+    latest = record
+    latestAt = at
+  }
+  return latest
+}
+
+function approvedRecords(
+  records: PortVerification[] | null | undefined,
+  slug: string
+): PortVerification[] {
+  if (!records?.length || !slug) return []
+  return records.filter(record => record.port_slug === slug && record.moderation_status === 'approved')
+}
+
+/**
+ * Manual checks own Verified, Issues, and broken.
+ * An automatic install is only Installed, including rows stored as
+ * works_with_issues because game files were not copied through the site.
+ * A check for an older catalog version is stale and stays off the card.
+ */
+export function portVerificationSignal(
+  records: PortVerification[] | null | undefined,
+  slug: string,
+  catalogVersion: string | null | undefined
+): PortVerificationSignal {
+  const approved = approvedRecords(records, slug)
+  if (!approved.length) return { kind: 'none', record: null }
+
+  const versionKnown = Boolean(formatPortVersion(catalogVersion))
+  const current = versionKnown
+    ? approved.filter(record => versionsMatch(record.tested_version, catalogVersion))
+    : []
+
+  const latestManual = newestRecord(current.filter(record => record.source === 'manual'))
+  if (latestManual?.result === 'works_with_issues') return { kind: 'issues', record: latestManual }
+  if (latestManual?.result === 'works') return { kind: 'verified', record: latestManual }
+  if (latestManual?.result === 'doesnt_work') return { kind: 'broken', record: latestManual }
+
+  const latestInstall = newestRecord(current.filter(record => isAutomaticInstallSignal(record)))
+  if (latestInstall) return { kind: 'installed', record: latestInstall }
+
+  const latest = newestRecord(approved)
+  if (!latest) return { kind: 'none', record: null }
+  const positive = latest.source === 'manual'
+    ? isPositiveResult(latest.result)
+    : isAutomaticInstallSignal(latest)
+  if (positive && versionKnown && !versionsMatch(latest.tested_version, catalogVersion)) {
+    return { kind: 'stale', record: latest }
+  }
+  if (latest.result === 'doesnt_work') return { kind: 'broken', record: latest }
+  return { kind: 'none', record: null }
+}
+
+function summaryForRecord(
+  record: PortVerification,
+  catalogVersion: string | null | undefined,
+  now: number,
+  connected: string | null
+): VerificationSummaryLine {
+  const version = formatVerificationVersion(record.tested_version)
+  const headset = headsetLabel(record.headset_model)
+  const age = formatVerificationAge(record.checked_at, now)
+  const comparable = isAutomaticInstallSignal(record)
+    ? { ...record, result: 'works' as const }
+    : record
+  const state = verificationBadgeState(comparable, catalogVersion)
+
+  if (isAutomaticInstallSignal(record)) {
+    if (state === 'stale') {
+      return {
+        text: connected
+          ? `${connected}: installed on ${version} · update not tested`
+          : `Installed on ${version} · update not tested`,
+        tone: 'stale'
+      }
+    }
+    if (state === 'current') {
+      const note = installFilesNote(record)
+      const noteText = note ? ` · ${note}` : ''
+      return {
+        text: connected
+          ? `${connected}: installed via QuestPorts${noteText}`
+          : `Installed via QuestPorts on ${version} · ${headset} · ${age}${noteText}`,
+        tone: 'installed'
+      }
+    }
+  }
+
+  if (state === 'stale') {
+    return {
+      text: connected
+        ? `${connected}: verified on ${version} · update not tested`
+        : `Verified on ${version} · update not tested`,
+      tone: 'stale'
+    }
+  }
+  if (record.result === 'doesnt_work') {
+    return connected
+      ? { text: `${connected}: doesn't work`, tone: 'failed' }
+      : {
+        text: `${connectedStatusPhrase(record.result)} · ${headset} · ${version} · ${age}`,
+        tone: 'failed'
+      }
+  }
+  if (record.result === 'works_with_issues' && record.source !== 'install') {
+    return connected
+      ? { text: `${connected}: known issues`, tone: 'issues' }
+      : state === 'current'
+        ? { text: `Known issues on ${version} · ${headset} · ${age}`, tone: 'issues' }
+        : {
+          text: `${connectedStatusPhrase(record.result)} · ${headset} · ${version} · ${age}`,
+          tone: 'untested'
+        }
+  }
+  if (connected) return { text: `${connected}: works`, tone: 'verified' }
+  if (state === 'current' && record.result === 'works') {
+    return {
+      text: `✅ Verified on ${version} · ${headset} · ${age}`,
+      tone: 'verified'
+    }
+  }
+  return {
+    text: `${connectedStatusPhrase(record.result)} · ${headset} · ${version} · ${age}`,
+    tone: 'untested'
+  }
+}
+
 /**
  * One line for the detail page. A connected, recognized headset replaces the
- * newest check with that headset's own status.
+ * port-level status with that headset's own check.
  */
 export function verificationSummaryLine(
   records: PortVerification[] | null | undefined,
@@ -230,74 +420,66 @@ export function verificationSummaryLine(
   if (connected) {
     const record = latestVerificationForHeadset(records, slug, connected)
     if (!record) return { text: `${connected}: not tested`, tone: 'untested' }
-    const state = verificationBadgeState(record, catalogVersion)
-    if (state === 'stale') {
-      return {
-        text: `${connected}: verified on ${formatVerificationVersion(record.tested_version)} · update not tested`,
-        tone: 'stale'
-      }
-    }
-    if (record.result === 'doesnt_work') {
-      return { text: `${connected}: doesn't work`, tone: 'failed' }
-    }
-    if (record.result === 'works_with_issues') {
-      return { text: `${connected}: works with issues`, tone: 'issues' }
-    }
-    return { text: `${connected}: works`, tone: 'verified' }
+    return summaryForRecord(record, catalogVersion, now, connected)
   }
 
-  const latest = latestVerification(records, slug)
-  if (!latest) return { text: 'Not tested', tone: 'untested' }
-  const version = formatVerificationVersion(latest.tested_version)
-  const headset = headsetLabel(latest.headset_model)
-  const age = formatVerificationAge(latest.checked_at, now)
-  const state = verificationBadgeState(latest, catalogVersion)
-  if (state === 'current' && latest.result === 'works') {
-    return {
-      text: `✅ Verified on ${version} · ${headset} · ${age}`,
-      tone: 'verified'
-    }
-  }
-  if (state === 'current' && latest.result === 'works_with_issues') {
-    return {
-      text: `Verified with issues on ${version} · ${headset} · ${age}`,
-      tone: 'issues'
-    }
-  }
-  if (state === 'stale') {
-    return {
-      text: `Verified on ${version} · update not tested`,
-      tone: 'stale'
-    }
-  }
-  return {
-    text: `${connectedStatusPhrase(latest.result)} · ${headset} · ${version} · ${age}`,
-    tone: latest.result === 'doesnt_work' ? 'failed' : 'untested'
-  }
+  const signal = portVerificationSignal(records, slug, catalogVersion)
+  if (!signal.record || signal.kind === 'none') return { text: 'Not tested', tone: 'untested' }
+  return summaryForRecord(signal.record, catalogVersion, now, null)
 }
 
+export type CardVerificationTone = 'verified' | 'installed' | 'issues'
+
 export interface CardVerificationLabel {
-  tone: 'verified' | 'issues' | 'stale'
+  tone: CardVerificationTone
   text: string
   detail: string
 }
 
-/** One quiet line for a catalog card. No date. Nothing when the port is untested. */
+function cardDetail(record: PortVerification, lead: string, now: number): string {
+  const version = formatVerificationVersion(record.tested_version)
+  const age = formatVerificationAge(record.checked_at, now)
+  const tested = version ? ` Tested ${version}, ${age}.` : ` Checked ${age}.`
+  const note = installFilesNote(record)
+  const noteText = note ? ` ${note}.` : ''
+  return `${lead} on ${headsetName(record)}.${tested}${noteText}`
+}
+
+/**
+ * One short line under the author on a catalog card.
+ * Headset, version, and the game-file note stay in the title.
+ * Nothing when this catalog version is untested.
+ */
 export function buildCardVerificationLabel(
-  latest: PortVerification | null | undefined,
-  catalogVersion: string | null | undefined
+  records: PortVerification[] | null | undefined,
+  slug: string,
+  catalogVersion: string | null | undefined,
+  now = Date.now()
 ): CardVerificationLabel | null {
-  const state = verificationBadgeState(latest, catalogVersion)
-  if (!latest || state === 'none') return null
-  const headset = canonicalHeadset(latest.headset_model) ?? latest.headset_model
-  const detail = buildVerificationBadge(latest, catalogVersion)?.detail ?? ''
-  if (state === 'stale') {
-    return { tone: 'stale', text: `⚠ Update not tested · ${headset}`, detail }
+  const signal = portVerificationSignal(records, slug, catalogVersion)
+  if (!signal.record) return null
+  if (signal.kind === 'verified') {
+    return {
+      tone: 'verified',
+      text: '✓ Verified',
+      detail: cardDetail(signal.record, 'Verified', now)
+    }
   }
-  if (latest.result === 'works_with_issues') {
-    return { tone: 'issues', text: `⚠ Works with issues · ${headset}`, detail }
+  if (signal.kind === 'installed') {
+    return {
+      tone: 'installed',
+      text: '✓ Installed',
+      detail: cardDetail(signal.record, 'Installed via QuestPorts', now)
+    }
   }
-  return { tone: 'verified', text: `✓ Verified · ${headset}`, detail }
+  if (signal.kind === 'issues') {
+    return {
+      tone: 'issues',
+      text: '⚠ Issues',
+      detail: cardDetail(signal.record, 'Known issues', now)
+    }
+  }
+  return null
 }
 
 export function buildVerificationBadge(
@@ -305,22 +487,51 @@ export function buildVerificationBadge(
   catalogVersion: string | null | undefined,
   now = Date.now()
 ): VerificationBadge | null {
-  const state = verificationBadgeState(latest, catalogVersion)
-  if (!latest || state === 'none') return null
-  const headset = canonicalHeadset(latest.headset_model) ?? latest.headset_model
+  if (!latest) return null
+  const comparable = isAutomaticInstallSignal(latest)
+    ? { ...latest, result: 'works' as const }
+    : latest
+  const state = verificationBadgeState(comparable, catalogVersion)
+  if (state === 'none') return null
+  const headset = headsetName(latest)
   const age = formatVerificationAge(latest.checked_at, now)
   const version = formatVerificationVersion(latest.tested_version)
   const who = sourceLabel(latest.source)
-  if (state === 'current') {
-    const prefix = latest.result === 'works_with_issues' ? 'Verified with issues' : 'Verified'
+  if (isAutomaticInstallSignal(latest)) {
+    if (state === 'current') {
+      return {
+        state,
+        tone: 'installed',
+        text: `Installed · ${headset} · ${age}`,
+        detail: cardDetail(latest, 'Installed via QuestPorts', now)
+      }
+    }
+    return {
+      state: 'stale',
+      tone: 'stale',
+      text: `Installed on ${version} · update not tested`,
+      detail: `Last install was ${version} on ${headset} (${age}). The current catalog version has not been installed through the site.`
+    }
+  }
+  if (state === 'current' && latest.result === 'works_with_issues') {
     return {
       state,
-      text: `${prefix} · ${headset} · ${age}`,
-      detail: `${prefix} on ${headset} ${age}. Tested ${version}. Source: ${who}.`
+      tone: 'issues',
+      text: `Known issues · ${headset} · ${age}`,
+      detail: `Known issues on ${headset} ${age}. Tested ${version}. Source: ${who}.`
+    }
+  }
+  if (state === 'current') {
+    return {
+      state,
+      tone: 'verified',
+      text: `Verified · ${headset} · ${age}`,
+      detail: `Verified on ${headset} ${age}. Tested ${version}. Source: ${who}.`
     }
   }
   return {
     state: 'stale',
+    tone: 'stale',
     text: `Verified on ${version} · update not tested`,
     detail: `Last positive check was ${version} on ${headset} (${age}, ${who}). The current catalog version has not been tested.`
   }

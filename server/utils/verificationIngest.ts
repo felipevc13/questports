@@ -86,7 +86,7 @@ export function sanitizeChecks(input: unknown): VerificationChecks | null {
   if (typeof input !== 'object' || Array.isArray(input)) return null
   const source = input as Record<string, unknown>
   const checks: VerificationChecks = {}
-  for (const key of ['apk_installed', 'game_files_detected', 'storage_path_confirmed'] as const) {
+  for (const key of ['apk_installed', 'game_files_detected', 'storage_path_confirmed', 'data_copied_by_site'] as const) {
     if (source[key] === undefined) continue
     if (typeof source[key] !== 'boolean') return null
     checks[key] = source[key]
@@ -94,13 +94,22 @@ export function sanitizeChecks(input: unknown): VerificationChecks | null {
   return checks
 }
 
-export function deriveInstallResult(
-  checks: VerificationChecks,
-  requiresGameFiles: boolean
-): VerificationResult | null {
+/** Copy the older file flag onto the neutral attribute when the client did not send it. */
+export function annotateInstallChecks(checks: VerificationChecks): VerificationChecks {
+  const next: VerificationChecks = { ...checks }
+  if (typeof next.data_copied_by_site !== 'boolean' && typeof next.game_files_detected === 'boolean') {
+    next.data_copied_by_site = next.game_files_detected
+  }
+  return next
+}
+
+/**
+ * An automatic install is works whenever the APK installed.
+ * Missing game files are recorded on the checks, not as issues.
+ */
+export function deriveInstallResult(checks: VerificationChecks): VerificationResult | null {
   if (checks.apk_installed !== true) return null
-  if (!requiresGameFiles || checks.game_files_detected === true) return 'works'
-  return 'works_with_issues'
+  return 'works'
 }
 
 function fail(status: number, error: string): IngestFailure {
@@ -124,8 +133,7 @@ export function simulatedReportReason(body: unknown): string | null {
 
 export function parseInstallReport(
   body: unknown,
-  catalog: CatalogVersionRow | null,
-  requiresGameFiles: boolean
+  catalog: CatalogVersionRow | null
 ): { ok: true; report: ParsedInstallReport } | IngestFailure {
   const simulated = simulatedReportReason(body)
   if (simulated) return fail(400, simulated)
@@ -152,12 +160,13 @@ export function parseInstallReport(
 
   const checks = sanitizeChecks(record.checks)
   if (!checks) return fail(400, 'Invalid checks')
-  const result = deriveInstallResult(checks, requiresGameFiles)
+  const annotated = annotateInstallChecks(checks)
+  const result = deriveInstallResult(annotated)
   if (!result) return fail(400, 'Install did not succeed')
 
   return {
     ok: true,
-    report: { slug, testedVersion, headset, deviceSerial, checks, result }
+    report: { slug, testedVersion, headset, deviceSerial, checks: annotated, result }
   }
 }
 

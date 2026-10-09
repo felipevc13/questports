@@ -148,6 +148,10 @@ grant select (
 ) on table public.port_verifications to anon, authenticated;
 grant all on table public.port_verifications to service_role;
 
+-- Automatic installs are a positive install. A stored works_with_issues on
+-- source = install meant game files were not copied through the site, which
+-- is not a broken port. Manual rows keep their result. See
+-- supabase/migrations/20261009190000_install_not_issues.sql.
 create or replace view public.port_verification_summaries
 with (security_invoker = true) as
 select distinct on (port_slug, headset_model)
@@ -158,8 +162,17 @@ select distinct on (port_slug, headset_model)
   headset_model,
   checked_at,
   source,
-  checks,
-  result,
+  case
+    when source = 'install'
+      and not (checks ? 'data_copied_by_site')
+      and jsonb_typeof(checks -> 'game_files_detected') = 'boolean'
+    then checks || jsonb_build_object('data_copied_by_site', checks -> 'game_files_detected')
+    else checks
+  end as checks,
+  case
+    when source = 'install' and result = 'works_with_issues' then 'works'
+    else result
+  end as result,
   notes,
   moderation_status
 from public.port_verifications
