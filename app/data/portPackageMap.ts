@@ -86,7 +86,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
     criticalFiles: ['valve/liblist.gam'],
-    fileGuidance: 'Copy the Steam Half-Life valve folder into /sdcard/xash/valve/. A Steam install includes liblist.gam and loose files; it does not include the old WON pak0.pak. The 25th anniversary update may require the steam_legacy branch.',
+    fileGuidance: 'In Steam, open Half-Life, then Properties, then Betas, and select steam_legacy ("Pre-25th Anniversary Build"). Let it update, then copy the valve folder contents into /sdcard/xash/valve/. A Steam install includes liblist.gam and loose files; it does not include the old WON pak0.pak. The current public build is reported broken (hl-paker README, 2025-04-04; r/TeamBeef pinned post).',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/xash/',
     folders: [
@@ -98,7 +98,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         required: true,
         acceptance: 'expected',
         expectedFiles: ['liblist.gam'],
-        description: 'Steam Half-Life valve folder. liblist.gam is the loose game descriptor; pak0.pak is not part of a Steam install.'
+        description: 'Steam Half-Life valve folder from the steam_legacy beta ("Pre-25th Anniversary Build"). liblist.gam is the loose game descriptor; pak0.pak is not part of a Steam install.'
       },
       {
         id: 'bshift',
@@ -210,6 +210,10 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  // Application.mk builds only yquake2_game (libyquake2_game.so). The rogue and
+  // xatrix branches in system.c are commented out, so mission packs would load
+  // maps with base-game logic. The engine chdirs to /sdcard and can only switch
+  // games through commandline.txt. Those packs are not offered here.
   quake2quest: {
     slug: 'quake2quest',
     packageName: 'com.drbeef.quake2quest',
@@ -229,26 +233,6 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         acceptance: 'expected',
         expectedFiles: ['pak0.pak', 'pak1.pak', 'pak2.pak'],
         description: 'Original Quake II pak0.pak, pak1.pak, and pak2.pak in the Quake2Quest folder. Shareware pak0.pak is not enough.'
-      },
-      {
-        id: 'q2_xatrix',
-        name: 'The Reckoning',
-        folderName: 'xatrix',
-        targetPath: '/sdcard/Quake2Quest/xatrix/',
-        campaignId: 'xatrix',
-        required: false,
-        expectedFiles: ['pak0.pak'],
-        description: 'Mission Pack 1 pak0.pak'
-      },
-      {
-        id: 'q2_rogue',
-        name: 'Ground Zero',
-        folderName: 'rogue',
-        targetPath: '/sdcard/Quake2Quest/rogue/',
-        campaignId: 'rogue',
-        required: false,
-        expectedFiles: ['pak0.pak'],
-        description: 'Mission Pack 2 pak0.pak'
       }
     ]
   },

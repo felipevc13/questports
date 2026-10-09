@@ -165,15 +165,14 @@ The demo `pak0.pk3`, plus the VR files the app also copies (`z_vr_assets.pk3`, `
 ### Step-by-Step Installation
 1. Install **Lambda1VR** through SideQuest.
 2. Launch the app once on the headset so it generates the `/sdcard/xash/` directory structure, then exit.
-3. On your PC, open the Steam Half-Life `valve` folder: `steamapps/common/Half-Life/valve/` (install folder `Half-Life`). The Lambda1VR README example writes this as `steamApps/common/HalfLife/`.
-4. Copy the contents of the `valve` folder. A Steam install is loose files, including `liblist.gam`. It does not include the old WON `pak0.pak`.
-5. Paste the copied files into `/sdcard/xash/valve/` on your Meta Quest. Copying the whole folder takes a long time.
-6. Restart the Quest, then launch Lambda1VR from "Unknown Sources".
+3. In Steam, open Half-Life, then Properties, then Betas, and select `steam_legacy` ("Pre-25th Anniversary Build"). Let Steam finish the update before copying files. The current public build is reported broken for Lambda1VR (hl-paker README, 2025-04-04; r/TeamBeef pinned post).
+4. On your PC, open the updated `valve` folder: `steamapps/common/Half-Life/valve/` (install folder `Half-Life`). The Lambda1VR README example writes this as `steamApps/common/HalfLife/`.
+5. Copy the contents of the `valve` folder. A Steam install is loose files, including `liblist.gam`. It does not include the old WON `pak0.pak`.
+6. Paste the copied files into `/sdcard/xash/valve/` on your Meta Quest. Copying the whole folder takes a long time.
+7. Restart the Quest, then launch Lambda1VR from "Unknown Sources".
 
-Optional HD models are the `valve_hd` folder from the Lambda1VR README. On a Mac that folder can be hidden; follow the README Mac note or the game can crash.
-
-Note: as of 2025-04-04, the hl-paker README says the Half-Life 25th anniversary update broke Lambda1VR and to downgrade. Steam lists a `steam_legacy` beta described as "Pre-25th Anniversary Build" (Properties, Betas). Whether the current public build still fails has not been retested on a headset.',
-  'Restart the Quest after copying files into /sdcard/xash/valve/. If the 25th anniversary update still breaks the port, switch the Steam Half-Life install to the steam_legacy beta and copy that valve folder. Optional HD content is valve_hd; on Mac that folder can be hidden.'
+Optional HD models are the `valve_hd` folder from that same `steam_legacy` install. On a Mac that folder can be hidden; follow the Lambda1VR README Mac note or the game can crash.',
+  'Restart the Quest after copying files into /sdcard/xash/valve/. Select the Steam steam_legacy beta ("Pre-25th Anniversary Build") under Half-Life Properties, Betas, and let it update before you copy the valve folder. The current public build is reported broken (hl-paker README, 2025-04-04; r/TeamBeef pinned post). Optional HD content is valve_hd; on Mac that folder can be hidden.'
 ),
 (
   'doom3quest',

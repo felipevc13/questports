@@ -460,6 +460,8 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       })
       expect(full.isOverallReady).toBe(true)
       expect(full.folders[0].detectedPath).toBe('/sdcard/Quake2Quest/')
+      expect(full.folders.map(folder => folder.folderDef.id)).toEqual(['q2_base'])
+      expect(full.folders.some(folder => /xatrix|rogue/.test(folder.folderDef.targetPath))).toBe(false)
     })
 
     it('requires the original Doom 3 game and pak pk4 set, not pak399 alone', async () => {
