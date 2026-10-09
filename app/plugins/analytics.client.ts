@@ -2,6 +2,7 @@ import { useRouter } from 'vue-router'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useTrack } from '~/composables/useTrack'
 import { portSlugFromPath } from '~/lib/analytics'
+import { isQuestBrowserSession } from '~/lib/questBrowser'
 import { isWebUsbAvailable } from '~/lib/questInstallUx'
 
 export default defineNuxtPlugin(() => {
@@ -18,7 +19,11 @@ export default defineNuxtPlugin(() => {
     const headset = quest.deviceModel.value || null
     track('page_view', { path, portSlug, headset })
     if (portSlug) track('port_view', { path, portSlug, headset })
-    if (!reportedUnsupported && !isWebUsbAvailable(navigator, window.isSecureContext)) {
+    const questBrowser = isQuestBrowserSession({
+      userAgent: navigator.userAgent,
+      search: window.location.search
+    })
+    if (!reportedUnsupported && !questBrowser && !isWebUsbAvailable(navigator, window.isSecureContext)) {
       reportedUnsupported = true
       track('unsupported_browser_view', { path, portSlug, headset, webusb: false })
     }

@@ -142,7 +142,7 @@
         <!-- UNIFIED INSTALLATION & DATA FILES FLOW -->
         <div class="space-y-3 pt-1">
           <div
-            v-if="showUsbPrep"
+            v-if="showUsbPrep && !questBrowser"
             data-testid="usb-prep"
             class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4"
             role="region"
@@ -186,7 +186,7 @@
 
           <!-- Live Authorizing Guidance Banner -->
           <div
-            v-else-if="connectChrome.showHeadsetBanner"
+            v-else-if="!questBrowser && connectChrome.showHeadsetBanner"
             class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 text-left animate-in fade-in duration-200"
           >
               <div class="font-bold flex items-center gap-2 text-amber-300">
@@ -225,7 +225,7 @@
             </div>
 
           <p
-            v-else-if="connectChrome.showPickerHint"
+            v-else-if="!questBrowser && connectChrome.showPickerHint"
             data-testid="usb-picker-hint"
             role="status"
             class="p-3 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed"
@@ -234,7 +234,7 @@
           </p>
 
           <div
-            v-else-if="questAdb.connectNotice.value"
+            v-else-if="!questBrowser && questAdb.connectNotice.value"
             data-testid="chooser-dismissed"
             role="status"
             class="p-3.5 rounded-lg bg-muted/40 border border-border text-xs text-left space-y-2"
@@ -251,7 +251,7 @@
           </div>
 
           <div
-            v-else-if="questAdb.connectionError.value && installSupport === 'supported'"
+            v-else-if="!questBrowser && questAdb.connectionError.value && installSupport === 'supported'"
             class="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs space-y-2 text-left animate-in fade-in duration-200"
           >
             <div class="font-semibold flex items-center gap-1.5 text-destructive">
@@ -304,7 +304,8 @@
                 </a>
               </div>
 
-              <div class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
+              <QuestBrowserNotice v-if="questBrowser" />
+              <div v-else class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   @click="recheckHeadsetInstalled"
@@ -340,7 +341,9 @@
                 {{ spaceNotice || questAdb.installSpaceWarning.value }}
               </div>
 
-              <div v-if="installSupport === 'unsupported'" data-testid="webusb-unsupported" class="space-y-2">
+              <QuestBrowserNotice v-if="questBrowser" />
+
+              <div v-else-if="installSupport === 'unsupported'" data-testid="webusb-unsupported" class="space-y-2">
                 <p class="text-xs font-semibold text-foreground">{{ WEBUSB_UNSUPPORTED_NOTICE }}</p>
                 <p class="text-[11px] text-muted-foreground leading-relaxed">
                   Safari, Firefox, and iOS cannot install over USB from this page.
@@ -431,6 +434,7 @@
 
           <!-- STATE 3: APK INSTALLED -->
           <div v-else class="space-y-3">
+            <QuestBrowserNotice v-if="questBrowser" />
             <!-- Installed Badge -->
             <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -457,7 +461,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <button
-                  v-if="isApkOutdated && !isInstallingApk && !installFlowChrome"
+                  v-if="!questBrowser && isApkOutdated && !isInstallingApk && !installFlowChrome"
                   @click="beginInstall()"
                   class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500 hover:bg-amber-400 text-black cursor-pointer"
                   title="Installs over the current app with pm install -r and keeps data"
@@ -465,7 +469,7 @@
                   Update to {{ catalogVersion }}
                 </button>
                 <button
-                  v-else-if="!isInstallingApk && !installFlowChrome"
+                  v-else-if="!questBrowser && !isInstallingApk && !installFlowChrome"
                   @click="openReinstallPrompt"
                   class="text-[11px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
@@ -1220,6 +1224,7 @@ const route = useRoute()
 const slug = route.params.slug as string
 const { fetchPortBySlug } = usePorts()
 const questAdb = useQuestAdb()
+const questBrowser = useQuestBrowser()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
@@ -1575,7 +1580,8 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
 }))
 
 const showUsbStepsLink = computed(() => {
-  return usbPrepRemembered.value
+  return !questBrowser.value
+    && usbPrepRemembered.value
     && installSupport.value === 'supported'
     && !isPcBuilderRequired.value
     && !isQuestConnected.value
@@ -1826,6 +1832,7 @@ const noteInstallFailure = (err: any) => {
 }
 
 const beginInstall = async (options?: { skipPrep?: boolean }) => {
+  if (questBrowser.value) return
   if (isInstallingApk.value || !port.value) return
   if (installSupport.value !== 'supported') return
   const skipPrep = Boolean(options?.skipPrep) || questAdb.isConnected.value
@@ -1881,7 +1888,7 @@ const executeReinstall = async () => {
 }
 
 const handleApkInstall = async () => {
-  if (isInstallingApk.value || !port.value) return
+  if (questBrowser.value || isInstallingApk.value || !port.value) return
   apkInstallError.value = null
   spaceNotice.value = null
   spaceNoticeKind.value = 'warn'

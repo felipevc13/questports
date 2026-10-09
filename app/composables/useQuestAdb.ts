@@ -32,6 +32,7 @@ import {
   type SpaceKind
 } from '~/lib/installFlow'
 import { extractReleaseApk, responseLooksLikeZip } from '~/lib/extractReleaseApk'
+import { isQuestBrowserClient } from '~/lib/questBrowser'
 
 export interface InstallProgress {
   title: string
@@ -220,6 +221,7 @@ export const useQuestAdb = () => {
 
   const setupUsbEventListeners = () => {
     if (!import.meta.client || isListenerSetup) return
+    if (isQuestBrowserClient()) return
     if (isMockQuestEnabled()) return
     const nav = typeof navigator !== 'undefined' ? (navigator as any) : null
     if (nav?.usb) {
@@ -254,6 +256,7 @@ export const useQuestAdb = () => {
 
   // Silently reconnect to previously authorized WebUSB device without opening picker
   const tryAutoConnect = async () => {
+    if (isQuestBrowserClient()) return false
     if (isMockQuestEnabled()) {
       return applyMockScenario()
     }
@@ -307,6 +310,7 @@ export const useQuestAdb = () => {
   // Connect via WebUSB (accepts optional paired device to avoid picker popup)
   const connect = async (targetDevice?: any) => {
     if (!import.meta.client) return false
+    if (isQuestBrowserClient()) return false
     if (isMockQuestEnabled()) {
       const gen = ++mockConnectGen
       return connectMock(gen, targetDevice ? 'visor' : 'picker')
