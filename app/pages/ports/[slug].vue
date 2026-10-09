@@ -984,6 +984,7 @@
           :slug="port.slug"
           :latest-version="port.latest_version"
           :connected-headset="connectedVerificationHeadset"
+          :install-count="port.installs ?? 0"
         />
       </div>
     </div>

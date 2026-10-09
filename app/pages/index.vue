@@ -351,9 +351,11 @@
                       </span>
                       <VerificationBadge
                         class="!ml-0"
+                        variant="inline"
                         :records="verificationRecords"
                         :slug="port.slug"
                         :latest-version="port.latest_version"
+                        :install-count="port.installs ?? 0"
                       />
                     </span>
                   </div>

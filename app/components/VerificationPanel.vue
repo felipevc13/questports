@@ -8,6 +8,9 @@
         <p class="text-[11px] font-medium leading-snug" :class="summaryClass">
           {{ summary.text }}
         </p>
+        <p v-if="peopleLine" class="text-[11px] font-medium leading-snug text-muted-foreground">
+          {{ peopleLine }}
+        </p>
       </div>
       <button
         type="button"
@@ -107,6 +110,7 @@ import {
   formatVerificationVersion,
   headsetVerificationRows,
   installFilesNote,
+  installedByPeopleLine,
   isAutomaticInstallSignal,
   sourceLabel,
   verificationStatusLabel,
@@ -120,6 +124,7 @@ const props = defineProps<{
   slug: string
   latestVersion?: string | null
   connectedHeadset?: string | null
+  installCount?: number
 }>()
 
 const expanded = ref(false)
@@ -131,13 +136,14 @@ const summary = computed(() => verificationSummaryLine(
   props.latestVersion,
   props.connectedHeadset
 ))
+const peopleLine = computed(() => installedByPeopleLine(props.installCount ?? 0))
 
 const summaryClass = computed(() => toneClass(summary.value.tone))
 
 const toneClass = (tone: VerificationSummaryTone) => {
   switch (tone) {
     case 'verified': return 'text-emerald-300'
-    case 'installed': return 'text-green-300'
+    case 'installed': return 'text-muted-foreground'
     case 'issues': return 'text-amber-200'
     case 'stale': return 'text-amber-200'
     case 'failed': return 'text-rose-300'

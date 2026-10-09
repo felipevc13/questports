@@ -1,4 +1,12 @@
 import type { Port } from '~/types/port'
+import { MOCK_INSTALL_COUNTS } from './mockVerifications'
+
+const MOCK_INSTALLS = new Map(MOCK_INSTALL_COUNTS.map(row => [row.port_slug, row.installs]))
+
+/** Fallback install count when the catalog is served from this file. */
+export function mockPortInstallCount(slug: string): number {
+  return MOCK_INSTALLS.get(slug) ?? 0
+}
 
 export const INITIAL_PORTS: Port[] = [
   {

@@ -1,4 +1,4 @@
-import type { PortVerification } from '~/lib/verification'
+import type { PortInstallCount, PortVerification } from '~/lib/verification'
 
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
@@ -102,4 +102,14 @@ export const MOCK_VERIFICATIONS: PortVerification[] = [
     notes: 'pak0.pk3 and the single-player paks were in /sdcard/RTCWQuest/main/.',
     moderation_status: 'approved'
   }
+]
+
+/**
+ * Local fallback for public.port_install_counts. Used only when Supabase is
+ * not configured. Counts are distinct devices, not headset rows.
+ */
+export const MOCK_INSTALL_COUNTS: PortInstallCount[] = [
+  { port_slug: 'halocequest', installs: 12, last_install_at: daysAgo(2) },
+  { port_slug: 'galaxyquest', installs: 1, last_install_at: daysAgo(1) },
+  { port_slug: 'time-crisis-vr', installs: 1200, last_install_at: daysAgo(1) }
 ]
