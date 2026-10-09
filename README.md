@@ -67,6 +67,10 @@ Server environment (Vercel, never `NEXT_PUBLIC` / Nuxt `public`):
 
 * `SUPABASE_SERVICE_ROLE_KEY` — one-click install reports and the admin form write through this key.
 * `VERIFICATION_ADMIN_SECRET` — required header for `POST /api/admin/verifications`. The unlisted form is `/admin/verify`.
+* `ANALYTICS_SALT` — optional secret for the daily visitor hash. If unset, the server uses a hash of `SUPABASE_SERVICE_ROLE_KEY`.
+* `ANALYTICS_ENABLED` — set to `true` to collect stats in local dev or Vercel preview. Production is on unless this is `false`.
+
+Anonymous usage stats live in `public.analytics_events`. Apply `supabase/migrations/20261009200000_analytics_events.sql` in the Supabase SQL editor after it is merged. Do not run it from CI. The browser cannot read or insert that table. `POST /api/track` writes with the service role. There are no cookies. The visitor hash changes every UTC day, and the raw IP and user-agent are not stored.
 
 A copy-paste SQL check is in `supabase/manual_verification.sql`. A catalog badge stays current only while `tested_version` still matches `ports.latest_version` (a leading `v` does not matter). The daily GitHub sync updates `latest_version`; the badge goes stale from that alone.
 

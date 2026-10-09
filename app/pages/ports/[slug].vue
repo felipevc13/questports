@@ -17,6 +17,7 @@
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 md:min-h-0"
+          @click="trackGithub"
         >
           <svg class="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -294,6 +295,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   class="w-full py-2.5 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-amber-950/30"
+                  @click="trackPcBuilderLink"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -359,6 +361,7 @@
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex min-h-11 items-center text-primary underline md:min-h-0"
+                    @click="trackManualDownload"
                   >
                     Download the APK ({{ port.port_download_source || 'SideQuest' }})
                   </a>
@@ -420,7 +423,7 @@
                 </div>
                 <p>{{ apkInstallError }}</p>
                 <div class="flex items-center justify-between pt-1 font-mono text-[10px]">
-                  <a :href="port.port_download_url || '#'" target="_blank" rel="noopener noreferrer" class="underline text-primary">Download APK directly ↗</a>
+                  <a :href="port.port_download_url || '#'" target="_blank" rel="noopener noreferrer" class="underline text-primary" @click="trackManualDownload">Download APK directly ↗</a>
                 </div>
               </div>
             </template>
@@ -968,6 +971,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="flex min-h-11 w-full items-center justify-between rounded-lg bg-secondary px-3 py-2 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80 md:min-h-0"
+            @click="trackManualDownload"
           >
             <div class="flex items-center gap-2">
               <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1162,6 +1166,7 @@
               target="_blank"
               rel="noopener noreferrer"
               class="flex min-h-11 items-center justify-between rounded border border-border/60 bg-muted/30 p-2 text-foreground transition-colors hover:bg-muted/60 md:min-h-0"
+              @click="trackGithub"
             >
               <span>GitHub Repository & Issues</span>
               <span class="text-muted-foreground">↗</span>
@@ -1206,6 +1211,8 @@ import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
 import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
+import { connectFailureReason, installErrorReason } from '~/lib/analytics'
+import { useTrack } from '~/composables/useTrack'
 import TransferProgress from '~/components/TransferProgress.vue'
 
 const route = useRoute()
@@ -1733,8 +1740,40 @@ const executeUninstallApp = async () => {
   }
 }
 
+const { track } = useTrack()
+
+const trackContext = () => ({
+  path: route.path,
+  portSlug: port.value?.slug || null,
+  headset: questAdb.deviceModel.value || null
+})
+
+const trackGithub = () => {
+  track('github_click', trackContext())
+}
+
+const trackManualDownload = () => {
+  track('manual_download_click', trackContext())
+}
+
+const trackPcBuilderLink = () => {
+  const url = port.value?.port_download_url || port.value?.github_url || ''
+  if (/github\.com/i.test(url)) trackGithub()
+}
+
+const trackInstall = (
+  event: 'install_click' | 'install_success' | 'install_error',
+  reason?: string
+) => {
+  track(event, {
+    ...trackContext(),
+    props: event === 'install_error' ? { reason: reason || 'other' } : null
+  })
+}
+
 const recordInstallVerification = async () => {
   if (!port.value) return
+  trackInstall('install_success')
   const selfContained = isDirectApkOnly.value
   const campaigns = campaignList.value
   const gameFilesDetected = selfContained
@@ -1769,6 +1808,7 @@ const recordInstallVerification = async () => {
 const noteInstallFailure = (err: any) => {
   if (isUserCancel(err) || isUsbChooserDismissed(err)) {
     apkInstallError.value = null
+    trackInstall('install_error', 'user_cancelled')
     return
   }
   const message = err?.message || 'Failed to install APK on headset.'
@@ -1776,10 +1816,12 @@ const noteInstallFailure = (err: any) => {
     spaceNotice.value = message
     spaceNoticeKind.value = 'block'
     apkInstallError.value = null
+    trackInstall('install_error', 'storage')
     return
   }
   console.error('Failed to install APK via WebADB:', err)
   apkInstallError.value = message
+  trackInstall('install_error', installErrorReason(err))
 }
 
 const beginInstall = async (options?: { skipPrep?: boolean }) => {
@@ -1842,18 +1884,30 @@ const handleApkInstall = async () => {
   apkInstallError.value = null
   spaceNotice.value = null
   spaceNoticeKind.value = 'warn'
+  trackInstall('install_click')
 
   const downloadUrl = port.value.port_download_url
   if (!downloadUrl) {
     apkInstallError.value = 'No APK download URL configured for this port.'
+    trackInstall('install_error', 'other')
     return
   }
 
   // The headset must be connected via ADB. A cancelled USB chooser already has its own notice.
   if (!questAdb.isConnected.value) {
-    if (!questAdb.isWebUsbSupported.value) return
+    if (!questAdb.isWebUsbSupported.value) {
+      trackInstall('install_error', 'no_webusb')
+      return
+    }
     await questAdb.connect()
-    if (!questAdb.isConnected.value) return
+    if (!questAdb.isConnected.value) {
+      trackInstall('install_error', connectFailureReason({
+        webusb: questAdb.isWebUsbSupported.value,
+        notice: questAdb.connectNotice.value,
+        error: questAdb.connectionError.value
+      }))
+      return
+    }
   }
 
   isInstallingApk.value = true
@@ -1870,6 +1924,8 @@ const handleApkInstall = async () => {
       await refreshHeadsetApkVersion()
       await scanCampaignFiles()
       await recordInstallVerification()
+    } else {
+      trackInstall('install_error', 'user_cancelled')
     }
   } catch (err: any) {
     noteInstallFailure(err)

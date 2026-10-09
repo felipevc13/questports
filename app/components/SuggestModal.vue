@@ -135,6 +135,8 @@ const props = defineProps<{
   initialTitle?: string
 }>()
 
+const { track } = useTrack()
+
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
@@ -202,6 +204,7 @@ const submitSuggestion = async () => {
     }
 
     submitted.value = true
+    track('suggest_submit')
   } catch (err: any) {
     errorMessage.value = err.message || 'An error occurred while saving your suggestion. Please try again.'
   } finally {

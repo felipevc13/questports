@@ -115,6 +115,8 @@ const props = defineProps<{
   initialPagePath?: string
 }>()
 
+const { track } = useTrack()
+
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
@@ -171,6 +173,7 @@ const submitFeedback = async () => {
     }
 
     submitted.value = true
+    track('feedback_submit', { path: pagePath.value || null })
   } catch (err: any) {
     errorMessage.value = err.message || 'Could not save your feedback. Please try again.'
   } finally {

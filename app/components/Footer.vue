@@ -10,6 +10,7 @@
           <p class="text-[11px] text-muted-foreground">
             Open-source community directory for native 6DoF ports and injections on Meta Quest.
           </p>
+          <p class="text-[11px] text-muted-foreground">Anonymous usage stats, no cookies.</p>
         </div>
       </div>
 

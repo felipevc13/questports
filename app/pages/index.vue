@@ -538,9 +538,11 @@ import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 import { coverThumbUrl } from '~/data/coverUrl'
+import { useTrack } from '~/composables/useTrack'
 
 const route = useRoute()
 const router = useRouter()
+const { track } = useTrack()
 const { fetchPorts } = usePorts()
 const suggestModal = useSuggestModal()
 const questAdb = useQuestAdb()
@@ -612,7 +614,15 @@ onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onKeydown)
 })
+let searchTrackTimer: ReturnType<typeof setTimeout> | undefined
+
+const trackFilter = (filter: string, value: string) => {
+  if (!value || value === 'all' || value === 'recent') return
+  track('filter_used', { path: route.path, props: { filter, value } })
+}
+
 onUnmounted(() => {
+  if (searchTrackTimer) clearTimeout(searchTrackTimer)
   if (!import.meta.client) return
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
@@ -627,6 +637,22 @@ watch(searchQuery, async (value) => {
   if (window.matchMedia('(min-width: 768px)').matches) return
   await nextTick()
   resultsAnchor.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+})
+
+watch(selectedCategory, (value) => trackFilter('category', value))
+watch(selectedStatus, (value) => trackFilter('status', value))
+watch(selectedHardware, (value) => trackFilter('hardware', value))
+watch(selectedDeveloper, (value) => trackFilter('developer', value))
+watch(questFilter, (value) => trackFilter('quest', value))
+watch(sortBy, (value) => trackFilter('sort', value))
+
+watch(searchQuery, (value) => {
+  if (searchTrackTimer) clearTimeout(searchTrackTimer)
+  const query = value.trim()
+  if (!query) return
+  searchTrackTimer = setTimeout(() => {
+    track('search', { path: route.path, props: { q: query, length: query.length } })
+  }, 600)
 })
 
 const isPortInstalled = (slug: string) => {
