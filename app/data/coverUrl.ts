@@ -22,7 +22,8 @@ const STEAMGRID_COVERS: Record<string, string> = {
   'fe895c991a5152476a051ae74fcbf8ac': '/covers/sm64-coop-dx-vr.png',
   '317799a8c9027ed5e9cbb1deb38238d9': '/covers/f-zero-x-vr.jpg',
   'bb6db65a8d0f04a0f9a0a8e708da18d2': '/covers/quake3quest.png',
-  'a885e2694d4d70bb6e531289081bcb7e': '/covers/descent-3-vr.jpg'
+  'a885e2694d4d70bb6e531289081bcb7e': '/covers/descent-3-vr.jpg',
+  '06524331e2c63c0ed3479bf1be85ce3b': '/covers/hotd2-vr.png'
 }
 
 /** Map Storage / hotlink covers onto same-origin /covers files. */
