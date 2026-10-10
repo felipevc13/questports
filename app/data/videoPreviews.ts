@@ -76,6 +76,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sm64-coop-dx-vr',
   'sourcevr',
   'starfox-enhanced-vr',
+  'time-crisis-2-vr',
   'time-crisis-vr',
   'twilight-princess-vr',
   'unreal-gold-vr',
@@ -358,5 +359,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // The House of the Dead 2 VR
   'hotd2-vr': { start: '3:20', end: '4:20' },
-  'KeQKP9u1PiA': { start: '3:20', end: '4:20' }
+  'KeQKP9u1PiA': { start: '3:20', end: '4:20' },
+
+  // Time Crisis II VR
+  'time-crisis-2-vr': { start: '4:31', end: '4:46' },
+  'sM7IEWgDu8k': { start: '4:31', end: '4:46' }
 }
