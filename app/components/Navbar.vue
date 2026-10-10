@@ -73,8 +73,8 @@
           </div>
         </div>
 
-        <!-- WebADB Quest Hub Button / Rich Pill & Dropdown -->
-        <ClientOnly>
+        <!-- WebADB Quest Hub Button / Rich Pill & Dropdown. Hidden inside the native app. -->
+        <ClientOnly v-if="!inApp">
           <div class="relative">
             <!-- Connected State Button with Live Specs -->
             <button
@@ -210,8 +210,10 @@ import { useRoute } from 'vue-router'
 import { useSuggestModal } from '~/composables/useSuggestModal'
 import { useFeedbackModal } from '~/composables/useFeedbackModal'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { useAppBridge } from '~/composables/useAppBridge'
 import { QUEST_PICKER_HINT, questConnectChrome } from '~/lib/questConnectUx'
 
+const { inApp } = useAppBridge()
 const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()
 const questAdb = useQuestAdb()

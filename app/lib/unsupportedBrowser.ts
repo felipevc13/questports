@@ -108,6 +108,7 @@ export function shareablePageHref(href: string): string {
     url.searchParams.delete('mockAuthorizeWait')
     url.searchParams.delete('noWebUsb')
     url.searchParams.delete('questBrowser')
+    url.searchParams.delete('inApp')
     return url.toString()
   } catch {
     return href

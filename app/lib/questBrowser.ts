@@ -1,3 +1,4 @@
+import { isAppBridgeUserAgent } from '~/lib/appBridge'
 import { browserFamilyFromUserAgent } from '~/lib/analytics'
 
 /**
@@ -66,6 +67,8 @@ export function hasQuestBrowserFlag(value: string | null | undefined): boolean {
 
 export function isQuestBrowserUserAgent(userAgent: string | null | undefined): boolean {
   if (!userAgent || !userAgent.trim()) return false
+  // The wrapper's WebView often includes the Quest device name. It is not Quest Browser.
+  if (isAppBridgeUserAgent(userAgent)) return false
   if (browserFamilyFromUserAgent(userAgent) === 'Oculus') return true
   if (/\bquest\b/i.test(userAgent)) return true
   if (/\boculus\b/i.test(userAgent)) return true

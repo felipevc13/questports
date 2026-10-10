@@ -85,7 +85,7 @@ export interface AnalyticsInsertRow {
   browser: string | null
   webusb: boolean | null
   visitor_hash: string | null
-  props: Record<string, string | number> | null
+  props: Record<string, string | number | boolean> | null
 }
 
 export interface AnalyticsDecision {

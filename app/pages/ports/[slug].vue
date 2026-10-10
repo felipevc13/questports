@@ -139,8 +139,8 @@
 
       <!-- RIGHT HERO: Unified Smart Action Card (5 Cols) -->
       <div id="install-card" class="order-1 space-y-4 rounded-xl border border-border bg-card p-4 shadow-xl md:p-5 lg:order-2 lg:col-span-5">
-        <!-- Headset connection status. Not an install button. -->
-        <div class="flex items-center justify-between pb-3 border-b border-border">
+        <!-- Headset connection status. Not an install button. Hidden inside the native app. -->
+        <div v-if="!inApp" class="flex items-center justify-between pb-3 border-b border-border">
           <div class="flex items-center gap-2" role="status" aria-live="polite" data-testid="port-quest-status">
             <span
               class="w-2.5 h-2.5 rounded-full"
@@ -171,8 +171,19 @@
           </button>
         </div>
 
-        <!-- UNIFIED INSTALLATION & DATA FILES FLOW -->
-        <div class="space-y-3 pt-1">
+        <AppBridgeInstall
+          v-if="inApp"
+          :key="port.slug"
+          :slug="port.slug"
+          :download-url="port.port_download_url"
+          :github-url="port.github_url"
+          :package-name="currentPackageConfig?.packageName || null"
+          :latest-version="port.latest_version"
+          :needs-game-files="!isPcBuilderRequired && !isDirectApkOnly"
+          :pc-builder="isPcBuilderRequired"
+        />
+
+        <div v-else class="space-y-3 pt-1">
           <div
             v-if="showUsbPrep && !questBrowser"
             data-testid="usb-prep"
@@ -1071,7 +1082,7 @@
           </a>
 
           <a
-            v-if="port.port_download_url && installSupport !== 'unsupported'"
+            v-if="port.port_download_url && installSupport !== 'unsupported' && !inApp"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
@@ -1112,7 +1123,8 @@
           </div>
 
           <p class="text-xs text-muted-foreground leading-relaxed">
-            Install on Quest, in the card above, is the one-click USB install. These steps are the manual path (SideQuest or ADB).
+            <template v-if="inApp">The APK installs from the card above. When this port needs original game files, copy them from a PC. These steps explain that copy.</template>
+            <template v-else>Install on Quest, in the card above, is the one-click USB install. These steps are the manual path (SideQuest or ADB).</template>
           </p>
 
           <!-- Parsed markdown content -->
@@ -1362,6 +1374,7 @@ const slug = route.params.slug as string
 const { fetchPortBySlug } = usePorts()
 const questAdb = useQuestAdb()
 const questBrowser = useQuestBrowser()
+const { inApp } = useAppBridge()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
@@ -2105,6 +2118,7 @@ const retryFromAuthorize = async () => {
 }
 
 const beginInstall = async (options?: { skipPrep?: boolean }) => {
+  if (inApp.value) return
   if (questBrowser.value) return
   if (isInstallingApk.value || !port.value) return
   if (installSupport.value !== 'supported') return
@@ -2161,6 +2175,7 @@ const executeReinstall = async () => {
 }
 
 const handleApkInstall = async () => {
+  if (inApp.value) return
   if (questBrowser.value || isInstallingApk.value || !port.value) return
   apkInstallError.value = null
   spaceNotice.value = null
