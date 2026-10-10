@@ -47,6 +47,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'harry-potter-vr',
   'hexen2vr',
   'homeworld-unbound',
+  'hotd2-vr',
   'iron-lung-vr',
   'jkxr',
   'lambda1vr',
@@ -267,5 +268,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Quake3Quest (Quake III Arena VR)
   'quake3quest': { start: '0:05', end: '1:05' },
-  'Q-MR6AVNu3E': { start: '0:05', end: '1:05' }
+  'Q-MR6AVNu3E': { start: '0:05', end: '1:05' },
+
+  // The House of the Dead 2 VR
+  'hotd2-vr': { start: '3:20', end: '4:20' },
+  'KeQKP9u1PiA': { start: '3:20', end: '4:20' }
 }
