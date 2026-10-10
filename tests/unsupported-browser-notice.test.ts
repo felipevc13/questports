@@ -48,6 +48,16 @@ describe('unsupported browser notice', () => {
     expect(discordIos.variant).toBe('ios')
   })
 
+  it('offers a PC link on mobile browsers that are not iOS or in-app', () => {
+    const mobileFirefox =
+      'Mozilla/5.0 (Android 14; Mobile; rv:126.0) Gecko/126.0 Firefox/126.0'
+    const notice = unsupportedNoticeForUserAgent(mobileFirefox)
+    expect(notice.variant).toBe('desktop')
+    expect(notice.title).toBe('Use Chrome or Edge')
+    expect(notice.copyLink).toBe(true)
+    expect(browserFamilyFromUserAgent(mobileFirefox)).toBe('Firefox')
+  })
+
   it('tells desktop Firefox and Safari to use Chrome or Edge', () => {
     for (const key of ['firefox', 'safari'] as const) {
       const notice = unsupportedNoticeForUserAgent(MOCK_USER_AGENT_PRESETS[key])
@@ -75,6 +85,9 @@ describe('unsupported browser notice', () => {
     expect(shareablePageHref(
       'https://questports.vercel.app/ports/rtcwquest?utm=1&mockUa=ios'
     )).toBe('https://questports.vercel.app/ports/rtcwquest?utm=1')
+    expect(shareablePageHref(
+      'https://questports.vercel.app/ports/iron-lung-vr?questBrowser=1&mockAuthorizeWait=1'
+    )).toBe('https://questports.vercel.app/ports/iron-lung-vr')
   })
 })
 
@@ -106,10 +119,31 @@ describe('usb claim failure copy', () => {
     expect(page).toContain('v-else-if="installSupport === \'unsupported\'"')
 
     const notice = readFileSync(new URL('../app/components/UnsupportedBrowserNotice.vue', import.meta.url), 'utf8')
-    expect(notice).toContain('data-testid="unsupported-copy-link"')
+    expect(notice).toContain('data-testid="unsupported-send-link"')
     expect(notice).toContain('data-testid="webusb-unsupported"')
-    expect(notice).toContain("props: { action: 'copy_link' }")
-    expect(notice).toContain('shareablePageHref')
+    expect(notice).toContain('usePageLinkShare')
+    expect(page).toContain('data-testid="authorize-prompt"')
+    expect(page).toContain('AUTHORIZE_PROMPT_LEAD')
+    expect(page).toContain('AUTHORIZE_WAIT_HINT_MS')
+    expect(page).toContain('data-testid="authorize-still-waiting"')
+    expect(page).toContain('data-testid="authorize-retry"')
+    expect(page).not.toContain('AdbAllowPrompt')
+    expect(page).not.toContain('adb-allow-prompt')
+    const authorizePanel = page.slice(page.indexOf('data-testid="authorize-prompt"'), page.indexOf('data-testid="usb-picker-hint"'))
+    expect(authorizePanel).toContain('AUTHORIZE_PROMPT_LEAD')
+    expect(authorizePanel).toContain('Try again')
+    expect(authorizePanel).not.toMatch(/>\s*Allow\s*</)
+    expect(page).toContain('CONNECT_FAILURE_STEPS')
+    expect(page).toContain('data-testid="connect-failure-steps"')
+    expect(page).toContain('retryFromAuthorize')
+    expect(page).toContain('DirectQuestInstall')
+    expect(page).toContain(':needs-game-files="!isDirectApkOnly"')
+
+    const share = readFileSync(new URL('../app/composables/usePageLinkShare.ts', import.meta.url), 'utf8')
+    expect(share).toContain("props: { action: 'copy_link' }")
+    expect(share).toContain("props: { action: 'share_link' }")
+    expect(share).toContain('shareablePageHref')
+    expect(share).toContain('pageLinkActionLabel')
 
     const questNotice = readFileSync(new URL('../app/components/QuestBrowserNotice.vue', import.meta.url), 'utf8')
     expect(questNotice).toContain('QUEST_BROWSER_NOTICE_TITLE')

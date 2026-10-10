@@ -51,8 +51,11 @@ export const FILTER_NAMES = [
 
 export type AnalyticsFilterName = (typeof FILTER_NAMES)[number]
 
-/** Details on the existing unsupported_browser_view event. No new event name. */
-export const UNSUPPORTED_BROWSER_ACTIONS = ['shown', 'copy_link'] as const
+/**
+ * Details on the existing unsupported_browser_view event. No new event name.
+ * There is no database check on props.action, so these values do not need a migration.
+ */
+export const UNSUPPORTED_BROWSER_ACTIONS = ['shown', 'copy_link', 'share_link', 'direct_install_open'] as const
 
 export type UnsupportedBrowserAction = (typeof UNSUPPORTED_BROWSER_ACTIONS)[number]
 

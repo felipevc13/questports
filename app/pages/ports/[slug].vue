@@ -216,45 +216,53 @@
             </div>
           </div>
 
-          <!-- Live Authorizing Guidance Banner -->
+          <!-- RSA prompt is on the headset. Text only: a drawn Allow button gets tapped. -->
           <div
             v-else-if="!questBrowser && connectChrome.showHeadsetBanner"
-            class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2.5 text-left animate-in fade-in duration-200"
+            data-testid="authorize-prompt"
+            class="space-y-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-left text-xs"
+            role="status"
           >
-              <div class="font-bold flex items-center gap-2 text-amber-300">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
-                </span>
-                <span>Action Required inside Headset!</span>
-              </div>
-              <p class="text-[11px] text-amber-100/90 leading-relaxed">
-                Put on your <strong>Meta Quest</strong> now! An authorization prompt asking <strong>"Allow USB debugging?"</strong> is waiting inside the visor.
-              </p>
-              <div class="text-[11px] text-muted-foreground bg-black/40 p-2.5 rounded-lg border border-amber-500/20 space-y-1.5 font-mono">
-                <div class="flex items-center gap-2 text-foreground">
-                  <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
-                  <span>Put on headset so screen turns on</span>
-                </div>
-                <div class="flex items-center gap-2 text-foreground">
-                  <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
-                  <span>Check: <strong class="text-primary">"Always allow from this computer"</strong></span>
-                </div>
-                <div class="flex items-center gap-2 text-foreground">
-                  <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
-                  <span>Select: <strong class="text-primary">"Allow"</strong></span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between pt-1">
-                <span class="text-[10px] text-muted-foreground font-mono">Connecting via WebADB...</span>
-                <button
-                  @click="questAdb.cancelConnect"
-                  class="text-[11px] text-rose-400 hover:text-rose-300 underline font-medium cursor-pointer"
+            <p class="text-[11px] font-semibold leading-relaxed text-amber-100">
+              {{ AUTHORIZE_PROMPT_LEAD }}
+            </p>
+            <div
+              v-if="showAuthorizeWaitHint"
+              data-testid="authorize-still-waiting"
+              class="space-y-2 border-t border-amber-500/20 pt-2"
+              aria-live="polite"
+            >
+              <p class="text-xs font-semibold text-foreground">{{ AUTHORIZE_STILL_WAITING_TITLE }}</p>
+              <ul class="space-y-1">
+                <li
+                  v-for="step in AUTHORIZE_STILL_WAITING_STEPS"
+                  :key="step"
+                  class="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"
                 >
-                  Cancel
-                </button>
-              </div>
+                  <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/70" aria-hidden="true"></span>
+                  <span>{{ step }}</span>
+                </li>
+              </ul>
+              <button
+                type="button"
+                data-testid="authorize-retry"
+                class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
+                @click="retryFromAuthorize"
+              >
+                Try again
+              </button>
             </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="font-mono text-[10px] text-muted-foreground">Waiting for the headset prompt…</span>
+              <button
+                type="button"
+                class="cursor-pointer text-[11px] font-medium text-rose-400 underline hover:text-rose-300"
+                @click="questAdb.cancelConnect"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
 
           <p
             v-else-if="!questBrowser && connectChrome.showPickerHint"
@@ -317,20 +325,32 @@
 
           <div
             v-else-if="showOtherConnectionError"
-            class="p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs space-y-2 text-left animate-in fade-in duration-200"
+            data-testid="connect-failed"
+            class="space-y-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3.5 text-left text-xs"
           >
-            <div class="font-semibold flex items-center gap-1.5 text-destructive">
-              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="flex items-center gap-1.5 font-semibold text-destructive">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span>Connection Failed</span>
+              <span>{{ authorizeConnectionError ? AUTHORIZE_STILL_WAITING_TITLE : 'Connection Failed' }}</span>
             </div>
-            <p class="text-[11px] text-muted-foreground leading-relaxed">
+            <p class="text-[11px] leading-relaxed text-muted-foreground">
               {{ questAdb.connectionError.value }}
             </p>
+            <ul data-testid="connect-failure-steps" class="space-y-1">
+              <li
+                v-for="step in connectionFailureSteps"
+                :key="step"
+                class="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"
+              >
+                <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/70" aria-hidden="true"></span>
+                <span>{{ step }}</span>
+              </li>
+            </ul>
             <div class="pt-1">
               <button
                 type="button"
+                data-testid="connect-retry"
                 class="inline-flex min-h-11 items-center rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90 md:min-h-0"
                 @click="retryUsbConnect"
               >
@@ -369,7 +389,12 @@
                 </a>
               </div>
 
-              <QuestBrowserNotice v-if="questBrowser" />
+              <QuestBrowserNotice
+                v-if="questBrowser"
+                :download-url="port.port_download_url"
+                :download-source="port.port_download_source"
+                :needs-game-files="!isDirectApkOnly"
+              />
               <div v-else class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
@@ -406,9 +431,19 @@
                 {{ spaceNotice || questAdb.installSpaceWarning.value }}
               </div>
 
-              <QuestBrowserNotice v-if="questBrowser" />
+              <QuestBrowserNotice
+                v-if="questBrowser"
+                :download-url="port.port_download_url"
+                :download-source="port.port_download_source"
+                :needs-game-files="!isDirectApkOnly"
+              />
 
               <UnsupportedBrowserNotice v-else-if="installSupport === 'unsupported'">
+                <DirectQuestInstall
+                  :download-url="port.port_download_url"
+                  :download-source="port.port_download_source"
+                  :needs-game-files="!isDirectApkOnly"
+                />
                 <button
                   type="button"
                   data-testid="manual-install-toggle"
@@ -495,7 +530,12 @@
 
           <!-- STATE 3: APK INSTALLED -->
           <div v-else class="space-y-3">
-            <QuestBrowserNotice v-if="questBrowser" />
+            <QuestBrowserNotice
+                v-if="questBrowser"
+                :download-url="port.port_download_url"
+                :download-source="port.port_download_source"
+                :needs-game-files="!isDirectApkOnly"
+              />
             <!-- Installed Badge -->
             <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -1251,16 +1291,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { useQuestAdb } from '~/composables/useQuestAdb'
-import { QUEST_PICKER_HINT, mockUsbErrorFromSearch, questConnectChrome, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import {
+  AUTHORIZE_PROMPT_LEAD,
+  AUTHORIZE_STILL_WAITING_STEPS,
+  AUTHORIZE_STILL_WAITING_TITLE,
+  AUTHORIZE_WAIT_HINT_MS,
+  QUEST_PICKER_HINT,
+  authorizeWaitHintVisible,
+  isAuthorizeConnectionError,
+  isUsbChooserDismissed,
+  mockAuthorizeWaitFromSearch,
+  mockUsbErrorFromSearch,
+  questConnectChrome
+} from '~/lib/questConnectUx'
 import {
   CHOOSER_DISMISSED_STEPS,
   CHOOSER_DISMISSED_TITLE,
+  CONNECT_FAILURE_STEPS,
   INSTALL_ACTION_LABEL,
   USB_PREP_STEPS,
   hasRememberedQuestConnection,
@@ -1395,6 +1448,41 @@ const showOtherConnectionError = computed(() =>
   && installSupport.value === 'supported'
   && Boolean(questAdb.connectionError.value)
 )
+
+const authorizeConnectionError = computed(() => isAuthorizeConnectionError(questAdb.connectionError.value))
+
+const connectionFailureSteps = computed(() =>
+  authorizeConnectionError.value ? AUTHORIZE_STILL_WAITING_STEPS : CONNECT_FAILURE_STEPS
+)
+
+const showAuthorizeWaitHint = ref(false)
+let authorizeHintTimer: ReturnType<typeof setTimeout> | undefined
+
+const clearAuthorizeHintTimer = () => {
+  if (authorizeHintTimer) {
+    clearTimeout(authorizeHintTimer)
+    authorizeHintTimer = undefined
+  }
+}
+
+watch(() => connectChrome.value.showHeadsetBanner, (showing) => {
+  clearAuthorizeHintTimer()
+  if (!showing) {
+    showAuthorizeWaitHint.value = false
+    return
+  }
+  if (mockAuthorizeWaitFromSearch(route.fullPath)) {
+    showAuthorizeWaitHint.value = true
+    return
+  }
+  showAuthorizeWaitHint.value = false
+  if (!import.meta.client) return
+  authorizeHintTimer = setTimeout(() => {
+    showAuthorizeWaitHint.value = authorizeWaitHintVisible(AUTHORIZE_WAIT_HINT_MS)
+  }, AUTHORIZE_WAIT_HINT_MS)
+}, { immediate: true })
+
+onUnmounted(clearAuthorizeHintTimer)
 
 const headsetStatusLabel = computed(() => {
   if (isQuestConnected.value) return questDeviceModel.value || 'Meta Quest connected'
@@ -2009,6 +2097,11 @@ const retryUsbConnect = async () => {
     await router.replace({ path: route.path, query })
   }
   await beginInstall({ skipPrep: true })
+}
+
+const retryFromAuthorize = async () => {
+  await questAdb.cancelConnect()
+  await retryUsbConnect()
 }
 
 const beginInstall = async (options?: { skipPrep?: boolean }) => {

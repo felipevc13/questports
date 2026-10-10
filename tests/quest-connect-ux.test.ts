@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AUTHORIZE_PROMPT_LEAD,
+  AUTHORIZE_STILL_WAITING_STEPS,
+  AUTHORIZE_STILL_WAITING_TITLE,
+  AUTHORIZE_WAIT_HINT_MS,
   QUEST_NO_DEVICE_HINT,
   QUEST_PICKER_HINT,
+  authorizeWaitHintVisible,
+  isAuthorizeConnectionError,
   isUsbChooserDismissed,
+  mockAuthorizeWaitFromSearch,
   mockUsbErrorFromSearch,
   questConnectChrome
 } from '../app/lib/questConnectUx'
+import { QUEST_USB_MESSAGES } from '../app/lib/questUsbMessages'
 
 describe('quest connect chrome', () => {
   it('keeps the headset banner off while the browser chooser is open', () => {
@@ -51,6 +59,37 @@ describe('usb chooser dismissal', () => {
     expect(isUsbChooserDismissed({ message: 'The Quest USB interface is locked' })).toBe(false)
     expect(isUsbChooserDismissed(null)).toBe(false)
     expect(QUEST_NO_DEVICE_HINT).toBe("Don't see your Quest in the list?")
+  })
+})
+
+describe('authorize wait hint', () => {
+  it('names the Allow prompt and waits about 20 seconds before the extra hint', () => {
+    expect(AUTHORIZE_PROMPT_LEAD).toBe(
+      'Put on your headset and tap Allow (tick Always allow from this computer).'
+    )
+    expect(AUTHORIZE_STILL_WAITING_TITLE).toBe('Still waiting?')
+    expect(AUTHORIZE_STILL_WAITING_STEPS).toEqual([
+      'Keep the headset awake.',
+      'The prompt may be hidden behind another window.',
+      'Unplug the cable and plug it back in.'
+    ])
+    expect(AUTHORIZE_WAIT_HINT_MS).toBe(20_000)
+    expect(authorizeWaitHintVisible(19_999)).toBe(false)
+    expect(authorizeWaitHintVisible(20_000)).toBe(true)
+    expect(mockAuthorizeWaitFromSearch('?mockAuthorizeWait=1')).toBe(true)
+    expect(mockAuthorizeWaitFromSearch('/ports/iron-lung-vr?mockQuest=1&mockAuthorizeWait=1#guide')).toBe(true)
+    expect(mockAuthorizeWaitFromSearch('?mockAuthorizeWait=0')).toBe(false)
+    expect(mockAuthorizeWaitFromSearch(null)).toBe(false)
+  })
+
+  it('keeps cable failures off the RSA prompt checklist', () => {
+    expect(isAuthorizeConnectionError(QUEST_USB_MESSAGES.timeout)).toBe(true)
+    expect(isAuthorizeConnectionError(QUEST_USB_MESSAGES.cancelled)).toBe(true)
+    expect(isAuthorizeConnectionError(QUEST_USB_MESSAGES.unauthorized)).toBe(true)
+    expect(isAuthorizeConnectionError('device unauthorized')).toBe(true)
+    expect(isAuthorizeConnectionError(QUEST_USB_MESSAGES.generic)).toBe(false)
+    expect(isAuthorizeConnectionError(QUEST_USB_MESSAGES.usbLocked)).toBe(false)
+    expect(isAuthorizeConnectionError(null)).toBe(false)
   })
 })
 

@@ -90,6 +90,15 @@ let fileAbortController: AbortController | null = null
 let activeRemoteCleanup: string | null = null
 let installLocked = false
 let mockConnectGen = 0
+let connectAttempt = 0
+let authorizeTimeout: ReturnType<typeof setTimeout> | undefined
+
+const clearAuthorizeTimeout = () => {
+  if (authorizeTimeout) {
+    clearTimeout(authorizeTimeout)
+    authorizeTimeout = undefined
+  }
+}
 
 const idleProgress = (): InstallProgress => ({
   title: '',
@@ -292,6 +301,8 @@ export const useQuestAdb = () => {
   }
 
   const cancelConnect = async () => {
+    connectAttempt++
+    clearAuthorizeTimeout()
     if (isMockQuestEnabled()) {
       mockConnectGen++
       cancelPendingMockChoice()
@@ -325,6 +336,10 @@ export const useQuestAdb = () => {
       sessionStorage.removeItem('quest_manual_disconnect')
     }
 
+    const gen = ++connectAttempt
+    clearAuthorizeTimeout()
+    const stillCurrent = () => gen === connectAttempt
+
     isConnecting.value = true
     connectionPhase.value = targetDevice ? 'authorizing' : 'picker'
     connectionError.value = null
@@ -345,6 +360,7 @@ export const useQuestAdb = () => {
         // Browser device picker popup
         device = await manager.requestDevice()
       }
+      if (!stillCurrent()) return false
 
       if (!device) {
         markChooserDismissed()
@@ -358,6 +374,10 @@ export const useQuestAdb = () => {
 
       console.log('[QuestPorts] Opening WebUSB connection...')
       const connection = await device.connect()
+      if (!stillCurrent()) {
+        try { await connection?.close?.() } catch {}
+        return false
+      }
       console.log('[QuestPorts] WebUSB connection opened. Authenticating ADB (check headset for RSA prompt)...')
 
       const credentialStore = new AdbWebCredentialStore()
@@ -370,12 +390,14 @@ export const useQuestAdb = () => {
       })
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
+        authorizeTimeout = setTimeout(() => {
           reject(new Error(QUEST_USB_MESSAGES.timeout))
         }, 90000)
       })
 
       const transport = await Promise.race([authPromise, timeoutPromise]) as any
+      clearAuthorizeTimeout()
+      if (!stillCurrent()) return false
 
       console.log('[QuestPorts] ADB Authenticated! Initializing ADB instance...')
       adbInstance = new Adb(transport)
@@ -415,6 +437,8 @@ export const useQuestAdb = () => {
 
       return true
     } catch (err: any) {
+      clearAuthorizeTimeout()
+      if (!stillCurrent()) return false
       if (currentDevice?.raw?.opened) {
         try {
           await currentDevice.raw.close()

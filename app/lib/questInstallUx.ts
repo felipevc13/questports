@@ -8,12 +8,26 @@ export const CHOOSER_DISMISSED_TITLE = "Don't see your Quest in the list?"
 
 export const CHOOSER_DISMISSED_MESSAGE = CHOOSER_DISMISSED_TITLE
 
+/** Shared with the connect-failure checklist so the cable and headset lines stay in one place. */
+export const CONNECT_CABLE_STEP = 'Use a data cable (not charge-only).'
+
+export const CONNECT_HEADSET_STEP = 'Headset on and unlocked.'
+
+export const CONNECT_DEVELOPER_STEP = 'Developer Mode enabled.'
+
+/** Short list when the headset never gets as far as the USB debugging prompt. */
+export const CONNECT_FAILURE_STEPS = [
+  CONNECT_CABLE_STEP,
+  CONNECT_DEVELOPER_STEP,
+  CONNECT_HEADSET_STEP
+] as const
+
 /** Compact checklist after the USB picker is closed. Calm on purpose: the visitor may have cancelled. */
 export const CHOOSER_DISMISSED_STEPS = [
-  'Use a data cable (not charge-only).',
-  'Headset on and unlocked.',
+  CONNECT_CABLE_STEP,
+  CONNECT_HEADSET_STEP,
   'Accept the "Allow USB debugging" prompt inside the headset (tick Always allow).',
-  'Developer Mode enabled.',
+  CONNECT_DEVELOPER_STEP,
   'Try another USB port.'
 ] as const
 

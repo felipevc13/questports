@@ -3,6 +3,7 @@ import {
   CHOOSER_DISMISSED_MESSAGE,
   CHOOSER_DISMISSED_STEPS,
   CHOOSER_DISMISSED_TITLE,
+  CONNECT_FAILURE_STEPS,
   INSTALL_ACTION_LABEL,
   USB_PREP_STEPS,
   WEBUSB_UNSUPPORTED_NOTICE,
@@ -74,6 +75,14 @@ describe('chooser dismissal copy', () => {
     ])
     const copy = [CHOOSER_DISMISSED_TITLE, ...CHOOSER_DISMISSED_STEPS].join(' ').toLowerCase()
     expect(copy).not.toMatch(/fail|error|unable|denied/)
+    expect(CONNECT_FAILURE_STEPS).toEqual([
+      'Use a data cable (not charge-only).',
+      'Developer Mode enabled.',
+      'Headset on and unlocked.'
+    ])
+    for (const step of CONNECT_FAILURE_STEPS) {
+      expect(CHOOSER_DISMISSED_STEPS).toContain(step)
+    }
     expect(primaryInstallBlocked({
       showPrep: false,
       picker: false,
