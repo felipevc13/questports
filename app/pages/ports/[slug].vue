@@ -1372,6 +1372,7 @@ import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import {
   APK_PROXY_MAX_BYTES_DEFAULT,
+  apkProxyCapApplies,
   exceedsApkProxyCap,
   isApkTooLargeError,
   knownApkByteSize,
@@ -1813,14 +1814,17 @@ const isPcBuilderRequired = computed(() => {
   return currentPackageConfig.value?.installType === 'pc_builder_required'
 })
 
+const publicConfig = useRuntimeConfig().public
 const apkProxyCap = computed(() => {
-  const configured = Number(useRuntimeConfig().public.apkProxyMaxBytes)
+  const configured = Number(publicConfig.apkProxyMaxBytes)
   return Number.isFinite(configured) && configured > 0 ? configured : APK_PROXY_MAX_BYTES_DEFAULT
 })
+const enforceApkSizeCap = computed(() => apkProxyCapApplies(publicConfig.apkProxyBase))
 const catalogApkBytes = computed(() => knownApkByteSize(port.value?.download_bytes))
 const largePortNotice = ref<string | null>(null)
 const largePortMessage = computed(() => {
   if (largePortNotice.value) return largePortNotice.value
+  if (!enforceApkSizeCap.value) return null
   const bytes = catalogApkBytes.value
   if (bytes != null && exceedsApkProxyCap(bytes, apkProxyCap.value)) return tooLargeInstallMessage(bytes)
   return null
@@ -2228,7 +2232,7 @@ const handleApkInstall = async () => {
   trackInstall('install_click')
 
   const knownBytes = knownApkByteSize(port.value.download_bytes)
-  if (knownBytes != null && exceedsApkProxyCap(knownBytes, apkProxyCap.value)) {
+  if (enforceApkSizeCap.value && knownBytes != null && exceedsApkProxyCap(knownBytes, apkProxyCap.value)) {
     largePortNotice.value = tooLargeInstallMessage(knownBytes)
     trackInstall('install_error', 'too_large')
     return

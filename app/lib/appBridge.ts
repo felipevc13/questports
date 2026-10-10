@@ -87,28 +87,49 @@ export function isAppBridgeClient(): boolean {
 }
 
 /**
- * Absolute apk-proxy URL. The WebUSB installer fetches `/api/apk-proxy?url=`
- * and streams the body. The native app downloads on its own and follows
- * redirects, so `redirect=1` asks the proxy to 302 a plain .apk to GitHub
- * instead of copying the file through Vercel. Zip assets still stream.
+ * Absolute apk-proxy URL. WebUSB fetches the proxy and streams the body.
+ * The native app downloads on its own and follows redirects, so `redirect=1`
+ * asks the proxy to 302 a plain .apk to GitHub. Zip assets still stream.
+ * `origin` is the proxy base (Worker, or the page origin when that is empty).
+ * An absolute `/api/apk-proxy` URL on that base or on `pageOrigin` is already
+ * proxied and is not wrapped again.
  */
 function withApkProxyRedirect(proxyUrl: string): string {
   if (/[?&]redirect=1(?:&|#|$)/.test(proxyUrl)) return proxyUrl
   return `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}redirect=1`
 }
 
-export function appBridgeApkUrl(origin: string, downloadUrl: string | null | undefined): string | null {
+function proxyOriginSet(proxyBase: string, pageOrigin?: string | null): Set<string> {
+  const origins = new Set<string>()
+  for (const value of [proxyBase, pageOrigin || '']) {
+    const trimmed = value.trim()
+    if (!trimmed) continue
+    try {
+      origins.add(new URL(trimmed).origin)
+    } catch {
+      // A non-absolute base cannot match an already-proxied URL.
+    }
+  }
+  return origins
+}
+
+export function appBridgeApkUrl(
+  origin: string,
+  downloadUrl: string | null | undefined,
+  pageOrigin?: string | null
+): string | null {
   const raw = (downloadUrl || '').trim()
   const base = (origin || '').trim().replace(/\/$/, '')
   if (!raw || !base) return null
-  if (raw.startsWith('/api/apk-proxy?')) return withApkProxyRedirect(`${base}${raw}`)
   let parsed: URL
   try {
     parsed = new URL(raw, base)
   } catch {
     return null
   }
-  if (parsed.pathname === '/api/apk-proxy') return withApkProxyRedirect(parsed.toString())
+  if (parsed.pathname === '/api/apk-proxy' && proxyOriginSet(base, pageOrigin).has(parsed.origin)) {
+    return withApkProxyRedirect(parsed.toString())
+  }
   if (parsed.protocol !== 'https:') return null
   return withApkProxyRedirect(`${base}/api/apk-proxy?url=${encodeURIComponent(parsed.toString())}`)
 }

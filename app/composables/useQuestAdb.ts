@@ -32,7 +32,7 @@ import {
   type SpaceKind
 } from '~/lib/installFlow'
 import { extractReleaseApk, responseLooksLikeZip } from '~/lib/extractReleaseApk'
-import { ApkTooLargeError, isApkTooLargeError } from '~/lib/apkProxyPolicy'
+import { ApkTooLargeError, apkProxyStreamUrl, isApkTooLargeError } from '~/lib/apkProxyPolicy'
 import { isAppBridgeClient } from '~/lib/appBridge'
 import { isQuestBrowserClient } from '~/lib/questBrowser'
 
@@ -112,6 +112,7 @@ const idleProgress = (): InstallProgress => ({
 })
 
 export const useQuestAdb = () => {
+  const apkProxyBase = useRuntimeConfig().public.apkProxyBase
   const isWebUsbSupported = computed(() => {
     if (!import.meta.client) return false
     void mockScenarioRevision.value
@@ -748,10 +749,12 @@ export const useQuestAdb = () => {
         message: 'Downloading latest APK from repository...'
       })
 
-      const proxyUrl = `/api/apk-proxy?url=${encodeURIComponent(url)}`
+      const proxyUrl = apkProxyStreamUrl(apkProxyBase, url)
       const res = isMockQuestEnabled()
         ? await mockApkProxyResponse(signal)
-        : await fetch(proxyUrl, { signal })
+        // CORS mode so the Worker can expose X-QuestPorts-Unwrap. Content-Length
+        // and Content-Type are safelisted; credentials must stay omitted for Allow-Origin *.
+        : await fetch(proxyUrl, { signal, mode: 'cors', credentials: 'omit' })
 
       if (res.status === 413) {
         let size = 0

@@ -1,5 +1,5 @@
 import { isAnalyticsEnabled } from './app/lib/analytics'
-import { apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
+import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
@@ -17,7 +17,9 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseKey: process.env.SUPABASE_KEY || '',
       analyticsEnabled: isAnalyticsEnabled(process.env),
-      apkProxyMaxBytes: apkProxyMaxBytes(process.env)
+      apkProxyMaxBytes: apkProxyMaxBytes(process.env),
+      // Empty string keeps /api/apk-proxy on this origin. Unset uses the Worker.
+      apkProxyBase: process.env.NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE
     }
   },
   /**

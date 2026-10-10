@@ -7,10 +7,14 @@ import {
   rewriteKnownHomepageToGithubRelease
 } from '../server/utils/apkAssetPicker'
 import { plainApkRedirectTarget } from '../server/utils/apkProxyGate'
+import { responseLooksLikeZip } from '../app/lib/extractReleaseApk'
 import {
   APK_PROXY_MAX_BYTES_DEFAULT,
+  APK_PROXY_WORKER_BASE,
+  apkProxyCapApplies,
   apkProxyMaxBytes,
   apkProxyRedirectRequested,
+  apkProxyStreamUrl,
   apkTooLargeBody,
   contentLengthBytes,
   exceedsApkProxyCap,
@@ -254,9 +258,13 @@ describe('origin transfer guards', () => {
 
   it('keeps WebUSB on the streaming proxy and shows the direct download for a 413', () => {
     const adb = readFileSync(new URL('../app/composables/useQuestAdb.ts', import.meta.url), 'utf8')
-    const proxyAt = adb.indexOf('const proxyUrl = `/api/apk-proxy?url=')
+    const proxyAt = adb.indexOf('const proxyUrl = apkProxyStreamUrl')
     expect(proxyAt).toBeGreaterThan(0)
-    expect(adb.slice(proxyAt, proxyAt + 80)).not.toContain('redirect')
+    expect(adb.slice(proxyAt, proxyAt + 120)).not.toContain('redirect')
+    expect(adb).toContain("mode: 'cors'")
+    expect(adb).toContain("credentials: 'omit'")
+    expect(adb).toContain("res.headers.get('content-length')")
+    expect(adb).toContain('responseLooksLikeZip(res.headers)')
     expect(adb).toContain('res.status === 413')
     expect(adb).toContain('new ApkTooLargeError')
 
@@ -267,5 +275,44 @@ describe('origin transfer guards', () => {
     expect(page).toContain("trackInstall('install_error', 'too_large')")
     expect(page).toContain('tooLarge: Boolean(largePortMessage.value)')
     expect(page).toContain('knownApkByteSize')
+    expect(page).toContain('apkProxyCapApplies')
+    expect(page).toContain('enforceApkSizeCap.value && knownBytes')
+
+    const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
+    expect(config).toContain('NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE')
+    expect(config).toContain('apkProxyBase:')
+  })
+
+  it('sends WebUSB to the Worker and skips the client cap unless the base is empty', () => {
+    const asset = 'https://github.com/DrBeef/SourceVR/releases/latest'
+    expect(apkProxyStreamUrl(undefined, asset)).toBe(
+      `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl(APK_PROXY_WORKER_BASE, asset)).toBe(
+      `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl('', asset)).toBe(`/api/apk-proxy?url=${encodeURIComponent(asset)}`)
+    expect(apkProxyStreamUrl('https://example.test/', asset)).toBe(
+      `https://example.test/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl(APK_PROXY_WORKER_BASE, asset)).not.toContain('redirect')
+    expect(apkProxyCapApplies(undefined)).toBe(false)
+    expect(apkProxyCapApplies(APK_PROXY_WORKER_BASE)).toBe(false)
+    expect(apkProxyCapApplies('')).toBe(true)
+    expect(apkProxyCapApplies('  ')).toBe(true)
+  })
+
+  it('reads the unwrap header and content-length the Worker exposes cross-origin', () => {
+    const headers = new Headers({
+      'content-type': 'application/zip',
+      'content-length': '808452096',
+      'x-questports-unwrap': 'apk'
+    })
+    expect(responseLooksLikeZip(headers)).toBe(true)
+    expect(headers.get('content-length')).toBe('808452096')
+    expect(headers.get('x-questports-unwrap')).toBe('apk')
+    const unwrapOnly = new Headers({ 'x-questports-unwrap': 'apk' })
+    expect(responseLooksLikeZip(unwrapOnly)).toBe(true)
+    expect(responseLooksLikeZip(new Headers({ 'content-type': 'application/vnd.android.package-archive' }))).toBe(false)
   })
 })

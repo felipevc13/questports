@@ -1,9 +1,31 @@
 /**
  * Shared by the APK proxy and the WebUSB install card.
  * Files larger than this are not streamed through the Vercel function.
- * The native app uses redirect=1 and downloads the asset from GitHub.
+ * The Cloudflare Worker has no size cap. The native app uses redirect=1
+ * and downloads a plain .apk from GitHub.
  */
 export const APK_PROXY_MAX_BYTES_DEFAULT = 157_286_400
+
+/** No egress fees. Empty NUXT_PUBLIC_APK_PROXY_BASE falls back to this site. */
+export const APK_PROXY_WORKER_BASE = 'https://questports-apk-proxy.questports.workers.dev'
+
+/** Nullish uses the Worker. An empty string stays empty (same-origin Vercel route). */
+export function normalizeApkProxyBase(value: string | null | undefined): string {
+  if (value == null) return APK_PROXY_WORKER_BASE
+  return value.trim().replace(/\/$/, '')
+}
+
+/** WebUSB streams the body, so this URL does not ask for redirect=1. */
+export function apkProxyStreamUrl(apkProxyBase: string | null | undefined, assetUrl: string): string {
+  const path = `/api/apk-proxy?url=${encodeURIComponent(assetUrl)}`
+  const base = normalizeApkProxyBase(apkProxyBase)
+  return base ? `${base}${path}` : path
+}
+
+/** The client cap only applies when the browser still hits the Vercel route. */
+export function apkProxyCapApplies(apkProxyBase: string | null | undefined): boolean {
+  return normalizeApkProxyBase(apkProxyBase) === ''
+}
 
 export function apkProxyMaxBytes(
   env: { APK_PROXY_MAX_BYTES?: string | null } = typeof process !== 'undefined' ? process.env : {}
