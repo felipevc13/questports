@@ -32,6 +32,7 @@ import {
   type SpaceKind
 } from '~/lib/installFlow'
 import { extractReleaseApk, responseLooksLikeZip } from '~/lib/extractReleaseApk'
+import { ApkTooLargeError, isApkTooLargeError } from '~/lib/apkProxyPolicy'
 import { isAppBridgeClient } from '~/lib/appBridge'
 import { isQuestBrowserClient } from '~/lib/questBrowser'
 
@@ -751,6 +752,22 @@ export const useQuestAdb = () => {
       const res = isMockQuestEnabled()
         ? await mockApkProxyResponse(signal)
         : await fetch(proxyUrl, { signal })
+
+      if (res.status === 413) {
+        let size = 0
+        let directUrl = url
+        try {
+          const body = await res.json() as { reason?: string; size?: number; directUrl?: string }
+          if (body?.reason === 'too_large') {
+            if (typeof body.size === 'number' && Number.isFinite(body.size)) size = body.size
+            if (typeof body.directUrl === 'string' && body.directUrl) directUrl = body.directUrl
+            throw new ApkTooLargeError(size, directUrl)
+          }
+        } catch (err) {
+          if (isApkTooLargeError(err)) throw err
+        }
+        throw new ApkTooLargeError(size, directUrl)
+      }
 
       if (!res.ok) {
         let detail = `HTTP ${res.status}`

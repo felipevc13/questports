@@ -109,6 +109,7 @@ describe('chooser dismissal copy', () => {
     expect(primaryInstallBlocked({ ...base, picker: true })).toBe(true)
     expect(primaryInstallBlocked({ ...base, authorizing: true })).toBe(true)
     expect(primaryInstallBlocked({ ...base, supported: false })).toBe(true)
+    expect(primaryInstallBlocked({ ...base, tooLarge: true })).toBe(true)
   })
 })
 

@@ -1,4 +1,22 @@
-import { defineEventHandler, getQuery, createError, setResponseHeaders, sendStream } from 'h3'
+import {
+  defineEventHandler,
+  getQuery,
+  createError,
+  setResponseHeaders,
+  setResponseHeader,
+  setResponseStatus,
+  send,
+  sendRedirect,
+  sendStream
+} from 'h3'
+import {
+  apkProxyMaxBytes,
+  apkProxyRedirectRequested,
+  apkTooLargeBody,
+  contentLengthBytes,
+  exceedsApkProxyCap
+} from '../../app/lib/apkProxyPolicy'
+import { plainApkRedirectTarget } from '../utils/apkProxyGate'
 import {
   isAllowedApkProxyHost,
   isLikelyApkPath,
@@ -6,6 +24,11 @@ import {
   pickPreferredReleaseDownload,
   rewriteKnownHomepageToGithubRelease
 } from '../utils/apkAssetPicker'
+
+const UPSTREAM_HEADERS = {
+  'User-Agent': 'QuestPorts/1.0',
+  Accept: 'application/octet-stream,application/zip,application/vnd.android.package-archive,*/*'
+}
 
 async function resolveGithubReleaseAsset(pageUrl: string): Promise<string> {
   const parsed = new URL(pageUrl)
@@ -41,6 +64,37 @@ async function resolveGithubReleaseAsset(pageUrl: string): Promise<string> {
   }
 
   return zipFallback || pageUrl
+}
+
+async function releaseUpstream(res: Response | null | undefined) {
+  if (!res?.body) return
+  try {
+    await res.body.cancel()
+  } catch {
+    // Already closed, or HEAD had nothing to cancel.
+  }
+}
+
+function headTimeout(): AbortSignal | undefined {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(8000)
+  }
+  return undefined
+}
+
+async function fetchUpstream(url: string, method: 'HEAD' | 'GET', signal?: AbortSignal) {
+  return fetch(url, {
+    method,
+    redirect: 'follow',
+    signal,
+    headers: UPSTREAM_HEADERS
+  })
+}
+
+function tooLarge(event: Parameters<typeof setResponseStatus>[0], size: number, directUrl: string) {
+  setResponseStatus(event, 413, 'Payload Too Large')
+  setResponseHeader(event, 'cache-control', 'no-store')
+  return send(event, JSON.stringify(apkTooLargeBody(size, directUrl)), 'application/json')
 }
 
 export default defineEventHandler(async (event) => {
@@ -87,23 +141,54 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const upstreamRes = await fetch(url, {
-    redirect: 'follow',
-    headers: {
-      'User-Agent': 'QuestPorts/1.0',
-      Accept: 'application/octet-stream,application/zip,application/vnd.android.package-archive,*/*'
-    }
-  })
+  const resolvedHost = new URL(url).hostname
+  if (!isAllowedApkProxyHost(resolvedHost)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: `Host ${resolvedHost} is not allowed for APK proxying`
+    })
+  }
 
+  // The native app follows redirects. A plain APK never needs to pass through
+  // this function. Zip releases still stream so the client can unwrap them.
+  if (apkProxyRedirectRequested(query.redirect)) {
+    const location = plainApkRedirectTarget(url)
+    if (location) {
+      setResponseHeader(event, 'cache-control', 'no-store')
+      return sendRedirect(event, location, 302)
+    }
+  }
+
+  const maxBytes = apkProxyMaxBytes()
+  let head: Response | null = null
+  try {
+    head = await fetchUpstream(url, 'HEAD', headTimeout())
+  } catch {
+    head = null
+  }
+  const headBytes = head?.ok ? contentLengthBytes(head.headers.get('content-length')) : null
+  await releaseUpstream(head)
+  if (exceedsApkProxyCap(headBytes, maxBytes)) {
+    return tooLarge(event, headBytes as number, url)
+  }
+
+  const upstreamRes = await fetchUpstream(url, 'GET')
+  const getBytes = contentLengthBytes(upstreamRes.headers.get('content-length'))
   if (!upstreamRes.ok || !upstreamRes.body) {
+    await releaseUpstream(upstreamRes)
     throw createError({
       statusCode: 502,
       statusMessage: `Download host returned HTTP ${upstreamRes.status}. Try Manual APK Download.`
     })
   }
+  if (exceedsApkProxyCap(getBytes, maxBytes)) {
+    await releaseUpstream(upstreamRes)
+    return tooLarge(event, getBytes as number, url)
+  }
 
   const upstreamType = (upstreamRes.headers.get('content-type') || '').toLowerCase()
   if (upstreamType.includes('text/html')) {
+    await releaseUpstream(upstreamRes)
     throw createError({
       statusCode: 502,
       statusMessage: 'Download URL returned a web page instead of an APK. Use Manual APK Download or a direct .apk / GitHub release link.'

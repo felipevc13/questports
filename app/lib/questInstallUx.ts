@@ -94,6 +94,8 @@ export function primaryInstallBlocked(input: {
   connectionError: boolean
   installing: boolean
   supported: boolean
+  /** Known file size is already over the proxy cap, so one-click would only 413. */
+  tooLarge?: boolean
 }): boolean {
   return !input.supported
     || input.showPrep
@@ -102,6 +104,7 @@ export function primaryInstallBlocked(input: {
     || input.dismissed
     || input.connectionError
     || input.installing
+    || Boolean(input.tooLarge)
 }
 
 export function progressBarA11y(percent: number, indeterminate: boolean, statusText: string) {

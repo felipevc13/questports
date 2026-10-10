@@ -88,22 +88,29 @@ export function isAppBridgeClient(): boolean {
 
 /**
  * Absolute apk-proxy URL. The WebUSB installer fetches `/api/apk-proxy?url=`
- * on this origin. The native app downloads on its own, so the URL has to be absolute.
+ * and streams the body. The native app downloads on its own and follows
+ * redirects, so `redirect=1` asks the proxy to 302 a plain .apk to GitHub
+ * instead of copying the file through Vercel. Zip assets still stream.
  */
+function withApkProxyRedirect(proxyUrl: string): string {
+  if (/[?&]redirect=1(?:&|#|$)/.test(proxyUrl)) return proxyUrl
+  return `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}redirect=1`
+}
+
 export function appBridgeApkUrl(origin: string, downloadUrl: string | null | undefined): string | null {
   const raw = (downloadUrl || '').trim()
   const base = (origin || '').trim().replace(/\/$/, '')
   if (!raw || !base) return null
-  if (raw.startsWith('/api/apk-proxy?')) return `${base}${raw}`
+  if (raw.startsWith('/api/apk-proxy?')) return withApkProxyRedirect(`${base}${raw}`)
   let parsed: URL
   try {
     parsed = new URL(raw, base)
   } catch {
     return null
   }
-  if (parsed.pathname === '/api/apk-proxy') return parsed.toString()
+  if (parsed.pathname === '/api/apk-proxy') return withApkProxyRedirect(parsed.toString())
   if (parsed.protocol !== 'https:') return null
-  return `${base}/api/apk-proxy?url=${encodeURIComponent(parsed.toString())}`
+  return withApkProxyRedirect(`${base}/api/apk-proxy?url=${encodeURIComponent(parsed.toString())}`)
 }
 
 export function appInstallStatusLabel(status: string, progress?: number | null): string {

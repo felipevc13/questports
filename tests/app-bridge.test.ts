@@ -81,10 +81,16 @@ describe('app bridge install url and status', () => {
   it('uses the same apk-proxy URL as WebUSB, as an absolute URL', () => {
     const source = 'https://github.com/Team-Beef-Studios/RTCWQuest/releases/latest'
     expect(appBridgeApkUrl('https://questports.vercel.app', source)).toBe(
-      `https://questports.vercel.app/api/apk-proxy?url=${encodeURIComponent(source)}`
+      `https://questports.vercel.app/api/apk-proxy?url=${encodeURIComponent(source)}&redirect=1`
     )
     expect(appBridgeApkUrl('https://questports.vercel.app/', '/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk')).toBe(
-      'https://questports.vercel.app/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk'
+      'https://questports.vercel.app/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1'
+    )
+    expect(appBridgeApkUrl(
+      'https://questports.vercel.app',
+      'https://questports.vercel.app/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1'
+    )).toBe(
+      'https://questports.vercel.app/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1'
     )
     expect(appBridgeApkUrl('http://localhost:3000', 'http://example.com/app.apk')).toBeNull()
     expect(appBridgeApkUrl('https://questports.vercel.app', '')).toBeNull()
@@ -296,9 +302,14 @@ describe('app bridge install gate', () => {
     expect(adb.indexOf('if (isAppBridgeClient()) return false', connectAt)).toBeLessThan(adb.indexOf('requestDevice()', connectAt))
 
     const composable = readFileSync(new URL('../app/composables/useAppBridge.ts', import.meta.url), 'utf8')
-    expect(composable).toContain('useRequestHeaders')
+    expect(composable).not.toContain('useRequestHeaders')
+    expect(composable).toContain('hasInAppFlag')
+    expect(composable).toContain('onMounted')
     expect(composable).toContain("useState('questports-app-bridge'")
     expect(composable).toContain('ensureMockAppBridge')
+    expect(install).not.toContain('X-QuestPorts-Unwrap')
+    expect(install).not.toContain('content-disposition')
+    expect(install).not.toContain('Content-Type')
 
     const plugin = readFileSync(new URL('../app/plugins/analytics.client.ts', import.meta.url), 'utf8')
     expect(plugin).toContain('!isAppBridgeClient()')

@@ -148,7 +148,14 @@ describe('analytics allowlist', () => {
     expect(funnel).toContain('analytics_events_video_preview_play_check')
     expect(funnel).toContain('analytics_events_campaign_ref_check')
     expect(funnel).not.toMatch(/create or replace view/i)
-    for (const reason of INSTALL_ERROR_REASONS) expect(sql).toContain(`'${reason}'`)
+    const tooLarge = readFileSync(
+      new URL('../supabase/migrations/20261010120000_analytics_too_large.sql', import.meta.url),
+      'utf8'
+    )
+    const reasonsSql = `${sql}\n${tooLarge}`
+    for (const reason of INSTALL_ERROR_REASONS) expect(reasonsSql).toContain(`'${reason}'`)
+    expect(tooLarge).toContain('analytics_events_install_error_reason')
+    expect(tooLarge).toContain("'too_large'")
     for (const filter of FILTER_NAMES) expect(sql).toContain(`'${filter}'`)
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
@@ -333,6 +340,9 @@ describe('analytics validation', () => {
     expect(decide({
       body: { event: 'install_error', portSlug: 'rtcwquest', props: { reason: 'user_cancelled' } }
     }).row?.props).toEqual({ reason: 'user_cancelled' })
+    expect(decide({
+      body: { event: 'install_error', portSlug: 'doom3quest', props: { reason: 'too_large' } }
+    }).row?.props).toEqual({ reason: 'too_large' })
   })
 
   it('maps install failures to short reason codes', () => {
@@ -347,6 +357,7 @@ describe('analytics validation', () => {
     expect(installErrorReason(new Error('Headset authorization timed out.'))).toBe('timeout')
     expect(installErrorReason(new Error('Meta Quest not connected!'))).toBe('adb_fail')
     expect(installErrorReason(new Error('something unexpected'))).toBe('other')
+    expect(installErrorReason({ reason: 'too_large', message: 'This port is large (772 MB).' })).toBe('too_large')
     expect(connectFailureReason({ webusb: false, notice: null, error: null })).toBe('no_webusb')
     expect(installErrorReason(new Error('Your Quest is being used by another app on this computer. adb kill-server'))).toBe('usb_locked')
     expect(connectFailureReason({
