@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { AVAILABLE_VIDEO_PREVIEWS, GAME_VIDEO_PREVIEWS, hasVideoPreview } from '../app/data/videoPreviews'
+import { DEFAULT_MEDIA_BASE } from '../app/data/coverUrl'
+import { AVAILABLE_VIDEO_PREVIEWS, GAME_VIDEO_PREVIEWS, hasVideoPreview, localVideoPreviewsEnabled, previewMp4Url, youtubeClipForPort, PREVIEW_HOVER_MS } from '../app/data/videoPreviews'
 
 const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['sclerosis-vr', 'UpTDQZr0TWw', '36:20', '37:20'],
@@ -31,6 +33,48 @@ describe('local hover previews', () => {
     expect(hasVideoPreview('magic-carpet-vr')).toBe(false)
     expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('magic-carpet-vr')
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
+  })
+
+  it('serves MP4s only from an external media base', () => {
+    expect(localVideoPreviewsEnabled('')).toBe(false)
+    expect(localVideoPreviewsEnabled('   ')).toBe(false)
+    expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: '' })).toBeNull()
+    expect(previewMp4Url({
+      slug: 'hotd2-vr',
+      videoPreviewUrl: '/previews/hotd2-vr.mp4',
+      mediaBase: ''
+    })).toBeNull()
+    expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: 'https://cdn.example.com/' })).toBe(
+      'https://cdn.example.com/previews/hotd2-vr.mp4'
+    )
+    expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBe(
+      `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4`
+    )
+    expect(PREVIEW_HOVER_MS).toBe(400)
+    expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBeNull()
+  })
+
+  it('builds a click-to-play youtube-nocookie clip from the saved timestamps', () => {
+    const clip = youtubeClipForPort({ slug: 'hotd2-vr', youtubeId: 'KeQKP9u1PiA' })
+    expect(clip?.poster).toBe('https://i.ytimg.com/vi/KeQKP9u1PiA/hqdefault.jpg')
+    expect(clip?.embed.startsWith('https://www.youtube-nocookie.com/embed/KeQKP9u1PiA?')).toBe(true)
+    expect(clip?.embed).toContain('autoplay=1')
+    expect(clip?.embed).toContain('start=200')
+    expect(clip?.embed).toContain('end=260')
+    expect(youtubeClipForPort({ slug: 'hotd2-vr', youtubeId: null })).toBeNull()
+  })
+
+  it('starts MP4s only after a desktop hover and keeps YouTube ahead of them on detail pages', () => {
+    const card = readFileSync('app/components/PortCard.vue', 'utf8')
+    expect(card).toContain('preload="none"')
+    expect(card).not.toContain('autoplay')
+    expect(card).not.toContain('onPreviewTap')
+    expect(card).toContain('canHoverPreview')
+    const detail = readFileSync('app/pages/ports/[slug].vue', 'utf8')
+    expect(detail).toContain('preload="none"')
+    expect(detail).toContain('if (youtubeClip.value) return null')
+    expect(detail).toContain('data-testid="youtube-lite"')
+    expect(detail).toContain('canHoverPreview')
   })
 
   it('leaves Descent 3 VR without a hover preview', () => {

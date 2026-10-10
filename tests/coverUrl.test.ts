@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { absoluteCoverUrl, coverThumbUrl, resolveCoverUrl } from '../app/data/coverUrl'
+import { absoluteCoverUrl, coverThumbUrl, DEFAULT_MEDIA_BASE, resolveCoverUrl, versionedCoverUrl } from '../app/data/coverUrl'
 
 describe('resolveCoverUrl', () => {
   it('maps Supabase Storage covers onto /covers', () => {
@@ -39,8 +39,21 @@ describe('resolveCoverUrl', () => {
 
 describe('coverThumbUrl', () => {
   it('points local covers at a small generated thumbnail', () => {
-    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg')
-    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg')
+    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg?v=2')
+    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg?v=2')
+  })
+
+  it('versions covers and can load them from an external media base', () => {
+    expect(versionedCoverUrl('/covers/nolf-vr.png')).toBe('/covers/nolf-vr.png?v=2')
+    expect(versionedCoverUrl(
+      'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/nolf-vr.png'
+    )).toBe('/covers/nolf-vr.png?v=2')
+    expect(versionedCoverUrl('/covers/nolf-vr.png', 'https://cdn.example.com/')).toBe(
+      'https://cdn.example.com/covers/nolf-vr.png?v=2'
+    )
+    expect(coverThumbUrl('/covers/doom3quest.jpg', 'https://cdn.example.com')).toBe(
+      'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=2'
+    )
   })
 
   it('requests a small Unsplash crop for hotlinked photos', () => {
@@ -53,7 +66,13 @@ describe('coverThumbUrl', () => {
 describe('absoluteCoverUrl', () => {
   it('prefixes local covers for Open Graph', () => {
     expect(absoluteCoverUrl('/covers/nolf-vr.png')).toBe(
-      'https://questports.vercel.app/covers/nolf-vr.png'
+      'https://questports.vercel.app/covers/nolf-vr.png?v=2'
+    )
+  })
+
+  it('keeps Open Graph covers on the site even when the file is on the media host', () => {
+    expect(absoluteCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/nolf-vr.png?v=9`)).toBe(
+      'https://questports.vercel.app/covers/nolf-vr.png?v=2'
     )
   })
 

@@ -1,3 +1,5 @@
+import { prefixMediaBase } from './coverUrl'
+
 /**
  * Video Preview Timestamps configuration for QuestPorts.
  * 
@@ -83,6 +85,90 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'winlatorxr',
   'xrkart-64'
 ]
+
+/** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
+export const PREVIEW_HOVER_MS = 400
+
+export function canHoverPreview(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
+/**
+ * MP4 previews stay off this origin unless a media base is set.
+ * An empty base is the off switch: cards keep the cover, detail pages use YouTube.
+ */
+export function localVideoPreviewsEnabled(mediaBase: string | null | undefined): boolean {
+  return Boolean(String(mediaBase ?? '').trim())
+}
+
+/**
+ * External MP4 URL, or null while previews are disabled.
+ * Relative `/previews/...` files are prefixed with the media base and never served from this site.
+ */
+export function previewMp4Url(input: {
+  slug?: string | null
+  videoPreviewUrl?: string | null
+  mediaBase?: string | null
+}): string | null {
+  const base = String(input.mediaBase ?? '').trim()
+  if (!localVideoPreviewsEnabled(base)) return null
+  const custom = input.videoPreviewUrl?.trim()
+  if (custom) {
+    if (/^https?:\/\//i.test(custom)) return custom
+    const path = custom.startsWith('/') ? custom : `/${custom}`
+    return prefixMediaBase(path, base)
+  }
+  const slug = input.slug?.trim()
+  if (slug && AVAILABLE_VIDEO_PREVIEWS.includes(slug)) {
+    return prefixMediaBase(`/previews/${slug}.mp4`, base)
+  }
+  return null
+}
+
+/** Click-to-play YouTube poster. The iframe is created only after the click. */
+export function youtubePosterUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`
+}
+
+export function youtubePreviewEmbed(
+  videoId: string,
+  start?: number | null,
+  end?: number | null
+): string {
+  const params = new URLSearchParams({
+    autoplay: '1',
+    rel: '0',
+    playsinline: '1'
+  })
+  if (typeof start === 'number' && Number.isFinite(start) && start > 0) {
+    params.set('start', String(Math.floor(start)))
+  }
+  if (typeof end === 'number' && Number.isFinite(end) && end > 0) {
+    params.set('end', String(Math.floor(end)))
+  }
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params}`
+}
+
+export function youtubeClipForPort(input: {
+  slug?: string | null
+  youtubeId?: string | null
+  start?: number | null
+  end?: number | null
+}): { id: string; start: number | null; end: number | null; embed: string; poster: string } | null {
+  const id = input.youtubeId?.trim()
+  if (!id) return null
+  const config = GAME_VIDEO_PREVIEWS[id] || (input.slug ? GAME_VIDEO_PREVIEWS[input.slug] : undefined)
+  const start = input.start != null ? input.start : config ? parseSeconds(config.start, 0) : null
+  const end = input.end != null ? input.end : config?.end != null ? parseSeconds(config.end, 0) : null
+  return {
+    id,
+    start,
+    end,
+    embed: youtubePreviewEmbed(id, start, end),
+    poster: youtubePosterUrl(id)
+  }
+}
 
 /**
  * Checks if a port has any video preview capability (local MP4 or custom video_preview_url)

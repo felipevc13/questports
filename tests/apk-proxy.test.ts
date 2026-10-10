@@ -234,8 +234,15 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
 describe('origin transfer guards', () => {
   it('caches catalog HTML on Vercel ISR and leaves API and admin dynamic', () => {
     const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
-    expect(config).toContain("'/': { isr: { expiration: 600, passQuery: true } }")
-    expect(config).toContain("'/ports/**': { isr: { expiration: 600, passQuery: true } }")
+    expect(config).toContain("'/': { isr: { expiration: 3600, passQuery: true } }")
+    expect(config).toContain("'/ports/**': { isr: { expiration: 3600, passQuery: true } }")
+    expect(config).toContain("'/covers/**'")
+    expect(config).toContain("'/previews/**'")
+    expect(config).toContain('public, max-age=31536000, immutable')
+    expect(config).toContain('process.env.NUXT_PUBLIC_MEDIA_BASE ?? DEFAULT_MEDIA_BASE')
+    expect(readFileSync(new URL('../app/data/coverUrl.ts', import.meta.url), 'utf8')).toContain(
+      'https://questports-media.questports.workers.dev'
+    )
     expect(config).toContain("'/api/**': { isr: false }")
     expect(config).toContain("'/admin/**': { isr: false }")
     expect(config).not.toMatch(/['"]\/\*\*['"]:\s*\{[^}]*\bisr\b/)
