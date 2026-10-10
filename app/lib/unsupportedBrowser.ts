@@ -1,4 +1,4 @@
-import { browserFamilyFromUserAgent, isInAppBrowserFamily } from '~/lib/analytics'
+import { browserFamilyFromUserAgent, deviceFromUserAgent, isInAppBrowserFamily } from '~/lib/analytics'
 import { WEBUSB_UNSUPPORTED_NOTICE } from '~/lib/questInstallUx'
 
 export const IN_APP_USB_NOTICE_TITLE = 'Open this page in Chrome or Edge'
@@ -20,7 +20,7 @@ export interface UnsupportedNotice {
   variant: UnsupportedNoticeVariant
   title: string
   body: string
-  /** In-app and iOS visitors need the link on another device or browser. */
+  /** Phones, tablets, in-app browsers, and iOS need this page on a computer that can use USB. */
   copyLink: boolean
 }
 
@@ -90,11 +90,12 @@ export function unsupportedNoticeForUserAgent(userAgent: string | null | undefin
       copyLink: true
     }
   }
+  const device = deviceFromUserAgent(userAgent)
   return {
     variant: 'desktop',
     title: DESKTOP_USB_NOTICE_TITLE,
     body: DESKTOP_USB_NOTICE_BODY,
-    copyLink: false
+    copyLink: device === 'mobile' || device === 'tablet'
   }
 }
 
@@ -104,7 +105,9 @@ export function shareablePageHref(href: string): string {
     const url = new URL(href)
     url.searchParams.delete('mockUa')
     url.searchParams.delete('mockUsbError')
+    url.searchParams.delete('mockAuthorizeWait')
     url.searchParams.delete('noWebUsb')
+    url.searchParams.delete('questBrowser')
     return url.toString()
   } catch {
     return href

@@ -28,6 +28,7 @@ import {
   installStepEventsForProgress,
   isAnalyticsEnabled,
   isBotUserAgent,
+  UNSUPPORTED_BROWSER_ACTIONS,
   isInAppBrowserFamily,
   rememberCampaignRef,
   searchNoResultsQuery,
@@ -429,6 +430,24 @@ describe('analytics validation', () => {
     expect(plain.row?.props).toBeNull()
 
     expect(ANALYTICS_EVENTS).not.toContain('quest_browser_notice')
+
+    for (const action of ['share_link', 'direct_install_open'] as const) {
+      expect(UNSUPPORTED_BROWSER_ACTIONS).toContain(action)
+      const payload = clientAnalyticsPayload('unsupported_browser_view', {
+        path: '/ports/iron-lung-vr',
+        portSlug: 'iron-lung-vr',
+        props: { action, userAgent: 'drop me' }
+      })
+      expect(payload?.props).toEqual({ action })
+      const stored = decide({ body: payload, userAgent: CHROME_UA })
+      expect(stored.record).toBe(true)
+      expect(stored.row?.props).toEqual({ action })
+      expect(JSON.stringify(stored.row)).not.toContain('drop me')
+    }
+
+    const migrations = readFileSync(new URL('../supabase/migrations/20261009200000_analytics_events.sql', import.meta.url), 'utf8')
+      + readFileSync(new URL('../supabase/migrations/20261009230000_analytics_funnel_events.sql', import.meta.url), 'utf8')
+    expect(migrations).not.toContain("props->>'action'")
   })
 
   it('records install success at the verification step', () => {

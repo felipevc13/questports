@@ -5,13 +5,25 @@ import {
   QUEST_BROWSER_NOTICE,
   QUEST_BROWSER_NOTICE_BODY,
   QUEST_BROWSER_NOTICE_TITLE,
+  QUEST_BROWSER_PC_FALLBACK,
+  canUseWebShare,
   copyTextToClipboard,
   hasQuestBrowserFlag,
   isQuestBrowserClient,
   isQuestBrowserSession,
   isQuestBrowserUserAgent,
-  questBrowserCopyLabel
+  pageLinkActionLabel,
+  questBrowserCopyLabel,
+  sharePage
 } from '../app/lib/questBrowser'
+import {
+  DIRECT_QUEST_INSTALL_NOTE,
+  DIRECT_QUEST_INSTALL_STEPS,
+  DIRECT_QUEST_INSTALL_TITLE,
+  GAME_FILES_GUIDE_HREF,
+  GAME_FILES_GUIDE_LABEL,
+  GAME_FILES_NEED_PC
+} from '../app/lib/directQuestInstall'
 
 const CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
@@ -73,6 +85,43 @@ describe('quest browser notice copy', () => {
     )
     expect(questBrowserCopyLabel(false)).toBe('Copy link')
     expect(questBrowserCopyLabel(true)).toBe('Copied')
+    expect(pageLinkActionLabel(false, true)).toBe('Send link to my PC')
+    expect(pageLinkActionLabel(false, false)).toBe('Copy link')
+    expect(pageLinkActionLabel(true, true)).toBe('Copied')
+    expect(QUEST_BROWSER_PC_FALLBACK).toBe(
+      'Or send this page to a PC with Chrome or Edge and a USB cable.'
+    )
+  })
+
+  it('shares the page when the browser can, and leaves a dismissed sheet alone', async () => {
+    const shared: Array<{ title?: string; url?: string }> = []
+    const ok = await sharePage({
+      share: async (data) => {
+        shared.push(data)
+      }
+    }, { title: 'QuestPorts', url: 'https://questports.vercel.app/ports/iron-lung-vr' })
+    expect(ok).toBe('shared')
+    expect(shared).toEqual([{
+      title: 'QuestPorts',
+      url: 'https://questports.vercel.app/ports/iron-lung-vr'
+    }])
+    expect(canUseWebShare({ share: async () => {} })).toBe(true)
+    expect(canUseWebShare({})).toBe(false)
+    expect(await sharePage(null, { url: 'https://questports.vercel.app' })).toBe('unavailable')
+
+    const cancelled = await sharePage({
+      share: async () => {
+        throw Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' })
+      }
+    }, { url: 'https://questports.vercel.app/ports/iron-lung-vr' })
+    expect(cancelled).toBe('cancelled')
+
+    const failed = await sharePage({
+      share: async () => {
+        throw new Error('no share target')
+      }
+    }, { url: 'https://questports.vercel.app/ports/iron-lung-vr' })
+    expect(failed).toBe('failed')
   })
 
   it('copies the current page URL', async () => {
@@ -101,7 +150,7 @@ describe('quest browser notice copy', () => {
 describe('quest browser install gate', () => {
   it('replaces the install action and does not start WebUSB', () => {
     const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
-    const noticeAt = page.indexOf('<QuestBrowserNotice v-if="questBrowser" />')
+    const noticeAt = page.indexOf('<QuestBrowserNotice')
     const installAt = page.indexOf('data-testid="install-on-quest"')
     expect(page).toContain('v-else-if="installSupport === \'unsupported\'"')
     expect(noticeAt).toBeGreaterThan(0)
@@ -128,9 +177,29 @@ describe('quest browser install gate', () => {
     expect(notice).toContain('data-testid="quest-browser-copy-link"')
     expect(notice).toContain('QUEST_BROWSER_NOTICE_TITLE')
     expect(notice).toContain('QUEST_BROWSER_NOTICE_BODY')
-    expect(notice).toContain("props: { action }")
+    expect(notice).toContain('QUEST_BROWSER_PC_FALLBACK')
+    expect(notice).toContain('DirectQuestInstall')
+    expect(notice).toContain('primary')
+    expect(notice).toContain("props: { action: 'shown' }")
     expect(notice).toContain("track('unsupported_browser_view'")
-    expect(notice).toContain('window.location.href')
+    expect(notice).toContain('usePageLinkShare')
+
+    const direct = readFileSync(new URL('../app/components/DirectQuestInstall.vue', import.meta.url), 'utf8')
+    expect(direct).toContain('data-testid="direct-install-toggle"')
+    expect(direct).toContain('data-testid="direct-install-apk"')
+    expect(direct).toContain('data-testid="game-files-need-pc"')
+    expect(direct).toContain("props: { action: 'direct_install_open' }")
+    expect(direct).toContain("track('manual_download_click'")
+    expect(DIRECT_QUEST_INSTALL_TITLE).toBe('Install directly on Quest')
+    expect(DIRECT_QUEST_INSTALL_STEPS).toEqual([
+      'Open this page in the Quest Browser.',
+      'Download the APK.',
+      'Open Files > Downloads > ⋮ > Open with > Package Installer. Allow this source once, then tap Install.'
+    ])
+    expect(DIRECT_QUEST_INSTALL_NOTE).toBe('Works without Developer Mode on recent Horizon OS.')
+    expect(GAME_FILES_NEED_PC).toBe('Game files still need a PC.')
+    expect(GAME_FILES_GUIDE_LABEL).toBe('Step-by-step installation guide')
+    expect(GAME_FILES_GUIDE_HREF).toBe('#install-guide')
 
     const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
     expect(card).not.toContain('QuestBrowserNotice')

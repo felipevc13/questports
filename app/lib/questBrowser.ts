@@ -12,7 +12,44 @@ export const QUEST_BROWSER_NOTICE_TITLE = "You're on your Quest's browser."
 export const QUEST_BROWSER_NOTICE_BODY =
   'To install, open this page on a PC or Android phone (Chrome or Edge) and connect your Quest with a USB cable.'
 
+/** Secondary line when the port can install from the headset browser. */
+export const QUEST_BROWSER_PC_FALLBACK =
+  'Or send this page to a PC with Chrome or Edge and a USB cable.'
+
 export const QUEST_BROWSER_NOTICE = `${QUEST_BROWSER_NOTICE_TITLE} ${QUEST_BROWSER_NOTICE_BODY}`
+
+export function pageLinkActionLabel(copied: boolean, canShare: boolean): string {
+  if (copied) return 'Copied'
+  return canShare ? 'Send link to my PC' : 'Copy link'
+}
+
+export interface ShareNavigator {
+  share?: (data: { title?: string; text?: string; url?: string }) => Promise<void>
+}
+
+export function canUseWebShare(nav: ShareNavigator | null | undefined): boolean {
+  return typeof nav?.share === 'function'
+}
+
+export type SharePageResult = 'shared' | 'cancelled' | 'unavailable' | 'failed'
+
+/** Opens the system share sheet. A dismissed sheet is not a failed copy. */
+export async function sharePage(
+  nav: ShareNavigator | null | undefined,
+  data: { title?: string; url: string }
+): Promise<SharePageResult> {
+  if (!nav || typeof nav.share !== 'function') return 'unavailable'
+  try {
+    await nav.share({ title: data.title, url: data.url })
+    return 'shared'
+  } catch (err) {
+    const name = err && typeof err === 'object' && 'name' in err
+      ? String((err as { name?: unknown }).name || '')
+      : ''
+    if (name === 'AbortError') return 'cancelled'
+    return 'failed'
+  }
+}
 
 export function questBrowserCopyLabel(copied: boolean): string {
   return copied ? 'Copied' : 'Copy link'
