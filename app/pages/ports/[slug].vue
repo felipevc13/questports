@@ -216,7 +216,7 @@
             </div>
           </div>
 
-          <!-- RSA prompt is on the headset. The picture matches the dialog they will see. -->
+          <!-- RSA prompt is on the headset. Text only: a drawn Allow button gets tapped. -->
           <div
             v-else-if="!questBrowser && connectChrome.showHeadsetBanner"
             data-testid="authorize-prompt"
@@ -226,7 +226,6 @@
             <p class="text-[11px] font-semibold leading-relaxed text-amber-100">
               {{ AUTHORIZE_PROMPT_LEAD }}
             </p>
-            <AdbAllowPrompt />
             <div
               v-if="showAuthorizeWaitHint"
               data-testid="authorize-still-waiting"
