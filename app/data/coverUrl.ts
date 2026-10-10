@@ -1,8 +1,12 @@
 const STORAGE_MARKER = '/storage/v1/object/public/port-covers/'
 const SITE_ORIGIN = 'https://questports.vercel.app'
+/** Cloudflare media host. Empty NUXT_PUBLIC_MEDIA_BASE falls back to this site instead. */
+export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'
+/** Bump when a cover file changes. Paired with a year-long immutable cache. */
+export const COVER_CACHE_VERSION = '2'
 /** Cache-busted absolute URL for the site-wide 1200×630 share card. */
-export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=2`
+export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=${COVER_CACHE_VERSION}`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
 const STEAMGRID_COVERS: Record<string, string> = {
   '7adb6a50e7687b45a00b35796f18f17d': '/covers/ut99vr.png',
@@ -44,24 +48,77 @@ export function resolveCoverUrl(url: string | null | undefined): string | null {
   return url
 }
 
+/** Append `?v=` so an immutable Cache-Control header can still show a new file. */
+export function withCoverVersion(url: string): string {
+  const hashIndex = url.indexOf('#')
+  const hash = hashIndex >= 0 ? url.slice(hashIndex) : ''
+  const withoutHash = hashIndex >= 0 ? url.slice(0, hashIndex) : url
+  const queryIndex = withoutHash.indexOf('?')
+  const path = queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash
+  if (!path.startsWith('/covers/') && !path.startsWith('/previews/')) return url
+  const params = new URLSearchParams(queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : '')
+  if (!params.get('v')) params.set('v', COVER_CACHE_VERSION)
+  return `${path}?${params.toString()}${hash}`
+}
+
+/** Prefix `/covers` and `/previews` when they should load from an external host. */
+export function prefixMediaBase(url: string, mediaBase: string | null | undefined): string {
+  const base = String(mediaBase ?? '').trim().replace(/\/+$/, '')
+  if (!base || /^https?:\/\//i.test(url)) return url
+  if (!url.startsWith('/covers/') && !url.startsWith('/previews/')) return url
+  return `${base}${url}`
+}
+
+/** Same-origin cover path, versioned, and optionally served from `mediaBase`. */
+export function versionedCoverUrl(url: string | null | undefined, mediaBase = ''): string | null {
+  const resolved = resolveCoverUrl(url)
+  if (!resolved) return null
+  if (!resolved.startsWith('/covers/')) return resolved
+  return prefixMediaBase(withCoverVersion(resolved), mediaBase)
+}
+
 export function absoluteCoverUrl(url: string | null | undefined): string {
   const resolved = resolveCoverUrl(url) || DEFAULT_OG
+  const local = localCoverPath(resolved)
+  if (local === DEFAULT_OG || (!resolved && !local)) return DEFAULT_OG_URL
+  if (!local && (resolved === DEFAULT_OG || !resolved)) return DEFAULT_OG_URL
+  if (local) {
+    if (local === DEFAULT_OG) return DEFAULT_OG_URL
+    return `${SITE_ORIGIN}${withCoverVersion(local)}`
+  }
   if (resolved.startsWith('http')) return resolved
-  if (resolved === DEFAULT_OG) return DEFAULT_OG_URL
   return `${SITE_ORIGIN}${resolved}`
 }
 
 const THUMB_FALLBACK = 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=120&h=72&q=70'
 
-/** Small same-origin cover for table thumbnails (about 120px wide). */
-export function coverThumbUrl(url: string | null | undefined): string {
+function localCoverPath(url: string): string | null {
+  const bare = url.split('?')[0]?.split('#')[0] || ''
+  if (bare.startsWith('/covers/')) return bare
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const path = new URL(url).pathname
+      if (path.startsWith('/covers/')) return path
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+/** Small cover for table thumbnails (about 120px wide). */
+export function coverThumbUrl(url: string | null | undefined, mediaBase = ''): string {
   const resolved = resolveCoverUrl(url)
   if (!resolved) return THUMB_FALLBACK
 
-  if (resolved.startsWith('/covers/')) {
-    const file = resolved.slice('/covers/'.length)
+  const localPath = localCoverPath(resolved)
+  if (localPath) {
+    const file = localPath.slice('/covers/'.length)
+    if (file.startsWith('thumbs/')) return prefixMediaBase(withCoverVersion(localPath), mediaBase)
     const base = file.replace(/\.(png|jpe?g|webp)$/i, '')
-    if (base && base !== file) return `/covers/thumbs/${base}.jpg`
+    if (base && base !== file) {
+      return prefixMediaBase(withCoverVersion(`/covers/thumbs/${base}.jpg`), mediaBase)
+    }
   }
 
   if (resolved.includes('images.unsplash.com')) {

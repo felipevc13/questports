@@ -1,18 +1,24 @@
 <template>
   <NuxtLink
     :to="`${toPrefix || '/ports'}/${port.slug}`"
-    @mouseenter="onMouseEnter"
-    @mouseleave="onMouseLeave"
+    @mouseenter="armPreview"
+    @mouseleave="stopPreview"
+    @focusin="armPreview"
+    @focusout="stopPreview"
     :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
     class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
   >
     <!-- Steam Capsule Header (460x215 aspect ratio) -->
-    <div class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
+    <div ref="headerEl" class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
       <img
-        :src="port.cover_image_url || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=800&q=80'"
+        v-if="showCover"
+        :src="coverSrc"
         :alt="port.title"
+        width="460"
+        height="215"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
         loading="lazy"
+        decoding="async"
       />
 
       <!-- Dark gradient at the bottom for text contrast (hidden on video preview) -->
@@ -28,11 +34,12 @@
       >
         <!-- Native MP4 video preview (100% clean, no YouTube UI, no controls, seamless loop) -->
         <video
+          ref="previewVideo"
           :src="videoPreviewSource"
-          autoplay
           muted
           loop
           playsinline
+          preload="none"
           class="w-full h-full object-cover pointer-events-none"
           @error="handleVideoError"
         />
@@ -73,31 +80,15 @@
         </span>
       </div>
 
-      <!-- Video trailer badge. On touch, tap opens the preview instead of following the card link. -->
+      <!-- Desktop hint only. Touch taps follow the card link and keep the cover. -->
       <span
         v-if="hasVideo && !isPlayingPreview"
-        role="button"
-        tabindex="0"
-        class="absolute bottom-2 left-2 right-auto flex min-h-11 min-w-11 items-center justify-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:left-auto md:right-2 md:min-h-0 md:min-w-0 md:px-1.5 md:py-0.5"
-        aria-label="Play preview"
-        @click.stop.prevent="onPreviewTap"
-        @keydown.enter.stop.prevent="onPreviewTap"
-        @keydown.space.stop.prevent="onPreviewTap"
+        class="pointer-events-none absolute bottom-2 right-2 hidden items-center gap-1 rounded border border-border bg-black/80 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:inline-flex"
       >
         <svg class="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M8 5v14l11-7z"/>
         </svg>
         <span>Preview</span>
-      </span>
-      <span
-        v-else-if="hasVideo && isPlayingPreview"
-        role="button"
-        tabindex="0"
-        class="absolute bottom-2 left-2 z-20 flex min-h-11 min-w-11 items-center justify-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:hidden"
-        aria-label="Close preview"
-        @click.stop.prevent="onPreviewTap"
-      >
-        Close
       </span>
     </div>
 
@@ -185,13 +176,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 import type { PortVerification } from '~/lib/verification'
-import { AVAILABLE_VIDEO_PREVIEWS, hasVideoPreview } from '~/data/videoPreviews'
-import { claimVideoPreviewPlay } from '~/lib/analytics'
-import { useTrack } from '~/composables/useTrack'
+import { canHoverPreview, previewMp4Url, PREVIEW_HOVER_MS } from '~/data/videoPreviews'
+import { versionedCoverUrl } from '~/data/coverUrl'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
@@ -201,8 +191,11 @@ const props = withDefaults(defineProps<{
   port: Port
   toPrefix?: string
   verifications?: PortVerification[] | null
+  /** First-screen cards include the cover in the HTML. The rest wait until they are near the viewport. */
+  eager?: boolean
 }>(), {
-  verifications: () => []
+  verifications: () => [],
+  eager: false
 })
 
 const questAdb = useQuestAdb()
@@ -218,60 +211,34 @@ const navigateToDev = (dev: string) => {
 }
 
 const isPlayingPreview = ref(false)
-const { track } = useTrack()
-
-watch(isPlayingPreview, (playing) => {
-  if (!playing || !import.meta.client) return
-  if (!claimVideoPreviewPlay(window.sessionStorage, props.port.slug)) return
-  track('video_preview_play', {
-    path: `/ports/${props.port.slug}`,
-    portSlug: props.port.slug,
-    props: { surface: 'card' }
-  })
-})
+const previewVideo = ref<HTMLVideoElement | null>(null)
 let hoverTimer: ReturnType<typeof setTimeout> | null = null
+let coverObserver: IntersectionObserver | null = null
 const localVideoFailed = ref(false)
+const headerEl = ref<HTMLElement | null>(null)
+const showCover = ref(props.eager)
+const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))
 
-const hasVideo = computed(() => {
-  return hasVideoPreview(props.port.slug, props.port.video_preview_url)
-})
+const COVER_FALLBACK = 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=800&q=80'
+const coverSrc = computed(() => versionedCoverUrl(props.port.cover_image_url, mediaBase.value) || COVER_FALLBACK)
 
 const videoPreviewSource = computed(() => {
-  if (props.port.video_preview_url) return props.port.video_preview_url
-  if (AVAILABLE_VIDEO_PREVIEWS.includes(props.port.slug) && !localVideoFailed.value) {
-    return `/previews/${props.port.slug}.mp4`
-  }
-  return null
+  if (localVideoFailed.value) return null
+  return previewMp4Url({
+    slug: props.port.slug,
+    videoPreviewUrl: props.port.video_preview_url,
+    mediaBase: mediaBase.value
+  })
 })
+
+const hasVideo = computed(() => Boolean(videoPreviewSource.value))
 
 const handleVideoError = () => {
   localVideoFailed.value = true
   isPlayingPreview.value = false
 }
 
-const prefersHover = () => {
-  if (typeof window === 'undefined') return true
-  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
-}
-
-const onPreviewTap = () => {
-  if (!hasVideo.value) return
-  if (hoverTimer) {
-    clearTimeout(hoverTimer)
-    hoverTimer = null
-  }
-  isPlayingPreview.value = !isPlayingPreview.value
-}
-
-const onMouseEnter = () => {
-  if (!hasVideo.value || !prefersHover()) return
-  // 350ms debounce so rapid page scrolling does not mount iframes
-  hoverTimer = setTimeout(() => {
-    isPlayingPreview.value = true
-  }, 350)
-}
-
-const onMouseLeave = () => {
+const stopPreview = () => {
   if (hoverTimer) {
     clearTimeout(hoverTimer)
     hoverTimer = null
@@ -279,8 +246,43 @@ const onMouseLeave = () => {
   isPlayingPreview.value = false
 }
 
+const armPreview = () => {
+  if (!hasVideo.value || !canHoverPreview()) return
+  if (hoverTimer) clearTimeout(hoverTimer)
+  hoverTimer = setTimeout(() => {
+    isPlayingPreview.value = true
+  }, PREVIEW_HOVER_MS)
+}
+
+watch(isPlayingPreview, async (playing) => {
+  if (!playing) return
+  await nextTick()
+  try {
+    await previewVideo.value?.play()
+  } catch {
+    isPlayingPreview.value = false
+  }
+})
+
+onMounted(() => {
+  if (showCover.value) return
+  const el = headerEl.value
+  if (!el || typeof IntersectionObserver === 'undefined') {
+    showCover.value = true
+    return
+  }
+  coverObserver = new IntersectionObserver((entries) => {
+    if (!entries.some(entry => entry.isIntersecting)) return
+    showCover.value = true
+    coverObserver?.disconnect()
+    coverObserver = null
+  }, { rootMargin: '400px 0px' })
+  coverObserver.observe(el)
+})
+
 onBeforeUnmount(() => {
   if (hoverTimer) clearTimeout(hoverTimer)
+  coverObserver?.disconnect()
 })
 
 const formatRelativeTime = (dateStr?: string | null) => {

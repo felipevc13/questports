@@ -1,14 +1,14 @@
 import { INITIAL_PORTS, mockPortInstallCount } from '~/data/mockPorts'
 import { applyRecordedFeatures } from '~/data/recordedPortFeatures'
-import { resolveCoverUrl } from '~/data/coverUrl'
+import { versionedCoverUrl } from '~/data/coverUrl'
 import type { Port } from '~/types/port'
 
 const CATALOG_SELECT = '*, ports_install_count(installs, last_install_at)'
 
-function withLocalCover(port: Port): Port {
+function withLocalCover(port: Port, mediaBase: string): Port {
   return {
     ...port,
-    cover_image_url: resolveCoverUrl(port.cover_image_url)
+    cover_image_url: versionedCoverUrl(port.cover_image_url, mediaBase)
   }
 }
 
@@ -21,21 +21,22 @@ function readInstallCount(value: unknown): number {
   return Math.floor(n)
 }
 
-function attachInstallCount(row: Port & { ports_install_count?: unknown }): Port {
+function attachInstallCount(row: Port & { ports_install_count?: unknown }, mediaBase: string): Port {
   const installs = readInstallCount(row.ports_install_count)
   const { ports_install_count: _embed, ...port } = row
-  return withLocalCover({ ...port, installs })
+  return withLocalCover({ ...port, installs }, mediaBase)
 }
 
-function mockPort(port: Port): Port {
+function mockPort(port: Port, mediaBase: string): Port {
   return applyRecordedFeatures(withLocalCover({
     ...port,
     installs: mockPortInstallCount(port.slug)
-  }))
+  }, mediaBase))
 }
 
 export const usePorts = () => {
   const { client, isConfigured } = useSupabase()
+  const mediaBase = String(useRuntimeConfig().public.mediaBase || '')
 
   const fetchPorts = async (): Promise<Port[]> => {
     if (isConfigured && client) {
@@ -47,7 +48,7 @@ export const usePorts = () => {
           .order('title', { ascending: true })
 
         if (!embedded.error && embedded.data && embedded.data.length > 0) {
-          return (embedded.data as Array<Port & { ports_install_count?: unknown }>).map(attachInstallCount)
+          return (embedded.data as Array<Port & { ports_install_count?: unknown }>).map(row => attachInstallCount(row, mediaBase))
         }
 
         if (embedded.error) {
@@ -61,13 +62,13 @@ export const usePorts = () => {
           .order('title', { ascending: true })
 
         if (!error && data && data.length > 0) {
-          return (data as Port[]).map(port => withLocalCover({ ...port, installs: 0 }))
+          return (data as Port[]).map(port => withLocalCover({ ...port, installs: 0 }, mediaBase))
         }
       } catch (err) {
         console.warn('Failed to connect to Supabase, falling back to local dataset:', err)
       }
     }
-    return INITIAL_PORTS.map(mockPort)
+    return INITIAL_PORTS.map(port => mockPort(port, mediaBase))
   }
 
   const fetchPortBySlug = async (slug: string): Promise<Port | null> => {
@@ -80,7 +81,7 @@ export const usePorts = () => {
           .single()
 
         if (!embedded.error && embedded.data) {
-          return attachInstallCount(embedded.data as Port & { ports_install_count?: unknown })
+          return attachInstallCount(embedded.data as Port & { ports_install_count?: unknown }, mediaBase)
         }
 
         if (embedded.error && embedded.error.code !== 'PGRST116') {
@@ -90,14 +91,14 @@ export const usePorts = () => {
             .select('*')
             .eq('slug', slug)
             .single()
-          if (!error && data) return withLocalCover({ ...(data as Port), installs: 0 })
+          if (!error && data) return withLocalCover({ ...(data as Port), installs: 0 }, mediaBase)
         }
       } catch (err) {
         console.warn(`Failed to fetch port ${slug} from Supabase:`, err)
       }
     }
     const local = INITIAL_PORTS.find(p => p.slug === slug)
-    return local ? mockPort(local) : null
+    return local ? mockPort(local, mediaBase) : null
   }
 
   return {

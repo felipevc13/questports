@@ -81,7 +81,7 @@ describe('per-port social description', () => {
 
   it('keeps each port on its own cover', () => {
     const halo = portShareMeta('/covers/halocequest.jpg', 'Halo CE Quest VR')
-    expect(halo.image).toBe('https://questports.vercel.app/covers/halocequest.jpg')
+    expect(halo.image).toBe('https://questports.vercel.app/covers/halocequest.jpg?v=2')
     expect(halo.type).toBe('image/jpeg')
     expect(halo.width).toBeNull()
     expect(halo.height).toBeNull()
@@ -89,7 +89,7 @@ describe('per-port social description', () => {
     expect(halo.description).toContain('Install in one click from your browser.')
 
     const png = portShareMeta('/covers/nolf-vr.png', 'No One Lives ForeVR')
-    expect(png.image).toBe('https://questports.vercel.app/covers/nolf-vr.png')
+    expect(png.image).toBe('https://questports.vercel.app/covers/nolf-vr.png?v=2')
     expect(png.type).toBe('image/png')
     expect(png.width).toBeNull()
 

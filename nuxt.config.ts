@@ -1,3 +1,4 @@
+import { DEFAULT_MEDIA_BASE } from './app/data/coverUrl'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
@@ -19,20 +20,26 @@ export default defineNuxtConfig({
       analyticsEnabled: isAnalyticsEnabled(process.env),
       apkProxyMaxBytes: apkProxyMaxBytes(process.env),
       // Empty string keeps /api/apk-proxy on this origin. Unset uses the Worker.
-      apkProxyBase: process.env.NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE
+      apkProxyBase: process.env.NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE,
+      // Unset uses the Cloudflare media host. Empty string keeps covers here and disables MP4s.
+      mediaBase: process.env.NUXT_PUBLIC_MEDIA_BASE ?? DEFAULT_MEDIA_BASE
     }
   },
   /**
    * Vercel CDN cache. Nitro's `swr` only stores the HTML inside the function,
    * so every view still counts as Fast Origin Transfer. `isr` writes a
-   * prerender config (expiration 600, stale while revalidating) and is what
+   * prerender config (expiration 3600, stale while revalidating) and is what
    * returns x-vercel-cache HIT. API, admin, and verification routes stay
    * dynamic. Quest Browser / in-app detection is applied after hydration so
    * this HTML does not vary on User-Agent.
+   * Cover and preview files are immutable for a year; URLs carry `?v=` so a
+   * new file still shows up.
    */
   routeRules: {
-    '/': { isr: { expiration: 600, passQuery: true } },
-    '/ports/**': { isr: { expiration: 600, passQuery: true } },
+    '/': { isr: { expiration: 3600, passQuery: true } },
+    '/ports/**': { isr: { expiration: 3600, passQuery: true } },
+    '/covers/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+    '/previews/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/api/**': { isr: false },
     '/admin/**': { isr: false }
   },

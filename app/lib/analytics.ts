@@ -658,6 +658,62 @@ export function analyticsDeliveryPlan(input: {
   return 'beacon'
 }
 
+export const ANALYTICS_FLUSH_MS = 5000
+export const ANALYTICS_BATCH_MAX = 10
+
+/** One event stays a single body. Several events share one POST. */
+export function analyticsBatchBody(events: unknown[]): string {
+  if (events.length === 1) return JSON.stringify(events[0])
+  return JSON.stringify({ events })
+}
+
+/** Accept the historical single-event body or `{ events: [...] }`. */
+export function analyticsRequestEvents(body: unknown, max = ANALYTICS_BATCH_MAX): unknown[] {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return [body]
+  const events = (body as { events?: unknown }).events
+  if (!Array.isArray(events)) return [body]
+  return events.slice(0, Math.max(0, max))
+}
+
+export function createAnalyticsBatcher(options: {
+  flushMs?: number
+  max?: number
+  schedule?: (callback: () => void, ms: number) => { cancel: () => void }
+  send: (body: string) => void
+}) {
+  const flushMs = options.flushMs ?? ANALYTICS_FLUSH_MS
+  const max = options.max ?? ANALYTICS_BATCH_MAX
+  const schedule = options.schedule ?? ((callback, ms) => {
+    const id = setTimeout(callback, ms)
+    return { cancel: () => clearTimeout(id) }
+  })
+  const queue: unknown[] = []
+  let timer: { cancel: () => void } | null = null
+
+  const arm = () => {
+    if (timer) return
+    timer = schedule(() => flush(), flushMs)
+  }
+
+  const flush = () => {
+    timer?.cancel()
+    timer = null
+    if (!queue.length) return
+    const batch = queue.splice(0, max)
+    options.send(analyticsBatchBody(batch))
+    if (queue.length) arm()
+  }
+
+  return {
+    enqueue(event: unknown) {
+      queue.push(event)
+      if (queue.length >= max) flush()
+      else arm()
+    },
+    flush
+  }
+}
+
 export async function deliverAnalyticsPayload(input: {
   event: string
   body: string

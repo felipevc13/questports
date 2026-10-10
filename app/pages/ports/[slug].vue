@@ -84,54 +84,70 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- LEFT HERO: Media Player + Feature Compatibility Matrix (7 Cols). Below lg the install card is first. -->
       <div class="order-2 space-y-3 lg:order-1 lg:col-span-7">
-        <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl">
+        <div
+          class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl"
+          @mouseenter="armDetailPreview"
+          @mouseleave="stopDetailPreview"
+          @focusin="armDetailPreview"
+          @focusout="stopDetailPreview"
+          :tabindex="detailPreviewSource ? 0 : undefined"
+        >
           <video
             v-if="detailPreviewPlaying && detailPreviewSource"
             ref="detailPreviewVideo"
             :src="detailPreviewSource"
-            autoplay
             muted
             loop
             playsinline
+            preload="none"
             class="h-full w-full object-cover"
             data-testid="detail-preview-video"
             @play="onDetailPreviewPlaying"
           />
           <iframe
-            v-else-if="port.youtube_video_id"
-            :src="`https://www.youtube-nocookie.com/embed/${port.youtube_video_id}?autoplay=0&rel=0`"
+            v-else-if="youtubeActive && youtubeClip"
+            :src="youtubeClip.embed"
             title="Gameplay / Devlog Video"
             class="w-full h-full"
             frameborder="0"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
           ></iframe>
+          <button
+            v-else-if="youtubeClip"
+            type="button"
+            data-testid="youtube-lite"
+            class="absolute inset-0 h-full w-full cursor-pointer"
+            :aria-label="`Play ${port.title} gameplay video`"
+            @click="playYoutube"
+          >
+            <img
+              :src="youtubeClip.poster"
+              :alt="`${port.title} gameplay`"
+              width="480"
+              height="360"
+              class="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="absolute inset-0 flex items-center justify-center bg-black/25">
+              <span class="flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-black/80 text-white shadow-lg">
+                <svg class="ml-1 h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </span>
+            </span>
+          </button>
           <img
             v-else
-            :src="port.cover_image_url || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=1200&q=80'"
+            :src="coverSrc"
             :alt="port.title"
+            width="1280"
+            height="720"
             class="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
-          <button
-            v-if="detailPreviewSource && !detailPreviewPlaying"
-            type="button"
-            data-testid="detail-preview"
-            class="absolute bottom-2 left-2 z-20 inline-flex min-h-11 items-center gap-1 rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-muted-foreground md:min-h-0 md:px-1.5 md:py-0.5"
-            @click="playDetailPreview"
-          >
-            <svg class="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            Preview
-          </button>
-          <button
-            v-else-if="detailPreviewPlaying"
-            type="button"
-            class="absolute bottom-2 left-2 z-20 inline-flex min-h-11 items-center rounded border border-border bg-black/80 px-2 text-[10px] font-mono text-white md:min-h-0"
-            @click="detailPreviewPlaying = false"
-          >
-            Close
-          </button>
         </div>
 
         <PortFeaturePanel :port="port" />
@@ -1390,7 +1406,8 @@ import {
   type InstallStep,
   type InstallStepStatus
 } from '~/lib/analytics'
-import { AVAILABLE_VIDEO_PREVIEWS } from '~/data/videoPreviews'
+import { canHoverPreview, previewMp4Url, PREVIEW_HOVER_MS, youtubeClipForPort } from '~/data/videoPreviews'
+import { versionedCoverUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 import TransferProgress from '~/components/TransferProgress.vue'
 
@@ -2045,15 +2062,62 @@ const trackInstall = (
 
 const detailPreviewPlaying = ref(false)
 const detailPreviewVideo = ref<HTMLVideoElement | null>(null)
+const youtubeActive = ref(false)
+let detailPreviewTimer: ReturnType<typeof setTimeout> | null = null
+const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))
+const youtubeClip = computed(() => youtubeClipForPort({
+  slug: port.value?.slug,
+  youtubeId: port.value?.youtube_video_id,
+  start: port.value?.video_preview_start,
+  end: port.value?.video_preview_end
+}))
 const detailPreviewSource = computed(() => {
-  const videoUrl = port.value?.video_preview_url
-  if (typeof videoUrl === 'string' && videoUrl.trim()) return videoUrl.trim()
-  const slug = port.value?.slug
-  if (slug && AVAILABLE_VIDEO_PREVIEWS.includes(slug)) return `/previews/${slug}.mp4`
-  return null
+  if (youtubeClip.value) return null
+  return previewMp4Url({
+    slug: port.value?.slug,
+    videoPreviewUrl: port.value?.video_preview_url,
+    mediaBase: mediaBase.value
+  })
+})
+const coverSrc = computed(() => versionedCoverUrl(port.value?.cover_image_url, mediaBase.value)
+  || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=1200&q=80')
+
+const stopDetailPreview = () => {
+  if (detailPreviewTimer) {
+    clearTimeout(detailPreviewTimer)
+    detailPreviewTimer = null
+  }
+  detailPreviewPlaying.value = false
+}
+
+const armDetailPreview = () => {
+  if (!detailPreviewSource.value || !canHoverPreview()) return
+  if (detailPreviewTimer) clearTimeout(detailPreviewTimer)
+  detailPreviewTimer = setTimeout(() => {
+    detailPreviewPlaying.value = true
+  }, PREVIEW_HOVER_MS)
+}
+
+watch(detailPreviewPlaying, async (playing) => {
+  if (!playing) return
+  await nextTick()
+  try {
+    await detailPreviewVideo.value?.play()
+  } catch {
+    detailPreviewPlaying.value = false
+  }
 })
 
-const onDetailPreviewPlaying = () => {
+watch(() => port.value?.slug, () => {
+  youtubeActive.value = false
+  stopDetailPreview()
+})
+
+onUnmounted(() => {
+  if (detailPreviewTimer) clearTimeout(detailPreviewTimer)
+})
+
+const trackDetailPreview = () => {
   if (!import.meta.client || !port.value) return
   if (!claimVideoPreviewPlay(window.sessionStorage, port.value.slug)) return
   track('video_preview_play', {
@@ -2062,15 +2126,15 @@ const onDetailPreviewPlaying = () => {
   })
 }
 
-const playDetailPreview = async () => {
-  if (!detailPreviewSource.value || !port.value) return
-  detailPreviewPlaying.value = true
-  await nextTick()
-  try {
-    await detailPreviewVideo.value?.play()
-  } catch {
-    // A blocked play still leaves the preview mounted. The event waits for playback.
-  }
+const onDetailPreviewPlaying = () => {
+  trackDetailPreview()
+}
+
+const playYoutube = () => {
+  if (!youtubeClip.value || !port.value) return
+  detailPreviewPlaying.value = false
+  youtubeActive.value = true
+  trackDetailPreview()
 }
 
 const trackInstallStep = (

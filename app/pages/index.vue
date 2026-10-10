@@ -289,6 +289,7 @@
           v-for="(port, index) in filteredPorts"
           :key="port.id"
           :port="port"
+          :eager="index < 4"
           :verifications="verificationRecords"
           :class="index >= mobileVisible ? 'max-md:hidden' : ''"
         />
@@ -332,7 +333,7 @@
                 <td class="py-2 px-3 font-medium text-foreground">
                   <div class="flex items-center gap-2.5">
                     <img
-                      :src="coverThumbUrl(port.cover_image_url)"
+                      :src="coverThumbUrl(port.cover_image_url, mediaBase)"
                       :alt="port.title"
                       width="40"
                       height="24"
@@ -542,6 +543,7 @@ import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from 
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 
+const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))
 const route = useRoute()
 const router = useRouter()
 const { track } = useTrack()
