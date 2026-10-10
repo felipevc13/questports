@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import {
   isAllowedApkProxyHost,
@@ -5,6 +6,21 @@ import {
   pickPreferredReleaseDownload,
   rewriteKnownHomepageToGithubRelease
 } from '../server/utils/apkAssetPicker'
+import { plainApkRedirectTarget } from '../server/utils/apkProxyGate'
+import { responseLooksLikeZip } from '../app/lib/extractReleaseApk'
+import {
+  APK_PROXY_MAX_BYTES_DEFAULT,
+  APK_PROXY_WORKER_BASE,
+  apkProxyCapApplies,
+  apkProxyMaxBytes,
+  apkProxyRedirectRequested,
+  apkProxyStreamUrl,
+  apkTooLargeBody,
+  contentLengthBytes,
+  exceedsApkProxyCap,
+  knownApkByteSize,
+  tooLargeInstallMessage
+} from '../app/lib/apkProxyPolicy'
 
 describe('APK Proxy Endpoint Security & URL Validation', () => {
   const validateProxyUrl = (targetUrl?: string | null): { valid: boolean; error?: string } => {
@@ -166,6 +182,45 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
       expect(selected?.name).toBe('app-openxr-release.apk')
     })
 
+    it('redirects a plain apk and keeps zip unwrap on the stream path', () => {
+      const apk = 'https://github.com/Team-Beef-Studios/Doom3Quest/releases/download/v1.3/Doom3Quest.apk'
+      const zip = 'https://github.com/test/RoadRash/releases/download/v0.1.0/RoadRashJailbreak-0.1.0.zip'
+      expect(plainApkRedirectTarget(apk)).toBe(apk)
+      expect(plainApkRedirectTarget(zip)).toBeNull()
+      expect(plainApkRedirectTarget('https://evil.example/game.apk')).toBeNull()
+      expect(plainApkRedirectTarget('http://github.com/a/b/releases/download/v1/a.apk')).toBeNull()
+      expect(apkProxyRedirectRequested('1')).toBe(true)
+      expect(apkProxyRedirectRequested('true')).toBe(true)
+      expect(apkProxyRedirectRequested('0')).toBe(false)
+      expect(apkProxyRedirectRequested(undefined)).toBe(false)
+    })
+
+    it('refuses streams over the cap and leaves unknown lengths alone', () => {
+      expect(APK_PROXY_MAX_BYTES_DEFAULT).toBe(157286400)
+      expect(apkProxyMaxBytes({})).toBe(157286400)
+      expect(apkProxyMaxBytes({ APK_PROXY_MAX_BYTES: '1048576' })).toBe(1048576)
+      expect(apkProxyMaxBytes({ APK_PROXY_MAX_BYTES: 'nope' })).toBe(157286400)
+      expect(apkProxyMaxBytes({ APK_PROXY_MAX_BYTES: '0' })).toBe(157286400)
+      expect(contentLengthBytes('772000000')).toBe(772000000)
+      expect(contentLengthBytes(null)).toBeNull()
+      expect(exceedsApkProxyCap(157286401, 157286400)).toBe(true)
+      expect(exceedsApkProxyCap(157286400, 157286400)).toBe(false)
+      expect(exceedsApkProxyCap(null, 157286400)).toBe(false)
+      const directUrl = 'https://github.com/Team-Beef-Studios/Doom3Quest/releases/download/v1.3/Doom3Quest.apk'
+      expect(apkTooLargeBody(772 * 1024 * 1024, directUrl)).toEqual({
+        reason: 'too_large',
+        size: 772 * 1024 * 1024,
+        directUrl
+      })
+      expect(tooLargeInstallMessage(772 * 1024 * 1024)).toBe(
+        'This port is large (772 MB). Download it with the direct link and install with SideQuest, or use the QuestPorts app.'
+      )
+      expect(knownApkByteSize(125 * 1024 * 1024)).toBe(125 * 1024 * 1024)
+      expect(knownApkByteSize(undefined)).toBeNull()
+      expect(exceedsApkProxyCap(knownApkByteSize(125 * 1024 * 1024), APK_PROXY_MAX_BYTES_DEFAULT)).toBe(false)
+      expect(exceedsApkProxyCap(knownApkByteSize(465 * 1024 * 1024), APK_PROXY_MAX_BYTES_DEFAULT)).toBe(true)
+    })
+
     it('falls back to single APK if no special VR tags are in filename', () => {
       const assets = [
         { name: 'RTCWQuest_v1.3.1.apk', browser_download_url: 'https://github.com/test/RTCWQuest.apk' }
@@ -173,5 +228,91 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
       const selected = resolveReleaseApkAsset(assets)
       expect(selected?.name).toBe('RTCWQuest_v1.3.1.apk')
     })
+  })
+})
+
+describe('origin transfer guards', () => {
+  it('caches catalog HTML on Vercel ISR and leaves API and admin dynamic', () => {
+    const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
+    expect(config).toContain("'/': { isr: { expiration: 600, passQuery: true } }")
+    expect(config).toContain("'/ports/**': { isr: { expiration: 600, passQuery: true } }")
+    expect(config).toContain("'/api/**': { isr: false }")
+    expect(config).toContain("'/admin/**': { isr: false }")
+    expect(config).not.toMatch(/['"]\/\*\*['"]:\s*\{[^}]*\bisr\b/)
+  })
+
+  it('redirects plain apks before streaming and aborts an oversized body', () => {
+    const handler = readFileSync(new URL('../server/api/apk-proxy.get.ts', import.meta.url), 'utf8')
+    const redirectAt = handler.indexOf('return sendRedirect')
+    const headAt = handler.indexOf("fetchUpstream(url, 'HEAD'")
+    const streamAt = handler.indexOf('return sendStream')
+    expect(redirectAt).toBeGreaterThan(0)
+    expect(headAt).toBeGreaterThan(redirectAt)
+    expect(streamAt).toBeGreaterThan(headAt)
+    expect(handler).toContain('plainApkRedirectTarget')
+    expect(handler).toContain('apkTooLargeBody')
+    expect(handler).toContain('res.body.cancel()')
+    expect(handler).toContain("'X-QuestPorts-Unwrap': 'apk'")
+    expect(handler).toContain('setResponseStatus(event, 413')
+  })
+
+  it('keeps WebUSB on the streaming proxy and shows the direct download for a 413', () => {
+    const adb = readFileSync(new URL('../app/composables/useQuestAdb.ts', import.meta.url), 'utf8')
+    const proxyAt = adb.indexOf('const proxyUrl = apkProxyStreamUrl')
+    expect(proxyAt).toBeGreaterThan(0)
+    expect(adb.slice(proxyAt, proxyAt + 120)).not.toContain('redirect')
+    expect(adb).toContain("mode: 'cors'")
+    expect(adb).toContain("credentials: 'omit'")
+    expect(adb).toContain("res.headers.get('content-length')")
+    expect(adb).toContain('responseLooksLikeZip(res.headers)')
+    expect(adb).toContain('res.status === 413')
+    expect(adb).toContain('new ApkTooLargeError')
+
+    const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
+    expect(page).toContain('data-testid="apk-too-large"')
+    expect(page).toContain('data-testid="apk-too-large-download"')
+    expect(page).toContain('Download APK directly')
+    expect(page).toContain("trackInstall('install_error', 'too_large')")
+    expect(page).toContain('tooLarge: Boolean(largePortMessage.value)')
+    expect(page).toContain('knownApkByteSize')
+    expect(page).toContain('apkProxyCapApplies')
+    expect(page).toContain('enforceApkSizeCap.value && knownBytes')
+
+    const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
+    expect(config).toContain('NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE')
+    expect(config).toContain('apkProxyBase:')
+  })
+
+  it('sends WebUSB to the Worker and skips the client cap unless the base is empty', () => {
+    const asset = 'https://github.com/DrBeef/SourceVR/releases/latest'
+    expect(apkProxyStreamUrl(undefined, asset)).toBe(
+      `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl(APK_PROXY_WORKER_BASE, asset)).toBe(
+      `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl('', asset)).toBe(`/api/apk-proxy?url=${encodeURIComponent(asset)}`)
+    expect(apkProxyStreamUrl('https://example.test/', asset)).toBe(
+      `https://example.test/api/apk-proxy?url=${encodeURIComponent(asset)}`
+    )
+    expect(apkProxyStreamUrl(APK_PROXY_WORKER_BASE, asset)).not.toContain('redirect')
+    expect(apkProxyCapApplies(undefined)).toBe(false)
+    expect(apkProxyCapApplies(APK_PROXY_WORKER_BASE)).toBe(false)
+    expect(apkProxyCapApplies('')).toBe(true)
+    expect(apkProxyCapApplies('  ')).toBe(true)
+  })
+
+  it('reads the unwrap header and content-length the Worker exposes cross-origin', () => {
+    const headers = new Headers({
+      'content-type': 'application/zip',
+      'content-length': '808452096',
+      'x-questports-unwrap': 'apk'
+    })
+    expect(responseLooksLikeZip(headers)).toBe(true)
+    expect(headers.get('content-length')).toBe('808452096')
+    expect(headers.get('x-questports-unwrap')).toBe('apk')
+    const unwrapOnly = new Headers({ 'x-questports-unwrap': 'apk' })
+    expect(responseLooksLikeZip(unwrapOnly)).toBe(true)
+    expect(responseLooksLikeZip(new Headers({ 'content-type': 'application/vnd.android.package-archive' }))).toBe(false)
   })
 })

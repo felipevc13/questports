@@ -204,5 +204,11 @@ describe('quest browser install gate', () => {
     const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
     expect(card).not.toContain('QuestBrowserNotice')
     expect(card).not.toContain('quest-browser')
+
+    const composable = readFileSync(new URL('../app/composables/useQuestBrowser.ts', import.meta.url), 'utf8')
+    expect(composable).not.toContain('useRequestHeaders')
+    expect(composable).toContain('hasQuestBrowserFlag')
+    expect(composable).toContain('onMounted')
+    expect(composable).toContain('navigator.userAgent')
   })
 })

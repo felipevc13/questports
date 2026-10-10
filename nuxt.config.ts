@@ -1,4 +1,5 @@
 import { isAnalyticsEnabled } from './app/lib/analytics'
+import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
@@ -15,8 +16,25 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseKey: process.env.SUPABASE_KEY || '',
-      analyticsEnabled: isAnalyticsEnabled(process.env)
+      analyticsEnabled: isAnalyticsEnabled(process.env),
+      apkProxyMaxBytes: apkProxyMaxBytes(process.env),
+      // Empty string keeps /api/apk-proxy on this origin. Unset uses the Worker.
+      apkProxyBase: process.env.NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE
     }
+  },
+  /**
+   * Vercel CDN cache. Nitro's `swr` only stores the HTML inside the function,
+   * so every view still counts as Fast Origin Transfer. `isr` writes a
+   * prerender config (expiration 600, stale while revalidating) and is what
+   * returns x-vercel-cache HIT. API, admin, and verification routes stay
+   * dynamic. Quest Browser / in-app detection is applied after hydration so
+   * this HTML does not vary on User-Agent.
+   */
+  routeRules: {
+    '/': { isr: { expiration: 600, passQuery: true } },
+    '/ports/**': { isr: { expiration: 600, passQuery: true } },
+    '/api/**': { isr: false },
+    '/admin/**': { isr: false }
   },
   app: {
     head: {

@@ -194,6 +194,7 @@ const props = withDefaults(defineProps<{
 
 const route = useRoute()
 const { track } = useTrack()
+const configuredProxyBase = String(useRuntimeConfig().public.apkProxyBase || '').replace(/\/$/, '')
 
 const phase = ref<'idle' | AppBridgeEventDetail['status']>('idle')
 const progress = ref(0)
@@ -305,7 +306,11 @@ const startInstall = () => {
     trackInstall('install_error', 'other')
     return
   }
-  const url = appBridgeApkUrl(window.location.origin, props.downloadUrl)
+  const url = appBridgeApkUrl(
+    configuredProxyBase || window.location.origin,
+    props.downloadUrl,
+    window.location.origin
+  )
   if (!url) {
     phase.value = 'error'
     errorMessage.value = 'No APK download URL configured for this port.'

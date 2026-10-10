@@ -1,24 +1,15 @@
-import { watch, onMounted } from 'vue'
-import { ensureMockAppBridge, isAppBridgeSession } from '~/lib/appBridge'
+import { onMounted, watch } from 'vue'
+import { ensureMockAppBridge, hasInAppFlag, isAppBridgeSession } from '~/lib/appBridge'
 
 /**
- * Same boolean on the server and during hydration.
- * The server reads the request user-agent and URL. The client reuses that
- * payload, then updates after mount if `window.QuestPortsApp` is already there.
+ * Cached HTML is shared across browsers, so the server only honors `?inApp=1`.
+ * The user-agent and `window.QuestPortsApp` are applied after hydration.
  * `?inApp=1` installs a mock bridge that emits download progress and success.
  */
 export function useAppBridge() {
   const route = useRoute()
-  const requestUa = import.meta.server ? useRequestHeaders(['user-agent'])['user-agent'] : ''
 
-  const inApp = useState('questports-app-bridge', () => isAppBridgeSession({
-    userAgent: import.meta.server
-      ? requestUa
-      : (typeof navigator !== 'undefined' ? navigator.userAgent : ''),
-    search: import.meta.server
-      ? route.fullPath
-      : (typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : route.fullPath)
-  }))
+  const inApp = useState('questports-app-bridge', () => hasInAppFlag(route.fullPath))
 
   if (import.meta.client) {
     const sync = (fullPath: string) => {

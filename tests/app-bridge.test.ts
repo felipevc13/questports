@@ -21,6 +21,7 @@ import {
   withAppAnalyticsProp
 } from '../app/lib/analytics'
 import { isQuestBrowserUserAgent } from '../app/lib/questBrowser'
+import { APK_PROXY_WORKER_BASE } from '../app/lib/apkProxyPolicy'
 import { shareablePageHref } from '../app/lib/unsupportedBrowser'
 import { decideAnalyticsRequest } from '../server/utils/analytics'
 
@@ -78,16 +79,35 @@ describe('app bridge detection', () => {
 })
 
 describe('app bridge install url and status', () => {
-  it('uses the same apk-proxy URL as WebUSB, as an absolute URL', () => {
+  it('uses the apk proxy as an absolute URL and keeps redirect=1', () => {
     const source = 'https://github.com/Team-Beef-Studios/RTCWQuest/releases/latest'
-    expect(appBridgeApkUrl('https://questports.vercel.app', source)).toBe(
-      `https://questports.vercel.app/api/apk-proxy?url=${encodeURIComponent(source)}`
+    const site = 'https://questports.vercel.app'
+    expect(appBridgeApkUrl(APK_PROXY_WORKER_BASE, source, site)).toBe(
+      `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=${encodeURIComponent(source)}&redirect=1`
     )
-    expect(appBridgeApkUrl('https://questports.vercel.app/', '/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk')).toBe(
-      'https://questports.vercel.app/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk'
+    expect(appBridgeApkUrl(site, source)).toBe(
+      `${site}/api/apk-proxy?url=${encodeURIComponent(source)}&redirect=1`
     )
+    expect(appBridgeApkUrl(`${site}/`, '/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk')).toBe(
+      `${site}/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1`
+    )
+    expect(appBridgeApkUrl(
+      site,
+      `${site}/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1`
+    )).toBe(
+      `${site}/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1`
+    )
+    const alreadyOnSite = `${site}/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk`
+    expect(appBridgeApkUrl(APK_PROXY_WORKER_BASE, alreadyOnSite, site)).toBe(`${alreadyOnSite}&redirect=1`)
+    const alreadyOnWorker = `${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk&redirect=1`
+    expect(appBridgeApkUrl(APK_PROXY_WORKER_BASE, alreadyOnWorker, site)).toBe(alreadyOnWorker)
+    const evil = 'https://evil.example/api/apk-proxy?url=https%3A%2F%2Fexample.com%2Fa.apk'
+    const wrapped = appBridgeApkUrl(APK_PROXY_WORKER_BASE, evil, site)
+    expect(wrapped?.startsWith(`${APK_PROXY_WORKER_BASE}/api/apk-proxy?url=`)).toBe(true)
+    expect(wrapped?.endsWith('&redirect=1')).toBe(true)
+    expect(new URL(wrapped || '').searchParams.get('url')).toBe(new URL(evil).toString())
     expect(appBridgeApkUrl('http://localhost:3000', 'http://example.com/app.apk')).toBeNull()
-    expect(appBridgeApkUrl('https://questports.vercel.app', '')).toBeNull()
+    expect(appBridgeApkUrl(site, '')).toBeNull()
     expect(appBridgeApkUrl('', source)).toBeNull()
   })
 
@@ -285,7 +305,9 @@ describe('app bridge install gate', () => {
     expect(install).toContain("trackInstall('install_click')")
     expect(install).toContain("trackInstall('install_success')")
     expect(install).toContain("trackInstall('install_error', 'user_cancelled')")
-    expect(install).toContain('appBridgeApkUrl')
+    expect(install).toContain('configuredProxyBase || window.location.origin')
+    expect(install).toContain('appBridgeApkUrl(')
+    expect(install).toContain('window.location.origin')
     expect(install).not.toContain('DirectQuestInstall')
     expect(install).not.toContain('type="file"')
     expect(install).not.toContain('webkitGetAsEntry')
@@ -296,9 +318,14 @@ describe('app bridge install gate', () => {
     expect(adb.indexOf('if (isAppBridgeClient()) return false', connectAt)).toBeLessThan(adb.indexOf('requestDevice()', connectAt))
 
     const composable = readFileSync(new URL('../app/composables/useAppBridge.ts', import.meta.url), 'utf8')
-    expect(composable).toContain('useRequestHeaders')
+    expect(composable).not.toContain('useRequestHeaders')
+    expect(composable).toContain('hasInAppFlag')
+    expect(composable).toContain('onMounted')
     expect(composable).toContain("useState('questports-app-bridge'")
     expect(composable).toContain('ensureMockAppBridge')
+    expect(install).not.toContain('X-QuestPorts-Unwrap')
+    expect(install).not.toContain('content-disposition')
+    expect(install).not.toContain('Content-Type')
 
     const plugin = readFileSync(new URL('../app/plugins/analytics.client.ts', import.meta.url), 'utf8')
     expect(plugin).toContain('!isAppBridgeClient()')

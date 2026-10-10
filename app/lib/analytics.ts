@@ -35,6 +35,7 @@ export const INSTALL_ERROR_REASONS = [
   'usb_locked',
   'pm_fail',
   'timeout',
+  'too_large',
   'other'
 ] as const
 
@@ -279,12 +280,14 @@ export function portSlugFromPath(path: string | null | undefined): string | null
 }
 
 export function installErrorReason(err: unknown): InstallErrorReason {
-  const error = err as { name?: string; message?: string } | null
+  const error = err as { name?: string; message?: string; reason?: string } | null
+  if (error && typeof error === 'object' && error.reason === 'too_large') return 'too_large'
   const name = typeof error?.name === 'string' ? error.name : ''
   const message = typeof err === 'string'
     ? err
     : (typeof error?.message === 'string' ? error.message : '')
   const text = `${name} ${message}`.toLowerCase()
+  if (/too_large|this port is large/.test(text)) return 'too_large'
   if (name === 'AbortError' || name === 'NotFoundError' || /cancelled by user|user cancel|no device selected/.test(text)) {
     return 'user_cancelled'
   }

@@ -185,6 +185,24 @@
 
         <div v-else class="space-y-3 pt-1">
           <div
+            v-if="largePortMessage && !isPcBuilderRequired"
+            data-testid="apk-too-large"
+            class="space-y-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-50"
+          >
+            <p>{{ largePortMessage }}</p>
+            <a
+              v-if="port.port_download_url"
+              :href="port.port_download_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="apk-too-large-download"
+              class="inline-flex min-h-11 items-center font-mono text-[10px] text-primary underline md:min-h-0"
+              @click="trackManualDownload"
+            >
+              Download APK directly ↗
+            </a>
+          </div>
+          <div
             v-if="showUsbPrep && !questBrowser"
             data-testid="usb-prep"
             class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4"
@@ -573,7 +591,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <button
-                  v-if="!questBrowser && isApkOutdated && !isInstallingApk && !installFlowChrome"
+                  v-if="!questBrowser && !largePortMessage && isApkOutdated && !isInstallingApk && !installFlowChrome"
                   @click="beginInstall()"
                   class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500 hover:bg-amber-400 text-black cursor-pointer"
                   title="Installs over the current app with pm install -r and keeps data"
@@ -581,7 +599,7 @@
                   Update to {{ catalogVersion }}
                 </button>
                 <button
-                  v-else-if="!questBrowser && !isInstallingApk && !installFlowChrome"
+                  v-else-if="!questBrowser && !largePortMessage && !isInstallingApk && !installFlowChrome"
                   @click="openReinstallPrompt"
                   class="text-[11px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
@@ -1353,6 +1371,14 @@ import { canonicalHeadset } from '~/lib/verification'
 import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import {
+  APK_PROXY_MAX_BYTES_DEFAULT,
+  apkProxyCapApplies,
+  exceedsApkProxyCap,
+  isApkTooLargeError,
+  knownApkByteSize,
+  tooLargeInstallMessage
+} from '~/lib/apkProxyPolicy'
+import {
   apkInstallOutcome,
   claimVideoPreviewPlay,
   connectFailureReason,
@@ -1788,6 +1814,22 @@ const isPcBuilderRequired = computed(() => {
   return currentPackageConfig.value?.installType === 'pc_builder_required'
 })
 
+const publicConfig = useRuntimeConfig().public
+const apkProxyCap = computed(() => {
+  const configured = Number(publicConfig.apkProxyMaxBytes)
+  return Number.isFinite(configured) && configured > 0 ? configured : APK_PROXY_MAX_BYTES_DEFAULT
+})
+const enforceApkSizeCap = computed(() => apkProxyCapApplies(publicConfig.apkProxyBase))
+const catalogApkBytes = computed(() => knownApkByteSize(port.value?.download_bytes))
+const largePortNotice = ref<string | null>(null)
+const largePortMessage = computed(() => {
+  if (largePortNotice.value) return largePortNotice.value
+  if (!enforceApkSizeCap.value) return null
+  const bytes = catalogApkBytes.value
+  if (bytes != null && exceedsApkProxyCap(bytes, apkProxyCap.value)) return tooLargeInstallMessage(bytes)
+  return null
+})
+
 const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   showPrep: showUsbPrep.value,
   picker: connectChrome.value.showPickerHint,
@@ -1795,7 +1837,8 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   dismissed: showChooserHelp.value,
   connectionError: showUsbLocked.value || showOtherConnectionError.value,
   installing: isInstallingApk.value,
-  supported: installSupport.value === 'supported'
+  supported: installSupport.value === 'supported',
+  tooLarge: Boolean(largePortMessage.value)
 }))
 
 const showUsbStepsLink = computed(() => {
@@ -2085,6 +2128,12 @@ const recordInstallVerification = async () => {
 
 // 1-Click APK Install Handler
 const noteInstallFailure = (err: any) => {
+  if (isApkTooLargeError(err)) {
+    largePortNotice.value = err.message || tooLargeInstallMessage(err.size)
+    apkInstallError.value = null
+    trackInstall('install_error', 'too_large')
+    return
+  }
   if (isUserCancel(err) || isUsbChooserDismissed(err)) {
     apkInstallError.value = null
     trackInstall('install_error', 'user_cancelled')
@@ -2181,6 +2230,13 @@ const handleApkInstall = async () => {
   spaceNotice.value = null
   spaceNoticeKind.value = 'warn'
   trackInstall('install_click')
+
+  const knownBytes = knownApkByteSize(port.value.download_bytes)
+  if (enforceApkSizeCap.value && knownBytes != null && exceedsApkProxyCap(knownBytes, apkProxyCap.value)) {
+    largePortNotice.value = tooLargeInstallMessage(knownBytes)
+    trackInstall('install_error', 'too_large')
+    return
+  }
 
   const downloadUrl = port.value.port_download_url
   if (!downloadUrl) {

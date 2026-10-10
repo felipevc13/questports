@@ -78,6 +78,12 @@ export interface Port {
   last_github_update?: string | null
   latest_version?: string | null
   port_download_url?: string | null
+  /**
+   * Asset size in bytes when the catalog already has it. Absent means unknown.
+   * WebUSB uses this to skip one-click before asking the proxy. Do not fetch
+   * it just to fill this in.
+   */
+  download_bytes?: number | null
   port_download_source: string | null
   featured: boolean
   installation_guide: string | null
