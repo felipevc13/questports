@@ -1,4 +1,5 @@
-import { browserOptsOut, clientAnalyticsPayload, deliverAnalyticsPayload, withSessionCampaignRef, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
+import { isAppBridgeClient } from '~/lib/appBridge'
+import { browserOptsOut, clientAnalyticsPayload, deliverAnalyticsPayload, withAppAnalyticsProp, withSessionCampaignRef, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 
 /**
@@ -14,11 +15,11 @@ export function useTrack() {
     try {
       if (browserOptsOut(navigator)) return
       if (isMockQuestEnabled()) return
-      const payload = clientAnalyticsPayload(event, withSessionCampaignRef(event, {
+      const payload = clientAnalyticsPayload(event, withSessionCampaignRef(event, withAppAnalyticsProp({
         ...input,
         path: input.path ?? window.location.pathname,
         webusb: input.webusb ?? (typeof navigator !== 'undefined' && 'usb' in navigator)
-      }, window.sessionStorage, window.location.search))
+      }, isAppBridgeClient()), window.sessionStorage, window.location.search))
       if (!payload) return
       const body = JSON.stringify(payload)
       const sendBeacon = typeof navigator.sendBeacon === 'function'

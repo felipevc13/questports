@@ -197,9 +197,14 @@ export function deviceFromUserAgent(userAgent: string | null | undefined): 'mobi
   return 'desktop'
 }
 
-/** Browser family only. Version tokens from the user-agent are dropped. */
+/**
+ * Browser family only. Version tokens from the user-agent are dropped.
+ * QuestPortsApp is the native headset wrapper. The column is free text with a
+ * 32-character length check, and this label fits, so no migration is required.
+ */
 export function browserFamilyFromUserAgent(userAgent: string | null | undefined): string | null {
   if (!userAgent || !userAgent.trim()) return null
+  if (/QuestPortsApp\/[^\s)]/.test(userAgent)) return 'QuestPortsApp'
   for (const rule of IN_APP_BROWSER_RULES) {
     if (rule.pattern.test(userAgent)) return rule.label
   }
@@ -539,7 +544,7 @@ export interface NormalizedAnalyticsEvent {
   portSlug: string | null
   headset: string | null
   webusb: boolean | null
-  props: Record<string, string | number> | null
+  props: Record<string, string | number | boolean> | null
 }
 
 function readProps(input: unknown): Record<string, unknown> | null {
@@ -562,7 +567,7 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug) return null
   if (record.event === 'page_view' && !path) return null
 
-  let storedProps: Record<string, string | number> | null = null
+  let storedProps: Record<string, string | number | boolean> | null = null
   if (record.event === 'install_error') {
     storedProps = installErrorProps(props)
   } else if (record.event === 'install_step') {
@@ -598,6 +603,10 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     storedProps = preview
   }
 
+  if (props?.app === true) {
+    storedProps = { ...(storedProps || {}), app: true }
+  }
+
   return {
     event: record.event,
     path,
@@ -614,6 +623,19 @@ export interface AnalyticsTrackInput {
   headset?: string | null
   webusb?: boolean | null
   props?: Record<string, unknown> | null
+}
+
+/** In the native app, every event carries props.app and webusb is not the install path. */
+export function withAppAnalyticsProp(input: AnalyticsTrackInput, inApp: boolean): AnalyticsTrackInput {
+  if (!inApp) return input
+  const base = input.props && typeof input.props === 'object' && !Array.isArray(input.props)
+    ? input.props
+    : {}
+  return {
+    ...input,
+    webusb: false,
+    props: { ...base, app: true }
+  }
 }
 
 /**

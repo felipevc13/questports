@@ -20,6 +20,7 @@ A **Simulated Quest** panel sits at the bottom-left while the flag is on. It is 
 | `mockNext` | `ok` (default), `picker-cancel`, `unauthorized`, `usb-locked`, `cancelled`, `timeout`, `generic` | What the next **Install on Quest** click does after the simulated USB prompt |
 | `mockInstall` | `ok` (default), `hold-downloading`, `hold-pushing`, `hold-installing`, `hold-success`, `download-failed`, `storage`, `disconnect`, `unauthorized`, `pm-failed` | What the next **Install on Quest** click does once the headset is connected |
 | `noWebUsb` | `1` | Pretend this browser has no WebUSB (`navigator.usb` missing or a non-secure page). Works without `mockQuest`. |
+| `inApp` | `1` | Pretend this page is inside the QuestPorts Android app. Hides USB connect UI and installs through a mock bridge (download progress, then success). `QuestPortsApp/<version>` in the user-agent does the same with the real bridge. |
 | `mockGame` | `absent` (default), `installed`, `outdated` | Whether every catalog package is on the headset, and whether `versionName` is older than the catalog |
 | `mockFiles` | `missing` (default), `stray`, `primary`, `alternate`, `present` | `missing` leaves storage empty. `stray` puts only `unrelated-note.txt` in each scanned folder, so the send-files box stays up. `primary` and `present` place each game's required filenames in its main folder. `alternate` places them in the first real alternate folder, or the `/storage/emulated/0` alias when the game has no second folder. |
 | `mockUninstall` | `ok` (default), `fail` | `pm uninstall` result |

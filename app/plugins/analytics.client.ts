@@ -1,6 +1,7 @@
 import { useRouter } from 'vue-router'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useTrack } from '~/composables/useTrack'
+import { isAppBridgeClient } from '~/lib/appBridge'
 import { portSlugFromPath } from '~/lib/analytics'
 import { isQuestBrowserSession } from '~/lib/questBrowser'
 import { isWebUsbAvailable } from '~/lib/questInstallUx'
@@ -23,7 +24,7 @@ export default defineNuxtPlugin(() => {
       userAgent: navigator.userAgent,
       search: window.location.search
     })
-    if (!reportedUnsupported && !questBrowser && !isWebUsbAvailable(navigator, window.isSecureContext)) {
+    if (!reportedUnsupported && !isAppBridgeClient() && !questBrowser && !isWebUsbAvailable(navigator, window.isSecureContext)) {
       reportedUnsupported = true
       track('unsupported_browser_view', { path, portSlug, headset, webusb: false })
     }
