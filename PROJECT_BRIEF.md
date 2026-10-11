@@ -39,7 +39,7 @@ Each individual port entry features a standardized structure:
 * **Frontend:** Nuxt 3 (SSR/Nitro hybrid) + Tailwind CSS + `@heroicons/vue` + `marked`.
 * **Database & Auth:** Supabase (Managed PostgreSQL, free tier with Row Level Security - RLS).
 * **Deployment / Hosting:** Vercel (Free custom subdomain, automated Git CI/CD).
-* **Media Storage:** Public URLs / YouTube embeds (optional Supabase Storage bucket for custom uploads).
+* **Media Storage:** Covers, thumbnails and preview videos on the Cloudflare media host (`questports-media.questports.workers.dev`, free static assets) + YouTube embeds. Supabase Storage is no longer used for covers.
 
 ---
 

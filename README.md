@@ -22,6 +22,7 @@ QuestPorts is a centralized directory and knowledge base cataloging classic sour
 * **Styling:** [Tailwind CSS](https://tailwindcss.com/) + Glassmorphism Dark Theme
 * **Database:** [Supabase](https://supabase.com/) (PostgreSQL 17 with Row Level Security)
 * **Hosting:** [Vercel](https://vercel.com/)
+* **Media:** covers, thumbnails and preview videos are served from the Cloudflare media host (`https://questports-media.questports.workers.dev`); APK one-click downloads go through the Cloudflare Worker proxy
 
 ---
 
@@ -89,6 +90,20 @@ node --experimental-strip-types scripts/sync-github-stats.js --dry-run
 ```
 
 The same two values are the GitHub Actions secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` on this repository. `GITHUB_TOKEN` is provided by Actions. After those secrets are set, the daily job and a manual run are safe to point at production. The manual run has a `dry_run` input that adds `--dry-run`.
+
+---
+
+## 🖼️ Covers & Media
+
+Covers are **not** stored in Supabase Storage anymore. Serving them from the `port-covers` bucket exceeded Supabase's free cached-egress quota, so every cover, thumbnail and preview now lives on the Cloudflare media host:
+
+* `https://questports-media.questports.workers.dev/covers/<file>`
+* `https://questports-media.questports.workers.dev/covers/thumbs/<name>.jpg`
+* `https://questports-media.questports.workers.dev/previews/<slug>.mp4`
+
+To add a cover, commit it under `public/covers/` (plus `public/covers/thumbs/<name>.jpg`, and `public/previews/<slug>.mp4` for a preview), then publish it to the media host (the `qp-media` deploy tooling, handled by the Produto & UX agent). Set `ports.cover_image_url` to the media-host URL or to `/covers/<file>`; `app/data/coverUrl.ts` versions it and serves it from `NUXT_PUBLIC_MEDIA_BASE`.
+
+`scripts/sync-covers.js` and `scripts/upload-og.js` are retired and exit with an error. The older one-off `scripts/add-*.js` / `scripts/update-*-cover.js` seed scripts still upload to Supabase Storage; do not re-run them.
 
 ---
 
