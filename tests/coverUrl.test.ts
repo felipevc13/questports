@@ -33,6 +33,11 @@ describe('resolveCoverUrl', () => {
     expect(resolveCoverUrl(url)).toBe(local)
   })
 
+  it('maps absolute media-host covers onto /covers', () => {
+    expect(resolveCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/avp_vr.jpg`)).toBe('/covers/avp_vr.jpg')
+    expect(resolveCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/nolf-vr.png?t=1`)).toBe('/covers/nolf-vr.png')
+  })
+
   it('leaves same-origin covers unchanged', () => {
     expect(resolveCoverUrl('/covers/rtcwquest.jpg')).toBe('/covers/rtcwquest.jpg')
   })
@@ -55,6 +60,17 @@ describe('coverThumbUrl', () => {
     expect(coverThumbUrl('/covers/doom3quest.jpg', 'https://cdn.example.com')).toBe(
       'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=2'
     )
+  })
+
+  it('keeps absolute media-host covers versioned without double-prefixing', () => {
+    const db = `${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg`
+    expect(versionedCoverUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg?v=2`)
+    expect(versionedCoverUrl(db)).toBe('/covers/doom3quest.jpg?v=2')
+    expect(coverThumbUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/thumbs/doom3quest.jpg?v=2`)
+    expect(absoluteCoverUrl(db)).toBe('https://questports.vercel.app/covers/doom3quest.jpg?v=2')
+    // A value that already went through versionedCoverUrl stays stable.
+    const once = versionedCoverUrl(db, DEFAULT_MEDIA_BASE)
+    expect(versionedCoverUrl(once, DEFAULT_MEDIA_BASE)).toBe(once)
   })
 
   it('requests a small Unsplash crop for hotlinked photos', () => {

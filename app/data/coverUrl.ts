@@ -31,7 +31,7 @@ const STEAMGRID_COVERS: Record<string, string> = {
   'bfd6bb38a2386fbab71d56ecdb552b42': '/covers/time-crisis-2-vr.png'
 }
 
-/** Map Storage / hotlink covers onto same-origin /covers files. */
+/** Map Storage, media-host and hotlink covers onto same-origin /covers files. */
 export function resolveCoverUrl(url: string | null | undefined): string | null {
   if (!url?.trim()) return null
   const clean = url.trim().split('?')[0] || ''
@@ -40,6 +40,13 @@ export function resolveCoverUrl(url: string | null | undefined): string | null {
   if (storageIdx !== -1) {
     const file = clean.slice(storageIdx + STORAGE_MARKER.length)
     if (file) return `/covers/${file}`
+  }
+
+  // Covers stored as absolute media-host URLs map back to /covers so they stay
+  // versioned and still follow NUXT_PUBLIC_MEDIA_BASE.
+  const mediaCovers = `${DEFAULT_MEDIA_BASE}/covers/`
+  if (clean.startsWith(mediaCovers) && clean.length > mediaCovers.length) {
+    return `/covers/${clean.slice(mediaCovers.length)}`
   }
 
   for (const [id, local] of Object.entries(STEAMGRID_COVERS)) {
