@@ -28,7 +28,9 @@ const STEAMGRID_COVERS: Record<string, string> = {
   'bb6db65a8d0f04a0f9a0a8e708da18d2': '/covers/quake3quest.png',
   'a885e2694d4d70bb6e531289081bcb7e': '/covers/descent-3-vr.jpg',
   '06524331e2c63c0ed3479bf1be85ce3b': '/covers/hotd2-vr.png',
-  'bfd6bb38a2386fbab71d56ecdb552b42': '/covers/time-crisis-2-vr.png'
+  'bfd6bb38a2386fbab71d56ecdb552b42': '/covers/time-crisis-2-vr.png',
+  '1e33d42f52a9ebdd703844cffcf6601c': '/covers/dolphinxr.png',
+  '297897/gameplay-caratula': '/covers/age-of-joy.png'
 }
 
 /** Map Storage, media-host and hotlink covers onto same-origin /covers files. */
