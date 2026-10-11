@@ -10,6 +10,10 @@
     "build:og": "node scripts/build-modern-og.js",
     "test": "vitest run",
     "test:mobile": "node e2e/mobile-overflow.mjs",
+    "media:build": "node scripts/media/build.mjs",
+    "media:deploy": "node scripts/media/deploy.mjs",
+    "media:deploy:dry": "node scripts/media/deploy.mjs --dry-run",
+    "media:test": "node scripts/media/test.mjs --live",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -35,6 +39,8 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@types/node": "^26.6.4",
     "playwright-core": "^1.64.0",
-    "vitest": "^4.1.11"
+    "sharp": "^0.35.5",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.149.0"
   }
 }

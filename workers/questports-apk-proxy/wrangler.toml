@@ -1,0 +1,7 @@
+# Source of the live questports-apk-proxy Worker.
+# Documented here so it can be reviewed. npm scripts do not deploy it.
+# Optional runtime secret: GITHUB_TOKEN (wrangler secret put). Never commit it.
+name = "questports-apk-proxy"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true

@@ -8,14 +8,13 @@
 //   https://questports-media.questports.workers.dev/covers/thumbs/<name>.jpg
 //
 // To add or change a cover: commit it under public/covers/ (and its thumb under
-// public/covers/thumbs/), then ask the Produto & UX agent to publish it to the
-// media host (box tooling: /workspace/qp-media, see its README). In the database,
-// set ports.cover_image_url to the media-host URL above (or to /covers/<file>).
+// public/covers/thumbs/), then npm run media:deploy (scripts/media/). In the
+// database, set ports.cover_image_url to the media-host URL above.
 // The site-wide share card is served from the site itself (/covers/questports-og.png).
 
 console.error(
   'scripts/upload-og.js is retired: covers no longer go to Supabase Storage.\n' +
-  'Commit the file under public/covers/ and publish it to the Cloudflare media host ' +
-  '(https://questports-media.questports.workers.dev) via the /workspace/qp-media tooling.'
+  'Commit the file under public/covers/ and publish it with npm run media:deploy ' +
+  '(https://questports-media.questports.workers.dev). See AGENTS.md.'
 )
 process.exit(1)
