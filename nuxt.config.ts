@@ -26,6 +26,19 @@ export default defineNuxtConfig({
     }
   },
   /**
+   * Catalog cards are NuxtLinks. Nuxt 4.5 prefetches on visibility by default,
+   * which downloads `/ports/<slug>/_payload.json` for every card that scrolls
+   * into view. Interaction prefetch (pointerenter and focus) still warms the
+   * next page on hover, keyboard focus, or the start of a tap.
+   */
+  experimental: {
+    defaults: {
+      nuxtLink: {
+        prefetchOn: { visibility: false, interaction: true }
+      }
+    }
+  },
+  /**
    * Vercel CDN cache. Nitro's `swr` only stores the HTML inside the function,
    * so every view still counts as Fast Origin Transfer. `isr` writes a
    * prerender config (expiration 3600, stale while revalidating) and is what
@@ -33,13 +46,20 @@ export default defineNuxtConfig({
    * dynamic. Quest Browser / in-app detection is applied after hydration so
    * this HTML does not vary on User-Agent.
    * Cover and preview files are immutable for a year; URLs carry `?v=` so a
-   * new file still shows up.
+   * new file still shows up. Favicons are one stable URL cached for a year.
+   * Hashed `/_nuxt/**` files already get `public, max-age=31536000, immutable`
+   * from Nitro, including the Vercel preset.
    */
   routeRules: {
     '/': { isr: { expiration: 3600, passQuery: true } },
     '/ports/**': { isr: { expiration: 3600, passQuery: true } },
     '/covers/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/previews/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+    '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/favicon.png': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/favicon.svg': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/apple-touch-icon.png': { headers: { 'cache-control': 'public, max-age=31536000' } },
+    '/apple-touch-icon-precomposed.png': { headers: { 'cache-control': 'public, max-age=31536000' } },
     '/api/**': { isr: false },
     '/admin/**': { isr: false }
   },
@@ -58,9 +78,8 @@ export default defineNuxtConfig({
         ...defaultSocialMeta()
       ],
       link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=2' },
-        { rel: 'icon', type: 'image/png', href: '/favicon.png?v=2' },
-        { rel: 'shortcut icon', href: '/favicon.ico?v=2' },
+        { rel: 'icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap' }
