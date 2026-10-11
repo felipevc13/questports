@@ -28,7 +28,9 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/bb6db65a8d0f04a0f9a0a8e708da18d2.png', '/covers/quake3quest.png'],
     ['https://cdn2.steamgriddb.com/grid/a885e2694d4d70bb6e531289081bcb7e.jpg', '/covers/descent-3-vr.jpg'],
     ['https://cdn2.steamgriddb.com/grid/06524331e2c63c0ed3479bf1be85ce3b.png', '/covers/hotd2-vr.png'],
-    ['https://cdn2.steamgriddb.com/grid/bfd6bb38a2386fbab71d56ecdb552b42.png', '/covers/time-crisis-2-vr.png']
+    ['https://cdn2.steamgriddb.com/grid/bfd6bb38a2386fbab71d56ecdb552b42.png', '/covers/time-crisis-2-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/1e33d42f52a9ebdd703844cffcf6601c.png', '/covers/dolphinxr.png'],
+    ['https://cdn.sidequestvr.com/file/297897/gameplay-caratula.png', '/covers/age-of-joy.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })

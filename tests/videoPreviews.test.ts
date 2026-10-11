@@ -19,7 +19,9 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['f-zero-x-vr', '0dr4OSkLeM4', '1:00', '2:00'],
   ['quake3quest', 'Q-MR6AVNu3E', '0:05', '1:05'],
   ['hotd2-vr', 'KeQKP9u1PiA', '3:20', '4:20'],
-  ['time-crisis-2-vr', 'sM7IEWgDu8k', '4:31', '4:46']
+  ['time-crisis-2-vr', 'sM7IEWgDu8k', '4:31', '4:46'],
+  ['dolphinxr', 'pg3Yhtj_db0', '1:52', '2:07'],
+  ['age-of-joy', '972PIs04MF4', '6:36', '6:51']
 ]
 
 describe('local hover previews', () => {

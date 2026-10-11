@@ -33,12 +33,14 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  * List of port slugs that have verified local MP4 preview clips available in /previews/
  */
 export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
+  'age-of-joy',
   'astroquest',
   'avp-vr',
   'beefraiderxr',
   'citravr',
   'csvr',
   'doom3quest',
+  'dolphinxr',
   'f-zero-x-vr',
   'galaxyquest',
   'generals-zero-hour-xr',
@@ -363,5 +365,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Time Crisis II VR
   'time-crisis-2-vr': { start: '4:31', end: '4:46' },
-  'sM7IEWgDu8k': { start: '4:31', end: '4:46' }
+  'sM7IEWgDu8k': { start: '4:31', end: '4:46' },
+
+  // DolphinXR (Dolphin VR ReduX)
+  'dolphinxr': { start: '1:52', end: '2:07' },
+  'pg3Yhtj_db0': { start: '1:52', end: '2:07' },
+
+  // AGE of Joy (VR Arcade Gallery)
+  'age-of-joy': { start: '6:36', end: '6:51' },
+  '972PIs04MF4': { start: '6:36', end: '6:51' }
 }
