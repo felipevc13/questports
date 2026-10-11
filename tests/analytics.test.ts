@@ -4,8 +4,13 @@ import { describe, expect, it } from 'vitest'
 import {
   ANALYTICS_EVENTS,
   ANALYTICS_HOURLY_LIMIT,
+  ANALYTICS_BATCH_MAX,
+  ANALYTICS_FLUSH_MS,
+  analyticsBatchBody,
   analyticsDeliveryPlan,
+  analyticsRequestEvents,
   apkInstallOutcome,
+  createAnalyticsBatcher,
   deliverAnalyticsPayload,
   CAMPAIGN_REF_STORAGE_KEY,
   FILTER_NAMES,
@@ -699,5 +704,96 @@ describe('analytics validation', () => {
     const second = decide({ rateLimiter: shared })
     expect(first.record).toBe(true)
     expect(second.reason).toBe('rate_limited')
+  })
+})
+
+describe('analytics batching', () => {
+  it('sends one body after 5 seconds and another when the tab hides', () => {
+    expect(ANALYTICS_FLUSH_MS).toBe(5000)
+    const sent: string[] = []
+    const timers: Array<() => void> = []
+    const batcher = createAnalyticsBatcher({
+      schedule: (callback, ms) => {
+        expect(ms).toBe(ANALYTICS_FLUSH_MS)
+        timers.push(callback)
+        return {
+          cancel() {
+            const index = timers.indexOf(callback)
+            if (index >= 0) timers.splice(index, 1)
+          }
+        }
+      },
+      send: (body) => sent.push(body)
+    })
+
+    batcher.enqueue({ event: 'page_view', path: '/' })
+    batcher.enqueue({ event: 'port_view', path: '/ports/rtcwquest', portSlug: 'rtcwquest' })
+    expect(sent).toEqual([])
+    expect(timers).toHaveLength(1)
+
+    timers[0]!()
+    expect(sent).toHaveLength(1)
+    expect(JSON.parse(sent[0]!)).toEqual({
+      events: [
+        { event: 'page_view', path: '/' },
+        { event: 'port_view', path: '/ports/rtcwquest', portSlug: 'rtcwquest' }
+      ]
+    })
+
+    batcher.flush()
+    expect(sent).toHaveLength(1)
+
+    batcher.enqueue({ event: 'filter_used', path: '/', props: { filter: 'category', value: 'source_port' } })
+    batcher.flush()
+    expect(JSON.parse(sent[1]!)).toEqual({
+      event: 'filter_used',
+      path: '/',
+      props: { filter: 'category', value: 'source_port' }
+    })
+    expect(sent[1]).not.toContain('"events"')
+  })
+
+  it('flushes a full batch immediately and accepts that body on the server', () => {
+    const sent: string[] = []
+    const batcher = createAnalyticsBatcher({
+      schedule: () => ({ cancel() {} }),
+      send: (body) => sent.push(body)
+    })
+    const events = Array.from({ length: ANALYTICS_BATCH_MAX + 1 }, (_, index) => ({
+      event: 'page_view',
+      path: '/',
+      n: index
+    }))
+    for (const event of events) batcher.enqueue(event)
+    expect(sent).toHaveLength(1)
+    expect(JSON.parse(sent[0]!).events).toHaveLength(ANALYTICS_BATCH_MAX)
+    batcher.flush()
+    expect(JSON.parse(sent[1]!)).toEqual(events[ANALYTICS_BATCH_MAX])
+
+    expect(analyticsBatchBody([events[0]])).toBe(JSON.stringify(events[0]))
+    expect(analyticsRequestEvents(JSON.parse(sent[0]!))).toHaveLength(ANALYTICS_BATCH_MAX)
+    expect(analyticsRequestEvents({ events: Array.from({ length: 20 }, () => ({ event: 'page_view' })) })).toHaveLength(ANALYTICS_BATCH_MAX)
+    expect(analyticsRequestEvents({ event: 'page_view', path: '/' })).toEqual([{ event: 'page_view', path: '/' }])
+
+    const handler = readFileSync(new URL('../server/api/track.post.ts', import.meta.url), 'utf8')
+    expect(handler).toContain('analyticsRequestEvents(body)')
+  })
+
+  it('sends install_success immediately with keepalive and queues the rest', () => {
+    const source = readFileSync(new URL('../app/composables/useTrack.ts', import.meta.url), 'utf8')
+    const track = source.slice(source.indexOf('export function useTrack'))
+    const successAt = track.indexOf("event === 'install_success'")
+    const flushAt = track.indexOf('analyticsBatcher().flush()')
+    const deliverAt = track.indexOf('deliverAnalyticsPayload({')
+    const enqueueAt = track.indexOf('analyticsBatcher().enqueue(payload)')
+    expect(successAt).toBeGreaterThan(0)
+    expect(flushAt).toBeGreaterThan(successAt)
+    expect(deliverAt).toBeGreaterThan(flushAt)
+    expect(enqueueAt).toBeGreaterThan(deliverAt)
+    expect(source).toContain('keepalive: true')
+    expect(source).toContain("document.visibilityState === 'hidden'")
+    expect(source).toContain("document.addEventListener('visibilitychange'")
+    expect(source).toContain("window.addEventListener('pagehide'")
+    expect(source).toContain('batcher?.flush()')
   })
 })
