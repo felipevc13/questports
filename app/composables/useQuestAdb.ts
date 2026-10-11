@@ -28,11 +28,21 @@ import {
   parseDfAvailableKilobytes,
   readStreamWithProgress,
   spaceDecision,
+  StreamByteLimitError,
   type SpaceDecision,
   type SpaceKind
 } from '~/lib/installFlow'
 import { extractReleaseApk, responseLooksLikeZip } from '~/lib/extractReleaseApk'
 import { ApkTooLargeError, apkProxyStreamUrl, isApkTooLargeError } from '~/lib/apkProxyPolicy'
+import {
+  APK_INSTALL_TEMP_PATH,
+  freeSpaceCheckBytes,
+  friendlyApkStreamError,
+  knownDownloadBytes,
+  planRemoteApkBody,
+  pushApkStream,
+  type ApkStreamKind
+} from '~/lib/apkStreamInstall'
 import { isAppBridgeClient } from '~/lib/appBridge'
 import { isQuestBrowserClient } from '~/lib/questBrowser'
 
@@ -530,6 +540,27 @@ export const useQuestAdb = () => {
     await runShell(`rm -f "${safe}"`).catch(() => {})
   }
 
+  // `rm` on the adb object captured when the copy started. A USB drop clears the
+  // singleton before the catch runs; this still tries, then gives up if the cable is gone.
+  const removePartialOn = async (adb: any, path: string | null) => {
+    if (!path) return
+    if (isConnected.value && adbInstance) {
+      await removeRemoteFile(path)
+      return
+    }
+    const safe = path.replace(/"/g, '')
+    try {
+      const subprocess = adb?.subprocess
+      if (subprocess?.shellProtocol) {
+        await subprocess.shellProtocol.spawnWaitText(`rm -f "${safe}"`)
+      } else if (subprocess?.noneProtocol) {
+        await subprocess.noneProtocol.spawnWaitText(`rm -f "${safe}"`)
+      }
+    } catch {
+      // The headset is already gone, or the partial file was never created.
+    }
+  }
+
   const readFreeBytes = async (): Promise<number | null> => {
     if (!isConnected.value || !adbInstance) return null
     try {
@@ -591,61 +622,64 @@ export const useQuestAdb = () => {
     throw err
   }
 
-  // Install an APK from a byte stream. The bar is this transfer's own bytes / size.
+  // Install an APK from a byte stream. URL installs count the same bytes as download and push.
   const installApkStream = async (
     stream: ReadableStream<Uint8Array>,
     totalBytes: number,
-    title: string
+    title: string,
+    mode: 'url' | 'file' = 'file'
   ) => {
     if (!isConnected.value || !adbInstance) {
       throw new Error('Meta Quest not connected! Please connect your headset first.')
     }
 
     const { WrapReadableStream } = await import('@yume-chan/stream-extra')
-    const tempPath = '/data/local/tmp/questports_installer.apk'
+    const tempPath = APK_INSTALL_TEMP_PATH
+    const adb = adbInstance
+    const signal = activeAbortController?.signal ?? null
+    const kind: ApkStreamKind = mode === 'url' ? 'download' : 'file'
     activeRemoteCleanup = tempPath
 
-    let loaded = 0
-    const progressTransform = new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        if (activeAbortController?.signal.aborted) {
-          controller.error(new DOMException('Installation cancelled by user', 'AbortError'))
-          return
-        }
-        loaded += chunk.byteLength
-        const view = describeByteProgress(loaded, totalBytes, 'transfer')
-        publishProgress({
-          title,
-          step: 'pushing',
-          percent: view.indeterminate ? 0 : view.percent,
-          indeterminate: view.indeterminate,
-          receivedLabel: formatByteSize(loaded),
-          message: view.message
-        })
-        controller.enqueue(chunk)
-      }
-    })
-
-    const monitoredStream = stream.pipeThrough(progressTransform)
-    const wrappedStream = new WrapReadableStream(monitoredStream as any)
-    const sync = await adbInstance.sync()
+    let sync: any = null
     try {
-      await sync.write({
-        filename: tempPath,
-        file: wrappedStream
+      sync = await adb.sync()
+      await pushApkStream({
+        stream,
+        totalBytes,
+        signal,
+        remotePath: tempPath,
+        phase: mode === 'url' ? 'download' : 'transfer',
+        kind,
+        write: async (file) => {
+          const wrapped = new WrapReadableStream(file as any)
+          await sync.write({ filename: tempPath, file: wrapped })
+        },
+        cleanup: async (path) => {
+          try {
+            await removePartialOn(adb, path)
+          } finally {
+            if (activeRemoteCleanup === path) activeRemoteCleanup = null
+          }
+        },
+        onProgress: (update) => {
+          publishProgress({
+            title,
+            step: mode === 'url' ? 'downloading' : 'pushing',
+            percent: update.indeterminate ? 0 : update.percent,
+            indeterminate: update.indeterminate,
+            receivedLabel: update.receivedLabel,
+            message: update.message
+          })
+        }
       })
     } catch (err) {
-      await removeRemoteFile(tempPath)
-      activeRemoteCleanup = null
-      throw err
+      if (activeRemoteCleanup === tempPath) {
+        await removePartialOn(adb, tempPath)
+        activeRemoteCleanup = null
+      }
+      throw friendlyApkStreamError(err, signal, kind)
     } finally {
-      await sync.dispose().catch(() => {})
-    }
-
-    if (activeAbortController?.signal.aborted) {
-      await removeRemoteFile(tempPath)
-      activeRemoteCleanup = null
-      throw new DOMException('Installation cancelled by user', 'AbortError')
+      await sync?.dispose().catch(() => {})
     }
 
     // pm install is not cancellable. Aborting it can leave a half-installed package.
@@ -660,8 +694,14 @@ export const useQuestAdb = () => {
       message: 'Installing APK package on Quest OS (pm install)...'
     })
 
+    let resultText = ''
     try {
-      const resultText = await runShell(`pm install -r ${tempPath}`)
+      try {
+        resultText = await runShell(`pm install -r ${tempPath}`)
+      } catch (err) {
+        await removeRemoteFile(tempPath)
+        throw friendlyApkStreamError(err, null, kind)
+      }
       await removeRemoteFile(tempPath)
 
       if (/^\s*success/im.test(resultText) && !/failure|INSTALL_FAILED/i.test(resultText)) {
@@ -703,7 +743,7 @@ export const useQuestAdb = () => {
     activeRemoteCleanup = null
     installSpaceWarning.value = null
     await removeRemoteFile(partial)
-    await removeRemoteFile('/data/local/tmp/questports_installer.apk')
+    await removeRemoteFile(APK_INSTALL_TEMP_PATH)
     publishProgress(idleProgress())
   }
 
@@ -783,30 +823,55 @@ export const useQuestAdb = () => {
         throw new Error(`Failed to download APK: ${detail}`)
       }
 
-      const contentLength = res.headers.get('content-length')
-      const headerBytes = contentLength ? parseInt(contentLength, 10) : 0
-      const totalBytes = Number.isFinite(headerBytes) && headerBytes > 0 ? headerBytes : 0
-      if (totalBytes > 0) await gateFreeSpace(totalBytes, 'apk')
+      const totalBytes = knownDownloadBytes(res.headers.get('content-length'))
+      const plan = planRemoteApkBody({
+        zip: responseLooksLikeZip(res.headers),
+        totalBytes,
+        appMode: isAppBridgeClient()
+      })
 
       if (!res.body) {
         throw new Error('Failed to read download stream')
       }
 
-      const downloaded = await readStreamWithProgress(res.body, signal, (loaded) => {
-        const view = describeByteProgress(loaded, totalBytes, 'download')
-        publishProgress({
-          title,
-          step: 'downloading',
-          percent: view.indeterminate ? 0 : view.percent,
-          indeterminate: view.indeterminate,
-          receivedLabel: formatByteSize(loaded),
-          message: view.message
-        })
-      })
+      if (plan.action === 'too-large') {
+        await res.body.cancel().catch(() => {})
+        throw new ApkTooLargeError(plan.size, url)
+      }
 
-      await gateFreeSpace(downloaded.byteLength, 'apk')
-      let apkBytes = downloaded
-      if (responseLooksLikeZip(res.headers)) {
+      const spaceBytes = freeSpaceCheckBytes(plan.totalBytes)
+      if (spaceBytes != null) {
+        try {
+          await gateFreeSpace(spaceBytes, 'apk')
+        } catch (err) {
+          await res.body.cancel().catch(() => {})
+          throw err
+        }
+      }
+
+      if (plan.action === 'stream') {
+        // The fetch body is the ADB payload. Nothing collects the chunks.
+        await installApkStream(res.body, plan.totalBytes, title, 'url')
+      } else {
+        let downloaded: Uint8Array
+        try {
+          downloaded = await readStreamWithProgress(res.body, signal, (loaded) => {
+            const view = describeByteProgress(loaded, totalBytes, 'download')
+            publishProgress({
+              title,
+              step: 'downloading',
+              percent: view.indeterminate ? 0 : view.percent,
+              indeterminate: view.indeterminate,
+              receivedLabel: formatByteSize(loaded),
+              message: view.message
+            })
+          }, plan.maxBytes)
+        } catch (err) {
+          if (err instanceof StreamByteLimitError) throw new ApkTooLargeError(err.size, url)
+          throw err
+        }
+
+        await gateFreeSpace(downloaded.byteLength, 'apk')
         publishProgress({
           title,
           step: 'downloading',
@@ -815,11 +880,10 @@ export const useQuestAdb = () => {
           receivedLabel: formatByteSize(downloaded.byteLength),
           message: 'Extracting APK from the release archive...'
         })
-        apkBytes = await extractReleaseApk(downloaded)
+        const apkBytes = await extractReleaseApk(downloaded)
         await gateFreeSpace(apkBytes.byteLength, 'apk')
+        await installApkStream(bytesToStream(apkBytes), apkBytes.byteLength, title)
       }
-
-      await installApkStream(bytesToStream(apkBytes), apkBytes.byteLength, title)
       if (isMockQuestEnabled() && activeAbortController) {
         await mockHoldAfterSuccessfulInstall(activeAbortController.signal)
       }
