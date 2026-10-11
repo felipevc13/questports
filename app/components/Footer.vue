@@ -29,6 +29,7 @@
         </button>
         <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">GitHub</a>
         <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">SideQuest</a>
+        <KofiTip surface="footer" />
       </div>
     </div>
   </footer>

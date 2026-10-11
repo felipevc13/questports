@@ -7,6 +7,7 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 - Capas e vídeos **não** passam pela Vercel nem pelo Storage do Supabase. Arquivos em `public/covers`, `public/covers/thumbs` e `public/previews`. Publica com `npm run media:deploy` (o dry-run é `npm run media:deploy:dry`). APKs saem pelo Worker `questports-apk-proxy`, não por função da Vercel.
 - Não rode `scripts/add-*.js`, `scripts/update-*-cover.js`, `scripts/sync-covers.js`, `scripts/upload-og.js` nem os outros one-offs. Não apague esses arquivos.
 - Cartão mostra pouca coisa. Contagem de installs pode aparecer. `⚠ Issues` só quando alguém marcou problema de verdade. Site em inglês. Você fala PT-BR; o agente pode te responder em português.
+- Gorjeta: uma linha no sucesso da instalação e um link no rodapé. URL em `NUXT_PUBLIC_KOFI_URL` (vazio esconde). Evento `tip_click`. Migration `20261011180000_analytics_tip_click.sql` — aplicar no SQL editor depois do merge.
 - Nada de segredo no git. Token da Cloudflare é `CLOUDFLARE_API_TOKEN`.
 
 ---
@@ -65,7 +66,7 @@ Felipe reviews and merges. Agents do not push to `main` and do not apply SQL to 
 - `app/components/PortCard.vue` — Card UI. Cover, optional hover MP4, category, status, title, developer, version, verification line.
 - `app/pages/ports/[slug].vue` — Detail page: guide (`installation_guide`), troubleshooting, storage path, install, YouTube click-to-play.
 - Analytics: `app/lib/analytics.ts` (event names and privacy rules), `app/composables/useTrack.ts`, `app/plugins/analytics.client.ts`, `server/utils/analytics.ts`, `server/api/track.post.ts`.
-- App-mode bridge: `app/lib/appBridge.ts` (`window.QuestPortsApp`, user-agent `QuestPortsApp/<version>`), `app/composables/useAppBridge.ts` (real app after hydration; `?inApp=1` is the mock). The native wrapper installs with PackageInstaller instead of WebUSB.
+- App-mode bridge: `app/lib/appBridge.ts` (`window.QuestPortsApp`, user-agent `QuestPortsApp/<version>`), `app/composables/useAppBridge.ts` (real app after hydration; `?inApp=1` is the mock). The native wrapper installs with PackageInstaller instead of WebUSB. The bridge does not open URLs. Ko-fi links stay `target="_blank"`. In the app, the click uses `window.open` first so the WebView is not replaced; if that returns null, the https URL is assigned so `shouldOverrideUrlLoading` can send it to the system browser (`app/lib/kofi.ts`).
 - Quest Browser: `app/lib/questBrowser.ts`. Unsupported browsers: `app/lib/unsupportedBrowser.ts`.
 - Versions: `app/lib/versionFormat.ts` (`formatPortVersion`). One leading `v` on semver-like tags (`1.0.84` → `v1.0.84`). Build names (`b004`, `cats27`) stay as names. Placeholders such as `Latest` are hidden.
 - APK routing: `app/lib/apkProxyPolicy.ts`. Default base `https://questports-apk-proxy.questports.workers.dev`. Empty `NUXT_PUBLIC_APK_PROXY_BASE` keeps `/api/apk-proxy` on this origin, which is capped (`APK_PROXY_MAX_BYTES`, default 150 MiB) because that path is a Vercel function.
@@ -136,11 +137,11 @@ Related tables and views:
 
 ### Analytics and privacy
 
-Event names are the check constraint `analytics_events_event_check`. The current list is in `app/lib/analytics.ts` `ANALYTICS_EVENTS` and was last updated by `20261009230000_analytics_funnel_events.sql`:
+Event names are the check constraint `analytics_events_event_check`. The current list is in `app/lib/analytics.ts` `ANALYTICS_EVENTS` and was last updated by `20261011180000_analytics_tip_click.sql`:
 
-`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`.
+`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`.
 
-A **new event name** needs a migration that drops and re-adds `analytics_events_event_check` (same pattern as the funnel migration) **and** a matching entry in `ANALYTICS_EVENTS`. `props` allowlists are separate constraints (`install_error` reasons, `install_step`, `filter_used`, `search`, `video_preview_play`). `too_large` was added that way in `20261010120000_analytics_too_large.sql`. If the constraint does not mention the new value, the insert fails.
+A **new event name** needs a migration that drops and re-adds `analytics_events_event_check` (same pattern as the funnel migration) **and** a matching entry in `ANALYTICS_EVENTS`. `props` allowlists are separate constraints (`install_error` reasons, `install_step`, `filter_used`, `search`, `video_preview_play`, `tip_click` surface). `too_large` was added that way in `20261010120000_analytics_too_large.sql`. If the constraint does not mention the new value, the insert fails.
 
 Privacy, implemented in `server/utils/analytics.ts` and `app/lib/analytics.ts`:
 
@@ -278,6 +279,7 @@ Never commit tokens, service-role keys, or `.env`. Names only:
 | `ANALYTICS_ENABLED` | `true` / `false` override described above |
 | `NUXT_PUBLIC_MEDIA_BASE` | Unset → media Worker. Empty → covers on this origin, no MP4s |
 | `NUXT_PUBLIC_APK_PROXY_BASE` | Unset → APK Worker. Empty → Vercel `/api/apk-proxy` |
+| `NUXT_PUBLIC_KOFI_URL` | Unset → `https://ko-fi.com/questports`. Empty → hide the tip line and the footer link |
 | `APK_PROXY_MAX_BYTES` | Cap for the Vercel route only |
 | `GITHUB_TOKEN` | Actions, `sync-github-stats.js`, and optional APK-proxy Worker secret |
 | `CLOUDFLARE_API_TOKEN` | `npm run media:deploy` only |
