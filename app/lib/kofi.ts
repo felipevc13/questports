@@ -58,17 +58,28 @@ export interface ExternalOpenTarget {
  *   opens the system browser and leaves this page in place.
  *
  * `window.open` is the first try (the new-window path, so this page is not
- * replaced). If the WebView returns null, the https URL is assigned so the
- * client can hand it to the system browser. If that client loads every URL
- * itself, Ko-fi replaces the page and the system Back key returns to the
- * catalog. The WebView is not left on a blank window.
+ * replaced). The features string is omitted: Chrome returns null for
+ * `noopener` even when the new tab opened, and treating that as failure would
+ * also navigate the current page. `opener` is cleared on the window that
+ * comes back. If `open` returns null or throws, the https URL is assigned so
+ * `shouldOverrideUrlLoading` can hand it to the system browser. If that client
+ * loads every URL itself, Ko-fi replaces the page and the system Back key
+ * returns to the catalog. The WebView is not left on a blank window.
  */
 export function openExternalUrl(url: string, target: ExternalOpenTarget = {}): 'blank' | 'assign' | 'skip' {
   const href = kofiHref(url)
   if (!href) return 'skip'
   const open = target.open ?? (typeof window !== 'undefined' ? window.open.bind(window) : null)
   try {
-    const opened = open?.(href, '_blank', 'noopener,noreferrer')
+    const opened = open?.(href, '_blank')
+    if (opened && typeof opened === 'object') {
+      try {
+        (opened as { opener: unknown }).opener = null
+      } catch {
+        // The new window is already open. A cross-origin opener clear can throw.
+      }
+      return 'blank'
+    }
     if (opened) return 'blank'
   } catch {
     // The WebView refused the new window. Fall through.

@@ -112,16 +112,18 @@ describe('Ko-fi tip', () => {
   })
 
   it('opens Ko-fi outside the WebView without leaving a blank page', () => {
-    const opened: string[] = []
+    const opened: Array<{ url: string; target?: string; features?: string }> = []
     const assigned: string[] = []
+    const popup = { opener: { page: true } }
     expect(openExternalUrl(DEFAULT_KOFI_URL, {
-      open: (url) => {
-        opened.push(url)
-        return {}
+      open: (url, target, features) => {
+        opened.push({ url, target, features })
+        return popup
       },
       assign: (url) => assigned.push(url)
     })).toBe('blank')
-    expect(opened).toEqual(['https://ko-fi.com/questports'])
+    expect(opened).toEqual([{ url: 'https://ko-fi.com/questports', target: '_blank', features: undefined }])
+    expect(popup.opener).toBeNull()
     expect(assigned).toEqual([])
 
     expect(openExternalUrl(DEFAULT_KOFI_URL, {
