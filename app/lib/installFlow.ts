@@ -111,10 +111,22 @@ export function isLowSpaceError(err: unknown): boolean {
   return message.startsWith('Not enough free space')
 }
 
+/** Zip bytes held for extraction. Larger archives are not buffered in the browser tab. */
+export class StreamByteLimitError extends Error {
+  readonly size: number
+
+  constructor(size: number) {
+    super('Download exceeded the in-browser size limit.')
+    this.name = 'StreamByteLimitError'
+    this.size = size
+  }
+}
+
 export async function readStreamWithProgress(
   stream: ReadableStream<Uint8Array>,
   signal: AbortSignal,
-  onLoaded: (loaded: number) => void
+  onLoaded: (loaded: number) => void,
+  maxBytes: number = Number.POSITIVE_INFINITY
 ): Promise<Uint8Array> {
   const reader = stream.getReader()
   const chunks: Uint8Array[] = []
@@ -127,6 +139,9 @@ export async function readStreamWithProgress(
       const { done, value } = await reader.read()
       if (done) break
       if (!value || value.byteLength === 0) continue
+      if (loaded + value.byteLength > maxBytes) {
+        throw new StreamByteLimitError(loaded + value.byteLength)
+      }
       chunks.push(value)
       loaded += value.byteLength
       onLoaded(loaded)
