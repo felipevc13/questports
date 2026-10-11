@@ -18,7 +18,7 @@ QuestPorts is a centralized directory and knowledge base cataloging classic sour
 
 ## 🛠️ Tech Stack
 
-* **Framework:** [Nuxt 3](https://nuxt.com/) (Vue 3, SSR/Nitro)
+* **Framework:** [Nuxt 4](https://nuxt.com/) (Vue 3, SSR/Nitro)
 * **Styling:** [Tailwind CSS](https://tailwindcss.com/) + Glassmorphism Dark Theme
 * **Database:** [Supabase](https://supabase.com/) (PostgreSQL 17 with Row Level Security)
 * **Hosting:** [Vercel](https://vercel.com/)
@@ -101,7 +101,7 @@ Covers are **not** stored in Supabase Storage anymore. Serving them from the `po
 * `https://questports-media.questports.workers.dev/covers/thumbs/<name>.jpg`
 * `https://questports-media.questports.workers.dev/previews/<slug>.mp4`
 
-To add a cover, commit it under `public/covers/` (plus `public/covers/thumbs/<name>.jpg`, and `public/previews/<slug>.mp4` for a preview), then publish it to the media host (the `qp-media` deploy tooling, handled by the Produto & UX agent). Set `ports.cover_image_url` to the media-host URL or to `/covers/<file>`; `app/data/coverUrl.ts` versions it and serves it from `NUXT_PUBLIC_MEDIA_BASE`.
+To add a cover, commit it under `public/covers/` (plus `public/covers/thumbs/<name>.jpg`, and `public/previews/<slug>.mp4` for a preview), then publish that whole set with `npm run media:deploy` (`scripts/media/`, Wrangler, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`). `npm run media:deploy:dry` packages the Worker without uploading. Set `ports.cover_image_url` to the full media-host URL in a migration. `app/data/coverUrl.ts` versions it and serves it from `NUXT_PUBLIC_MEDIA_BASE`. See [AGENTS.md](AGENTS.md).
 
 `scripts/sync-covers.js` and `scripts/upload-og.js` are retired and exit with an error. The older one-off `scripts/add-*.js` / `scripts/update-*-cover.js` seed scripts still upload to Supabase Storage; do not re-run them.
 

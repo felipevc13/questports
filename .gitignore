@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Wrangler local state (media worker dry-run / deploy)
+.wrangler/
+
 # Node dependencies
 node_modules
 
