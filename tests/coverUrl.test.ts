@@ -30,7 +30,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/06524331e2c63c0ed3479bf1be85ce3b.png', '/covers/hotd2-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/bfd6bb38a2386fbab71d56ecdb552b42.png', '/covers/time-crisis-2-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/1e33d42f52a9ebdd703844cffcf6601c.png', '/covers/dolphinxr.png'],
-    ['https://cdn.sidequestvr.com/file/297897/gameplay-caratula.png', '/covers/age-of-joy.png']
+    ['https://cdn.sidequestvr.com/file/297897/gameplay-caratula.png', '/covers/age-of-joy.png'],
+    ['https://cdn2.steamgriddb.com/grid/124a20f62d7b7205775f80b3ecc33645.jpg', '/covers/victory-heat-rally-vr.jpg']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })

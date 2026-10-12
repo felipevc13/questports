@@ -84,6 +84,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'unreal-gold-vr',
   'ut99-vr-quest',
   'vice-city-vr-quest',
+  'victory-heat-rally-vr',
   'wiicompiled-vr-plus',
   'winlatorxr',
   'xrkart-64'
@@ -373,5 +374,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // AGE of Joy (VR Arcade Gallery)
   'age-of-joy': { start: '6:36', end: '6:51' },
-  '972PIs04MF4': { start: '6:36', end: '6:51' }
+  '972PIs04MF4': { start: '6:36', end: '6:51' },
+
+  // Victory Heat Rally VR
+  'victory-heat-rally-vr': { start: '0:26', end: '0:41' },
+  'CRP1pSUZCEU': { start: '0:26', end: '0:41' }
 }
