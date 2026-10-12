@@ -92,12 +92,12 @@ describe('catalog version display', () => {
     expect(formatPortVersion('0.1.0-alpha').includes('…')).toBe(false)
   })
 
-  it('is what the card, detail page, and dense table render', () => {
+  it('stays on the detail page and the dense table, and leaves the catalog card', () => {
     const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
     const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
     const detail = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     const badge = readFileSync(new URL('../app/lib/verification.ts', import.meta.url), 'utf8')
-    expect(card).toContain('<PortVersion')
+    expect(card).not.toContain('<PortVersion')
     expect(card).not.toContain('v{{')
     expect(index).toContain('<th class="py-2.5 px-3 text-left">Version</th>')
     expect(index).toContain('<PortVersion')
