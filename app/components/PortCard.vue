@@ -1,12 +1,15 @@
 <template>
-  <NuxtLink
-    :to="`${toPrefix || '/ports'}/${port.slug}`"
+  <div
     @mouseenter="armPreview"
     @mouseleave="stopPreview"
     @focusin="armPreview"
     @focusout="stopPreview"
     :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
-    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
+    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all text-card-foreground"
+  >
+  <NuxtLink
+    :to="`${toPrefix || '/ports'}/${port.slug}`"
+    class="flex flex-1 flex-col text-inherit"
   >
     <div ref="headerEl" class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
       <img
@@ -131,6 +134,7 @@
       </span>
     </div>
   </NuxtLink>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -227,12 +231,21 @@ const onPreviewTap = () => {
   if (playing) trackCardPreview()
 }
 
+const keepPreviewOnCard = (event: MouseEvent) => {
+  const target = event.target
+  if (!(target instanceof Element) || !target.closest('.catalog-touch-preview')) return
+  event.preventDefault()
+  event.stopPropagation()
+  onPreviewTap()
+}
+
 const handleVideoError = () => {
   localVideoFailed.value = true
   isPlayingPreview.value = false
 }
 
 const stopPreview = () => {
+  if (!canHoverPreview()) return
   if (hoverTimer) {
     clearTimeout(hoverTimer)
     hoverTimer = null
@@ -259,6 +272,7 @@ watch(isPlayingPreview, async (playing) => {
 })
 
 onMounted(() => {
+  headerEl.value?.addEventListener('click', keepPreviewOnCard, true)
   if (showCover.value) return
   const el = headerEl.value
   if (!el || typeof IntersectionObserver === 'undefined') {
@@ -275,6 +289,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  headerEl.value?.removeEventListener('click', keepPreviewOnCard, true)
   if (hoverTimer) clearTimeout(hoverTimer)
   coverObserver?.disconnect()
 })
