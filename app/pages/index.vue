@@ -110,7 +110,7 @@
                 <option value="recent">Recently updated</option>
                 <option value="added">Newest</option>
                 <option value="az">A–Z (Alphabetical)</option>
-                <option value="featured">Featured First</option>
+                <option value="installs">Most installed</option>
               </select>
               <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -273,7 +273,7 @@
             <option value="recent">Recently updated</option>
             <option value="added">Newest</option>
             <option value="az">A–Z</option>
-            <option value="featured">Featured</option>
+            <option value="installs">Most installed</option>
           </select>
           <svg class="pointer-events-none absolute right-2 h-3 w-3 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it, afterEach } from 'vitest'
 import { normalizeAnalyticsBody } from '../app/lib/analytics'
 import {
@@ -10,6 +10,7 @@ import {
 } from '../app/lib/catalogCard'
 import {
   DEFAULT_CATALOG_SORT,
+  resolveCatalogSort,
   sortCatalogPorts
 } from '../app/lib/catalogSort'
 import { catalogCategoryFromQuery } from '../app/lib/catalogQuery'
@@ -183,20 +184,55 @@ describe('catalog sort', () => {
     expect(DEFAULT_CATALOG_SORT).toBe('recent')
     expect(sortCatalogPorts(ports, 'recent').map(port => port.title)).toEqual(['Alpha', 'Delta', 'Bravo', 'Charlie'])
     expect(sortCatalogPorts(ports, 'az').map(port => port.title)).toEqual(['Alpha', 'Bravo', 'Charlie', 'Delta'])
-    expect(sortCatalogPorts(ports, 'featured').map(port => port.title)).toEqual(['Bravo', 'Alpha', 'Charlie', 'Delta'])
+    expect(sortCatalogPorts(ports, 'installs').map(port => port.title)).toEqual(['Alpha', 'Delta', 'Bravo', 'Charlie'])
+    expect(sortCatalogPorts(ports, 'featured').map(port => port.title)).toEqual(['Alpha', 'Delta', 'Bravo', 'Charlie'])
     expect(sortCatalogPorts(ports, 'added').map(port => port.title)).toEqual(['Charlie', 'Bravo', 'Alpha', 'Delta'])
     expect(ports.map(port => port.title)).toEqual(['Bravo', 'Alpha', 'Charlie', 'Delta'])
+  })
+
+  it('orders most installed by the card count, then recently updated', () => {
+    const counted = [
+      { title: 'Low', installs: 1, last_github_update: '2026-10-01T00:00:00.000Z' },
+      { title: 'HighOlder', installs: 9, last_github_update: '2026-01-01T00:00:00.000Z' },
+      { title: 'HighNewer', installs: 9, last_github_update: '2026-08-01T00:00:00.000Z' },
+      { title: 'None', installs: 0, last_github_update: '2026-12-01T00:00:00.000Z' },
+      { title: 'Missing', last_github_update: '2026-11-01T00:00:00.000Z' },
+      { title: 'Fraction', installs: 2.9, last_github_update: '2026-02-01T00:00:00.000Z' },
+      { title: 'TiedFirst', installs: 4, last_github_update: '2026-05-01T00:00:00.000Z' },
+      { title: 'TiedSecond', installs: 4, last_github_update: '2026-05-01T00:00:00.000Z' }
+    ]
+    expect(sortCatalogPorts(counted, 'installs').map(port => port.title)).toEqual([
+      'HighNewer',
+      'HighOlder',
+      'TiedFirst',
+      'TiedSecond',
+      'Fraction',
+      'Low',
+      'None',
+      'Missing'
+    ])
+    expect(sortCatalogPorts(counted, 'featured').map(port => port.title)).toEqual(
+      sortCatalogPorts(counted, 'installs').map(port => port.title)
+    )
+    expect(resolveCatalogSort('featured')).toBe('installs')
+    expect(resolveCatalogSort('installs')).toBe('installs')
+    expect(resolveCatalogSort('nope')).toBeNull()
   })
 
   it('labels newest-created and last-update sorts without changing their values', () => {
     const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
     expect(index).toContain('<option value="recent">Recently updated</option>')
     expect(index).toContain('<option value="added">Newest</option>')
+    expect(index).toContain('<option value="installs">Most installed</option>')
     expect(index).not.toContain('Recently added')
     expect(index).not.toContain('>Recent</option>')
     expect(index).not.toContain('Recently Updated')
+    expect(index).not.toContain('Featured First')
+    expect(index).not.toContain('>Featured</option>')
+    expect(index).not.toContain('value="featured"')
     expect(index.match(/value="recent"/g)).toHaveLength(2)
     expect(index.match(/value="added"/g)).toHaveLength(2)
+    expect(index.match(/value="installs"/g)).toHaveLength(2)
     expect(index).toContain('sortCatalogPorts(list, sortBy.value)')
     expect(index).toContain('ref<CatalogSort>(DEFAULT_CATALOG_SORT)')
     expect(index).toContain("watch(sortBy, (value) => trackFilter('sort', value))")
@@ -208,10 +244,23 @@ describe('catalog sort', () => {
       props: { filter: 'sort', value: 'added' }
     })
     expect(normalized?.props).toEqual({ filter: 'sort', value: 'added' })
+    const installsSort = normalizeAnalyticsBody({
+      event: 'filter_used',
+      path: '/',
+      props: { filter: 'sort', value: 'installs' }
+    })
+    expect(installsSort?.props).toEqual({ filter: 'sort', value: 'installs' })
 
-    const sql = readFileSync(new URL('../supabase/migrations/20261009200000_analytics_events.sql', import.meta.url), 'utf8')
+    const migrationsDir = new URL('../supabase/migrations/', import.meta.url)
+    const filterConstraints = readdirSync(migrationsDir).filter(name => {
+      const text = readFileSync(new URL(name, migrationsDir), 'utf8')
+      return text.includes('analytics_events_filter_used')
+    })
+    expect(filterConstraints).toEqual(['20261009200000_analytics_events.sql'])
+    const sql = readFileSync(new URL('20261009200000_analytics_events.sql', migrationsDir), 'utf8')
     expect(sql).toContain("'sort'")
     expect(sql).toContain("char_length(coalesce(props->>'value', '')) between 1 and 60")
+    expect(sql).not.toContain("props->>'value' in")
     expect(catalogCategoryFromQuery('decompilation')).toBe('decompilation')
     expect(catalogCategoryFromQuery('nope')).toBe('all')
     expect(index).toContain('catalogCategoryFromQuery(route.query.cat)')
