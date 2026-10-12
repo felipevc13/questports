@@ -31,9 +31,12 @@
     <!-- Header Section (Title & Meta) -->
     <div class="space-y-2">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono uppercase bg-secondary text-secondary-foreground border border-border">
+        <NuxtLink
+          :to="`/?cat=${encodeURIComponent(port.category)}`"
+          class="inline-flex min-h-11 items-center rounded border border-border bg-secondary px-2 py-0.5 font-mono text-xs uppercase text-secondary-foreground transition-colors hover:text-primary hover:underline md:min-h-0"
+        >
           {{ formatCategory(port.category) }}
-        </span>
+        </NuxtLink>
         <span
           :class="port.status === 'released' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'"
           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono border"
@@ -49,6 +52,20 @@
           class="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary"
         />
       </div>
+
+      <ul
+        v-if="detailHeadsets.length"
+        class="m-0 flex list-none flex-wrap gap-1 p-0"
+        aria-label="Supported headsets"
+      >
+        <li
+          v-for="headset in detailHeadsets"
+          :key="headset"
+          class="inline-flex items-center rounded border border-border px-2 py-0.5 font-mono text-xs text-muted-foreground"
+        >
+          {{ headset }}
+        </li>
+      </ul>
 
       <div class="flex min-w-0 flex-col justify-between gap-2 sm:flex-row sm:items-baseline">
         <h1 class="min-w-0 break-words text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
@@ -1386,6 +1403,7 @@ import { softenGuideHtml } from '~/lib/guideHtml'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 import { buildInstallVerificationBody } from '~/lib/installVerification'
 import { canonicalHeadset } from '~/lib/verification'
+import { normalizeHeadsetList } from '~/lib/headsets'
 import { missingPortError } from '~/lib/missingPort'
 import { isLowSpaceError, isUserCancel, reinstallWarningCopy } from '~/lib/installFlow'
 import {
@@ -1423,6 +1441,7 @@ const { inApp } = useAppBridge()
 const connectChrome = computed(() => questConnectChrome(questAdb.connectionPhase.value, questAdb.isConnected.value))
 
 const { data: port } = await useAsyncData(`port-${slug}`, () => fetchPortBySlug(slug))
+const detailHeadsets = computed(() => normalizeHeadsetList(port.value?.supported_hardware))
 
 if (missingPortError(port.value)) {
   throw createError({ statusCode: 404, fatal: true, statusMessage: 'Port not found' })
