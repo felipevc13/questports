@@ -188,9 +188,14 @@ describe('catalog sort', () => {
     expect(ports.map(port => port.title)).toEqual(['Bravo', 'Alpha', 'Charlie', 'Delta'])
   })
 
-  it('offers Recently added in both sort menus and tracks it as filter_used sort', () => {
+  it('labels newest-created and last-update sorts without changing their values', () => {
     const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
-    expect(index).toContain('<option value="added">Recently added</option>')
+    expect(index).toContain('<option value="recent">Recently updated</option>')
+    expect(index).toContain('<option value="added">Newest</option>')
+    expect(index).not.toContain('Recently added')
+    expect(index).not.toContain('>Recent</option>')
+    expect(index).not.toContain('Recently Updated')
+    expect(index.match(/value="recent"/g)).toHaveLength(2)
     expect(index.match(/value="added"/g)).toHaveLength(2)
     expect(index).toContain('sortCatalogPorts(list, sortBy.value)')
     expect(index).toContain('ref<CatalogSort>(DEFAULT_CATALOG_SORT)')
