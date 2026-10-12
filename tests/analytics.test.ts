@@ -148,7 +148,8 @@ describe('analytics allowlist', () => {
       expect(decision.row?.path).toBe('/app')
     }
     expect(decide({ body: { event: 'install_click', path: '/' } }).record).toBe(false)
-    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr' } }).row?.port_slug ?? null).toBeNull()
+    expect(decide({ body: { event: 'banner_view', path: '/' } }).row?.port_slug ?? null).toBeNull()
+    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr' } }).row?.port_slug).toBe('iron-lung-vr')
     expect(clientAnalyticsPayload('banner_click', { path: '/' })?.event).toBe('banner_click')
     expect(clientAnalyticsPayload('banner_dismiss', { path: '/' })?.props ?? null).toBeNull()
   })
