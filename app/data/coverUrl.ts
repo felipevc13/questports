@@ -4,7 +4,7 @@ const SITE_ORIGIN = 'https://questports.vercel.app'
 export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'
 /** Bump when a cover file changes. Paired with a year-long immutable cache. */
-export const COVER_CACHE_VERSION = '2'
+export const COVER_CACHE_VERSION = '3'
 /** Cache-busted absolute URL for the site-wide 1200×630 share card. */
 export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=${COVER_CACHE_VERSION}`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
