@@ -187,3 +187,42 @@ export function versionToWrite(plan) {
   if (plan.action !== 'update') return undefined
   return plan.latest_version || undefined
 }
+
+/**
+ * Date to store, or null to leave last_github_update alone.
+ * Only the selected Quest/Android release's published_at is eligible.
+ * A missing or older stored value moves forward. An equal or newer stored
+ * value stays, so the column never moves backward.
+ * @param {string | null | undefined} stored
+ * @param {string | null | undefined} publishedAt
+ * @returns {string | null}
+ */
+export function githubUpdateToWrite(stored, publishedAt) {
+  const nextRaw = typeof publishedAt === 'string' ? publishedAt.trim() : ''
+  if (!nextRaw) return null
+  const next = Date.parse(nextRaw)
+  if (!Number.isFinite(next)) return null
+  const storedRaw = typeof stored === 'string' ? stored.trim() : ''
+  if (!storedRaw) return nextRaw
+  const current = Date.parse(storedRaw)
+  if (!Number.isFinite(current) || next > current) return nextRaw
+  return null
+}
+
+/**
+ * Columns to PATCH. latest_version is included only when the plan adopts one.
+ * last_github_update is included whenever the eligible published_at is newer
+ * than the stored value, including when the version does not change.
+ * @param {ReturnType<typeof planPortUpdate>} plan
+ * @param {string | null | undefined} storedUpdate
+ * @returns {{ latest_version?: string, last_github_update?: string }}
+ */
+export function portSyncPatch(plan, storedUpdate) {
+  /** @type {{ latest_version?: string, last_github_update?: string }} */
+  const body = {}
+  const version = versionToWrite(plan)
+  if (version) body.latest_version = version
+  const date = githubUpdateToWrite(storedUpdate, plan?.published_at)
+  if (date) body.last_github_update = date
+  return body
+}

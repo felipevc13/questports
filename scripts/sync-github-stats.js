@@ -1,6 +1,11 @@
 /**
- * Refresh ports.latest_version from GitHub releases that actually ship a
- * Quest or Android build.
+ * Refresh ports.latest_version and ports.last_github_update from GitHub
+ * releases that actually ship a Quest or Android build.
+ *
+ * latest_version changes only when the selected release is a newer catalog
+ * version. last_github_update moves forward to that release's published_at
+ * even when the version stays the same. It never moves backward. Drafts and
+ * desktop-only releases stay ineligible.
  *
  * Dry-run (prints the writes, does not PATCH):
  *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node --experimental-strip-types scripts/sync-github-stats.js --dry-run
@@ -8,7 +13,7 @@
  * The service role key is a GitHub Actions secret. It is never printed.
  */
 import fs from 'node:fs'
-import { planPortUpdate, versionToWrite } from './lib/selectQuestRelease.js'
+import { planPortUpdate, portSyncPatch, versionToWrite } from './lib/selectQuestRelease.js'
 
 let env = {}
 if (fs.existsSync('.env')) {
@@ -63,7 +68,8 @@ const repos = [
   { slug: 'road-rash-jailbreak-vr', repo: 'dubrovskiy-yevhen-stakelogic/road-rash-jailbreak' },
   { slug: 'perfect-dark-vr', repo: 'Alex-LeTux/perfect_dark_VR' },
   { slug: 'avp-vr', repo: 'Bassquake/Aliens-Versus-Predator-VR' },
-  { slug: 'questsam', repo: 'maranone/QuestSam' }
+  { slug: 'questsam', repo: 'maranone/QuestSam' },
+  { slug: 'nolf-vr', repo: 'alex-nax/relith' }
 ]
 
 function describePlan(slug, plan) {
@@ -168,7 +174,9 @@ async function run() {
   for (const item of repos) {
     try {
       const releases = await fetchAllReleases(item.repo, ghHeaders)
-      const current = catalog.get(item.slug)?.latest_version ?? null
+      const row = catalog.get(item.slug)
+      const current = row?.latest_version ?? null
+      const storedUpdate = row?.last_github_update ?? null
       const plan = planPortUpdate(current, releases)
       const written = versionToWrite(plan)
       if (written === 'Latest' || written === 'latest') {
@@ -176,10 +184,11 @@ async function run() {
       }
       console.log(describePlan(item.slug, plan))
 
-      if (!written) continue
-
-      const body = { latest_version: written }
-      if (plan.published_at) body.last_github_update = plan.published_at
+      const body = portSyncPatch(plan, storedUpdate)
+      if (Object.keys(body).length === 0) continue
+      if (body.last_github_update && !body.latest_version) {
+        console.log(`  date ${storedUpdate || 'null'} -> ${body.last_github_update}`)
+      }
       if (dryRun) {
         writes += 1
         continue
@@ -193,7 +202,7 @@ async function run() {
     }
   }
 
-  console.log(`--- ${dryRun ? 'Dry run' : 'Sync'} finished: ${writes} version change(s), ${failures} failure(s) ---`)
+  console.log(`--- ${dryRun ? 'Dry run' : 'Sync'} finished: ${writes} write(s), ${failures} failure(s) ---`)
   if (failures) process.exit(1)
 }
 

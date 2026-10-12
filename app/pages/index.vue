@@ -107,8 +107,8 @@
                 v-model="sortBy"
                 class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
               >
-                <option value="recent">⚡ Recently Updated</option>
-                <option value="added">Recently added</option>
+                <option value="recent">Recently updated</option>
+                <option value="added">Newest</option>
                 <option value="az">A–Z (Alphabetical)</option>
                 <option value="featured">Featured First</option>
               </select>
@@ -270,8 +270,8 @@
             aria-label="Sort"
             class="h-11 appearance-none rounded-md border border-border bg-muted/80 pl-2.5 pr-7 text-base text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           >
-            <option value="recent">Recent</option>
-            <option value="added">Recently added</option>
+            <option value="recent">Recently updated</option>
+            <option value="added">Newest</option>
             <option value="az">A–Z</option>
             <option value="featured">Featured</option>
           </select>
