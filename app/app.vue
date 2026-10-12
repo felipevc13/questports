@@ -1,5 +1,8 @@
 <template>
   <div class="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+    <ClientOnly>
+      <QuestAppBanner />
+    </ClientOnly>
     <Navbar />
     <main class="flex-1">
       <NuxtPage />

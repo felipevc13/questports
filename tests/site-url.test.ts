@@ -14,7 +14,8 @@ describe('canonical page URL', () => {
 describe('sitemap', () => {
   it('lists the catalog home and each port slug once', () => {
     const paths = sitemapPaths(['halocequest', 'halocequest', 'not a slug', '../secret'])
-    expect(paths).toEqual(['/', '/ports/halocequest'])
+    expect(paths).toEqual(['/', '/app', '/ports/halocequest'])
+    expect(buildSitemapXml(paths)).toContain('<loc>https://questports.vercel.app/app</loc>')
     const xml = buildSitemapXml(paths)
     expect(xml).toContain('<loc>https://questports.vercel.app/</loc>')
     expect(xml).toContain('<loc>https://questports.vercel.app/ports/halocequest</loc>')

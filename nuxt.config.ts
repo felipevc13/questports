@@ -55,6 +55,7 @@ export default defineNuxtConfig({
    */
   routeRules: {
     '/': { isr: { expiration: 3600, passQuery: true } },
+    '/app': { isr: { expiration: 3600, passQuery: true } },
     '/ports/**': { isr: { expiration: 3600, passQuery: true } },
     '/covers/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/previews/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },

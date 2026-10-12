@@ -19,7 +19,10 @@ export const ANALYTICS_EVENTS = [
   'search_no_results',
   'unsupported_browser_view',
   'video_preview_play',
-  'tip_click'
+  'tip_click',
+  'banner_view',
+  'banner_click',
+  'banner_dismiss'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -104,6 +107,20 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'install_step',
   'video_preview_play'
 ])
+
+/** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
+export const QUESTPORTS_APP_INSTALL_PATH = '/app'
+
+const APP_PAGE_INSTALL_EVENTS: ReadonlySet<AnalyticsEventName> = new Set([
+  'install_click',
+  'install_success',
+  'install_error',
+  'install_step'
+])
+
+export function allowsMissingPortSlug(event: AnalyticsEventName, path: string | null): boolean {
+  return path === QUESTPORTS_APP_INSTALL_PATH && APP_PAGE_INSTALL_EVENTS.has(event)
+}
 
 const EVENTS_WITH_REF: ReadonlySet<AnalyticsEventName> = new Set([
   'page_view',
@@ -580,7 +597,7 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   const webusb = typeof record.webusb === 'boolean' ? record.webusb : null
   const props = readProps(record.props)
 
-  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug) return null
+  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug && !allowsMissingPortSlug(record.event, path)) return null
   if (record.event === 'page_view' && !path) return null
 
   let storedProps: Record<string, string | number | boolean> | null = null

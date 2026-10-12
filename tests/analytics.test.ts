@@ -109,7 +109,10 @@ describe('analytics allowlist', () => {
       'search_no_results',
       'unsupported_browser_view',
       'video_preview_play',
-      'tip_click'
+      'tip_click',
+      'banner_view',
+      'banner_click',
+      'banner_dismiss'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
@@ -134,6 +137,22 @@ describe('analytics allowlist', () => {
     expect(decide({ body: { event: 'port_view', path: '/' } }).record).toBe(false)
   })
 
+  it('records the QuestPorts app install on /app without a catalog slug', () => {
+    for (const event of ['install_click', 'install_success', 'install_step', 'install_error'] as const) {
+      const body: Record<string, unknown> = { event, path: '/app' }
+      if (event === 'install_error') body.props = { reason: 'adb_fail' }
+      if (event === 'install_step') body.props = { step: 'install_apk', status: 'ok' }
+      const decision = decide({ body })
+      expect(decision.record, event).toBe(true)
+      expect(decision.row?.port_slug ?? null).toBeNull()
+      expect(decision.row?.path).toBe('/app')
+    }
+    expect(decide({ body: { event: 'install_click', path: '/' } }).record).toBe(false)
+    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr' } }).row?.port_slug ?? null).toBeNull()
+    expect(clientAnalyticsPayload('banner_click', { path: '/' })?.event).toBe('banner_click')
+    expect(clientAnalyticsPayload('banner_dismiss', { path: '/' })?.props ?? null).toBeNull()
+  })
+
   it('keeps the migration allowlist, indexes, and private grants in sync', () => {
     const sql = readFileSync(
       new URL('../supabase/migrations/20261009200000_analytics_events.sql', import.meta.url),
@@ -143,20 +162,31 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261009230000_analytics_funnel_events.sql', import.meta.url),
       'utf8'
     )
+    const appBannerEvents = ['banner_view', 'banner_click', 'banner_dismiss']
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click'].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click') continue
+      if (event === 'tip_click' || appBannerEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
       new URL('../supabase/migrations/20261011180000_analytics_tip_click.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(tipClick).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (event === 'banner_view' || event === 'banner_click' || event === 'banner_dismiss') continue
+      expect(tipClick).toContain(`'${event}'`)
+    }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
+    const appBanner = readFileSync(
+      new URL('../supabase/migrations/20261012130000_analytics_app_banner.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(appBanner).toContain(`'${event}'`)
+    expect(appBanner).toContain('drop constraint if exists analytics_events_event_check')
+    expect(tipClick).not.toContain("'banner_view'")
     expect(tipClick).toContain('analytics_events_tip_click_check')
     expect(tipClick).toContain("props->>'surface' in ('install_success', 'footer')")
     expect(funnel).not.toContain("'tip_click'")

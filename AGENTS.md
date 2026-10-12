@@ -137,9 +137,9 @@ Related tables and views:
 
 ### Analytics and privacy
 
-Event names are the check constraint `analytics_events_event_check`. The current list is in `app/lib/analytics.ts` `ANALYTICS_EVENTS` and was last updated by `20261011180000_analytics_tip_click.sql`:
+Event names are the check constraint `analytics_events_event_check`. The current list is in `app/lib/analytics.ts` `ANALYTICS_EVENTS` and was last updated by `20261012130000_analytics_app_banner.sql`:
 
-`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`.
+`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_view`, `banner_click`, `banner_dismiss`.
 
 A **new event name** needs a migration that drops and re-adds `analytics_events_event_check` (same pattern as the funnel migration) **and** a matching entry in `ANALYTICS_EVENTS`. `props` allowlists are separate constraints (`install_error` reasons, `install_step`, `filter_used`, `search`, `video_preview_play`, `tip_click` surface). `too_large` was added that way in `20261010120000_analytics_too_large.sql`. If the constraint does not mention the new value, the insert fails.
 
