@@ -1,12 +1,15 @@
 <template>
-  <NuxtLink
-    :to="`${toPrefix || '/ports'}/${port.slug}`"
+  <div
     @mouseenter="armPreview"
     @mouseleave="stopPreview"
     @focusin="armPreview"
     @focusout="stopPreview"
     :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
-    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all block text-card-foreground"
+    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all text-card-foreground"
+  >
+  <NuxtLink
+    :to="`${toPrefix || '/ports'}/${port.slug}`"
+    class="flex flex-1 flex-col text-inherit"
   >
     <div ref="headerEl" class="relative aspect-[460/215] w-full overflow-hidden bg-muted">
       <img
@@ -72,6 +75,35 @@
           <path d="M8 5v14l11-7z"/>
         </svg>
       </span>
+
+      <!-- Touch only. The same markup is server-rendered; the media query hides it where hover already plays the clip. -->
+      <span
+        v-if="hasVideo && !isPlayingPreview"
+        role="button"
+        tabindex="0"
+        class="catalog-touch-preview absolute bottom-1.5 right-1.5 z-30 min-h-11 items-center gap-1 rounded border border-white/15 bg-black/70 px-2 text-[10px] font-mono text-white/80"
+        aria-label="Play preview"
+        @click.stop.prevent="onPreviewTap"
+        @keydown.enter.stop.prevent="onPreviewTap"
+        @keydown.space.stop.prevent="onPreviewTap"
+      >
+        <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <span>Preview</span>
+      </span>
+      <span
+        v-else-if="hasVideo && isPlayingPreview"
+        role="button"
+        tabindex="0"
+        class="catalog-touch-preview absolute bottom-1.5 right-1.5 z-30 min-h-11 items-center justify-center rounded border border-white/15 bg-black/70 px-2 text-[10px] font-mono text-white/80"
+        aria-label="Close preview"
+        @click.stop.prevent="onPreviewTap"
+        @keydown.enter.stop.prevent="onPreviewTap"
+        @keydown.space.stop.prevent="onPreviewTap"
+      >
+        Close
+      </span>
     </div>
 
     <div class="flex flex-1 flex-col gap-1 border-t border-border p-3">
@@ -102,6 +134,7 @@
       </span>
     </div>
   </NuxtLink>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -110,6 +143,7 @@ import type { Port } from '~/types/port'
 import type { PortVerification } from '~/lib/verification'
 import { portVerificationSignal } from '~/lib/verification'
 import { canHoverPreview, previewMp4Url, PREVIEW_HOVER_MS } from '~/data/videoPreviews'
+import { claimVideoPreviewPlay } from '~/lib/analytics'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
@@ -174,12 +208,44 @@ const videoPreviewSource = computed(() => {
 
 const hasVideo = computed(() => Boolean(videoPreviewSource.value))
 
+const { track } = useTrack()
+
+const trackCardPreview = () => {
+  if (!import.meta.client) return
+  if (!claimVideoPreviewPlay(window.sessionStorage, props.port.slug)) return
+  track('video_preview_play', {
+    path: `/ports/${props.port.slug}`,
+    portSlug: props.port.slug,
+    props: { surface: 'card' }
+  })
+}
+
+const onPreviewTap = () => {
+  if (!hasVideo.value) return
+  if (hoverTimer) {
+    clearTimeout(hoverTimer)
+    hoverTimer = null
+  }
+  const playing = !isPlayingPreview.value
+  isPlayingPreview.value = playing
+  if (playing) trackCardPreview()
+}
+
+const keepPreviewOnCard = (event: MouseEvent) => {
+  const target = event.target
+  if (!(target instanceof Element) || !target.closest('.catalog-touch-preview')) return
+  event.preventDefault()
+  event.stopPropagation()
+  onPreviewTap()
+}
+
 const handleVideoError = () => {
   localVideoFailed.value = true
   isPlayingPreview.value = false
 }
 
 const stopPreview = () => {
+  if (!canHoverPreview()) return
   if (hoverTimer) {
     clearTimeout(hoverTimer)
     hoverTimer = null
@@ -206,6 +272,7 @@ watch(isPlayingPreview, async (playing) => {
 })
 
 onMounted(() => {
+  headerEl.value?.addEventListener('click', keepPreviewOnCard, true)
   if (showCover.value) return
   const el = headerEl.value
   if (!el || typeof IntersectionObserver === 'undefined') {
@@ -222,7 +289,20 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  headerEl.value?.removeEventListener('click', keepPreviewOnCard, true)
   if (hoverTimer) clearTimeout(hoverTimer)
   coverObserver?.disconnect()
 })
 </script>
+
+<style scoped>
+.catalog-touch-preview {
+  display: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .catalog-touch-preview {
+    display: inline-flex;
+  }
+}
+</style>
