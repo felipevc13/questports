@@ -634,6 +634,8 @@
               </div>
             </div>
 
+            <KofiTip surface="install_success" />
+
             <div
               v-if="spaceNotice || questAdb.installSpaceWarning.value"
               data-testid="space-notice"

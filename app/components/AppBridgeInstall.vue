@@ -114,29 +114,32 @@
       <div
         v-if="installed && phase !== 'downloading' && phase !== 'installing'"
         data-testid="app-install-installed"
-        class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5"
+        class="space-y-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5"
       >
-        <span class="text-xs font-semibold text-emerald-400">Installed</span>
-        <div class="flex items-center gap-2">
-          <button
-            v-if="canUpdate"
-            type="button"
-            data-testid="app-install-update"
-            class="inline-flex min-h-11 items-center rounded bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-black hover:bg-amber-400 md:min-h-0"
-            @click="startInstall"
-          >
-            Update
-          </button>
-          <button
-            v-if="packageName"
-            type="button"
-            data-testid="app-install-open"
-            class="inline-flex min-h-11 items-center rounded bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 md:min-h-0"
-            @click="openApp"
-          >
-            Open
-          </button>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-emerald-400">Installed</span>
+          <div class="flex items-center gap-2">
+            <button
+              v-if="canUpdate"
+              type="button"
+              data-testid="app-install-update"
+              class="inline-flex min-h-11 items-center rounded bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-black hover:bg-amber-400 md:min-h-0"
+              @click="startInstall"
+            >
+              Update
+            </button>
+            <button
+              v-if="packageName"
+              type="button"
+              data-testid="app-install-open"
+              class="inline-flex min-h-11 items-center rounded bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 md:min-h-0"
+              @click="openApp"
+            >
+              Open
+            </button>
+          </div>
         </div>
+        <KofiTip surface="install_success" />
       </div>
 
       <div v-if="showGameFiles" data-testid="game-files-need-pc" class="space-y-1.5">

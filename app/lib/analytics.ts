@@ -18,7 +18,8 @@ export const ANALYTICS_EVENTS = [
   'search',
   'search_no_results',
   'unsupported_browser_view',
-  'video_preview_play'
+  'video_preview_play',
+  'tip_click'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -90,6 +91,10 @@ export interface InstallStepEvent {
 export const VIDEO_PREVIEW_SURFACES = ['card', 'detail'] as const
 
 export type VideoPreviewSurface = (typeof VIDEO_PREVIEW_SURFACES)[number]
+
+export const TIP_CLICK_SURFACES = ['install_success', 'footer'] as const
+
+export type TipClickSurface = (typeof TIP_CLICK_SURFACES)[number]
 
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'port_view',
@@ -531,6 +536,14 @@ function videoPreviewProps(
   return { surface: surface as VideoPreviewSurface }
 }
 
+function tipClickProps(
+  props: Record<string, unknown> | null
+): { surface: TipClickSurface } | null {
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(TIP_CLICK_SURFACES as readonly string[]).includes(surface)) return null
+  return { surface: surface as TipClickSurface }
+}
+
 function unsupportedBrowserProps(
   props: Record<string, unknown> | null
 ): { action: UnsupportedBrowserAction } | null {
@@ -604,6 +617,10 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const preview = videoPreviewProps(props)
     if (!preview) return null
     storedProps = preview
+  } else if (record.event === 'tip_click') {
+    const tip = tipClickProps(props)
+    if (!tip) return null
+    storedProps = tip
   }
 
   if (props?.app === true) {

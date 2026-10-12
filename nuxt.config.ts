@@ -1,4 +1,5 @@
 import { DEFAULT_MEDIA_BASE } from './app/data/coverUrl'
+import { DEFAULT_KOFI_URL } from './app/lib/kofi'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
@@ -22,7 +23,9 @@ export default defineNuxtConfig({
       // Empty string keeps /api/apk-proxy on this origin. Unset uses the Worker.
       apkProxyBase: process.env.NUXT_PUBLIC_APK_PROXY_BASE ?? APK_PROXY_WORKER_BASE,
       // Unset uses the Cloudflare media host. Empty string keeps covers here and disables MP4s.
-      mediaBase: process.env.NUXT_PUBLIC_MEDIA_BASE ?? DEFAULT_MEDIA_BASE
+      mediaBase: process.env.NUXT_PUBLIC_MEDIA_BASE ?? DEFAULT_MEDIA_BASE,
+      // Empty string hides the Ko-fi line and footer link. Unset uses the public page.
+      kofiUrl: process.env.NUXT_PUBLIC_KOFI_URL ?? DEFAULT_KOFI_URL
     }
   },
   /**

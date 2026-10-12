@@ -108,7 +108,8 @@ describe('analytics allowlist', () => {
       'search',
       'search_no_results',
       'unsupported_browser_view',
-      'video_preview_play'
+      'video_preview_play',
+      'tip_click'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
@@ -122,6 +123,7 @@ describe('analytics allowlist', () => {
       if (event === 'search_no_results') body.props = { q: 'no such game' }
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
       if (event === 'video_preview_play') body.props = { surface: 'card' }
+      if (event === 'tip_click') body.props = { surface: 'footer' }
       const decision = decide({ body })
       expect(decision.record, event).toBe(true)
       expect(decision.row?.event).toBe(event)
@@ -142,10 +144,22 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play'].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click'].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
-    for (const event of ANALYTICS_EVENTS) expect(funnel).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (event === 'tip_click') continue
+      expect(funnel).toContain(`'${event}'`)
+    }
+    const tipClick = readFileSync(
+      new URL('../supabase/migrations/20261011180000_analytics_tip_click.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(tipClick).toContain(`'${event}'`)
+    expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
+    expect(tipClick).toContain('analytics_events_tip_click_check')
+    expect(tipClick).toContain("props->>'surface' in ('install_success', 'footer')")
+    expect(funnel).not.toContain("'tip_click'")
     for (const step of INSTALL_STEPS) expect(funnel).toContain(`'${step}'`)
     expect(funnel).toContain('drop constraint if exists analytics_events_event_check')
     expect(funnel).toContain('analytics_events_install_step_check')
@@ -658,6 +672,19 @@ describe('analytics validation', () => {
       portSlug: 'rtcwquest',
       props: { surface: 'modal' }
     })).toBeNull()
+    expect(clientAnalyticsPayload('tip_click', {
+      path: '/',
+      props: { surface: 'footer', ref: 'hn', email: 'drop-me' }
+    })?.props).toEqual({ surface: 'footer' })
+    expect(clientAnalyticsPayload('tip_click', {
+      path: '/ports/iron-lung-vr',
+      props: { surface: 'install_success', app: true }
+    })?.props).toEqual({ surface: 'install_success', app: true })
+    expect(clientAnalyticsPayload('tip_click', {
+      path: '/',
+      props: { surface: 'card' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('tip_click', { path: '/' })).toBeNull()
   })
 
   it('stores ref for the session and keeps it off search events', () => {
