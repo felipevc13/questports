@@ -20,9 +20,14 @@ export const ANALYTICS_EVENTS = [
   'unsupported_browser_view',
   'video_preview_play',
   'tip_click',
-  'banner_view',
+  'banner_shown',
   'banner_click',
-  'banner_dismiss'
+  'banner_dismiss',
+  'modal_shown',
+  'modal_click',
+  'modal_dismiss',
+  'app_page_view',
+  'app_open'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -99,10 +104,22 @@ export const TIP_CLICK_SURFACES = ['install_success', 'footer'] as const
 
 export type TipClickSurface = (typeof TIP_CLICK_SURFACES)[number]
 
-/** Quest Browser banner, or the desktop modal after a game install. No new event names. */
-export const BANNER_SURFACES = ['banner', 'modal'] as const
+/** Where a visit to /app came from. `direct` is a typed URL or an unknown `from`. */
+export const APP_PAGE_SOURCES = ['banner', 'modal', 'nav', 'footer', 'direct'] as const
 
-export type BannerSurface = (typeof BANNER_SURFACES)[number]
+export type AppPageSource = (typeof APP_PAGE_SOURCES)[number]
+
+/** Funnel label stored on app_page_view. The `device` column stays mobile/desktop/tablet. */
+export const APP_FUNNEL_DEVICES = ['quest', 'desktop', 'mobile'] as const
+
+export type AppFunnelDevice = (typeof APP_FUNNEL_DEVICES)[number]
+
+/** App install started from the /app page or the desktop modal. Game installs omit this. */
+export const APP_INSTALL_VIAS = ['page', 'modal'] as const
+
+export type AppInstallVia = (typeof APP_INSTALL_VIAS)[number]
+
+const APP_VERSION_RE = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$/
 
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'port_view',
@@ -566,12 +583,39 @@ function tipClickProps(
   return { surface: surface as TipClickSurface }
 }
 
-function bannerProps(
+export function cleanAppVersion(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const version = value.trim()
+  if (!APP_VERSION_RE.test(version)) return null
+  return version
+}
+
+function appInstallVia(
+  props: Record<string, unknown> | null,
+  path: string | null
+): AppInstallVia | null {
+  if (path !== QUESTPORTS_APP_INSTALL_PATH) return null
+  const via = props && typeof props.via === 'string' ? props.via : ''
+  if (!(APP_INSTALL_VIAS as readonly string[]).includes(via)) return null
+  return via as AppInstallVia
+}
+
+function appPageViewProps(
   props: Record<string, unknown> | null
-): { surface: BannerSurface } | null {
-  const surface = props && typeof props.surface === 'string' ? props.surface : ''
-  if (!(BANNER_SURFACES as readonly string[]).includes(surface)) return null
-  return { surface: surface as BannerSurface }
+): { source: AppPageSource; device: AppFunnelDevice } | null {
+  const source = props && typeof props.source === 'string' ? props.source : ''
+  const device = props && typeof props.device === 'string' ? props.device : ''
+  if (!(APP_PAGE_SOURCES as readonly string[]).includes(source)) return null
+  if (!(APP_FUNNEL_DEVICES as readonly string[]).includes(device)) return null
+  return { source: source as AppPageSource, device: device as AppFunnelDevice }
+}
+
+function appOpenProps(
+  props: Record<string, unknown> | null
+): { version: string; first: boolean } | null {
+  const version = cleanAppVersion(props?.version)
+  if (!version || typeof props?.first !== 'boolean') return null
+  return { version, first: props.first }
 }
 
 function unsupportedBrowserProps(
@@ -615,14 +659,17 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
 
   let storedProps: Record<string, string | number | boolean> | null = null
   if (record.event === 'install_error') {
-    storedProps = installErrorProps(props)
+    const via = appInstallVia(props, path)
+    storedProps = { ...installErrorProps(props), ...(via ? { via } : {}) }
   } else if (record.event === 'install_step') {
     const step = installStepProps(props)
     if (!step) return null
     storedProps = step
   } else if (record.event === 'install_click' || record.event === 'install_success') {
     const ref = campaignRefProps(props)
-    storedProps = ref.ref ? ref : null
+    const via = appInstallVia(props, path)
+    const stored = { ...ref, ...(via ? { via } : {}) }
+    storedProps = Object.keys(stored).length ? stored : null
   } else if (record.event === 'page_view') {
     const ref = campaignRefProps(props)
     storedProps = ref.ref ? ref : null
@@ -651,14 +698,14 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const tip = tipClickProps(props)
     if (!tip) return null
     storedProps = tip
-  } else if (
-    record.event === 'banner_view'
-    || record.event === 'banner_click'
-    || record.event === 'banner_dismiss'
-  ) {
-    const banner = bannerProps(props)
-    if (!banner) return null
-    storedProps = banner
+  } else if (record.event === 'app_page_view') {
+    const page = appPageViewProps(props)
+    if (!page) return null
+    storedProps = page
+  } else if (record.event === 'app_open') {
+    const opened = appOpenProps(props)
+    if (!opened) return null
+    storedProps = opened
   }
 
   if (props?.app === true) {

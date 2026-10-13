@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useQuestBrowser } from '~/composables/useQuestBrowser'
 import { useAppBridge } from '~/composables/useAppBridge'
@@ -171,6 +171,11 @@ import {
   type InstallStepStatus
 } from '~/lib/analytics'
 import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
+import {
+  appPageSourceFromSearch,
+  funnelDeviceFromUserAgent,
+  writeQuestPortsAppInstalled
+} from '~/lib/questAppFunnel'
 
 const page = QUESTPORTS_APP_PAGE
 const sidequestUrl = QUESTPORTS_APP_SIDEQUEST_URL
@@ -192,6 +197,16 @@ const succeeded = ref(false)
 const errorMessage = ref<string | null>(null)
 
 const apkHref = computed(() => questPortsAppApkDownloadUrl(String(runtimeConfig.public.apkProxyBase ?? '')))
+
+onMounted(() => {
+  track('app_page_view', {
+    path: QUESTPORTS_APP_INSTALL_PATH,
+    props: {
+      source: appPageSourceFromSearch(window.location.search),
+      device: funnelDeviceFromUserAgent(navigator.userAgent)
+    }
+  })
+})
 
 const headset = () => questAdb.deviceModel.value || null
 
@@ -236,7 +251,8 @@ const installApp = async () => {
   errorMessage.value = null
   track('install_click', {
     path: QUESTPORTS_APP_INSTALL_PATH,
-    headset: headset()
+    headset: headset(),
+    props: { via: 'page' }
   })
 
   const steps = createInstallStepLedger()
@@ -247,7 +263,7 @@ const installApp = async () => {
       track('install_error', {
         path: QUESTPORTS_APP_INSTALL_PATH,
         headset: headset(),
-        props: { reason: 'no_webusb' }
+        props: { reason: 'no_webusb', via: 'page' }
       })
       return
     }
@@ -280,7 +296,8 @@ const installApp = async () => {
             webusb: questAdb.isWebUsbSupported.value,
             notice: questAdb.connectNotice.value,
             error: questAdb.connectionError.value
-          })
+          }),
+          via: 'page'
         }
       })
       return
@@ -302,15 +319,17 @@ const installApp = async () => {
       progressStep: questAdb.installProgress.value.step
     }) === 'success') {
       succeeded.value = true
+      writeQuestPortsAppInstalled(window.localStorage)
       track('install_success', {
         path: QUESTPORTS_APP_INSTALL_PATH,
-        headset: headset()
+        headset: headset(),
+        props: { via: 'page' }
       })
     } else {
       track('install_error', {
         path: QUESTPORTS_APP_INSTALL_PATH,
         headset: headset(),
-        props: { reason: 'user_cancelled' }
+        props: { reason: 'user_cancelled', via: 'page' }
       })
     }
   } catch (err: unknown) {
@@ -319,7 +338,7 @@ const installApp = async () => {
     track('install_error', {
       path: QUESTPORTS_APP_INSTALL_PATH,
       headset: headset(),
-      props: { reason: installErrorReason(err) }
+      props: { reason: installErrorReason(err), via: 'page' }
     })
   } finally {
     stopProgress()

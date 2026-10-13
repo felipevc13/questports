@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { appBridgeVersionFromUserAgent } from '~/lib/appBridge'
 import {
   ANALYTICS_HOURLY_LIMIT,
   browserFamilyFromUserAgent,
@@ -13,6 +14,7 @@ import {
   referrerHost,
   type NormalizedAnalyticsEvent
 } from '~/lib/analytics'
+import { funnelDeviceFromUserAgent } from '~/lib/questAppFunnel'
 
 export function sha256Hex(value: string): string {
   return createHash('sha256').update(value).digest('hex')
@@ -179,6 +181,22 @@ function toInsertRow(
     browser: browserFamilyFromUserAgent(server.userAgent),
     webusb: event.webusb,
     visitor_hash: server.visitorHash,
-    props: event.props
+    props: stampFunnelProps(event, server.userAgent)
   }
+}
+
+/** The server's user-agent wins for funnel device and the native app version. */
+function stampFunnelProps(
+  event: NormalizedAnalyticsEvent,
+  userAgent: string
+): Record<string, string | number | boolean> | null {
+  if (event.event === 'app_page_view' && event.props) {
+    return { ...event.props, device: funnelDeviceFromUserAgent(userAgent) }
+  }
+  if (event.event === 'app_open' && event.props) {
+    const version = appBridgeVersionFromUserAgent(userAgent)
+    if (!version) return event.props
+    return { ...event.props, version }
+  }
+  return event.props
 }

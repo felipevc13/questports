@@ -80,9 +80,9 @@ import { QUESTPORTS_APP_PAGE, QUESTPORTS_APP_RELEASE_URL } from '~/data/questPor
 import {
   QUESTPORTS_APP_INSTALL_PATH,
   apkInstallOutcome,
-  installErrorReason,
-  type BannerSurface
+  installErrorReason
 } from '~/lib/analytics'
+import { readQuestPortsAppInstalled, writeQuestPortsAppInstalled } from '~/lib/questAppFunnel'
 import {
   QUEST_APP_MODAL_BODY,
   QUEST_APP_MODAL_HREF,
@@ -107,7 +107,6 @@ const questBrowser = useQuestBrowser()
 const { inApp } = useAppBridge()
 const { track } = useTrack()
 
-const modalSurface: { surface: BannerSurface } = { surface: 'modal' }
 const successCopy = QUESTPORTS_APP_PAGE.success
 
 const dismissed = ref(false)
@@ -130,6 +129,7 @@ const eligible = computed(() => shouldShowQuestAppInstallModal({
     typeof window === 'undefined' ? null : window.localStorage
   ),
   appInstalled: isQuestPortsAppInstalled(questAdb.installedPackages.value)
+    || readQuestPortsAppInstalled(typeof window === 'undefined' ? null : window.localStorage)
 }))
 
 const dialogOpen = computed(() => holding.value === 'open' || holding.value === 'done' || installing.value)
@@ -151,17 +151,22 @@ const remember = () => {
   writeQuestAppModalDismissed(window.localStorage)
 }
 
+const rememberInstalled = () => {
+  remember()
+  writeQuestPortsAppInstalled(window.localStorage)
+}
+
 watch(eligible, (show) => {
   if (!show || holding.value !== 'closed' || viewed.value) return
   holding.value = 'open'
   viewed.value = true
-  track('banner_view', { path: route.path, props: modalSurface })
+  track('modal_shown', { path: route.path })
 })
 
 const notNow = () => {
   remember()
   holding.value = 'closed'
-  track('banner_dismiss', { path: route.path, props: modalSurface })
+  track('modal_dismiss', { path: route.path })
 }
 
 const onDialogOpen = (open: boolean) => {
@@ -181,14 +186,15 @@ const cancelInstall = async () => {
 const installApp = async () => {
   if (installing.value) return
   errorMessage.value = null
-  track('banner_click', { path: route.path, props: modalSurface })
+  track('modal_click', { path: route.path })
   if (!questAdb.isConnected.value) {
     errorMessage.value = 'The Quest disconnected. Plug it back in and use Install QuestPorts App on the app page.'
     return
   }
   track('install_click', {
     path: QUESTPORTS_APP_INSTALL_PATH,
-    headset: headset()
+    headset: headset(),
+    props: { via: 'modal' }
   })
   installing.value = true
   try {
@@ -199,17 +205,18 @@ const installApp = async () => {
     }) === 'success') {
       succeeded.value = true
       holding.value = 'done'
-      remember()
+      rememberInstalled()
       track('install_success', {
         path: QUESTPORTS_APP_INSTALL_PATH,
-        headset: headset()
+        headset: headset(),
+        props: { via: 'modal' }
       })
       await questAdb.updatePackages()
     } else {
       track('install_error', {
         path: QUESTPORTS_APP_INSTALL_PATH,
         headset: headset(),
-        props: { reason: 'user_cancelled' }
+        props: { reason: 'user_cancelled', via: 'modal' }
       })
     }
   } catch (err: unknown) {
@@ -219,7 +226,7 @@ const installApp = async () => {
     track('install_error', {
       path: QUESTPORTS_APP_INSTALL_PATH,
       headset: headset(),
-      props: { reason: installErrorReason(err) }
+      props: { reason: installErrorReason(err), via: 'modal' }
     })
   } finally {
     installing.value = false

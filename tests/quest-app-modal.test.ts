@@ -88,19 +88,20 @@ describe('QuestPorts app install modal', () => {
     expect(QUEST_APP_MODAL_NOT_NOW).toBe('Not now')
     expect(QUEST_APP_MODAL_INSTALL).toBe('Install app')
     expect(QUEST_APP_MODAL_LEARN_MORE).toBe('Learn more')
-    expect(QUEST_APP_MODAL_HREF).toBe('/app')
-    expect(clientAnalyticsPayload('banner_view', {
-      path: '/ports/rtcwquest',
-      props: { surface: 'modal' }
-    })?.props).toEqual({ surface: 'modal' })
-    expect(clientAnalyticsPayload('banner_click', {
-      path: '/ports/rtcwquest',
-      props: { surface: 'modal' }
-    })?.event).toBe('banner_click')
-    expect(clientAnalyticsPayload('banner_dismiss', {
-      path: '/ports/rtcwquest',
-      props: { surface: 'modal' }
-    })?.event).toBe('banner_dismiss')
+    expect(QUEST_APP_MODAL_HREF).toBe('/app?from=modal')
+    expect(clientAnalyticsPayload('modal_shown', {
+      path: '/ports/rtcwquest'
+    })?.event).toBe('modal_shown')
+    expect(clientAnalyticsPayload('modal_click', {
+      path: '/ports/rtcwquest'
+    })?.event).toBe('modal_click')
+    expect(clientAnalyticsPayload('modal_dismiss', {
+      path: '/ports/rtcwquest'
+    })?.event).toBe('modal_dismiss')
+    expect(clientAnalyticsPayload('install_click', {
+      path: '/app',
+      props: { via: 'modal' }
+    })?.props).toEqual({ via: 'modal' })
   })
 
   it('arms the modal only after a successful game install on the port page', () => {
@@ -114,7 +115,11 @@ describe('QuestPorts app install modal', () => {
     expect(successAt).toBeGreaterThan(connectAt)
     expect(page.slice(connectAt, recordAt)).not.toContain('questAppModalAfterInstall.value = true')
     expect(page).toContain('<QuestAppInstallModal :install-succeeded="questAppModalAfterInstall" />')
-    expect(modal).toContain("surface: 'modal'")
+    expect(modal).toContain("track('modal_shown'")
+    expect(modal).toContain("track('modal_click'")
+    expect(modal).toContain("track('modal_dismiss'")
+    expect(modal).toContain("via: 'modal'")
+    expect(modal).toContain('writeQuestPortsAppInstalled')
     expect(modal).toContain('installApkUrl(QUESTPORTS_APP_RELEASE_URL')
     expect(modal).toContain('QUESTPORTS_APP_INSTALL_PATH')
     expect(modal).not.toContain('questAdb.connect(')

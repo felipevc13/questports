@@ -19,7 +19,7 @@ export const QUEST_APP_MODAL_INSTALL = 'Install app'
 
 export const QUEST_APP_MODAL_LEARN_MORE = 'Learn more'
 
-export const QUEST_APP_MODAL_HREF = '/app'
+export const QUEST_APP_MODAL_HREF = '/app?from=modal'
 
 export interface QuestAppModalInput {
   /** A game install just succeeded. Connecting the headset is not enough. */

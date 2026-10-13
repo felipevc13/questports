@@ -4,6 +4,7 @@ import { APK_PROXY_WORKER_BASE } from '../app/lib/apkProxyPolicy'
 import { isAppBridgeSession } from '../app/lib/appBridge'
 import { isQuestBrowserClient, isQuestBrowserSession, isQuestBrowserUserAgent } from '../app/lib/questBrowser'
 import {
+  isPhoneOrTabletBrowser,
   QUEST_APP_BANNER_COPY,
   QUEST_APP_BANNER_HREF,
   QUEST_APP_BANNER_STORAGE_KEY,
@@ -12,6 +13,15 @@ import {
   shouldShowQuestAppBanner,
   writeQuestAppBannerDismissed
 } from '../app/lib/questAppBanner'
+import {
+  appOpenDecision,
+  appPageSourceFromSearch,
+  funnelDeviceFromUserAgent,
+  questAppHref,
+  readQuestPortsAppInstalled,
+  writeQuestPortsAppInstalled,
+  QUESTPORTS_APP_INSTALLED_KEY
+} from '../app/lib/questAppFunnel'
 import {
   QUESTPORTS_APP_PAGE,
   QUESTPORTS_APP_RELEASE_URL,
@@ -26,6 +36,15 @@ const CHROME_UA =
 
 const APP_UA =
   'Mozilla/5.0 (Linux; Android 12; Quest 3 Build/SQ3A.220605.009.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.230 Mobile Safari/537.36 QuestPortsApp/1.0.108'
+
+const PHONE_UA =
+  'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+
+const TABLET_UA =
+  'Mozilla/5.0 (Linux; Android 13; SM-X200) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+const QUEST_ANDROID_UA =
+  'Mozilla/5.0 (Linux; Android 12; Quest 3) AppleWebKit/537.36 (KHTML, like Gecko) OculusBrowser/33.0.0.0 Chrome/120.0.0.0 Safari/537.36'
 
 function memoryStorage() {
   const values = new Map<string, string>()
@@ -117,6 +136,34 @@ describe('Quest app banner visibility', () => {
     })).toBe(false)
 
     expect(questAppBannerPath('/app/?questBrowser=1')).toBe('/app')
+
+    expect(isPhoneOrTabletBrowser({ questBrowser: false, userAgent: PHONE_UA })).toBe(true)
+    expect(isPhoneOrTabletBrowser({ questBrowser: false, userAgent: TABLET_UA })).toBe(true)
+    expect(isPhoneOrTabletBrowser({ questBrowser: true, userAgent: QUEST_ANDROID_UA })).toBe(false)
+    expect(shouldShowQuestAppBanner({
+      questBrowser: false,
+      inApp: false,
+      dismissed: false,
+      handheld: true,
+      path: '/'
+    })).toBe(false)
+    expect(shouldShowQuestAppBanner({
+      questBrowser: isQuestBrowserSession({ userAgent: QUEST_ANDROID_UA, search: '' }),
+      inApp: false,
+      dismissed: false,
+      handheld: isPhoneOrTabletBrowser({
+        questBrowser: isQuestBrowserSession({ userAgent: QUEST_ANDROID_UA, search: '' }),
+        userAgent: QUEST_ANDROID_UA
+      }),
+      path: '/'
+    })).toBe(true)
+    expect(shouldShowQuestAppBanner({
+      questBrowser: true,
+      inApp: false,
+      dismissed: false,
+      appInstalled: true,
+      path: '/'
+    })).toBe(false)
   })
 
   it('remembers a dismiss in localStorage and ignores a broken store', () => {
@@ -156,15 +203,24 @@ describe('Quest app banner visibility', () => {
     expect(app).toContain('<QuestAppBanner />')
     expect(banner).toContain('onMounted')
     expect(banner).toContain('readQuestAppBannerDismissed')
-    expect(banner).toContain("track('banner_view'")
+    expect(banner).toContain("track('banner_shown'")
     expect(banner).toContain("track('banner_click'")
     expect(banner).toContain("track('banner_dismiss'")
+    expect(banner).toContain('readQuestPortsAppInstalled')
     expect(banner.indexOf('readQuestAppBannerDismissed')).toBeGreaterThan(banner.indexOf('onMounted'))
-    expect(footer).toContain('to="/app"')
+    expect(footer).toContain('to="/app?from=footer"')
+    expect(footer).toContain('data-testid="footer-app-link"')
+    const navbar = readFileSync(new URL('../app/components/Navbar.vue', import.meta.url), 'utf8')
+    expect(navbar).toContain('data-testid="nav-app-link"')
+    expect(navbar).toContain('to="/app?from=nav"')
+    expect(navbar).toContain('App')
     expect(page).toContain('questBrowserNote')
     expect(page).toContain('installApkUrl(QUESTPORTS_APP_RELEASE_URL')
     expect(page).toContain("track('install_click'")
     expect(page).toContain("track('install_success'")
+    expect(page).toContain("track('app_page_view'")
+    expect(page).toContain('writeQuestPortsAppInstalled')
+    expect(page).toContain("via: 'page'")
     expect(page).toContain('data-testid="app-quest-browser-note"')
     expect(page).toContain('v-if="index === 2 && questBrowser"')
     expect(page).toContain('v-if="!questBrowser && !installing && !succeeded"')
@@ -185,5 +241,32 @@ describe('Quest app banner visibility', () => {
       `/api/apk-proxy?url=${encodeURIComponent(QUESTPORTS_APP_RELEASE_URL)}&redirect=1`
     )
     expect(questPortsAppApkDownloadUrl(null)).toContain('questports-apk-proxy.questports.workers.dev')
+  })
+
+  it('remembers a site install and classifies the /app funnel', () => {
+    const storage = memoryStorage()
+    expect(readQuestPortsAppInstalled(storage)).toBe(false)
+    writeQuestPortsAppInstalled(storage)
+    expect(storage.getItem(QUESTPORTS_APP_INSTALLED_KEY)).toBe('1')
+    expect(readQuestPortsAppInstalled(storage)).toBe(true)
+    expect(questAppHref('banner')).toBe('/app?from=banner')
+    expect(questAppHref('footer')).toBe('/app?from=footer')
+    expect(appPageSourceFromSearch('?from=nav')).toBe('nav')
+    expect(appPageSourceFromSearch('?from=modal')).toBe('modal')
+    expect(appPageSourceFromSearch('?from=nope')).toBe('direct')
+    expect(appPageSourceFromSearch('')).toBe('direct')
+    expect(funnelDeviceFromUserAgent(OCULUS_UA)).toBe('quest')
+    expect(funnelDeviceFromUserAgent(QUEST_ANDROID_UA)).toBe('quest')
+    expect(funnelDeviceFromUserAgent(APP_UA)).toBe('quest')
+    expect(funnelDeviceFromUserAgent(CHROME_UA)).toBe('desktop')
+    expect(funnelDeviceFromUserAgent(PHONE_UA)).toBe('mobile')
+    expect(funnelDeviceFromUserAgent(TABLET_UA)).toBe('mobile')
+    expect(appOpenDecision({ version: '1.0.108', seen: false, alreadySent: false })).toEqual({ version: '1.0.108', first: true })
+    expect(appOpenDecision({ version: '1.0.108', seen: true, alreadySent: false })).toEqual({ version: '1.0.108', first: false })
+    expect(appOpenDecision({ version: '1.0.108', seen: false, alreadySent: true })).toBeNull()
+    expect(appOpenDecision({ version: 'not a version', seen: false, alreadySent: false })).toBeNull()
+    const plugin = readFileSync(new URL('../app/plugins/analytics.client.ts', import.meta.url), 'utf8')
+    expect(plugin).toContain("track('app_open'")
+    expect(plugin).toContain('appOpenDecision')
   })
 })
