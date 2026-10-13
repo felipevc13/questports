@@ -58,6 +58,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'majoras-mask-vr',
   'nolf-vr',
   'ocarina-of-time-vr',
+  'opencmr2-vr',
   'perfect-dark-vr',
   'ppsspp-vr',
   'preyvr',
@@ -383,5 +384,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Wipeout Rewrite VR
   'wipeout-rewrite-vr': { start: '4:00', end: '4:15' },
-  'AEBOyDJPsjQ': { start: '4:00', end: '4:15' }
+  'AEBOyDJPsjQ': { start: '4:00', end: '4:15' },
+
+  // OpenCMR2 VR (Colin McRae Rally 2.0)
+  'opencmr2-vr': { start: '1:30', end: '1:45' },
+  'is6Sk_i0mbE': { start: '1:30', end: '1:45' }
 }
