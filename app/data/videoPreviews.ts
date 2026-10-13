@@ -79,6 +79,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sm64-coop-dx-vr',
   'sourcevr',
   'starfox-enhanced-vr',
+  'strikers-quest-mr',
   'time-crisis-2-vr',
   'time-crisis-vr',
   'twilight-princess-vr',
@@ -393,5 +394,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Virtua Cop VR
   'virtua-cop-vr': { start: '0:22', end: '0:37' },
-  '1qCQorbbdPc': { start: '0:22', end: '0:37' }
+  '1qCQorbbdPc': { start: '0:22', end: '0:37' },
+
+  // Strikers Quest MR (Super Mario Strikers)
+  'strikers-quest-mr': { start: '7:00', end: '7:15' },
+  'ZklIJja40Io': { start: '7:00', end: '7:15' }
 }
