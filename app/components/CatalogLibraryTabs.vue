@@ -22,8 +22,8 @@
       <span
         v-if="count > 0"
         data-testid="library-count"
-        class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold tabular-nums leading-none text-foreground"
-      >{{ count }}</span>
+        class="library-count bg-muted text-foreground"
+      ><span>{{ count }}</span></span>
     </NuxtLink>
   </nav>
 </template>
