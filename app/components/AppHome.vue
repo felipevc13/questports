@@ -14,7 +14,12 @@
           :data-testid="`app-tab-${item.id}`"
           @click="tab = item.id"
         >
-          {{ item.label }}
+          <span>{{ item.label }}</span>
+          <span
+            v-if="item.id === 'library' && libraryRows.length > 0"
+            data-testid="library-count"
+            class="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-background px-1 text-[10px] font-semibold tabular-nums leading-none text-foreground"
+          >{{ libraryRows.length }}</span>
         </button>
       </div>
 
@@ -30,7 +35,8 @@
           </button>
         </div>
         <ul v-else class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-          <li v-for="row in libraryRows" :key="row.port.id" class="flex items-center gap-3 px-3 py-2.5">
+          <li v-for="row in libraryRows" :key="row.port.id" class="px-3 py-2.5">
+            <div class="flex flex-wrap items-center gap-3">
             <NuxtLink :to="`/ports/${row.port.slug}`" class="flex min-w-0 flex-1 items-center gap-3">
               <img
                 :src="coverThumbUrl(row.port.cover_image_url, mediaBase)"
@@ -61,6 +67,43 @@
             >
               {{ updatingSlug === row.port.slug ? 'Updating…' : 'Update' }}
             </button>
+            <button
+              v-if="canUninstall"
+              type="button"
+              data-testid="library-uninstall"
+              class="inline-flex min-h-11 shrink-0 items-center rounded border border-border px-3 text-xs font-semibold text-muted-foreground"
+              @click="askUninstall(row.port.slug)"
+            >
+              Uninstall
+            </button>
+            </div>
+            <div
+              v-if="canUninstall && confirmSlug === row.port.slug"
+              data-testid="library-uninstall-confirm"
+              class="mt-2 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2"
+            >
+              <p class="text-xs text-foreground">Uninstall {{ row.port.title }} from this headset?</p>
+              <p v-if="uninstallError" class="mt-1 text-[11px] text-rose-300">{{ uninstallError }}</p>
+              <div class="mt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  class="inline-flex min-h-11 items-center rounded border border-border px-3 text-xs font-medium text-muted-foreground"
+                  :disabled="uninstallingSlug === row.port.slug"
+                  @click="cancelUninstall"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  data-testid="library-uninstall-yes"
+                  class="inline-flex min-h-11 items-center rounded bg-rose-600 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                  :disabled="uninstallingSlug === row.port.slug"
+                  @click="confirmUninstall(row)"
+                >
+                  {{ uninstallingSlug === row.port.slug ? 'Uninstalling…' : 'Uninstall' }}
+                </button>
+              </div>
+            </div>
           </li>
         </ul>
         <p v-if="updateError" class="text-xs text-rose-300">{{ updateError }}</p>
@@ -142,13 +185,15 @@ import {
   APP_BRIDGE_EVENT,
   appBridgeApkUrl,
   appUpdateAvailable,
+  bridgeCanUninstall,
   ensureMockAppBridge,
+  requestBridgeUninstall,
   whenAppBridgeReady,
   type AppBridgeEventDetail
 } from '~/lib/appBridge'
 import { APP_PACKAGE_NAME, APP_RELEASES_LATEST, parseLatestAppRelease, type AppReleaseView } from '~/lib/appReleaseCheck'
 import { appStartTab, firstInstalledPackage, type AppTab } from '~/lib/headsetPackages'
-import { APP_RELEASE_SERIAL, readInstalledRelease } from '~/lib/installedRelease'
+import { APP_RELEASE_SERIAL, forgetInstalledRelease, readInstalledRelease } from '~/lib/installedRelease'
 import { formatPortVersion } from '~/lib/portVersion'
 import { useTrack } from '~/composables/useTrack'
 import { useQuestAdb } from '~/composables/useQuestAdb'
@@ -179,6 +224,10 @@ const installedBySlug = ref<Record<string, string>>({})
 const updatingSlug = ref('')
 const activeRequest = ref('')
 const updateError = ref('')
+const confirmSlug = ref('')
+const uninstallingSlug = ref('')
+const uninstallError = ref('')
+let stopUninstallWatch = () => {}
 const checking = ref(false)
 const checked = ref(false)
 const appCheck = ref<AppReleaseView | null>(null)
@@ -207,6 +256,8 @@ const libraryRows = computed(() => {
 })
 
 const updateCount = computed(() => libraryRows.value.filter(row => row.update).length)
+
+const canUninstall = computed(() => ready.value && import.meta.client && bridgeCanUninstall(window.QuestPortsApp))
 
 const catalogPorts = computed(() => {
   const list = props.ports || []
@@ -276,6 +327,56 @@ const onBridgeEvent = (event: Event) => {
     activeRequest.value = ''
     if (detail.status === 'error') updateError.value = detail.error || 'Update failed.'
   }
+}
+
+const packageStillInstalled = (packageName: string) =>
+  libraryRows.value.some(row => row.packageName === packageName)
+
+const finishBridgeUninstall = (packageName: string) => {
+  scanInstalled()
+  if (packageStillInstalled(packageName)) {
+    uninstallError.value = 'Confirm the uninstall on the headset.'
+    stopUninstallWatch()
+    const onChange = () => {
+      if (document.visibilityState !== 'visible') return
+      scanInstalled()
+      if (packageStillInstalled(packageName)) return
+      forgetInstalledRelease(window.localStorage, APP_RELEASE_SERIAL, packageName)
+      uninstallError.value = ''
+      confirmSlug.value = ''
+      document.removeEventListener('visibilitychange', onChange)
+    }
+    document.addEventListener('visibilitychange', onChange)
+    stopUninstallWatch = () => document.removeEventListener('visibilitychange', onChange)
+    return
+  }
+  forgetInstalledRelease(window.localStorage, APP_RELEASE_SERIAL, packageName)
+  uninstallError.value = ''
+  confirmSlug.value = ''
+}
+
+const askUninstall = (slug: string) => {
+  confirmSlug.value = slug
+  uninstallError.value = ''
+}
+
+const cancelUninstall = () => {
+  if (uninstallingSlug.value) return
+  confirmSlug.value = ''
+  uninstallError.value = ''
+}
+
+const confirmUninstall = async (row: { port: Port, packageName: string }) => {
+  if (uninstallingSlug.value || !canUninstall.value) return
+  uninstallingSlug.value = row.port.slug
+  uninstallError.value = ''
+  const result = await requestBridgeUninstall(window.QuestPortsApp, row.packageName)
+  uninstallingSlug.value = ''
+  if (result !== 'started') {
+    uninstallError.value = 'Uninstall was not started.'
+    return
+  }
+  finishBridgeUninstall(row.packageName)
 }
 
 const updateGame = (row: { port: Port, packageName: string }) => {
@@ -362,6 +463,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopBridgeWait()
+  stopUninstallWatch()
   if (searchTrackTimer) clearTimeout(searchTrackTimer)
   if (!import.meta.client) return
   window.removeEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
