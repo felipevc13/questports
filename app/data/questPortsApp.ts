@@ -51,7 +51,10 @@ export const QUESTPORTS_APP_PAGE = {
       body: 'Plug the headset in with a USB data cable and accept the USB debugging prompt inside the headset.'
     }
   ],
-  questBrowserNote: 'You are in the Quest browser. Step 3 has to be done on a PC. This browser cannot install onto the headset.',
+  pcInstallMessage: 'Open this page on a PC with Chrome or Edge to install with one click.',
+  pcInstallUrl: 'questports.vercel.app/app',
+  copyUrl: 'Copy',
+  copiedUrl: 'Copied',
   inAppNote: 'You are already in the QuestPorts app. It installs ports from the headset and updates itself.',
   installButton: 'Install QuestPorts App',
   connectingButton: 'Connecting…',

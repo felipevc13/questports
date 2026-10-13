@@ -54,73 +54,88 @@
           <div class="min-w-0 space-y-1">
             <p class="text-sm font-semibold text-foreground">{{ step.title }}</p>
             <p class="text-sm leading-relaxed text-muted-foreground">{{ step.body }}</p>
-            <p
-              v-if="index === 2 && questBrowser"
-              data-testid="app-quest-browser-note"
-              role="status"
-              class="text-sm font-medium leading-relaxed text-amber-200"
-            >
-              {{ page.questBrowserNote }}
-            </p>
           </div>
         </li>
       </ol>
 
       <div v-if="!inApp" class="space-y-3 pt-1">
-        <button
-          v-if="!questBrowser && !installing && !succeeded"
-          type="button"
-          data-testid="install-questports-app"
-          class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary/90 disabled:opacity-60"
-          :disabled="connecting"
-          @click="installApp"
-        >
-          {{ connecting ? page.connectingButton : page.installButton }}
-        </button>
+        <template v-if="oneClick">
+          <button
+            v-if="!installing && !succeeded"
+            type="button"
+            data-testid="install-questports-app"
+            class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary/90 disabled:opacity-60"
+            :disabled="connecting"
+            @click="installApp"
+          >
+            {{ connecting ? page.connectingButton : page.installButton }}
+          </button>
 
-        <TransferProgress
-          v-if="installing"
-          :message="questAdb.installProgress.value.message || page.connectingButton"
-          :percent="questAdb.installProgress.value.percent"
-          :indeterminate="Boolean(questAdb.installProgress.value.indeterminate)"
-          :received-label="questAdb.installProgress.value.receivedLabel"
-          :show-cancel="canCancelInstall"
-          :locked-note="installLockedNote"
-          @cancel="cancelInstall"
-        />
+          <TransferProgress
+            v-if="installing"
+            :message="questAdb.installProgress.value.message || page.connectingButton"
+            :percent="questAdb.installProgress.value.percent"
+            :indeterminate="Boolean(questAdb.installProgress.value.indeterminate)"
+            :received-label="questAdb.installProgress.value.receivedLabel"
+            :show-cancel="canCancelInstall"
+            :locked-note="installLockedNote"
+            @cancel="cancelInstall"
+          />
 
-        <p
-          v-if="succeeded"
-          data-testid="app-install-success"
+          <p
+            v-if="succeeded"
+            data-testid="app-install-success"
+            role="status"
+            class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm leading-relaxed text-emerald-100"
+          >
+            {{ page.success }}
+          </p>
+
+          <p
+            v-if="errorMessage"
+            data-testid="app-install-error"
+            role="alert"
+            class="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm leading-relaxed text-rose-100"
+          >
+            {{ errorMessage }}
+          </p>
+
+          <p
+            v-else-if="questAdb.connectionError.value"
+            role="alert"
+            class="text-sm leading-relaxed text-rose-200"
+          >
+            {{ questAdb.connectionError.value }}
+          </p>
+          <p
+            v-else-if="questAdb.connectNotice.value"
+            role="status"
+            class="text-sm leading-relaxed text-muted-foreground"
+          >
+            {{ questAdb.connectNotice.value }}
+          </p>
+        </template>
+
+        <div
+          v-else-if="installOfferReady"
+          data-testid="app-pc-install"
           role="status"
-          class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm leading-relaxed text-emerald-100"
+          class="space-y-2"
         >
-          {{ page.success }}
-        </p>
-
-        <p
-          v-if="errorMessage"
-          data-testid="app-install-error"
-          role="alert"
-          class="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm leading-relaxed text-rose-100"
-        >
-          {{ errorMessage }}
-        </p>
-
-        <p
-          v-else-if="questAdb.connectionError.value"
-          role="alert"
-          class="text-sm leading-relaxed text-rose-200"
-        >
-          {{ questAdb.connectionError.value }}
-        </p>
-        <p
-          v-else-if="questAdb.connectNotice.value"
-          role="status"
-          class="text-sm leading-relaxed text-muted-foreground"
-        >
-          {{ questAdb.connectNotice.value }}
-        </p>
+          <p class="text-sm leading-relaxed text-foreground">{{ page.pcInstallMessage }}</p>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span data-testid="app-pc-install-url" class="font-mono text-sm text-foreground">{{ page.pcInstallUrl }}</span>
+            <button
+              type="button"
+              data-testid="app-copy-install-url"
+              class="inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm font-semibold hover:bg-accent"
+              :class="urlCopied ? 'text-emerald-400' : 'text-foreground'"
+              @click="copyInstallUrl"
+            >
+              {{ urlCopied ? page.copiedUrl : page.copyUrl }}
+            </button>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <a
@@ -146,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useQuestBrowser } from '~/composables/useQuestBrowser'
 import { useAppBridge } from '~/composables/useAppBridge'
@@ -176,6 +191,8 @@ import {
   funnelDeviceFromUserAgent,
   writeQuestPortsAppInstalled
 } from '~/lib/questAppFunnel'
+import { copyTextToClipboard } from '~/lib/questBrowser'
+import { canOneClickInstallQuestApp, QUEST_APP_INSTALL_PAGE_URL } from '~/lib/questAppInstallOffer'
 
 const page = QUESTPORTS_APP_PAGE
 const sidequestUrl = QUESTPORTS_APP_SIDEQUEST_URL
@@ -195,10 +212,22 @@ const connecting = ref(false)
 const installing = ref(false)
 const succeeded = ref(false)
 const errorMessage = ref<string | null>(null)
+const installOfferReady = ref(false)
+const installUserAgent = ref('')
+const urlCopied = ref(false)
+let copyTimer: ReturnType<typeof setTimeout> | undefined
+
+const oneClick = computed(() => installOfferReady.value && canOneClickInstallQuestApp({
+  webusb: questAdb.isWebUsbSupported.value,
+  questBrowser: questBrowser.value,
+  userAgent: installUserAgent.value
+}))
 
 const apkHref = computed(() => questPortsAppApkDownloadUrl(String(runtimeConfig.public.apkProxyBase ?? '')))
 
 onMounted(() => {
+  installUserAgent.value = navigator.userAgent
+  installOfferReady.value = true
   track('app_page_view', {
     path: QUESTPORTS_APP_INSTALL_PATH,
     props: {
@@ -207,6 +236,20 @@ onMounted(() => {
     }
   })
 })
+
+onUnmounted(() => {
+  if (copyTimer) clearTimeout(copyTimer)
+})
+
+const copyInstallUrl = async () => {
+  const ok = await copyTextToClipboard(QUEST_APP_INSTALL_PAGE_URL)
+  if (!ok) return
+  urlCopied.value = true
+  if (copyTimer) clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => {
+    urlCopied.value = false
+  }, 2000)
+}
 
 const headset = () => questAdb.deviceModel.value || null
 
@@ -247,7 +290,7 @@ const cancelInstall = async () => {
 }
 
 const installApp = async () => {
-  if (inApp.value || questBrowser.value || installing.value || connecting.value) return
+  if (inApp.value || !oneClick.value || installing.value || connecting.value) return
   errorMessage.value = null
   track('install_click', {
     path: QUESTPORTS_APP_INSTALL_PATH,
