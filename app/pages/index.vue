@@ -1,5 +1,6 @@
 <template>
-  <div class="space-y-8">
+  <AppHome v-if="inApp" :ports="ports" :verifications="verificationRecords" />
+  <div v-else class="space-y-8">
     <!-- Hero Section: Clean, Direct, High Signal -->
     <section class="border-b border-border bg-card/30 pb-3 pt-4 md:pb-6 md:pt-8">
       <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10">
@@ -485,6 +486,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Port, PortCategory, PortStatus } from '~/types/port'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { useAppBridge } from '~/composables/useAppBridge'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
@@ -500,6 +502,7 @@ const { track } = useTrack()
 const { fetchPorts } = usePorts()
 const suggestModal = useSuggestModal()
 const questAdb = useQuestAdb()
+const { inApp } = useAppBridge()
 
 const { data: portsData } = await useAsyncData('ports', () => fetchPorts())
 const ports = computed(() => portsData.value || [])

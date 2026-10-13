@@ -1,5 +1,6 @@
 import { installErrorReason, type InstallErrorReason } from '~/lib/analytics'
 import { apkUpdateDecision, type InstalledReleaseRecord } from '~/lib/installedRelease'
+import { buildPackageState } from '~/lib/mockQuest'
 
 /**
  * Native QuestPorts Android wrapper. The headset WebView loads this site and
@@ -36,6 +37,8 @@ export interface QuestPortsAppBridge {
   isInstalled(packageName: string): boolean
   getInstalledVersion(packageName: string): string | null
   launch(packageName: string): boolean
+  /** Real bridge, via the shim. The `?inApp=1` mock uses `version` instead. */
+  getVersion?(): string
   /** Present only on the `?inApp=1` simulator. The real app does not set this. */
   __mock?: boolean
 }
@@ -273,9 +276,54 @@ export function ensureMockAppBridge(search: string): void {
     return
   }
   if (current) return
+  const game = mockInstalledGame(search)
+  let installed: Record<string, string | null> | undefined
+  if (game) {
+    installed = {}
+    for (const [pkg, version] of Object.entries(buildPackageState(game).versions)) {
+      installed[pkg] = version
+    }
+  }
   window.QuestPortsApp = createMockQuestPortsApp({
+    installed,
     emit(detail) {
       window.dispatchEvent(new CustomEvent(APP_BRIDGE_EVENT, { detail }))
     }
   })
+}
+
+/**
+ * The native object is added on page finish, which can be after Vue's mount.
+ * Run now when it is already there. Otherwise wait, then run once.
+ */
+export function whenAppBridgeReady(run: () => void, waitMs = 2000): () => void {
+  const view = globalThis.window
+  if (!view) return () => {}
+  if (view.QuestPortsApp) {
+    run()
+    return () => {}
+  }
+  let stopped = false
+  const started = Date.now()
+  const timer = view.setInterval(() => {
+    if (stopped) return
+    if (view.QuestPortsApp || Date.now() - started >= waitMs) {
+      view.clearInterval(timer)
+      if (!stopped) run()
+    }
+  }, 200)
+  return () => {
+    stopped = true
+    view.clearInterval(timer)
+  }
+}
+
+/** `?mockGame=installed` or `outdated` seeds the in-app simulator. Absent stays empty. */
+function mockInstalledGame(search: string): 'installed' | 'outdated' | null {
+  const hashless = (search || '').split('#')[0] || ''
+  const queryIndex = hashless.indexOf('?')
+  const query = queryIndex >= 0 ? hashless.slice(queryIndex + 1) : hashless
+  const game = new URLSearchParams(query).get('mockGame')
+  if (game === 'installed' || game === 'outdated') return game
+  return null
 }

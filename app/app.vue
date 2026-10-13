@@ -1,10 +1,10 @@
 <template>
   <div class="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
-    <Navbar />
+    <Navbar v-if="!inApp" />
     <main class="flex-1">
       <NuxtPage />
     </main>
-    <Footer />
+    <Footer v-if="!inApp" />
     <!-- Global Suggest / Feedback modals -->
     <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
     <FeedbackModal :is-open="feedbackModal.isOpen.value" :initial-page-path="feedbackModal.pagePath.value" @close="feedbackModal.close" />
@@ -19,6 +19,7 @@ import { computed, onMounted } from 'vue'
 import { useSuggestModal } from '~/composables/useSuggestModal'
 import { useFeedbackModal } from '~/composables/useFeedbackModal'
 import { useQuestAdb } from '~/composables/useQuestAdb'
+import { useAppBridge } from '~/composables/useAppBridge'
 import { canonicalPageUrl } from '~/lib/siteUrl'
 
 const route = useRoute()
@@ -35,6 +36,7 @@ useSeoMeta({
 const suggestModal = useSuggestModal()
 const feedbackModal = useFeedbackModal()
 const questAdb = useQuestAdb()
+const { inApp } = useAppBridge()
 
 onMounted(async () => {
   questAdb.setupUsbEventListeners()
