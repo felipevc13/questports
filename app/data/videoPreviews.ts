@@ -87,6 +87,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'victory-heat-rally-vr',
   'wiicompiled-vr-plus',
   'winlatorxr',
+  'wipeout-rewrite-vr',
   'xrkart-64'
 ]
 
@@ -378,5 +379,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Victory Heat Rally VR
   'victory-heat-rally-vr': { start: '0:26', end: '0:41' },
-  'CRP1pSUZCEU': { start: '0:26', end: '0:41' }
+  'CRP1pSUZCEU': { start: '0:26', end: '0:41' },
+
+  // Wipeout Rewrite VR
+  'wipeout-rewrite-vr': { start: '4:00', end: '4:15' },
+  'AEBOyDJPsjQ': { start: '4:00', end: '4:15' }
 }
