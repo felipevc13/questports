@@ -109,7 +109,15 @@ describe('analytics allowlist', () => {
       'search_no_results',
       'unsupported_browser_view',
       'video_preview_play',
-      'tip_click'
+      'tip_click',
+      'banner_shown',
+      'banner_click',
+      'banner_dismiss',
+      'modal_shown',
+      'modal_click',
+      'modal_dismiss',
+      'app_page_view',
+      'app_open'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
@@ -124,6 +132,8 @@ describe('analytics allowlist', () => {
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
       if (event === 'video_preview_play') body.props = { surface: 'card' }
       if (event === 'tip_click') body.props = { surface: 'footer' }
+      if (event === 'app_page_view') body.props = { source: 'direct', device: 'desktop' }
+      if (event === 'app_open') body.props = { version: '1.0.108', first: true }
       const decision = decide({ body })
       expect(decision.record, event).toBe(true)
       expect(decision.row?.event).toBe(event)
@@ -132,6 +142,41 @@ describe('analytics allowlist', () => {
     expect(decide({ body: { event: 'purchase', path: '/' } }).record).toBe(false)
     expect(decide({ body: { event: 'page_view' } }).reason).toBe('invalid')
     expect(decide({ body: { event: 'port_view', path: '/' } }).record).toBe(false)
+  })
+
+  it('records the QuestPorts app install on /app without a catalog slug', () => {
+    for (const event of ['install_click', 'install_success', 'install_step', 'install_error'] as const) {
+      const body: Record<string, unknown> = { event, path: '/app' }
+      if (event === 'install_error') body.props = { reason: 'adb_fail' }
+      if (event === 'install_step') body.props = { step: 'install_apk', status: 'ok' }
+      const decision = decide({ body })
+      expect(decision.record, event).toBe(true)
+      expect(decision.row?.port_slug ?? null).toBeNull()
+      expect(decision.row?.path).toBe('/app')
+    }
+    expect(decide({ body: { event: 'install_click', path: '/' } }).record).toBe(false)
+    expect(decide({ body: { event: 'banner_shown', path: '/' } }).row?.port_slug ?? null).toBeNull()
+    expect(decide({ body: { event: 'modal_shown', path: '/ports/iron-lung-vr' } }).row?.port_slug).toBe('iron-lung-vr')
+    expect(decide({ body: { event: 'install_click', path: '/app', props: { via: 'page', ref: 'hn' } } }).row?.props).toEqual({ via: 'page', ref: 'hn' })
+    expect(decide({ body: { event: 'install_success', path: '/ports/rtcwquest', portSlug: 'rtcwquest', props: { via: 'page' } } }).row?.props ?? null).toBeNull()
+    expect(decide({ body: { event: 'install_error', path: '/app', props: { reason: 'adb_fail', via: 'modal' } } }).row?.props).toEqual({ reason: 'adb_fail', via: 'modal' })
+    expect(clientAnalyticsPayload('banner_click', { path: '/' })?.event).toBe('banner_click')
+    expect(clientAnalyticsPayload('banner_dismiss', { path: '/', props: { surface: 'banner' } })?.props ?? null).toBeNull()
+    expect(clientAnalyticsPayload('modal_click', { path: '/ports/rtcwquest' })?.event).toBe('modal_click')
+    expect(clientAnalyticsPayload('app_page_view', { path: '/app', props: { source: 'nav', device: 'mobile' } })?.props).toEqual({ source: 'nav', device: 'mobile' })
+    expect(clientAnalyticsPayload('app_page_view', { path: '/app', props: { source: 'email', device: 'desktop' } })).toBeNull()
+    expect(clientAnalyticsPayload('app_open', { path: '/', props: { version: '1.0.108', first: false } })?.props).toEqual({ version: '1.0.108', first: false })
+    expect(clientAnalyticsPayload('app_open', { path: '/', props: { version: '1.0.108', first: 'yes' } })).toBeNull()
+    const questOpen = decide({
+      userAgent: 'Mozilla/5.0 QuestPortsApp/9.9.9',
+      body: { event: 'app_open', path: '/', props: { version: '1.0.108', first: true } }
+    })
+    expect(questOpen.row?.props).toEqual({ version: '9.9.9', first: true })
+    const phonePage = decide({
+      userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36',
+      body: { event: 'app_page_view', path: '/app', props: { source: 'footer', device: 'quest' } }
+    })
+    expect(phonePage.row?.props).toEqual({ source: 'footer', device: 'mobile' })
   })
 
   it('keeps the migration allowlist, indexes, and private grants in sync', () => {
@@ -143,20 +188,49 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261009230000_analytics_funnel_events.sql', import.meta.url),
       'utf8'
     )
+    const appBannerEvents = [
+      'banner_shown',
+      'banner_click',
+      'banner_dismiss',
+      'modal_shown',
+      'modal_click',
+      'modal_dismiss',
+      'app_page_view',
+      'app_open'
+    ]
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click'].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click') continue
+      if (event === 'tip_click' || appBannerEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
       new URL('../supabase/migrations/20261011180000_analytics_tip_click.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(tipClick).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (appBannerEvents.includes(event)) continue
+      expect(tipClick).toContain(`'${event}'`)
+    }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
+    const appBanner = readFileSync(
+      new URL('../supabase/migrations/20261012130000_analytics_app_banner.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(appBanner).toContain(`'${event}'`)
+    expect(appBanner).toContain('drop constraint if exists analytics_events_event_check')
+    expect(appBanner).toContain('analytics_events_app_page_view_check')
+    expect(appBanner).toContain('analytics_events_app_open_check')
+    expect(appBanner).toContain('analytics_events_app_install_via_check')
+    expect(appBanner).toContain("props->>'source' in ('banner', 'modal', 'nav', 'footer', 'direct')")
+    expect(appBanner).toContain("props->>'device' in ('quest', 'desktop', 'mobile')")
+    expect(appBanner).toContain("props->>'via' in ('page', 'modal')")
+    expect(appBanner).not.toContain("'banner_view'")
+    expect(appBanner).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(tipClick).not.toContain("'banner_shown'")
+    expect(tipClick).not.toContain("'app_open'")
     expect(tipClick).toContain('analytics_events_tip_click_check')
     expect(tipClick).toContain("props->>'surface' in ('install_success', 'footer')")
     expect(funnel).not.toContain("'tip_click'")

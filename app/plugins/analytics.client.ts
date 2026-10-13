@@ -1,12 +1,17 @@
 import { useRouter } from 'vue-router'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useTrack } from '~/composables/useTrack'
-import { isAppBridgeClient } from '~/lib/appBridge'
+import { appBridgeVersionFromUserAgent, isAppBridgeClient } from '~/lib/appBridge'
 import { portSlugFromPath } from '~/lib/analytics'
+import {
+  APP_OPEN_SEEN_KEY,
+  APP_OPEN_SESSION_KEY,
+  appOpenDecision
+} from '~/lib/questAppFunnel'
 import { isQuestBrowserSession } from '~/lib/questBrowser'
 import { isWebUsbAvailable } from '~/lib/questInstallUx'
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const router = useRouter()
   const { track } = useTrack()
   const quest = useQuestAdb()
@@ -33,5 +38,30 @@ export default defineNuxtPlugin(() => {
   trackPage(router.currentRoute.value.path)
   router.afterEach((to) => {
     trackPage(to.path)
+  })
+
+  // The native app is a WebView of this site. One app_open per WebView session.
+  nuxtApp.hook('app:mounted', () => {
+    if (!isAppBridgeClient()) return
+    let seen = false
+    let alreadySent = false
+    try {
+      seen = window.localStorage.getItem(APP_OPEN_SEEN_KEY) === '1'
+      alreadySent = window.sessionStorage.getItem(APP_OPEN_SESSION_KEY) === '1'
+    } catch {
+      return
+    }
+    const version = appBridgeVersionFromUserAgent(navigator.userAgent)
+      || window.QuestPortsApp?.version
+      || null
+    const payload = appOpenDecision({ version, seen, alreadySent })
+    if (!payload) return
+    track('app_open', { path: window.location.pathname, props: payload })
+    try {
+      window.sessionStorage.setItem(APP_OPEN_SESSION_KEY, '1')
+      window.localStorage.setItem(APP_OPEN_SEEN_KEY, '1')
+    } catch {
+      // The event already left. A failed write can count the next launch as first again.
+    }
   })
 })

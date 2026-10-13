@@ -1,6 +1,6 @@
 import { SITE_ORIGIN, canonicalPageUrl } from './siteUrl'
 
-export const SITEMAP_STATIC_PATHS = ['/'] as const
+export const SITEMAP_STATIC_PATHS = ['/', '/app'] as const
 
 export function sitemapPaths(slugs: string[]): string[] {
   const paths = new Set<string>(SITEMAP_STATIC_PATHS)

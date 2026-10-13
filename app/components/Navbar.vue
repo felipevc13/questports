@@ -20,6 +20,14 @@
 
       <!-- Navigation & Action Links -->
       <div class="flex shrink-0 items-center gap-1.5 md:gap-2.5">
+        <NuxtLink
+          to="/app?from=nav"
+          data-testid="nav-app-link"
+          class="inline-flex h-11 items-center rounded-md px-2 text-xs font-semibold text-foreground hover:bg-accent md:h-8"
+        >
+          App
+        </NuxtLink>
+
         <!-- Suggest dropdown: game vs feature/bug -->
         <div class="relative" ref="suggestMenuRef">
           <UiButton

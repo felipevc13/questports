@@ -27,6 +27,14 @@
         >
           Feature or bug
         </button>
+        <NuxtLink
+          to="/app?from=footer"
+          data-testid="footer-app-link"
+          class="inline-flex min-h-11 items-center justify-center rounded-md px-2 text-center text-[11px] transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0 md:text-xs"
+        >
+          <span class="md:hidden">App</span>
+          <span class="hidden md:inline">QuestPorts app</span>
+        </NuxtLink>
         <a href="https://github.com/felipevc13/questports" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">GitHub</a>
         <a href="https://sidequestvr.com" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-md px-2 transition-colors hover:text-foreground md:min-h-0 md:justify-start md:px-0">SideQuest</a>
         <KofiTip surface="footer" />

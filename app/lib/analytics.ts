@@ -19,7 +19,15 @@ export const ANALYTICS_EVENTS = [
   'search_no_results',
   'unsupported_browser_view',
   'video_preview_play',
-  'tip_click'
+  'tip_click',
+  'banner_shown',
+  'banner_click',
+  'banner_dismiss',
+  'modal_shown',
+  'modal_click',
+  'modal_dismiss',
+  'app_page_view',
+  'app_open'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -104,6 +112,23 @@ export const TIP_CLICK_SURFACES = ['install_success', 'footer'] as const
 
 export type TipClickSurface = (typeof TIP_CLICK_SURFACES)[number]
 
+/** Where a visit to /app came from. `direct` is a typed URL or an unknown `from`. */
+export const APP_PAGE_SOURCES = ['banner', 'modal', 'nav', 'footer', 'direct'] as const
+
+export type AppPageSource = (typeof APP_PAGE_SOURCES)[number]
+
+/** Funnel label stored on app_page_view. The `device` column stays mobile/desktop/tablet. */
+export const APP_FUNNEL_DEVICES = ['quest', 'desktop', 'mobile'] as const
+
+export type AppFunnelDevice = (typeof APP_FUNNEL_DEVICES)[number]
+
+/** App install started from the /app page or the desktop modal. Game installs omit this. */
+export const APP_INSTALL_VIAS = ['page', 'modal'] as const
+
+export type AppInstallVia = (typeof APP_INSTALL_VIAS)[number]
+
+const APP_VERSION_RE = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$/
+
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'port_view',
   'install_click',
@@ -112,6 +137,20 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'install_step',
   'video_preview_play'
 ])
+
+/** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
+export const QUESTPORTS_APP_INSTALL_PATH = '/app'
+
+const APP_PAGE_INSTALL_EVENTS: ReadonlySet<AnalyticsEventName> = new Set([
+  'install_click',
+  'install_success',
+  'install_error',
+  'install_step'
+])
+
+export function allowsMissingPortSlug(event: AnalyticsEventName, path: string | null): boolean {
+  return path === QUESTPORTS_APP_INSTALL_PATH && APP_PAGE_INSTALL_EVENTS.has(event)
+}
 
 const EVENTS_WITH_REF: ReadonlySet<AnalyticsEventName> = new Set([
   'page_view',
@@ -557,6 +596,41 @@ function tipClickProps(
   return { surface: surface as TipClickSurface }
 }
 
+export function cleanAppVersion(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const version = value.trim()
+  if (!APP_VERSION_RE.test(version)) return null
+  return version
+}
+
+function appInstallVia(
+  props: Record<string, unknown> | null,
+  path: string | null
+): AppInstallVia | null {
+  if (path !== QUESTPORTS_APP_INSTALL_PATH) return null
+  const via = props && typeof props.via === 'string' ? props.via : ''
+  if (!(APP_INSTALL_VIAS as readonly string[]).includes(via)) return null
+  return via as AppInstallVia
+}
+
+function appPageViewProps(
+  props: Record<string, unknown> | null
+): { source: AppPageSource; device: AppFunnelDevice } | null {
+  const source = props && typeof props.source === 'string' ? props.source : ''
+  const device = props && typeof props.device === 'string' ? props.device : ''
+  if (!(APP_PAGE_SOURCES as readonly string[]).includes(source)) return null
+  if (!(APP_FUNNEL_DEVICES as readonly string[]).includes(device)) return null
+  return { source: source as AppPageSource, device: device as AppFunnelDevice }
+}
+
+function appOpenProps(
+  props: Record<string, unknown> | null
+): { version: string; first: boolean } | null {
+  const version = cleanAppVersion(props?.version)
+  if (!version || typeof props?.first !== 'boolean') return null
+  return { version, first: props.first }
+}
+
 function unsupportedBrowserProps(
   props: Record<string, unknown> | null
 ): { action: UnsupportedBrowserAction } | null {
@@ -594,20 +668,24 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   const props = readProps(record.props)
 
   // A navbar connect has no port when it starts from the catalog. Install steps still require a slug.
+  // /app installs the QuestPorts app, which is not a catalog port.
   const navbarConnectStep = record.event === 'install_step' && props?.surface === 'navbar'
-  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug && !navbarConnectStep) return null
+  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug && !allowsMissingPortSlug(record.event, path) && !navbarConnectStep) return null
   if (record.event === 'page_view' && !path) return null
 
   let storedProps: Record<string, string | number | boolean> | null = null
   if (record.event === 'install_error') {
-    storedProps = installErrorProps(props)
+    const via = appInstallVia(props, path)
+    storedProps = { ...installErrorProps(props), ...(via ? { via } : {}) }
   } else if (record.event === 'install_step') {
     const step = installStepProps(props)
     if (!step) return null
     storedProps = step
   } else if (record.event === 'install_click' || record.event === 'install_success') {
     const ref = campaignRefProps(props)
-    storedProps = ref.ref ? ref : null
+    const via = appInstallVia(props, path)
+    const stored = { ...ref, ...(via ? { via } : {}) }
+    storedProps = Object.keys(stored).length ? stored : null
   } else if (record.event === 'page_view') {
     const ref = campaignRefProps(props)
     storedProps = ref.ref ? ref : null
@@ -636,6 +714,14 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const tip = tipClickProps(props)
     if (!tip) return null
     storedProps = tip
+  } else if (record.event === 'app_page_view') {
+    const page = appPageViewProps(props)
+    if (!page) return null
+    storedProps = page
+  } else if (record.event === 'app_open') {
+    const opened = appOpenProps(props)
+    if (!opened) return null
+    storedProps = opened
   }
 
   if (props?.app === true) {
