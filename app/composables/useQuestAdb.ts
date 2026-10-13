@@ -44,6 +44,8 @@ import {
   type ApkStreamKind
 } from '~/lib/apkStreamInstall'
 import { isAppBridgeClient } from '~/lib/appBridge'
+import { filenameFromContentDisposition } from '~/lib/installedRelease'
+import { parsePackageDump } from '~/lib/portVersion'
 import { isQuestBrowserClient } from '~/lib/questBrowser'
 
 export interface InstallProgress {
@@ -76,6 +78,7 @@ const connectNotice = ref<string | null>(null)
 
 const deviceModel = ref<string>('')
 const deviceSerial = ref<string>('')
+const lastInstallAsset = ref<string | null>(null)
 const androidVersion = ref<string>('')
 const batteryLevel = ref<number | null>(null)
 const isCharging = ref(false)
@@ -760,6 +763,7 @@ export const useQuestAdb = () => {
   // Install from local File
   const installApkFile = async (file: File, title: string) => {
     activeAbortController = new AbortController()
+    lastInstallAsset.value = null
     installSpaceWarning.value = null
     if (isMockQuestEnabled()) armMockInstall(activeAbortController.signal)
     try {
@@ -778,6 +782,7 @@ export const useQuestAdb = () => {
   const installApkUrl = async (url: string, title: string) => {
     activeAbortController = new AbortController()
     const signal = activeAbortController.signal
+    lastInstallAsset.value = null
     installSpaceWarning.value = null
     try {
       publishProgress({
@@ -811,6 +816,8 @@ export const useQuestAdb = () => {
         }
         throw new ApkTooLargeError(size, directUrl)
       }
+
+      lastInstallAsset.value = filenameFromContentDisposition(res.headers.get('content-disposition')) || null
 
       if (!res.ok) {
         let detail = `HTTP ${res.status}`
@@ -1256,15 +1263,14 @@ export const useQuestAdb = () => {
     return true
   }
 
-  // Get installed version of a package
-  const getPackageVersion = async (packageName: string): Promise<string | null> => {
-    if (!isConnected.value || !adbInstance) return null
+  // versionName and versionCode from dumpsys. versionName is not the GitHub tag.
+  const getPackageVersion = async (packageName: string): Promise<{ versionName: string | null, versionCode: string | null }> => {
+    if (!isConnected.value || !adbInstance) return { versionName: null, versionCode: null }
     try {
       const dump = await runShell(`dumpsys package ${packageName}`)
-      const match = dump.match(/versionName=([^\s]+)/i)
-      return match && match[1] ? match[1] : null
+      return parsePackageDump(dump)
     } catch {
-      return null
+      return { versionName: null, versionCode: null }
     }
   }
 
@@ -1390,6 +1396,7 @@ export const useQuestAdb = () => {
     dismissConnectNotice,
     deviceModel,
     deviceSerial,
+    lastInstallAsset,
     androidVersion,
     batteryLevel,
     isCharging,
