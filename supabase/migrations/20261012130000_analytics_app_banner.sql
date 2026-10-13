@@ -6,6 +6,9 @@
 -- Native app WebView: app_open props.version and props.first (true on first launch).
 -- Install start/ok/fail reuse install_click, install_success, and install_error
 -- with path /app. props.via is page or modal. Game installs leave via null.
+-- Do not drop analytics_events_install_step_check. 20261013120000 is already
+-- applied and allows install_step props.surface null, navbar, or install.
+-- This file only replaces analytics_events_event_check and adds the funnel checks.
 -- Apply this manually in the Supabase SQL editor. Do not run it from CI.
 
 alter table public.analytics_events drop constraint if exists analytics_events_event_check;

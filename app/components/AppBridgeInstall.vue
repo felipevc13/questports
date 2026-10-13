@@ -137,6 +137,42 @@
             >
               Open
             </button>
+            <button
+              v-if="canUninstall && (matchedPackage || packageName)"
+              type="button"
+              data-testid="app-install-uninstall"
+              class="inline-flex min-h-11 items-center rounded border border-border px-3 text-xs font-semibold text-muted-foreground hover:text-foreground md:min-h-0"
+              @click="showUninstallConfirm = true"
+            >
+              Uninstall
+            </button>
+          </div>
+        </div>
+        <div
+          v-if="canUninstall && showUninstallConfirm"
+          data-testid="app-install-uninstall-confirm"
+          class="space-y-2 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2"
+        >
+          <p class="text-xs text-foreground">Uninstall this game from the headset?</p>
+          <p v-if="uninstallError" class="text-[11px] text-rose-300">{{ uninstallError }}</p>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              class="inline-flex min-h-11 items-center rounded border border-border px-3 text-xs font-medium text-muted-foreground md:min-h-8"
+              :disabled="uninstalling"
+              @click="cancelUninstall"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              data-testid="app-install-uninstall-yes"
+              class="inline-flex min-h-11 items-center rounded bg-rose-600 px-3 text-xs font-semibold text-white disabled:opacity-60 md:min-h-8"
+              :disabled="uninstalling"
+              @click="runUninstall"
+            >
+              {{ uninstalling ? 'Uninstalling…' : 'Uninstall' }}
+            </button>
           </div>
         </div>
         <KofiTip surface="install_success" />
@@ -157,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTrack } from '~/composables/useTrack'
 import {
@@ -168,9 +204,23 @@ import {
   appInstallErrorMessage,
   appInstallStatusLabel,
   appUpdateAvailable,
+  bridgeCanUninstall,
   ensureMockAppBridge,
+  requestBridgeUninstall,
+  whenAppBridgeReady,
   type AppBridgeEventDetail
 } from '~/lib/appBridge'
+import {
+  APP_RELEASE_SERIAL,
+  assetLabelFromDownloadUrl,
+  forgetInstalledRelease,
+  learnInstalledRelease,
+  readInstalledRelease,
+  rememberInstalledRelease,
+  type InstalledReleaseRecord
+} from '~/lib/installedRelease'
+import { formatPortVersion } from '~/lib/portVersion'
+import { firstInstalledPackage } from '~/lib/headsetPackages'
 import {
   GAME_FILES_GUIDE_HREF,
   GAME_FILES_GUIDE_LABEL,
@@ -203,13 +253,27 @@ const phase = ref<'idle' | AppBridgeEventDetail['status']>('idle')
 const progress = ref(0)
 const installed = ref(false)
 const installedVersion = ref<string | null>(null)
+/** Package id the bridge actually found. Often an alt of the catalog primary. */
+const matchedPackage = ref<string | null>(null)
+const installedRelease = ref<InstalledReleaseRecord | null>(null)
 const errorMessage = ref('')
 const activeRequestId = ref('')
 const finished = new Set<string>()
+const bridgeReady = ref(false)
+const showUninstallConfirm = ref(false)
+const uninstalling = ref(false)
+const uninstallError = ref('')
+let stopUninstallWatch = () => {}
+
+const canUninstall = computed(() => bridgeReady.value && bridgeCanUninstall(window.QuestPortsApp))
 
 const progressPercent = computed(() => Math.round(Math.min(1, Math.max(0, progress.value || 0)) * 100))
 const statusLabel = computed(() => appInstallStatusLabel(phase.value, progress.value))
-const canUpdate = computed(() => appUpdateAvailable(installedVersion.value, props.latestVersion))
+const canUpdate = computed(() => appUpdateAvailable(
+  installedVersion.value,
+  props.latestVersion,
+  installedRelease.value
+))
 const showGameFiles = computed(() => props.needsGameFiles && installed.value && phase.value !== 'downloading' && phase.value !== 'installing' && phase.value !== 'error')
 
 const trackInstall = (
@@ -225,32 +289,48 @@ const trackInstall = (
   })
 }
 
-const refreshVersion = () => {
+const syncRelease = () => {
   const pkg = props.packageName
-  const bridge = window.QuestPortsApp
-  if (!pkg || !bridge) {
-    installedVersion.value = null
+  if (!import.meta.client || !pkg) {
+    installedRelease.value = null
     return
   }
-  try {
-    installedVersion.value = bridge.getInstalledVersion(pkg)
-  } catch {
-    installedVersion.value = null
+  let record = readInstalledRelease(window.localStorage, APP_RELEASE_SERIAL, pkg)
+  const learned = learnInstalledRelease(record, installedVersion.value, null)
+  if (learned && record && learned !== record) {
+    rememberInstalledRelease(window.localStorage, learned)
+    record = learned
   }
+  installedRelease.value = record
+}
+
+const rememberAppInstall = () => {
+  const pkg = props.packageName
+  const releaseTag = formatPortVersion(props.latestVersion)
+  if (!import.meta.client || !pkg || !releaseTag) return
+  installedRelease.value = rememberInstalledRelease(window.localStorage, {
+    serial: APP_RELEASE_SERIAL,
+    packageName: pkg,
+    releaseTag,
+    asset: assetLabelFromDownloadUrl(props.downloadUrl) || '',
+    versionName: installedVersion.value,
+    versionCode: null
+  })
 }
 
 const readInstalled = () => {
-  const pkg = props.packageName
   const bridge = window.QuestPortsApp
-  if (!pkg || !bridge) return
+  if (!bridge) return
+  const pkg = firstInstalledPackage(props.slug, name => bridge.isInstalled(name), props.packageName)
+  matchedPackage.value = pkg
+  if (!pkg) return
+  installed.value = true
   try {
-    if (!bridge.isInstalled(pkg)) return
-    installed.value = true
     installedVersion.value = bridge.getInstalledVersion(pkg)
-    if (phase.value === 'idle') phase.value = 'success'
   } catch {
-    // Keep the install button when the bridge cannot answer.
+    installedVersion.value = null
   }
+  if (phase.value === 'idle') phase.value = 'success'
 }
 
 const applyStatus = (detail: AppBridgeEventDetail) => {
@@ -274,7 +354,8 @@ const applyStatus = (detail: AppBridgeEventDetail) => {
     finished.add(detail.requestId)
     phase.value = 'success'
     installed.value = true
-    refreshVersion()
+    readInstalled()
+    rememberAppInstall()
     trackInstall('install_success')
     return
   }
@@ -370,8 +451,54 @@ const cancelInstall = () => {
   }
 }
 
+const cancelUninstall = () => {
+  if (uninstalling.value) return
+  showUninstallConfirm.value = false
+  uninstallError.value = ''
+}
+
+const clearInstalled = (packageName: string) => {
+  forgetInstalledRelease(window.localStorage, APP_RELEASE_SERIAL, packageName)
+  installed.value = false
+  installedVersion.value = null
+  matchedPackage.value = null
+  installedRelease.value = null
+  phase.value = 'idle'
+  showUninstallConfirm.value = false
+  uninstallError.value = ''
+}
+
+const runUninstall = async () => {
+  const pkg = matchedPackage.value || props.packageName
+  if (!pkg || uninstalling.value || !canUninstall.value) return
+  uninstalling.value = true
+  uninstallError.value = ''
+  const result = await requestBridgeUninstall(window.QuestPortsApp, pkg)
+  uninstalling.value = false
+  if (result !== 'started') {
+    uninstallError.value = 'Uninstall was not started.'
+    return
+  }
+  readInstalled()
+  if (matchedPackage.value) {
+    uninstallError.value = 'Confirm the uninstall on the headset.'
+    stopUninstallWatch()
+    const onChange = () => {
+      if (document.visibilityState !== 'visible') return
+      readInstalled()
+      if (matchedPackage.value) return
+      clearInstalled(pkg)
+      document.removeEventListener('visibilitychange', onChange)
+    }
+    document.addEventListener('visibilitychange', onChange)
+    stopUninstallWatch = () => document.removeEventListener('visibilitychange', onChange)
+    return
+  }
+  clearInstalled(pkg)
+}
+
 const openApp = () => {
-  const pkg = props.packageName
+  const pkg = matchedPackage.value || props.packageName
   if (!pkg) return
   try {
     window.QuestPortsApp?.launch(pkg)
@@ -380,13 +507,26 @@ const openApp = () => {
   }
 }
 
+watch(() => props.packageName, () => {
+  readInstalled()
+  syncRelease()
+})
+
+let stopBridgeWait = () => {}
+
 onMounted(() => {
   ensureMockAppBridge(route.fullPath)
-  readInstalled()
+  stopBridgeWait = whenAppBridgeReady(() => {
+    bridgeReady.value = true
+    readInstalled()
+    syncRelease()
+  })
   window.addEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
 })
 
 onUnmounted(() => {
+  stopBridgeWait()
+  stopUninstallWatch()
   window.removeEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
 })
 </script>

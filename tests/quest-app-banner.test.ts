@@ -225,6 +225,10 @@ describe('Quest app banner visibility', () => {
     expect(page).toContain('v-if="index === 2 && questBrowser"')
     expect(page).toContain('v-if="!questBrowser && !installing && !succeeded"')
     expect(page).not.toContain('portPackageMap')
+    const library = QUESTPORTS_APP_PAGE.today.find(item => item.title === 'Library')
+    expect(library?.body.toLowerCase()).toContain('installed')
+    expect(library?.body.toLowerCase()).toContain('update')
+    expect(library?.body.toLowerCase()).toContain('uninstall')
     expect(QUESTPORTS_APP_PAGE.later).toEqual([
       'Game notifications',
       'Steam and GOG game files'

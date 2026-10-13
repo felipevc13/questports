@@ -21,6 +21,10 @@ export const QUESTPORTS_APP_PAGE = {
       body: 'Open a game in the app and install it on the Quest. That install does not need a PC.'
     },
     {
+      title: 'Library',
+      body: 'Lists the games installed on the headset, with a count on the tab. Update a game when a newer catalog version is available, or uninstall it when this copy of the app can remove packages. If a game is already installed, the app opens on Library.'
+    },
+    {
       title: 'Updates itself',
       body: 'The app downloads newer versions of itself from its public GitHub release.'
     }

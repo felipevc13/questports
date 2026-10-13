@@ -228,6 +228,7 @@ describe('analytics allowlist', () => {
     expect(appBanner).toContain("props->>'device' in ('quest', 'desktop', 'mobile')")
     expect(appBanner).toContain("props->>'via' in ('page', 'modal')")
     expect(appBanner).not.toContain("'banner_view'")
+    expect(appBanner).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
     expect(tipClick).not.toContain("'banner_shown'")
     expect(tipClick).not.toContain("'app_open'")
     expect(tipClick).toContain('analytics_events_tip_click_check')

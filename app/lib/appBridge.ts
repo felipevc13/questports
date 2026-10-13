@@ -1,5 +1,6 @@
 import { installErrorReason, type InstallErrorReason } from '~/lib/analytics'
-import { comparePortVersions, numericVersionParts } from '~/lib/versionFormat'
+import { apkUpdateDecision, type InstalledReleaseRecord } from '~/lib/installedRelease'
+import { buildPackageState } from '~/lib/mockQuest'
 
 /**
  * Native QuestPorts Android wrapper. The headset WebView loads this site and
@@ -36,8 +37,45 @@ export interface QuestPortsAppBridge {
   isInstalled(packageName: string): boolean
   getInstalledVersion(packageName: string): string | null
   launch(packageName: string): boolean
+  /**
+   * Starts the system uninstall UI. Absent on QuestPorts 1.0.108.
+   * A later APK must add this on the JavascriptInterface, forward it in the
+   * injected shim, fire Intent.ACTION_DELETE with a `package:` URI, and
+   * declare REQUEST_DELETE_PACKAGES. Return false when the intent was not sent.
+   */
+  uninstall?(packageName: string): boolean | Promise<boolean | void>
+  /** Real bridge, via the shim. The `?inApp=1` mock uses `version` instead. */
+  getVersion?(): string
   /** Present only on the `?inApp=1` simulator. The real app does not set this. */
   __mock?: boolean
+}
+
+/**
+ * QuestPorts 1.0.108 does not expose uninstall. The mock must not invent it.
+ * The Library button stays hidden until `bridge.uninstall` is a real function.
+ */
+export function bridgeCanUninstall(
+  bridge: { uninstall?: unknown } | null | undefined
+): bridge is QuestPortsAppBridge & {
+  uninstall: (packageName: string) => boolean | Promise<boolean | void>
+} {
+  return typeof bridge?.uninstall === 'function'
+}
+
+/** Ask the native bridge to open the system uninstall UI. Never pretends it did. */
+export async function requestBridgeUninstall(
+  bridge: { uninstall?: (packageName: string) => boolean | Promise<boolean | void> } | null | undefined,
+  packageName: string
+): Promise<'missing' | 'rejected' | 'started'> {
+  if (!bridgeCanUninstall(bridge)) return 'missing'
+  const pkg = String(packageName || '').trim()
+  if (!pkg) return 'rejected'
+  try {
+    const result = await bridge.uninstall(pkg)
+    return result === false ? 'rejected' : 'started'
+  } catch {
+    return 'rejected'
+  }
 }
 
 declare global {
@@ -161,11 +199,22 @@ export function appBridgeInstallErrorReason(status: string, error?: string | nul
   return installErrorReason(text || 'error')
 }
 
-/** True when both versions have numeric parts and they are not the same. */
-export function appUpdateAvailable(installed: string | null | undefined, latest: string | null | undefined): boolean {
-  if (!installed || !latest) return false
-  if (numericVersionParts(installed).length === 0 || numericVersionParts(latest).length === 0) return false
-  return comparePortVersions(installed, latest) !== 0
+/**
+ * True when the catalog release is newer than the build this app installed,
+ * or when versionName is a lower patch of the same release line.
+ * A different numbering scheme (versionName 1.0, catalog v2.1) is not an update.
+ */
+export function appUpdateAvailable(
+  installed: string | null | undefined,
+  latest: string | null | undefined,
+  record: InstalledReleaseRecord | null = null
+): boolean {
+  return apkUpdateDecision({
+    installedVersionName: installed,
+    installedVersionCode: null,
+    catalogVersion: latest,
+    record
+  }).outdated
 }
 
 const MOCK_SCRIPT: Array<{ status: AppBridgeStatus; progress?: number }> = [
@@ -262,9 +311,54 @@ export function ensureMockAppBridge(search: string): void {
     return
   }
   if (current) return
+  const game = mockInstalledGame(search)
+  let installed: Record<string, string | null> | undefined
+  if (game) {
+    installed = {}
+    for (const [pkg, version] of Object.entries(buildPackageState(game).versions)) {
+      installed[pkg] = version
+    }
+  }
   window.QuestPortsApp = createMockQuestPortsApp({
+    installed,
     emit(detail) {
       window.dispatchEvent(new CustomEvent(APP_BRIDGE_EVENT, { detail }))
     }
   })
+}
+
+/**
+ * The native object is added on page finish, which can be after Vue's mount.
+ * Run now when it is already there. Otherwise wait, then run once.
+ */
+export function whenAppBridgeReady(run: () => void, waitMs = 2000): () => void {
+  const view = globalThis.window
+  if (!view) return () => {}
+  if (view.QuestPortsApp) {
+    run()
+    return () => {}
+  }
+  let stopped = false
+  const started = Date.now()
+  const timer = view.setInterval(() => {
+    if (stopped) return
+    if (view.QuestPortsApp || Date.now() - started >= waitMs) {
+      view.clearInterval(timer)
+      if (!stopped) run()
+    }
+  }, 200)
+  return () => {
+    stopped = true
+    view.clearInterval(timer)
+  }
+}
+
+/** `?mockGame=installed` or `outdated` seeds the in-app simulator. Absent stays empty. */
+function mockInstalledGame(search: string): 'installed' | 'outdated' | null {
+  const hashless = (search || '').split('#')[0] || ''
+  const queryIndex = hashless.indexOf('?')
+  const query = queryIndex >= 0 ? hashless.slice(queryIndex + 1) : hashless
+  const game = new URLSearchParams(query).get('mockGame')
+  if (game === 'installed' || game === 'outdated') return game
+  return null
 }
