@@ -157,7 +157,7 @@ const questAdb = useQuestAdb()
 const visit = useCatalogVisit()
 
 const isInstalledOnQuest = computed(() => {
-  if (!questAdb.isConnected.value) return false
+  // The Quest app fills this list through the bridge. WebUSB is not connected there.
   return isPortInstalledOnQuest(props.port.slug, questAdb.installedPackages.value)
 })
 
