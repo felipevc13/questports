@@ -34,7 +34,8 @@ const STEAMGRID_COVERS: Record<string, string> = {
   '124a20f62d7b7205775f80b3ecc33645': '/covers/victory-heat-rally-vr.jpg',
   'c0f7d67709012b1ed26535611c19244c': '/covers/wipeout-rewrite-vr.png',
   '158bcb6565a65410463e9685796db61c': '/covers/opencmr2-vr.png',
-  '398436f82bedf94ca19fa91217a19eee': '/covers/virtua-cop-vr.png'
+  '398436f82bedf94ca19fa91217a19eee': '/covers/virtua-cop-vr.png',
+  '28b3db07c0f11d876d811a301a18edb6': '/covers/strikers-quest-mr.jpg'
 }
 
 /** Map Storage, media-host and hotlink covers onto same-origin /covers files. */
