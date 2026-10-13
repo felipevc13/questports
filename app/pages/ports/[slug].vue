@@ -831,8 +831,9 @@
                     <span>Scanning Quest...</span>
                   </span>
                   <template v-else>
-                    <span>Campaigns Ready:</span>
+                    <span>Installed:</span>
                     <span
+                      data-testid="install-part-count"
                       class="font-bold px-1.5 py-0.5 rounded border"
                       :class="installedCampaignsCount > 0 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-muted/60 text-foreground border-border'"
                     >
@@ -892,11 +893,18 @@
                         {{ campaign.name }}
                       </span>
                       <span
-                        v-if="transferredCampaigns[port.id + '-' + campaign.id] || detectedCampaigns[campaign.id]?.exists"
+                        v-if="partState(campaign) === 'ready'"
                         class="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[9px] flex items-center justify-center shrink-0"
-                        title="Campaign Ready on Quest"
+                        title="Campaign files are on the Quest"
                       >
                         ✓
+                      </span>
+                      <span
+                        v-else-if="partState(campaign) === 'installed'"
+                        class="shrink-0 rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
+                        title="Base game package is installed"
+                      >
+                        Installed
                       </span>
                       <span
                         v-else
@@ -1244,11 +1252,11 @@
             </div>
 
             <!-- If multiple campaigns (Lambda1VR, SourceVR, etc.): show Campaign Matrix -->
-            <div v-else class="space-y-3">
+            <div v-else class="space-y-3" data-testid="campaign-parts">
               <div class="flex items-center justify-between">
                 <span class="text-[11px] text-muted-foreground font-mono">Campaigns & DLCs:</span>
-                <span class="text-[10px] font-mono text-primary font-bold">
-                  {{ installedCampaignsCount }} / {{ campaignList.length }} Ready
+                <span data-testid="campaign-part-count" class="text-[10px] font-mono text-primary font-bold">
+                  {{ installedCampaignsCount }} / {{ campaignList.length }}
                 </span>
               </div>
 
@@ -1256,6 +1264,7 @@
                 <div
                   v-for="c in campaignList"
                   :key="c.id"
+                  data-testid="campaign-part"
                   @click="selectCampaign(c.id)"
                   class="p-2 rounded border transition-colors cursor-pointer"
                   :class="currentCampaign?.id === c.id
@@ -1268,10 +1277,18 @@
                         {{ c.name }}
                       </span>
                       <span
-                        v-if="transferredCampaigns[port.id + '-' + c.id]"
+                        v-if="partState(c) === 'ready'"
+                        data-testid="campaign-part-ready"
                         class="shrink-0 whitespace-nowrap rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
                       >
                         Ready
+                      </span>
+                      <span
+                        v-else-if="partState(c) === 'installed'"
+                        data-testid="campaign-part-installed"
+                        class="shrink-0 whitespace-nowrap rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
+                      >
+                        Installed
                       </span>
                       <span
                         v-else
@@ -1292,17 +1309,12 @@
                       {{ isLegitimateStoreUrl(c.storeUrl) ? c.storeName : 'About' }} ↗
                     </a>
                   </div>
-                  <div class="font-mono text-[10px] text-muted-foreground/90 truncate">
-                    📁 {{ c.fullPath }}
+                  <div data-testid="campaign-part-path" class="break-all font-mono text-[10px] text-muted-foreground/90">
+                    {{ c.folder }}/ → {{ c.fullPath }}
                   </div>
-                </div>
-              </div>
-
-              <!-- Active Campaign Details -->
-              <div class="space-y-1 pt-1 border-t border-border/60">
-                <span class="text-[11px] text-muted-foreground block font-mono">{{ extraFilesHeading }}</span>
-                <div class="break-words rounded border border-border/50 bg-muted/30 p-2 font-mono text-[11px] text-foreground">
-                  {{ currentCampaign?.exampleFiles }}
+                  <div v-if="c.exampleFiles" data-testid="campaign-part-files" class="mt-0.5 break-words text-[10px] leading-snug text-muted-foreground">
+                    {{ c.exampleFiles }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1361,6 +1373,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
+import { campaignPartState, countInstalledParts } from '~/lib/campaignParts'
+import { APP_BRIDGE_EVENT, whenAppBridgeReady } from '~/lib/appBridge'
+import { firstInstalledPackage } from '~/lib/headsetPackages'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import {
   AUTHORIZE_PROMPT_LEAD,
@@ -1835,14 +1850,78 @@ const isCurrentCampaignTransferred = computed(() => {
   return !!transferredCampaigns.value[targetKey]
 })
 
-const installedCampaignsCount = computed(() => {
-  const currentPort = port.value
-  if (!currentPort) return 0
-  return campaignList.value.filter(c => {
-    const targetKey = `${currentPort.id}-${c.id}`
-    return !!transferredCampaigns.value[targetKey] || !!detectedCampaigns.value[c.id]?.exists
-  }).length
+/** App bridge saw the package (primary or alt). WebUSB uses the package list below. */
+const bridgePackageInstalled = ref(false)
+
+const readBridgePackage = () => {
+  if (!import.meta.client || !slug) {
+    bridgePackageInstalled.value = false
+    return
+  }
+  const bridge = window.QuestPortsApp
+  if (!bridge || typeof bridge.isInstalled !== 'function') {
+    bridgePackageInstalled.value = false
+    return
+  }
+  const found = firstInstalledPackage(
+    slug,
+    name => bridge.isInstalled(name),
+    PORT_PACKAGE_CONFIGS[slug]?.packageName
+  )
+  if (!found) {
+    bridgePackageInstalled.value = false
+    return
+  }
+  try {
+    bridge.getInstalledVersion(found)
+  } catch {
+    // The id is enough. A version read can throw for a package the bridge just reported.
+  }
+  bridgePackageInstalled.value = true
+}
+
+let stopBridgeWait = () => {}
+let listeningForBridge = false
+
+onMounted(() => {
+  // Desktop WebUSB fills installedPackages on its own. The app bridge arrives
+  // after hydration, the same way the Library tab waits for it.
+  if (!inApp.value && !window.QuestPortsApp) return
+  listeningForBridge = true
+  stopBridgeWait = whenAppBridgeReady(readBridgePackage)
+  window.addEventListener(APP_BRIDGE_EVENT, readBridgePackage)
 })
+
+onUnmounted(() => {
+  stopBridgeWait()
+  if (!listeningForBridge) return
+  window.removeEventListener(APP_BRIDGE_EVENT, readBridgePackage)
+})
+
+watch(() => port.value?.slug, () => readBridgePackage())
+
+const packageInstalled = computed(() => {
+  if (bridgePackageInstalled.value) return true
+  if (!questAdb.isConnected.value || !slug) return false
+  return isPortInstalledOnQuest(slug, questAdb.installedPackages.value)
+})
+
+const partFilesReady = (campaign: { id: string }) => {
+  const currentPort = port.value
+  if (!currentPort) return false
+  const targetKey = `${currentPort.id}-${campaign.id}`
+  return !!transferredCampaigns.value[targetKey] || !!detectedCampaigns.value[campaign.id]?.exists
+}
+
+const partState = (campaign: PortCampaign) => campaignPartState(campaign, {
+  packageInstalled: packageInstalled.value,
+  filesReady: partFilesReady(campaign)
+})
+
+const installedCampaignsCount = computed(() => countInstalledParts(campaignList.value, part => ({
+  packageInstalled: packageInstalled.value,
+  filesReady: partFilesReady(part)
+})))
 
 const nextUntransferredCampaign = computed(() => {
   const currentPort = port.value

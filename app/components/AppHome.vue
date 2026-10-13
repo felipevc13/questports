@@ -18,8 +18,8 @@
           <span
             v-if="item.id === 'library' && libraryRows.length > 0"
             data-testid="library-count"
-            class="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-background px-1 text-[10px] font-semibold tabular-nums leading-none text-foreground"
-          >{{ libraryRows.length }}</span>
+            class="library-count ml-1.5 bg-background text-foreground"
+          ><span>{{ libraryRows.length }}</span></span>
         </button>
       </div>
 
