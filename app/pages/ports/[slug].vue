@@ -216,7 +216,67 @@
           :pc-builder="isPcBuilderRequired"
         />
 
-        <div v-else class="space-y-3 pt-1">
+        <!--
+          The site Step 2 block (path, Copy, target folder, required files) is
+          the WebUSB install flow below. The native app has no folder scan and
+          no drop zone, so each campaign gets the same manual-copy card here.
+        -->
+        <div
+          v-if="inApp && manualCopyCampaigns.length"
+          data-testid="app-game-data"
+          class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3"
+        >
+          <div class="flex items-center gap-2">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 font-mono text-xs font-bold text-primary">2</span>
+            <span class="text-xs font-bold text-foreground">{{ step2Title }}</span>
+          </div>
+          <p class="text-xs leading-relaxed text-muted-foreground">
+            {{ manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.' }}
+          </p>
+          <div
+            v-for="campaign in manualCopyCampaigns"
+            :key="campaign.id"
+            data-testid="campaign-copy"
+            class="space-y-1.5"
+          >
+            <div v-if="manualCopyCampaigns.length > 1" class="flex min-w-0 flex-wrap items-center gap-1.5">
+              <span class="min-w-0 text-xs font-bold leading-snug text-foreground">{{ campaign.name }}</span>
+              <span
+                class="campaign-chip"
+                :class="campaign.isBase ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
+              >
+                {{ campaign.badge }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between gap-2 rounded border border-border/70 bg-black/40 p-2 font-mono text-xs">
+              <div class="flex min-w-0 items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span data-testid="campaign-copy-path" class="min-w-0 break-all font-bold text-primary">{{ campaign.fullPath }}</span>
+              </div>
+              <button
+                type="button"
+                data-testid="campaign-copy-button"
+                class="inline-flex min-h-11 shrink-0 items-center font-mono text-xs text-muted-foreground underline md:min-h-0"
+                @click="copyDestinationPath(campaign.fullPath, campaign.id)"
+              >
+                {{ copiedCampaignId === campaign.id ? 'Copied!' : 'Copy' }}
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-border/50 bg-muted/40 px-2 py-1 text-xs">
+              <span class="text-muted-foreground">Target Folder:</span>
+              <span data-testid="campaign-copy-folder" class="campaign-chip border border-primary/30 bg-primary/15 font-bold text-primary">
+                {{ campaign.folder }}/
+              </span>
+              <span data-testid="campaign-copy-files" class="min-w-0 break-words font-mono leading-snug text-muted-foreground">
+                {{ campaign.exampleFiles }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!inApp" class="space-y-3 pt-1">
           <div
             v-if="largePortMessage && !isPcBuilderRequired"
             data-testid="apk-too-large"
@@ -878,44 +938,44 @@
                     Installs into separate subfolders
                   </span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <div class="grid grid-cols-1 gap-1.5">
                   <button
                     v-for="campaign in campaignList"
                     :key="campaign.id"
                     @click="selectCampaign(campaign.id)"
-                    class="flex flex-col text-left p-2 rounded-lg border transition-all cursor-pointer relative overflow-hidden"
+                    class="flex min-w-0 flex-col gap-1 rounded-lg border p-2 text-left transition-all cursor-pointer"
                     :class="currentCampaign?.id === campaign.id
                       ? 'bg-primary/10 border-primary text-foreground shadow-sm ring-1 ring-primary/40'
                       : 'bg-muted/30 border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60'"
                   >
-                    <div class="flex items-center justify-between gap-1 w-full">
-                      <span class="text-xs font-bold truncate" :class="currentCampaign?.id === campaign.id ? 'text-primary' : 'text-foreground'">
+                    <div class="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span class="min-w-0 break-words text-xs font-bold leading-snug" :class="currentCampaign?.id === campaign.id ? 'text-primary' : 'text-foreground'">
                         {{ campaign.name }}
                       </span>
                       <span
                         v-if="partState(campaign) === 'ready'"
-                        class="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[9px] flex items-center justify-center shrink-0"
+                        class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold leading-none text-emerald-400"
                         title="Campaign files are on the Quest"
                       >
                         ✓
                       </span>
                       <span
                         v-else-if="partState(campaign) === 'installed'"
-                        class="shrink-0 rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
+                        class="campaign-chip bg-emerald-500/20 text-emerald-400"
                         title="Base game package is installed"
                       >
                         Installed
                       </span>
                       <span
                         v-else
-                        class="text-[9px] px-1 py-0.2 rounded font-mono shrink-0"
+                        class="campaign-chip"
                         :class="campaign.isBase ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
                       >
                         {{ campaign.badge }}
                       </span>
                     </div>
-                    <div class="font-mono text-[10px] text-muted-foreground/80 truncate mt-0.5">
-                      📁 {{ campaign.folder }}/
+                    <div class="break-all font-mono text-xs leading-snug text-muted-foreground/80">
+                      {{ campaign.folder }}/
                     </div>
                   </button>
                 </div>
@@ -923,30 +983,29 @@
 
               <!-- Destination folder path -->
               <div v-if="currentCampaign" class="space-y-1.5">
-                <div class="p-2 rounded bg-black/40 border border-border/70 font-mono text-xs flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-1.5 min-w-0 truncate">
-                    <svg class="w-3.5 h-3.5 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="flex items-center justify-between gap-2 rounded border border-border/70 bg-black/40 p-2 font-mono text-xs">
+                  <div class="flex min-w-0 items-center gap-1.5">
+                    <svg class="h-3.5 w-3.5 shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
-                    <span class="text-primary truncate font-bold">{{ currentCampaign.fullPath }}</span>
+                    <span class="min-w-0 break-all font-bold text-primary">{{ currentCampaign.fullPath }}</span>
                   </div>
                   <button
-                    @click="copyDestinationPath(currentCampaign.fullPath)"
-                    class="text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer shrink-0 font-mono"
+                    type="button"
+                    class="inline-flex min-h-11 shrink-0 items-center font-mono text-xs text-muted-foreground underline hover:text-foreground md:min-h-0"
+                    @click="copyDestinationPath(currentCampaign.fullPath, currentCampaign.id)"
                   >
-                    {{ copiedPath ? 'Copied!' : 'Copy' }}
+                    {{ copiedCampaignId === currentCampaign.id ? 'Copied!' : 'Copy' }}
                   </button>
                 </div>
 
                 <!-- Explicit Target Folder Banner -->
-                <div class="flex items-center justify-between text-[11px] px-2 py-1 rounded bg-muted/40 border border-border/50">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-muted-foreground font-medium">Target Folder:</span>
-                    <span class="px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 font-mono text-[11px] font-bold">
-                      📁 {{ currentCampaign.folder }}/
-                    </span>
-                  </div>
-                  <span class="font-mono text-[10px] text-muted-foreground/80 truncate max-w-[200px]" :title="currentCampaign.exampleFiles">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-border/50 bg-muted/40 px-2 py-1 text-xs">
+                  <span class="font-medium text-muted-foreground">Target Folder:</span>
+                  <span class="campaign-chip border border-primary/30 bg-primary/15 font-bold text-primary">
+                    {{ currentCampaign.folder }}/
+                  </span>
+                  <span class="min-w-0 break-words font-mono leading-snug text-muted-foreground">
                     {{ currentCampaign.exampleFiles }}
                   </span>
                 </div>
@@ -1272,27 +1331,27 @@
                     : 'bg-muted/30 hover:bg-muted/50 border-border/60 text-muted-foreground'"
                 >
                   <div class="mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                    <div class="flex min-w-0 flex-1 items-center gap-1.5">
-                      <span class="truncate font-bold text-xs" :class="currentCampaign?.id === c.id ? 'text-primary' : 'text-foreground'">
+                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                      <span class="min-w-0 break-words text-xs font-bold leading-snug" :class="currentCampaign?.id === c.id ? 'text-primary' : 'text-foreground'">
                         {{ c.name }}
                       </span>
                       <span
                         v-if="partState(c) === 'ready'"
                         data-testid="campaign-part-ready"
-                        class="shrink-0 whitespace-nowrap rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
+                        class="campaign-chip bg-emerald-500/20 text-emerald-400"
                       >
                         Ready
                       </span>
                       <span
                         v-else-if="partState(c) === 'installed'"
                         data-testid="campaign-part-installed"
-                        class="shrink-0 whitespace-nowrap rounded bg-emerald-500/20 px-1 font-mono text-[9px] font-medium text-emerald-400"
+                        class="campaign-chip bg-emerald-500/20 text-emerald-400"
                       >
                         Installed
                       </span>
                       <span
                         v-else
-                        class="shrink-0 whitespace-nowrap rounded bg-muted/80 px-1 font-mono text-[9px] text-muted-foreground"
+                        class="campaign-chip bg-muted/80 text-muted-foreground"
                       >
                         {{ c.badge }}
                       </span>
@@ -1750,7 +1809,8 @@ const fileTransferIndeterminate = ref(false)
 const fileTransferReceived = ref('')
 const fileTransferStatusMsg = ref('')
 const fileTransferCancelRequested = ref(false)
-const copiedPath = ref(false)
+const copiedCampaignId = ref<string | null>(null)
+let copiedCampaignTimer: ReturnType<typeof setTimeout> | undefined
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const campaignList = computed<PortCampaign[]>(() => {
@@ -1989,6 +2049,15 @@ const showUsbStepsLink = computed(() => {
 })
 
 const isDirectApkOnly = computed(() => isSelfContainedSideload(currentPackageConfig.value))
+
+const manualCopyCampaigns = computed(() => {
+  if (isDirectApkOnly.value) return []
+  return campaignList.value.filter(campaign => {
+    const path = campaign.fullPath?.trim() || ''
+    if (!path.startsWith('/')) return false
+    return campaign.exampleFiles !== 'No extra files needed'
+  })
+})
 
 const step2Title = computed(() => {
   if (currentPackageConfig.value?.workflowType === 'emulator_roms') {
@@ -2742,14 +2811,31 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
   }
 }
 
-const copyDestinationPath = (text: string) => {
-  if (import.meta.client) {
-    navigator.clipboard.writeText(text)
-    copiedPath.value = true
-    setTimeout(() => {
-      copiedPath.value = false
-    }, 2000)
+const copyDestinationPath = async (text: string, campaignId: string) => {
+  if (!import.meta.client || !text) return
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const area = document.createElement('textarea')
+      area.value = text
+      area.setAttribute('readonly', '')
+      area.style.position = 'fixed'
+      area.style.left = '-9999px'
+      document.body.appendChild(area)
+      area.select()
+      const ok = document.execCommand('copy')
+      area.remove()
+      if (!ok) return
+    }
+  } catch {
+    return
   }
+  copiedCampaignId.value = campaignId
+  if (copiedCampaignTimer) clearTimeout(copiedCampaignTimer)
+  copiedCampaignTimer = setTimeout(() => {
+    copiedCampaignId.value = null
+  }, 2000)
 }
 
 const renderedGuide = computed(() => {
