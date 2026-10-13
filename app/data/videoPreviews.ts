@@ -86,6 +86,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'ut99-vr-quest',
   'vice-city-vr-quest',
   'victory-heat-rally-vr',
+  'virtua-cop-vr',
   'wiicompiled-vr-plus',
   'winlatorxr',
   'wipeout-rewrite-vr',
@@ -388,5 +389,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // OpenCMR2 VR (Colin McRae Rally 2.0)
   'opencmr2-vr': { start: '1:30', end: '1:45' },
-  'is6Sk_i0mbE': { start: '1:30', end: '1:45' }
+  'is6Sk_i0mbE': { start: '1:30', end: '1:45' },
+
+  // Virtua Cop VR
+  'virtua-cop-vr': { start: '0:22', end: '0:37' },
+  '1qCQorbbdPc': { start: '0:22', end: '0:37' }
 }

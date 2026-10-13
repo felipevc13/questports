@@ -24,7 +24,8 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['age-of-joy', '972PIs04MF4', '6:36', '6:51'],
   ['victory-heat-rally-vr', 'CRP1pSUZCEU', '0:26', '0:41'],
   ['wipeout-rewrite-vr', 'AEBOyDJPsjQ', '4:00', '4:15'],
-  ['opencmr2-vr', 'is6Sk_i0mbE', '1:30', '1:45']
+  ['opencmr2-vr', 'is6Sk_i0mbE', '1:30', '1:45'],
+  ['virtua-cop-vr', '1qCQorbbdPc', '0:22', '0:37']
 ]
 
 describe('local hover previews', () => {
