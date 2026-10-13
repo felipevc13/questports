@@ -44,6 +44,7 @@
 
     <!-- Catalog Section -->
     <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-5 max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+      <CatalogLibraryTabs current="catalog" />
       <!-- Search & Filters Toolbar -->
       <div class="max-md:sticky max-md:top-14 max-md:z-40 max-md:-mx-4 max-md:border-x-0 max-md:bg-background/95 max-md:px-4 max-md:py-2 max-md:backdrop-blur space-y-3 rounded-lg border border-border bg-card p-3.5 md:static">
         <!-- Row 1: Search & Category Filter Pills -->
@@ -202,66 +203,12 @@
         </div>
       </div>
 
-      <!-- Quest Connected Library Banner & Quick Filter -->
-      <div
-        v-if="questAdb.isConnected.value"
-        class="p-3 sm:p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in duration-200"
-      >
-        <div class="flex items-center gap-2.5">
-          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50"></div>
-          <div>
-            <div class="font-semibold text-foreground flex items-center gap-2">
-              <span>{{ questAdb.deviceModel.value || 'Meta Quest' }} Library</span>
-              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Connected
-              </span>
-            </div>
-            <div class="text-[11px] text-muted-foreground mt-0.5">
-              <strong class="text-emerald-400 font-medium">{{ installedPortsCount }}</strong> of {{ ports.length }} indexed ports installed on your headset
-            </div>
-          </div>
-        </div>
-
-        <!-- Quest Filter Segmented Control -->
-        <div class="flex max-w-full flex-wrap items-center gap-1 self-start rounded-md border border-border bg-card/90 p-1 sm:self-auto">
-          <button
-            @click="questFilter = 'all'"
-            class="min-h-11 rounded px-2.5 py-1 text-xs transition-colors cursor-pointer select-none md:min-h-0"
-            :class="questFilter === 'all' ? 'bg-primary text-primary-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-          >
-            All ({{ ports.length }})
-          </button>
-          <button
-            @click="questFilter = 'installed'"
-            class="flex min-h-11 items-center gap-1.5 rounded px-2.5 py-1 text-xs transition-colors cursor-pointer select-none md:min-h-0"
-            :class="questFilter === 'installed' ? 'bg-emerald-600 text-white font-semibold shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-          >
-            <span class="md:hidden">On Quest</span>
-            <span class="hidden md:inline">Installed on Quest</span>
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono" :class="questFilter === 'installed' ? 'bg-emerald-700 text-white' : 'bg-emerald-500/20 text-emerald-400'">
-              {{ installedPortsCount }}
-            </span>
-          </button>
-          <button
-            @click="questFilter = 'not_installed'"
-            class="min-h-11 rounded px-2.5 py-1 text-xs transition-colors cursor-pointer select-none md:min-h-0"
-            :class="questFilter === 'not_installed' ? 'bg-secondary text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-          >
-            <span class="md:hidden">Not on Quest ({{ ports.length - installedPortsCount }})</span>
-            <span class="hidden md:inline">Not Installed ({{ ports.length - installedPortsCount }})</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Results Count & Active Tags -->
       <div ref="resultsAnchor" class="flex scroll-mt-36 items-center justify-between gap-2 text-xs text-muted-foreground px-0.5">
         <div class="min-w-0">
           Showing <strong>{{ filteredPorts.length }}</strong> {{ filteredPorts.length === 1 ? 'port' : 'ports' }}
           <span v-if="selectedDeveloper" class="ml-2 font-mono">
             filtered by <strong>{{ selectedDeveloper }}</strong>
-          </span>
-          <span v-if="questAdb.isConnected.value && questFilter !== 'all'" class="ml-2 font-mono text-emerald-400">
-            ({{ questFilter === 'installed' ? 'Installed only' : 'Not installed only' }})
           </span>
         </div>
         <div class="relative inline-flex shrink-0 items-center md:hidden">
@@ -348,9 +295,9 @@
                       {{ port.title }}
                       <span
                         v-if="isPortInstalled(port.slug)"
-                        class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-normal"
+                        class="text-[10px] font-normal text-muted-foreground"
                       >
-                        Installed ✓
+                        Installed
                       </span>
                       <VerificationBadge
                         class="!ml-0"
@@ -418,10 +365,9 @@
                 <td class="py-2 px-3 text-right whitespace-nowrap">
                   <NuxtLink
                     :to="`/ports/${port.slug}`"
-                    class="text-xs font-semibold hover:underline"
-                    :class="isPortInstalled(port.slug) ? 'text-emerald-400' : 'text-primary'"
+                    class="text-xs font-semibold text-primary hover:underline"
                   >
-                    {{ isPortInstalled(port.slug) ? 'Manage Files →' : 'Guide →' }}
+                    Guide →
                   </NuxtLink>
                 </td>
               </tr>
@@ -566,7 +512,6 @@ const selectedCategory = ref<string>(catalogCategoryFromQuery(route.query.cat))
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
 const selectedDeveloper = ref<string>((route.query.dev as string) || '')
-const questFilter = ref<'all' | 'installed' | 'not_installed'>('all')
 const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
@@ -636,7 +581,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedDeveloper, sortBy, questFilter], () => {
+watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedDeveloper, sortBy], () => {
   mobileVisible.value = MOBILE_PAGE
 })
 
@@ -651,7 +596,6 @@ watch(selectedCategory, (value) => trackFilter('category', value))
 watch(selectedStatus, (value) => trackFilter('status', value))
 watch(selectedHardware, (value) => trackFilter('hardware', value))
 watch(selectedDeveloper, (value) => trackFilter('developer', value))
-watch(questFilter, (value) => trackFilter('quest', value))
 watch(sortBy, (value) => trackFilter('sort', value))
 
 watch(searchQuery, (value) => {
@@ -670,11 +614,6 @@ const isPortInstalled = (slug: string) => {
   if (!questAdb.isConnected.value) return false
   return isPortInstalledOnQuest(slug, questAdb.installedPackages.value)
 }
-
-const installedPortsCount = computed(() => {
-  if (!questAdb.isConnected.value) return 0
-  return ports.value.filter(p => isPortInstalledOnQuest(p.slug, questAdb.installedPackages.value)).length
-})
 
 // Sync with URL query parameter (?dev=...)
 watch(() => route.query.dev, (newDev) => {
@@ -738,7 +677,6 @@ const hasActiveFilters = computed(() => {
     selectedStatus.value !== '' ||
     selectedHardware.value !== '' ||
     selectedDeveloper.value !== '' ||
-    questFilter.value !== 'all' ||
     sortBy.value !== 'recent'
   )
 })
@@ -749,7 +687,6 @@ const resetFilters = () => {
   selectedStatus.value = ''
   selectedHardware.value = ''
   selectedDeveloper.value = ''
-  questFilter.value = 'all'
   sortBy.value = 'recent'
 }
 
@@ -781,15 +718,6 @@ const formatStatus = (status: PortStatus) => {
 
 const filteredPorts = computed(() => {
   let list = [...ports.value]
-
-  // Quest Library Filter (when headset is connected)
-  if (questAdb.isConnected.value && questFilter.value !== 'all') {
-    if (questFilter.value === 'installed') {
-      list = list.filter(p => isPortInstalledOnQuest(p.slug, questAdb.installedPackages.value))
-    } else if (questFilter.value === 'not_installed') {
-      list = list.filter(p => !isPortInstalledOnQuest(p.slug, questAdb.installedPackages.value))
-    }
-  }
 
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim()

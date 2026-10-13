@@ -111,7 +111,7 @@ describe('new badge', () => {
 
   it('renders the badge only after the client has read localStorage', () => {
     const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
-    expect(card).toContain('v-else-if="showNew"')
+    expect(card).toContain('v-if="showNew"')
     expect(card).toContain('useCatalogVisit')
     expect(card).toContain('isPortNew')
     const visit = readFileSync(new URL('../app/composables/useCatalogVisit.ts', import.meta.url), 'utf8')

@@ -39,7 +39,7 @@ describe('unknown port slug', () => {
 })
 
 describe('internal links', () => {
-  const pageRoutes = new Set(['/', '/admin/verify'])
+  const pageRoutes = new Set(['/', '/admin/verify', '/library'])
 
   function vueFiles(dir: string): string[] {
     const found: string[] = []

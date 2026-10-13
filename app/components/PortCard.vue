@@ -4,8 +4,7 @@
     @mouseleave="stopPreview"
     @focusin="armPreview"
     @focusout="stopPreview"
-    :class="isInstalledOnQuest ? 'border-emerald-500/35 hover:border-emerald-500/80 shadow-sm shadow-emerald-500/5' : 'border-border hover:border-primary/50'"
-    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden transition-all text-card-foreground"
+    class="group relative z-0 isolate flex flex-col bg-card rounded-lg overflow-hidden border-border transition-all text-card-foreground hover:border-primary/50"
   >
   <NuxtLink
     :to="`${toPrefix || '/ports'}/${port.slug}`"
@@ -41,18 +40,11 @@
       </div>
 
       <div
-        v-if="!isPlayingPreview && (isInstalledOnQuest || showNew || inDev)"
+        v-if="!isPlayingPreview && (showNew || inDev)"
         class="absolute top-2 left-2 right-2 z-20 flex items-start justify-between gap-1 pointer-events-none"
       >
         <span
-          v-if="isInstalledOnQuest"
-          class="inline-flex items-center gap-1 rounded border border-emerald-400/50 bg-emerald-950/95 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-300 shadow-md shadow-emerald-950/40"
-        >
-          <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"></span>
-          <span>Installed</span>
-        </span>
-        <span
-          v-else-if="showNew"
+          v-if="showNew"
           class="inline-flex items-center rounded border border-white/20 bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-white shadow-md"
         >
           New
@@ -107,8 +99,16 @@
     </div>
 
     <div class="flex flex-1 flex-col gap-1 border-t border-border p-3">
-      <h3 class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
-        {{ port.title }}
+      <h3 class="flex min-w-0 items-baseline gap-1.5">
+        <span class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+          {{ port.title }}
+        </span>
+        <span
+          v-if="isInstalledOnQuest"
+          class="shrink-0 text-[10px] font-medium text-muted-foreground"
+        >
+          Installed
+        </span>
       </h3>
       <p
         v-if="cardMeta"
@@ -123,15 +123,6 @@
       <p v-if="cardDescription" class="truncate text-xs leading-5 text-muted-foreground">
         {{ cardDescription }}
       </p>
-      <span
-        v-if="isInstalledOnQuest"
-        class="inline-flex items-center gap-1 pt-0.5 text-xs font-semibold text-emerald-400 group-hover:underline"
-      >
-        <span>Manage Files</span>
-        <svg class="h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </span>
     </div>
   </NuxtLink>
   </div>
