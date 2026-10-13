@@ -4,7 +4,7 @@ const SITE_ORIGIN = 'https://questports.vercel.app'
 export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'
 /** Bump when a cover file changes. Paired with a year-long immutable cache. */
-export const COVER_CACHE_VERSION = '2'
+export const COVER_CACHE_VERSION = '3'
 /** Cache-busted absolute URL for the site-wide 1200×630 share card. */
 export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=${COVER_CACHE_VERSION}`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
@@ -31,7 +31,9 @@ const STEAMGRID_COVERS: Record<string, string> = {
   'bfd6bb38a2386fbab71d56ecdb552b42': '/covers/time-crisis-2-vr.png',
   '1e33d42f52a9ebdd703844cffcf6601c': '/covers/dolphinxr.png',
   '297897/gameplay-caratula': '/covers/age-of-joy.png',
-  '124a20f62d7b7205775f80b3ecc33645': '/covers/victory-heat-rally-vr.jpg'
+  '124a20f62d7b7205775f80b3ecc33645': '/covers/victory-heat-rally-vr.jpg',
+  'c0f7d67709012b1ed26535611c19244c': '/covers/wipeout-rewrite-vr.png',
+  '158bcb6565a65410463e9685796db61c': '/covers/opencmr2-vr.png'
 }
 
 /** Map Storage, media-host and hotlink covers onto same-origin /covers files. */

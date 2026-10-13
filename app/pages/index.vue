@@ -107,9 +107,10 @@
                 v-model="sortBy"
                 class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
               >
-                <option value="recent">⚡ Recently Updated</option>
+                <option value="recent">Recently updated</option>
+                <option value="added">Newest</option>
                 <option value="az">A–Z (Alphabetical)</option>
-                <option value="featured">Featured First</option>
+                <option value="installs">Most installed</option>
               </select>
               <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -269,9 +270,10 @@
             aria-label="Sort"
             class="h-11 appearance-none rounded-md border border-border bg-muted/80 pl-2.5 pr-7 text-base text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           >
-            <option value="recent">Recent</option>
+            <option value="recent">Recently updated</option>
+            <option value="added">Newest</option>
             <option value="az">A–Z</option>
-            <option value="featured">Featured</option>
+            <option value="installs">Most installed</option>
           </select>
           <svg class="pointer-events-none absolute right-2 h-3 w-3 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -540,6 +542,8 @@ import { useQuestAdb } from '~/composables/useQuestAdb'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
+import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
+import { catalogCategoryFromQuery } from '~/lib/catalogQuery'
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 
@@ -558,12 +562,12 @@ const { data: verificationData } = await useAsyncData('port-verifications', () =
 const verificationRecords = computed(() => verificationData.value || [])
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
-const selectedCategory = ref<string>('all')
+const selectedCategory = ref<string>(catalogCategoryFromQuery(route.query.cat))
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
 const selectedDeveloper = ref<string>((route.query.dev as string) || '')
 const questFilter = ref<'all' | 'installed' | 'not_installed'>('all')
-const sortBy = ref<'recent' | 'az' | 'featured'>('recent')
+const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
 const mobileVisible = ref(12)
@@ -677,6 +681,11 @@ watch(() => route.query.dev, (newDev) => {
   selectedDeveloper.value = (newDev as string) || ''
 })
 
+watch(() => route.query.cat, (value) => {
+  const next = catalogCategoryFromQuery(value)
+  if (next !== selectedCategory.value) selectedCategory.value = next
+})
+
 watch(() => route.query.q, (q) => {
   searchQuery.value = typeof q === 'string' ? q : ''
 })
@@ -692,6 +701,15 @@ watch(selectedDeveloper, (newDev) => {
     delete query.dev
     router.replace({ query })
   }
+})
+
+watch(selectedCategory, (value) => {
+  const current = catalogCategoryFromQuery(route.query.cat)
+  if (value === current) return
+  const query = { ...route.query }
+  if (value !== 'all') query.cat = value
+  else delete query.cat
+  router.replace({ query })
 })
 
 // Dynamically extract unique developers
@@ -799,18 +817,6 @@ const filteredPorts = computed(() => {
     list = list.filter(p => p.developer.toLowerCase() === selectedDeveloper.value.toLowerCase())
   }
 
-  if (sortBy.value === 'recent') {
-    list.sort((a, b) => {
-      const dateA = a.last_github_update ? new Date(a.last_github_update).getTime() : 0
-      const dateB = b.last_github_update ? new Date(b.last_github_update).getTime() : 0
-      return dateB - dateA
-    })
-  } else if (sortBy.value === 'az') {
-    list.sort((a, b) => a.title.localeCompare(b.title))
-  } else if (sortBy.value === 'featured') {
-    // Keep seed order
-  }
-
-  return list
+  return sortCatalogPorts(list, sortBy.value)
 })
 </script>

@@ -22,7 +22,9 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['time-crisis-2-vr', 'sM7IEWgDu8k', '4:31', '4:46'],
   ['dolphinxr', 'pg3Yhtj_db0', '1:52', '2:07'],
   ['age-of-joy', '972PIs04MF4', '6:36', '6:51'],
-  ['victory-heat-rally-vr', 'CRP1pSUZCEU', '0:26', '0:41']
+  ['victory-heat-rally-vr', 'CRP1pSUZCEU', '0:26', '0:41'],
+  ['wipeout-rewrite-vr', 'AEBOyDJPsjQ', '4:00', '4:15'],
+  ['opencmr2-vr', 'is6Sk_i0mbE', '1:30', '1:45']
 ]
 
 describe('local hover previews', () => {
@@ -68,12 +70,30 @@ describe('local hover previews', () => {
     expect(youtubeClipForPort({ slug: 'hotd2-vr', youtubeId: null })).toBeNull()
   })
 
-  it('starts MP4s only after a desktop hover and keeps YouTube ahead of them on detail pages', () => {
+  it('starts MP4s after a desktop hover, and from a touch Preview control that stays on the card', () => {
     const card = readFileSync('app/components/PortCard.vue', 'utf8')
     expect(card).toContain('preload="none"')
     expect(card).not.toContain('autoplay')
-    expect(card).not.toContain('onPreviewTap')
-    expect(card).toContain('canHoverPreview')
+    expect(card).toContain('if (!hasVideo.value || !canHoverPreview()) return')
+    expect(card).toContain('const stopPreview = () => {\n  if (!canHoverPreview()) return')
+    expect(card).toContain('onPreviewTap')
+    expect(card).toContain('@click.stop.prevent="onPreviewTap"')
+    expect(card).toContain("headerEl.value?.addEventListener('click', keepPreviewOnCard, true)")
+    expect(card).toContain('event.preventDefault()')
+    expect(card).toContain('event.stopPropagation()')
+    expect(card).toContain("!target.closest('.catalog-touch-preview')")
+    expect(card).toContain('aria-label="Play preview"')
+    expect(card).toContain('>Preview<')
+    expect(card).toContain('aria-label="Close preview"')
+    expect(card).toContain("surface: 'card'")
+    expect(card).toContain('claimVideoPreviewPlay')
+    expect(card).toContain("track('video_preview_play'")
+    expect(card).toContain('v-if="hasVideo && !isPlayingPreview"')
+    expect(card).toContain('catalog-touch-preview absolute bottom-1.5 right-1.5')
+    expect(card).toContain('@media (hover: none), (pointer: coarse)')
+    expect(card).toContain('display: none')
+    expect(card).not.toMatch(/v-if="[^"]*canHoverPreview/)
+    expect(card).toContain('const playing = !isPlayingPreview.value')
     const detail = readFileSync('app/pages/ports/[slug].vue', 'utf8')
     expect(detail).toContain('preload="none"')
     expect(detail).toContain('if (youtubeClip.value) return null')

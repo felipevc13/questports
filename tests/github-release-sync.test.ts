@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { formatPortVersion } from '../app/lib/portVersion'
-import { planPortUpdate, selectQuestRelease, shouldAdoptCatalogVersion, versionToWrite } from '../scripts/lib/selectQuestRelease.js'
+import { readFileSync } from 'node:fs'
+import { githubUpdateToWrite, planPortUpdate, portSyncPatch, selectQuestRelease, shouldAdoptCatalogVersion, versionToWrite } from '../scripts/lib/selectQuestRelease.js'
 
 function release(tag: string, assets: string[], extra: Record<string, unknown> = {}) {
   return {
@@ -154,5 +155,71 @@ describe('quest release selection', () => {
     expect(formatPortVersion('winlatorxr_cats27')).toBe('cats27')
     expect(plan.action).toBe('keep')
     expect(plan.reason).toBe('same version')
+  })
+})
+
+describe('last_github_update sync', () => {
+  it('moves the date forward when the version is already current', () => {
+    const plan = planPortUpdate('v1.1.7', primedGunReleases)
+    expect(plan.action).toBe('keep')
+    expect(portSyncPatch(plan, '2026-09-01T00:00:00Z')).toEqual({
+      last_github_update: '2026-10-02T14:25:35Z'
+    })
+    expect(portSyncPatch(plan, null)).toEqual({
+      last_github_update: '2026-10-02T14:25:35Z'
+    })
+  })
+
+  it('does not move the date backward or rewrite an equal instant', () => {
+    const plan = planPortUpdate('v1.1.7', primedGunReleases)
+    expect(portSyncPatch(plan, '2026-10-05T08:01:03Z')).toEqual({})
+    expect(portSyncPatch(plan, '2026-10-02T14:25:35.000Z')).toEqual({})
+    expect(githubUpdateToWrite('2026-10-02T14:25:35Z', plan.published_at)).toBeNull()
+  })
+
+  it('uses the quest release date and ignores a newer desktop release', () => {
+    const plan = planPortUpdate('v1.1.7', primedGunReleases)
+    expect(plan.published_at).toBe('2026-10-02T14:25:35Z')
+    expect(plan.skipped.map(item => item.tag)).toContain('v1.1.7-windows')
+    expect(portSyncPatch(plan, '2026-10-01T00:00:00Z').last_github_update).toBe('2026-10-02T14:25:35Z')
+  })
+
+  it('leaves the date alone when the only newer release is a draft or desktop build', () => {
+    const draft = planPortUpdate('v1.0.0', [
+      release('v1.1.0', ['game.apk'], { draft: true, published_at: '2026-10-09T00:00:00Z' }),
+      release('v1.0.0', ['game.apk'], { published_at: '2026-09-01T00:00:00Z' })
+    ])
+    expect(draft.published_at).toBe('2026-09-01T00:00:00Z')
+    expect(portSyncPatch(draft, '2026-09-01T00:00:00Z')).toEqual({})
+
+    const desktop = planPortUpdate('v1.20.4', [
+      release('v1.21.0', ['PPSSPP-v1.21.0-Windows-x64.zip'], { published_at: '2026-10-08T00:00:00Z' })
+    ])
+    expect(desktop.action).toBe('leave')
+    expect(desktop.published_at).toBeNull()
+    expect(portSyncPatch(desktop, '2026-01-01T00:00:00Z')).toEqual({})
+  })
+
+  it('writes the version and the date together, and does not move the date backward', () => {
+    const halo = [
+      release('v1.0.18', ['HaloCE-Quest-1.0.18.apk'], { published_at: '2026-10-08T21:39:44Z' }),
+      release('v1.0.16', ['HaloCE-Quest-1.0.16.apk'], { published_at: '2026-10-08T02:13:04Z' })
+    ]
+    const newer = planPortUpdate('v1.0.16', halo)
+    expect(portSyncPatch(newer, '2026-10-08T02:13:04Z')).toEqual({
+      latest_version: 'v1.0.18',
+      last_github_update: '2026-10-08T21:39:44Z'
+    })
+    expect(portSyncPatch(newer, '2026-11-01T00:00:00Z')).toEqual({
+      latest_version: 'v1.0.18'
+    })
+    const olderCandidate = planPortUpdate('v1.0.18', [halo[1]])
+    expect(portSyncPatch(olderCandidate, '2026-10-08T21:39:44Z')).toEqual({})
+  })
+
+  it('syncs nolf-vr from alex-nax/relith', () => {
+    const source = readFileSync(new URL('../scripts/sync-github-stats.js', import.meta.url), 'utf8')
+    expect(source).toContain("{ slug: 'nolf-vr', repo: 'alex-nax/relith' }")
+    expect(source).toContain('portSyncPatch(plan, storedUpdate)')
   })
 })
