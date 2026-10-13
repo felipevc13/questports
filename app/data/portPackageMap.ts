@@ -1501,29 +1501,41 @@ export function resolveWorkflowType(target: any, category?: string): PortWorkflo
   return 'pc_assets'
 }
 
-export function isPortInstalledOnQuest(slug: string, installedPackages: string[]): boolean {
-  if (!slug || !installedPackages || installedPackages.length === 0) return false
-  installedPackages = installedPackages.map(p => (p || '').trim().toLowerCase()).filter(Boolean)
+/** Package id on the headset for this port, including alt ids and the same fuzzy match as the catalog. */
+export function installedPackageOnQuest(slug: string, installedPackages: string[]): string | null {
+  if (!slug || !installedPackages || installedPackages.length === 0) return null
+  const cleaned = installedPackages.map(p => (p || '').trim()).filter(Boolean)
+  const lower = cleaned.map(p => p.toLowerCase())
   const cfg = PORT_PACKAGE_CONFIGS[slug]
-  if (cfg?.packageName && installedPackages.includes(cfg.packageName.toLowerCase())) {
-    return true
+  if (cfg?.packageName) {
+    const idx = lower.indexOf(cfg.packageName.toLowerCase())
+    if (idx >= 0) return cleaned[idx]!
   }
-  if (cfg?.altPackages && cfg.altPackages.some(p => installedPackages.includes(p.toLowerCase()))) {
-    return true
+  if (cfg?.altPackages) {
+    for (const alt of cfg.altPackages) {
+      const idx = lower.indexOf(alt.toLowerCase())
+      if (idx >= 0) return cleaned[idx]!
+    }
   }
   // Check if any package contains the core root of the package name (e.g. "halo.decomp" or "rtcwquest")
   if (cfg?.packageName) {
     const pkgRoot = cfg.packageName.toLowerCase().replace(/^(com|org|net|mod|su)\./, '').replace(/\.(vr|quest|xr)$/, '')
-    if (pkgRoot.length >= 4 && installedPackages.some(p => p.toLowerCase().includes(pkgRoot))) {
-      return true
+    if (pkgRoot.length >= 4) {
+      const idx = lower.findIndex(p => p.includes(pkgRoot))
+      if (idx >= 0) return cleaned[idx]!
     }
   }
 
   const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]/g, '')
-  if (cleanSlug.length < 3) return false
-  return installedPackages.some(pkg => {
-    const cleanPkg = pkg.toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (cleanSlug.length < 3) return null
+  const idx = lower.findIndex(pkg => {
+    const cleanPkg = pkg.replace(/[^a-z0-9]/g, '')
     return cleanPkg.includes(cleanSlug) || cleanSlug.includes(cleanPkg)
   })
+  return idx >= 0 ? cleaned[idx]! : null
+}
+
+export function isPortInstalledOnQuest(slug: string, installedPackages: string[]): boolean {
+  return installedPackageOnQuest(slug, installedPackages) !== null
 }
 
