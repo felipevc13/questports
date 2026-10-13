@@ -169,6 +169,7 @@ import {
   appInstallStatusLabel,
   appUpdateAvailable,
   ensureMockAppBridge,
+  whenAppBridgeReady,
   type AppBridgeEventDetail
 } from '~/lib/appBridge'
 import {
@@ -180,6 +181,7 @@ import {
   type InstalledReleaseRecord
 } from '~/lib/installedRelease'
 import { formatPortVersion } from '~/lib/portVersion'
+import { firstInstalledPackage } from '~/lib/headsetPackages'
 import {
   GAME_FILES_GUIDE_HREF,
   GAME_FILES_GUIDE_LABEL,
@@ -212,6 +214,8 @@ const phase = ref<'idle' | AppBridgeEventDetail['status']>('idle')
 const progress = ref(0)
 const installed = ref(false)
 const installedVersion = ref<string | null>(null)
+/** Package id the bridge actually found. Often an alt of the catalog primary. */
+const matchedPackage = ref<string | null>(null)
 const installedRelease = ref<InstalledReleaseRecord | null>(null)
 const errorMessage = ref('')
 const activeRequestId = ref('')
@@ -237,20 +241,6 @@ const trackInstall = (
       ? { reason: reason || 'other', app: true }
       : { app: true }
   })
-}
-
-const refreshVersion = () => {
-  const pkg = props.packageName
-  const bridge = window.QuestPortsApp
-  if (!pkg || !bridge) {
-    installedVersion.value = null
-    return
-  }
-  try {
-    installedVersion.value = bridge.getInstalledVersion(pkg)
-  } catch {
-    installedVersion.value = null
-  }
 }
 
 const syncRelease = () => {
@@ -283,17 +273,18 @@ const rememberAppInstall = () => {
 }
 
 const readInstalled = () => {
-  const pkg = props.packageName
   const bridge = window.QuestPortsApp
-  if (!pkg || !bridge) return
+  if (!bridge) return
+  const pkg = firstInstalledPackage(props.slug, name => bridge.isInstalled(name), props.packageName)
+  matchedPackage.value = pkg
+  if (!pkg) return
+  installed.value = true
   try {
-    if (!bridge.isInstalled(pkg)) return
-    installed.value = true
     installedVersion.value = bridge.getInstalledVersion(pkg)
-    if (phase.value === 'idle') phase.value = 'success'
   } catch {
-    // Keep the install button when the bridge cannot answer.
+    installedVersion.value = null
   }
+  if (phase.value === 'idle') phase.value = 'success'
 }
 
 const applyStatus = (detail: AppBridgeEventDetail) => {
@@ -317,7 +308,7 @@ const applyStatus = (detail: AppBridgeEventDetail) => {
     finished.add(detail.requestId)
     phase.value = 'success'
     installed.value = true
-    refreshVersion()
+    readInstalled()
     rememberAppInstall()
     trackInstall('install_success')
     return
@@ -415,7 +406,7 @@ const cancelInstall = () => {
 }
 
 const openApp = () => {
-  const pkg = props.packageName
+  const pkg = matchedPackage.value || props.packageName
   if (!pkg) return
   try {
     window.QuestPortsApp?.launch(pkg)
@@ -425,17 +416,23 @@ const openApp = () => {
 }
 
 watch(() => props.packageName, () => {
+  readInstalled()
   syncRelease()
 })
 
+let stopBridgeWait = () => {}
+
 onMounted(() => {
   ensureMockAppBridge(route.fullPath)
-  readInstalled()
-  syncRelease()
+  stopBridgeWait = whenAppBridgeReady(() => {
+    readInstalled()
+    syncRelease()
+  })
   window.addEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
 })
 
 onUnmounted(() => {
+  stopBridgeWait()
   window.removeEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
 })
 </script>
