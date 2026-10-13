@@ -42,6 +42,8 @@ import {
   writeQuestAppBannerDismissed
 } from '~/lib/questAppBanner'
 
+const bannerSurface = { surface: 'banner' as const }
+
 const route = useRoute()
 const questBrowser = useQuestBrowser()
 const { inApp } = useAppBridge()
@@ -61,7 +63,7 @@ const visible = computed(() => storageReady.value && shouldShowQuestAppBanner({
 const reportView = () => {
   if (!visible.value || viewed.value) return
   viewed.value = true
-  track('banner_view', { path: route.path })
+  track('banner_view', { path: route.path, props: bannerSurface })
 }
 
 onMounted(() => {
@@ -75,12 +77,12 @@ watch(visible, () => {
 })
 
 const onClick = () => {
-  track('banner_click', { path: route.path })
+  track('banner_click', { path: route.path, props: bannerSurface })
 }
 
 const dismiss = () => {
   dismissed.value = true
   writeQuestAppBannerDismissed(window.localStorage)
-  track('banner_dismiss', { path: route.path })
+  track('banner_dismiss', { path: route.path, props: bannerSurface })
 }
 </script>

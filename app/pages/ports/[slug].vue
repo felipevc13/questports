@@ -1346,6 +1346,10 @@
         </div>
       </div>
     </div>
+
+    <ClientOnly>
+      <QuestAppInstallModal :install-succeeded="questAppModalAfterInstall" />
+    </ClientOnly>
   </div>
 
   <!-- Loading State -->
@@ -1493,6 +1497,7 @@ const questDeviceInfoText = computed(() => {
 })
 
 const showUsbPrep = ref(false)
+const questAppModalAfterInstall = ref(false)
 const usbPrepRemembered = ref(false)
 const installSupportReady = ref(false)
 const manualInstallOpen = ref(false)
@@ -2386,6 +2391,7 @@ const handleApkInstall = async () => {
       await refreshHeadsetApkVersion()
       await scanCampaignFiles()
       await recordInstallVerification()
+      if (questAdb.isConnected.value) questAppModalAfterInstall.value = true
     } else {
       trackInstall('install_error', 'user_cancelled')
     }

@@ -141,7 +141,7 @@ Event names are the check constraint `analytics_events_event_check`. The current
 
 `page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_view`, `banner_click`, `banner_dismiss`.
 
-A **new event name** needs a migration that drops and re-adds `analytics_events_event_check` (same pattern as the funnel migration) **and** a matching entry in `ANALYTICS_EVENTS`. `props` allowlists are separate constraints (`install_error` reasons, `install_step`, `filter_used`, `search`, `video_preview_play`, `tip_click` surface). `too_large` was added that way in `20261010120000_analytics_too_large.sql`. If the constraint does not mention the new value, the insert fails.
+A **new event name** needs a migration that drops and re-adds `analytics_events_event_check` (same pattern as the funnel migration) **and** a matching entry in `ANALYTICS_EVENTS`. `props` allowlists are separate constraints (`install_error` reasons, `install_step`, `filter_used`, `search`, `video_preview_play`, `tip_click` surface, `banner_view` / `banner_click` / `banner_dismiss` surface `banner` or `modal`). `too_large` was added that way in `20261010120000_analytics_too_large.sql`. If the constraint does not mention the new value, the insert fails.
 
 Privacy, implemented in `server/utils/analytics.ts` and `app/lib/analytics.ts`:
 

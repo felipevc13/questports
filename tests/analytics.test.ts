@@ -127,6 +127,9 @@ describe('analytics allowlist', () => {
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
       if (event === 'video_preview_play') body.props = { surface: 'card' }
       if (event === 'tip_click') body.props = { surface: 'footer' }
+      if (event === 'banner_view' || event === 'banner_click' || event === 'banner_dismiss') {
+        body.props = { surface: 'banner' }
+      }
       const decision = decide({ body })
       expect(decision.record, event).toBe(true)
       expect(decision.row?.event).toBe(event)
@@ -148,10 +151,13 @@ describe('analytics allowlist', () => {
       expect(decision.row?.path).toBe('/app')
     }
     expect(decide({ body: { event: 'install_click', path: '/' } }).record).toBe(false)
-    expect(decide({ body: { event: 'banner_view', path: '/' } }).row?.port_slug ?? null).toBeNull()
-    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr' } }).row?.port_slug).toBe('iron-lung-vr')
-    expect(clientAnalyticsPayload('banner_click', { path: '/' })?.event).toBe('banner_click')
-    expect(clientAnalyticsPayload('banner_dismiss', { path: '/' })?.props ?? null).toBeNull()
+    expect(decide({ body: { event: 'banner_view', path: '/', props: { surface: 'banner' } } }).row?.port_slug ?? null).toBeNull()
+    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr', props: { surface: 'modal' } } }).row?.port_slug).toBe('iron-lung-vr')
+    expect(decide({ body: { event: 'banner_view', path: '/ports/iron-lung-vr', props: { surface: 'modal' } } }).row?.props).toEqual({ surface: 'modal' })
+    expect(clientAnalyticsPayload('banner_click', { path: '/', props: { surface: 'banner' } })?.event).toBe('banner_click')
+    expect(clientAnalyticsPayload('banner_dismiss', { path: '/', props: { surface: 'banner' } })?.props).toEqual({ surface: 'banner' })
+    expect(clientAnalyticsPayload('banner_view', { path: '/' })).toBeNull()
+    expect(clientAnalyticsPayload('banner_click', { path: '/', props: { surface: 'footer' } })).toBeNull()
   })
 
   it('keeps the migration allowlist, indexes, and private grants in sync', () => {
@@ -187,6 +193,8 @@ describe('analytics allowlist', () => {
     )
     for (const event of ANALYTICS_EVENTS) expect(appBanner).toContain(`'${event}'`)
     expect(appBanner).toContain('drop constraint if exists analytics_events_event_check')
+    expect(appBanner).toContain('analytics_events_banner_surface_check')
+    expect(appBanner).toContain("props->>'surface' in ('banner', 'modal')")
     expect(tipClick).not.toContain("'banner_view'")
     expect(tipClick).toContain('analytics_events_tip_click_check')
     expect(tipClick).toContain("props->>'surface' in ('install_success', 'footer')")

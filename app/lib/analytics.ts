@@ -99,6 +99,11 @@ export const TIP_CLICK_SURFACES = ['install_success', 'footer'] as const
 
 export type TipClickSurface = (typeof TIP_CLICK_SURFACES)[number]
 
+/** Quest Browser banner, or the desktop modal after a game install. No new event names. */
+export const BANNER_SURFACES = ['banner', 'modal'] as const
+
+export type BannerSurface = (typeof BANNER_SURFACES)[number]
+
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'port_view',
   'install_click',
@@ -561,6 +566,14 @@ function tipClickProps(
   return { surface: surface as TipClickSurface }
 }
 
+function bannerProps(
+  props: Record<string, unknown> | null
+): { surface: BannerSurface } | null {
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(BANNER_SURFACES as readonly string[]).includes(surface)) return null
+  return { surface: surface as BannerSurface }
+}
+
 function unsupportedBrowserProps(
   props: Record<string, unknown> | null
 ): { action: UnsupportedBrowserAction } | null {
@@ -638,6 +651,14 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const tip = tipClickProps(props)
     if (!tip) return null
     storedProps = tip
+  } else if (
+    record.event === 'banner_view'
+    || record.event === 'banner_click'
+    || record.event === 'banner_dismiss'
+  ) {
+    const banner = bannerProps(props)
+    if (!banner) return null
+    storedProps = banner
   }
 
   if (props?.app === true) {
