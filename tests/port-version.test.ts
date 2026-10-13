@@ -20,6 +20,23 @@ describe('port version comparison', () => {
     expect(isHeadsetApkOutdated('1.0.6', 'v1.0.16')).toBe(true)
     expect(isHeadsetApkOutdated('v1.0.16', 'v1.0.16')).toBe(false)
     expect(isHeadsetApkOutdated('1.0.16', 'v1.0.6')).toBe(false)
+    expect(isHeadsetApkOutdated('1.4.0', 'v1.4.1')).toBe(true)
+  })
+
+  it('does not treat a different versionName scheme as an older catalog build', () => {
+    expect(isHeadsetApkOutdated('1.0', 'v2.1')).toBe(false)
+    expect(isHeadsetApkOutdated('1.1.28', 'v1.2.0')).toBe(false)
+    expect(isHeadsetApkOutdated('0.93', 'v1.2')).toBe(false)
+    expect(isHeadsetApkOutdated('0.1.0', 'b003')).toBe(false)
+    expect(isHeadsetApkOutdated('1.0.0', 'v1.1')).toBe(false)
+    expect(isHeadsetApkOutdated('2.2.0-19-dirty', 'v2.3.0')).toBe(false)
+    expect(isHeadsetApkOutdated('1.0.31-test64', 'v1.0.31')).toBe(false)
+  })
+
+  it('keeps the headset simulator outdated marker', () => {
+    expect(isHeadsetApkOutdated('0.0.1', 'v1.4.1')).toBe(true)
+    expect(isHeadsetApkOutdated('0.0.1', 'b004')).toBe(true)
+    expect(isHeadsetApkOutdated('0.0.1', '0.0.1')).toBe(false)
   })
 
   it('does not claim outdated when versions cannot be parsed', () => {

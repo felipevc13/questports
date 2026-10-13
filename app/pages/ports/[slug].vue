@@ -613,12 +613,7 @@
                     </span>
                   </div>
                   <div class="text-[11px] text-muted-foreground">
-                    <template v-if="isApkOutdated">
-                      Headset {{ formatPortVersion(headsetApkVersion) || headsetApkVersion }} → catalog {{ catalogVersion }}
-                    </template>
-                    <template v-else>
-                      {{ headsetApkVersion ? `Installed ${headsetApkVersion}` : (isDirectApkOnly ? 'Standalone port ready to launch' : 'Ready to launch or manage game data files') }}
-                    </template>
+                    {{ installedStatusDetail }}
                   </div>
                 </div>
               </div>
@@ -1396,7 +1391,17 @@ import {
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile } from '~/lib/dropPaths'
-import { formatPortVersion, isHeadsetApkOutdated } from '~/lib/portVersion'
+import { formatPortVersion } from '~/lib/portVersion'
+import {
+  apkUpdateDecision,
+  assetLabelFromDownloadUrl,
+  forgetInstalledRelease,
+  learnInstalledRelease,
+  readInstalledRelease,
+  releaseIdentityMatches,
+  rememberInstalledRelease,
+  type InstalledReleaseRecord
+} from '~/lib/installedRelease'
 import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { portShareMeta } from '~/lib/socialMeta'
 import { softenGuideHtml } from '~/lib/guideHtml'
@@ -1992,17 +1997,97 @@ const getInstalledPackageName = (): string | null => {
 }
 
 const headsetApkVersion = ref<string | null>(null)
+const headsetApkVersionCode = ref<string | null>(null)
+const installedRelease = ref<InstalledReleaseRecord | null>(null)
 const catalogVersion = computed(() => formatPortVersion(port.value?.latest_version))
-const isApkOutdated = computed(() => {
-  return isHeadsetApkOutdated(headsetApkVersion.value, port.value?.latest_version)
+const apkUpdate = computed(() => apkUpdateDecision({
+  installedVersionName: headsetApkVersion.value,
+  installedVersionCode: headsetApkVersionCode.value,
+  catalogVersion: port.value?.latest_version,
+  record: installedRelease.value
+}))
+const isApkOutdated = computed(() => apkUpdate.value.outdated)
+const installedStatusDetail = computed(() => {
+  const catalog = catalogVersion.value
+  if (apkUpdate.value.outdated && apkUpdate.value.reason === 'release') {
+    return `Installed ${formatPortVersion(installedRelease.value?.releaseTag)} → catalog ${catalog}`
+  }
+  if (apkUpdate.value.outdated) {
+    const headset = formatPortVersion(headsetApkVersion.value) || headsetApkVersion.value || ''
+    return `Headset ${headset} → catalog ${catalog}`
+  }
+  const record = installedRelease.value
+  const recorded = record && releaseIdentityMatches(record, headsetApkVersion.value, headsetApkVersionCode.value)
+    ? record.releaseTag
+    : ''
+  if (recorded && headsetApkVersion.value && formatPortVersion(headsetApkVersion.value) !== catalog) {
+    return `Installed ${recorded}`
+  }
+  if (headsetApkVersion.value) return `Installed ${headsetApkVersion.value}`
+  return isDirectApkOnly.value
+    ? 'Standalone port ready to launch'
+    : 'Ready to launch or manage game data files'
 })
+
+const syncInstalledRelease = (pkg: string) => {
+  if (!import.meta.client) {
+    installedRelease.value = null
+    return
+  }
+  let record = readInstalledRelease(window.localStorage, questAdb.deviceSerial.value, pkg)
+  const learned = learnInstalledRelease(record, headsetApkVersion.value, headsetApkVersionCode.value)
+  if (learned && record && learned !== record) {
+    rememberInstalledRelease(window.localStorage, learned)
+    record = learned
+  }
+  installedRelease.value = record
+}
+
+const forgetHeadsetRelease = (pkg: string | null) => {
+  if (!pkg) {
+    installedRelease.value = null
+    return
+  }
+  if (import.meta.client) {
+    forgetInstalledRelease(window.localStorage, questAdb.deviceSerial.value, pkg)
+  }
+  installedRelease.value = null
+}
+
+const rememberCatalogInstall = () => {
+  if (!import.meta.client || !port.value) return
+  const pkg = getInstalledPackageName()
+  const releaseTag = formatPortVersion(port.value.latest_version)
+  if (!pkg || !releaseTag) return
+  const asset = questAdb.lastInstallAsset.value
+    || assetLabelFromDownloadUrl(port.value.port_download_url)
+    || ''
+  installedRelease.value = rememberInstalledRelease(window.localStorage, {
+    serial: questAdb.deviceSerial.value,
+    packageName: pkg,
+    releaseTag,
+    asset,
+    versionName: headsetApkVersion.value,
+    versionCode: headsetApkVersionCode.value
+  })
+}
 
 const refreshHeadsetApkVersion = async () => {
   headsetApkVersion.value = null
-  if (!questAdb.isConnected.value || !isDetectedOnConnectedQuest.value) return
+  headsetApkVersionCode.value = null
+  if (!questAdb.isConnected.value || !isDetectedOnConnectedQuest.value) {
+    installedRelease.value = null
+    return
+  }
   const pkg = getInstalledPackageName()
-  if (!pkg) return
-  headsetApkVersion.value = await questAdb.getPackageVersion(pkg)
+  if (!pkg) {
+    installedRelease.value = null
+    return
+  }
+  const info = await questAdb.getPackageVersion(pkg)
+  headsetApkVersion.value = info.versionName
+  headsetApkVersionCode.value = info.versionCode
+  syncInstalledRelease(pkg)
 }
 
 watch(
@@ -2023,6 +2108,7 @@ const executeUninstallApp = async () => {
       const ok = await questAdb.uninstallPackage(pkg)
       if (ok) {
         isApkInstalled.value = false
+        forgetHeadsetRelease(pkg)
         showUninstallPrompt.value = false
         if (port.value) {
           for (const c of campaignList.value) {
@@ -2041,6 +2127,7 @@ const executeUninstallApp = async () => {
   } else {
     // Reset local card state if not ADB-connected or package not specified
     isApkInstalled.value = false
+    forgetHeadsetRelease(pkg)
     showUninstallPrompt.value = false
     if (port.value) {
       for (const c of campaignList.value) {
@@ -2197,7 +2284,7 @@ const recordInstallVerification = async () => {
     deviceSerial: questAdb.deviceSerial.value,
     deviceModel: questAdb.deviceModel.value,
     slug: port.value.slug,
-    testedVersion: headsetApkVersion.value || port.value.latest_version || '',
+    testedVersion: port.value.latest_version || headsetApkVersion.value || '',
     apkInstalled: true,
     gameFilesDetected,
     storagePathConfirmed
@@ -2384,6 +2471,7 @@ const handleApkInstall = async () => {
       isApkInstalled.value = true
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
+      rememberCatalogInstall()
       await scanCampaignFiles()
       await recordInstallVerification()
     } else {

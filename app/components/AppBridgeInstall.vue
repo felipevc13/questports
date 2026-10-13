@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTrack } from '~/composables/useTrack'
 import {
@@ -171,6 +171,15 @@ import {
   ensureMockAppBridge,
   type AppBridgeEventDetail
 } from '~/lib/appBridge'
+import {
+  APP_RELEASE_SERIAL,
+  assetLabelFromDownloadUrl,
+  learnInstalledRelease,
+  readInstalledRelease,
+  rememberInstalledRelease,
+  type InstalledReleaseRecord
+} from '~/lib/installedRelease'
+import { formatPortVersion } from '~/lib/portVersion'
 import {
   GAME_FILES_GUIDE_HREF,
   GAME_FILES_GUIDE_LABEL,
@@ -203,13 +212,18 @@ const phase = ref<'idle' | AppBridgeEventDetail['status']>('idle')
 const progress = ref(0)
 const installed = ref(false)
 const installedVersion = ref<string | null>(null)
+const installedRelease = ref<InstalledReleaseRecord | null>(null)
 const errorMessage = ref('')
 const activeRequestId = ref('')
 const finished = new Set<string>()
 
 const progressPercent = computed(() => Math.round(Math.min(1, Math.max(0, progress.value || 0)) * 100))
 const statusLabel = computed(() => appInstallStatusLabel(phase.value, progress.value))
-const canUpdate = computed(() => appUpdateAvailable(installedVersion.value, props.latestVersion))
+const canUpdate = computed(() => appUpdateAvailable(
+  installedVersion.value,
+  props.latestVersion,
+  installedRelease.value
+))
 const showGameFiles = computed(() => props.needsGameFiles && installed.value && phase.value !== 'downloading' && phase.value !== 'installing' && phase.value !== 'error')
 
 const trackInstall = (
@@ -237,6 +251,35 @@ const refreshVersion = () => {
   } catch {
     installedVersion.value = null
   }
+}
+
+const syncRelease = () => {
+  const pkg = props.packageName
+  if (!import.meta.client || !pkg) {
+    installedRelease.value = null
+    return
+  }
+  let record = readInstalledRelease(window.localStorage, APP_RELEASE_SERIAL, pkg)
+  const learned = learnInstalledRelease(record, installedVersion.value, null)
+  if (learned && record && learned !== record) {
+    rememberInstalledRelease(window.localStorage, learned)
+    record = learned
+  }
+  installedRelease.value = record
+}
+
+const rememberAppInstall = () => {
+  const pkg = props.packageName
+  const releaseTag = formatPortVersion(props.latestVersion)
+  if (!import.meta.client || !pkg || !releaseTag) return
+  installedRelease.value = rememberInstalledRelease(window.localStorage, {
+    serial: APP_RELEASE_SERIAL,
+    packageName: pkg,
+    releaseTag,
+    asset: assetLabelFromDownloadUrl(props.downloadUrl) || '',
+    versionName: installedVersion.value,
+    versionCode: null
+  })
 }
 
 const readInstalled = () => {
@@ -275,6 +318,7 @@ const applyStatus = (detail: AppBridgeEventDetail) => {
     phase.value = 'success'
     installed.value = true
     refreshVersion()
+    rememberAppInstall()
     trackInstall('install_success')
     return
   }
@@ -380,9 +424,14 @@ const openApp = () => {
   }
 }
 
+watch(() => props.packageName, () => {
+  syncRelease()
+})
+
 onMounted(() => {
   ensureMockAppBridge(route.fullPath)
   readInstalled()
+  syncRelease()
   window.addEventListener(APP_BRIDGE_EVENT, onBridgeEvent)
 })
 

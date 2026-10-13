@@ -7,5 +7,8 @@ export {
   formatPortVersion,
   numericVersionParts,
   comparePortVersions,
-  isHeadsetApkOutdated
+  versionScheme,
+  versionsAreComparable,
+  isHeadsetApkOutdated,
+  parsePackageDump
 } from './versionFormat'

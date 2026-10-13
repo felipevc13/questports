@@ -1,5 +1,5 @@
 import { installErrorReason, type InstallErrorReason } from '~/lib/analytics'
-import { comparePortVersions, numericVersionParts } from '~/lib/versionFormat'
+import { apkUpdateDecision, type InstalledReleaseRecord } from '~/lib/installedRelease'
 
 /**
  * Native QuestPorts Android wrapper. The headset WebView loads this site and
@@ -161,11 +161,22 @@ export function appBridgeInstallErrorReason(status: string, error?: string | nul
   return installErrorReason(text || 'error')
 }
 
-/** True when both versions have numeric parts and they are not the same. */
-export function appUpdateAvailable(installed: string | null | undefined, latest: string | null | undefined): boolean {
-  if (!installed || !latest) return false
-  if (numericVersionParts(installed).length === 0 || numericVersionParts(latest).length === 0) return false
-  return comparePortVersions(installed, latest) !== 0
+/**
+ * True when the catalog release is newer than the build this app installed,
+ * or when versionName is a lower patch of the same release line.
+ * A different numbering scheme (versionName 1.0, catalog v2.1) is not an update.
+ */
+export function appUpdateAvailable(
+  installed: string | null | undefined,
+  latest: string | null | undefined,
+  record: InstalledReleaseRecord | null = null
+): boolean {
+  return apkUpdateDecision({
+    installedVersionName: installed,
+    installedVersionCode: null,
+    catalogVersion: latest,
+    record
+  }).outdated
 }
 
 const MOCK_SCRIPT: Array<{ status: AppBridgeStatus; progress?: number }> = [

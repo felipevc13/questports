@@ -109,10 +109,79 @@ export function comparePortVersions(installed, catalog) {
 }
 
 /**
+ * Letters left after the numeric pieces are removed.
+ * "v1.0.31-test64" and "1.0.31" do not share a scheme. "1.0.6" and "v1.0.16" do.
+ * @param {string | null | undefined} raw
+ * @returns {string}
+ */
+export function versionScheme(raw) {
+  const key = normalizeVersionKey(raw)
+  if (!key) return ''
+  return key.replace(/[0-9.]+/g, '').replace(/[^a-z0-9]+/g, '')
+}
+
+/**
+ * versionName is trustworthy against a release tag only when they use the same
+ * scheme and the same number of numeric pieces, and every piece but the last
+ * matches. A different major (1.0 vs 2.1) or minor (1.1.28 vs 1.2.0) is how
+ * ports whose versionName does not follow the GitHub tag look. Those are not
+ * comparable: a missing badge is better than "Update available" on a build
+ * that was just installed.
+ * @param {string | null | undefined} installed
+ * @param {string | null | undefined} catalog
+ * @returns {boolean}
+ */
+export function versionsAreComparable(installed, catalog) {
+  if (isPlaceholderVersion(installed) || isPlaceholderVersion(catalog)) return false
+  if (versionScheme(installed) !== versionScheme(catalog)) return false
+  const a = numericVersionParts(installed)
+  const b = numericVersionParts(catalog)
+  if (a.length === 0 || a.length !== b.length) return false
+  for (let i = 0; i < a.length - 1; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+/**
+ * The headset simulator marks every package outdated with versionName 0.0.1.
+ * No catalog APK we have read uses that versionName.
+ * @param {string | null | undefined} installed
+ * @returns {boolean}
+ */
+function isSimulatorOutdatedMarker(installed) {
+  if (versionScheme(installed) !== '') return false
+  const parts = numericVersionParts(installed)
+  return parts.length === 3 && parts[0] === 0 && parts[1] === 0 && parts[2] === 1
+}
+
+/**
+ * True when the headset versionName is a lower patch of the same release line.
  * @param {string | null | undefined} installedVersion
  * @param {string | null | undefined} catalogVersion
  * @returns {boolean}
  */
 export function isHeadsetApkOutdated(installedVersion, catalogVersion) {
-  return comparePortVersions(installedVersion, catalogVersion) < 0
+  if (isSimulatorOutdatedMarker(installedVersion) && comparePortVersions(installedVersion, catalogVersion) < 0) {
+    return true
+  }
+  if (!versionsAreComparable(installedVersion, catalogVersion)) return false
+  const installed = numericVersionParts(installedVersion)
+  const catalog = numericVersionParts(catalogVersion)
+  return installed[installed.length - 1] < catalog[catalog.length - 1]
+}
+
+/**
+ * versionName and versionCode from `dumpsys package`.
+ * @param {string | null | undefined} dump
+ * @returns {{ versionName: string | null, versionCode: string | null }}
+ */
+export function parsePackageDump(dump) {
+  const text = String(dump || '')
+  const name = text.match(/versionName=([^\s]+)/i)
+  const code = text.match(/versionCode=(\d+)/i)
+  return {
+    versionName: name && name[1] ? name[1] : null,
+    versionCode: code && code[1] ? code[1] : null
+  }
 }
