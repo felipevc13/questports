@@ -83,6 +83,14 @@ export const INSTALL_STEP_STATUSES = ['start', 'ok', 'fail'] as const
 
 export type InstallStepStatus = (typeof INSTALL_STEP_STATUSES)[number]
 
+/**
+ * Where a connect step started. One-click install omits this.
+ * `install` is accepted so the client allowlist matches the database check.
+ */
+export const INSTALL_STEP_SURFACES = ['navbar', 'install'] as const
+
+export type InstallStepSurface = (typeof INSTALL_STEP_SURFACES)[number]
+
 export interface InstallStepEvent {
   step: InstallStep
   status: InstallStepStatus
@@ -516,14 +524,19 @@ function installErrorProps(props: Record<string, unknown> | null): { reason: Ins
 
 function installStepProps(
   props: Record<string, unknown> | null
-): { step: InstallStep; status: InstallStepStatus; ref?: string } | null {
+): { step: InstallStep; status: InstallStepStatus; surface?: InstallStepSurface; ref?: string } | null {
   const step = props && typeof props.step === 'string' ? props.step : ''
   const status = props && typeof props.status === 'string' ? props.status : ''
   if (!(INSTALL_STEPS as readonly string[]).includes(step)) return null
   if (!(INSTALL_STEP_STATUSES as readonly string[]).includes(status)) return null
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  const knownSurface = (INSTALL_STEP_SURFACES as readonly string[]).includes(surface)
+    ? surface as InstallStepSurface
+    : null
   return {
     step: step as InstallStep,
     status: status as InstallStepStatus,
+    ...(knownSurface ? { surface: knownSurface } : {}),
     ...campaignRefProps(props)
   }
 }
@@ -580,7 +593,9 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   const webusb = typeof record.webusb === 'boolean' ? record.webusb : null
   const props = readProps(record.props)
 
-  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug) return null
+  // A navbar connect has no port when it starts from the catalog. Install steps still require a slug.
+  const navbarConnectStep = record.event === 'install_step' && props?.surface === 'navbar'
+  if (EVENTS_REQUIRING_SLUG.has(record.event) && !portSlug && !navbarConnectStep) return null
   if (record.event === 'page_view' && !path) return null
 
   let storedProps: Record<string, string | number | boolean> | null = null

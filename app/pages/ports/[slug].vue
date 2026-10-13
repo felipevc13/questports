@@ -1439,6 +1439,7 @@ import {
 import { canHoverPreview, previewMp4Url, PREVIEW_HOVER_MS, youtubeClipForPort } from '~/data/videoPreviews'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
+import { claimConnectOrigin } from '~/lib/connectOrigin'
 import TransferProgress from '~/components/TransferProgress.vue'
 
 const route = useRoute()
@@ -2430,6 +2431,7 @@ const handleApkInstall = async () => {
       trackInstall('install_error', 'no_webusb')
       return
     }
+    claimConnectOrigin('install')
     trackInstallStep(steps, 'connect', 'start')
     let sawAuthorize = false
     const stopConnect = watch(questAdb.connectionPhase, (phase) => {
