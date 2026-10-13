@@ -162,3 +162,24 @@
   line-height: 1;
   transform: translateY(1px);
 }
+
+/*
+ * Campaign and expansion labels ("Base Campaign", "Expansion (DLC)").
+ * The phone rule above rewrites text-[9px] to 12px with line-height 1.35.
+ * Those badges sat in overflow-hidden buttons, so the first letters (C, E)
+ * were sliced off. This chip owns its size and leaves the glyphs intact.
+ */
+.campaign-chip {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

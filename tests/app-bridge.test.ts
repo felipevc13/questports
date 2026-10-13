@@ -275,7 +275,7 @@ describe('app bridge install gate', () => {
   it('replaces USB, Quest Browser, and direct-install steps inside the app', () => {
     const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     const bridgeAt = page.indexOf('<AppBridgeInstall')
-    const usbAt = page.indexOf('<div v-else class="space-y-3 pt-1">')
+    const usbAt = page.indexOf('<div v-if="!inApp" class="space-y-3 pt-1">')
     expect(bridgeAt).toBeGreaterThan(0)
     expect(usbAt).toBeGreaterThan(bridgeAt)
     expect(page).toContain('v-if="inApp"')
