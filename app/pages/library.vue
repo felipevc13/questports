@@ -134,7 +134,7 @@ const loadVersions = async () => {
   const pending = installed.value.filter(row => versionsReady.value[row.packageName] !== true)
   await Promise.all(pending.map(async (row) => {
     const version = await questAdb.getPackageVersion(row.packageName)
-    versions.value = { ...versions.value, [row.packageName]: version }
+    versions.value = { ...versions.value, [row.packageName]: version.versionName }
     versionsReady.value = { ...versionsReady.value, [row.packageName]: true }
   }))
 }
