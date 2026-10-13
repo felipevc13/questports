@@ -3,7 +3,17 @@
  * Update detection uses the same rule as the port page (`apkUpdateDecision`).
  */
 
+import { installedPackageOnQuest } from '~/data/portPackageMap'
 import { apkUpdateDecision, type InstalledReleaseRecord } from './installedRelease'
+
+/** Indexed catalog rows whose package (or an alt id) is on the headset. */
+export function countIndexedInstalled(slugs: readonly string[], packages: readonly string[]): number {
+  let count = 0
+  for (const slug of slugs) {
+    if (installedPackageOnQuest(slug, packages as string[])) count += 1
+  }
+  return count
+}
 
 export interface LibraryEntry<T> {
   port: T

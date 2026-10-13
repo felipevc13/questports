@@ -37,10 +37,45 @@ export interface QuestPortsAppBridge {
   isInstalled(packageName: string): boolean
   getInstalledVersion(packageName: string): string | null
   launch(packageName: string): boolean
+  /**
+   * Starts the system uninstall UI. Absent on QuestPorts 1.0.108.
+   * A later APK must add this on the JavascriptInterface, forward it in the
+   * injected shim, fire Intent.ACTION_DELETE with a `package:` URI, and
+   * declare REQUEST_DELETE_PACKAGES. Return false when the intent was not sent.
+   */
+  uninstall?(packageName: string): boolean | Promise<boolean | void>
   /** Real bridge, via the shim. The `?inApp=1` mock uses `version` instead. */
   getVersion?(): string
   /** Present only on the `?inApp=1` simulator. The real app does not set this. */
   __mock?: boolean
+}
+
+/**
+ * QuestPorts 1.0.108 does not expose uninstall. The mock must not invent it.
+ * The Library button stays hidden until `bridge.uninstall` is a real function.
+ */
+export function bridgeCanUninstall(
+  bridge: { uninstall?: unknown } | null | undefined
+): bridge is QuestPortsAppBridge & {
+  uninstall: (packageName: string) => boolean | Promise<boolean | void>
+} {
+  return typeof bridge?.uninstall === 'function'
+}
+
+/** Ask the native bridge to open the system uninstall UI. Never pretends it did. */
+export async function requestBridgeUninstall(
+  bridge: { uninstall?: (packageName: string) => boolean | Promise<boolean | void> } | null | undefined,
+  packageName: string
+): Promise<'missing' | 'rejected' | 'started'> {
+  if (!bridgeCanUninstall(bridge)) return 'missing'
+  const pkg = String(packageName || '').trim()
+  if (!pkg) return 'rejected'
+  try {
+    const result = await bridge.uninstall(pkg)
+    return result === false ? 'rejected' : 'started'
+  } catch {
+    return 'rejected'
+  }
 }
 
 declare global {

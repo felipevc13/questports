@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { whenAppBridgeReady } from '../app/lib/appBridge'
+import { bridgeCanUninstall, createMockQuestPortsApp, requestBridgeUninstall, whenAppBridgeReady } from '../app/lib/appBridge'
 import { appSelfUpdateAvailable, parseLatestAppRelease } from '../app/lib/appReleaseCheck'
 import { appStartTab, firstInstalledPackage, packageCandidates } from '../app/lib/headsetPackages'
 
@@ -80,6 +80,14 @@ describe('app shell', () => {
     expect(home).toContain("{ id: 'settings', label: 'Settings' }")
     expect(home).toContain('data-testid="check-for-updates"')
     expect(home).toContain('data-testid="library-update"')
+    expect(home).toContain('data-testid="library-count"')
+    expect(home).toContain("item.id === 'library' && libraryRows.length > 0")
+    expect(home).toContain('v-if="canUninstall"')
+    expect(home).toContain('bridgeCanUninstall')
+    expect(home).toContain('requestBridgeUninstall')
+    expect(install).toContain('data-testid="app-install-uninstall"')
+    expect(install).toContain('v-if="canUninstall && (matchedPackage || packageName)"')
+    expect(install).toContain('bridgeCanUninstall')
     expect(home).toContain('firstInstalledPackage')
     expect(home).toContain('appUpdateAvailable')
     expect(home).toContain('appStartTab')
@@ -88,6 +96,22 @@ describe('app shell', () => {
     expect(install).toContain('bridge.isInstalled')
     expect(shell).toContain('<Navbar v-if="!inApp" />')
     expect(shell).toContain('<Footer v-if="!inApp" />')
+  })
+
+  it('hides uninstall unless the bridge method exists', async () => {
+    const mock = createMockQuestPortsApp()
+    expect(bridgeCanUninstall(mock)).toBe(false)
+    expect('uninstall' in mock).toBe(false)
+    expect(await requestBridgeUninstall(mock, 'com.example.game')).toBe('missing')
+
+    const present = {
+      ...mock,
+      uninstall: (pkg: string) => pkg === 'com.example.game'
+    }
+    expect(bridgeCanUninstall(present)).toBe(true)
+    expect(await requestBridgeUninstall(present, 'com.example.game')).toBe('started')
+    expect(await requestBridgeUninstall(present, 'com.other')).toBe('rejected')
+    expect(await requestBridgeUninstall({ ...mock, uninstall: () => { throw new Error('nope') } }, 'com.example.game')).toBe('rejected')
   })
 
   it('waits for the native bridge when page finish is later than mount', () => {

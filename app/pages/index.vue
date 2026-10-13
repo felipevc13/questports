@@ -45,7 +45,7 @@
 
     <!-- Catalog Section -->
     <section class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10 space-y-5 max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
-      <CatalogLibraryTabs current="catalog" />
+      <CatalogLibraryTabs current="catalog" :count="installedCount" />
       <!-- Search & Filters Toolbar -->
       <div class="max-md:sticky max-md:top-14 max-md:z-40 max-md:-mx-4 max-md:border-x-0 max-md:bg-background/95 max-md:px-4 max-md:py-2 max-md:backdrop-blur space-y-3 rounded-lg border border-border bg-card p-3.5 md:static">
         <!-- Row 1: Search & Category Filter Pills -->
@@ -488,6 +488,7 @@ import type { Port, PortCategory, PortStatus } from '~/types/port'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import { useAppBridge } from '~/composables/useAppBridge'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
+import { countIndexedInstalled } from '~/lib/questLibrary'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
@@ -617,6 +618,14 @@ const isPortInstalled = (slug: string) => {
   if (!questAdb.isConnected.value) return false
   return isPortInstalledOnQuest(slug, questAdb.installedPackages.value)
 }
+
+const installedCount = computed(() => {
+  if (!questAdb.isConnected.value) return 0
+  return countIndexedInstalled(
+    ports.value.map(port => port.slug),
+    questAdb.installedPackages.value
+  )
+})
 
 // Sync with URL query parameter (?dev=...)
 watch(() => route.query.dev, (newDev) => {

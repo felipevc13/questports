@@ -13,18 +13,27 @@
     <NuxtLink
       to="/library"
       data-testid="library-tab"
-      class="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium md:min-h-8"
+      class="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium md:min-h-8"
       :class="current === 'library'
         ? 'bg-secondary text-foreground'
         : 'text-muted-foreground hover:text-foreground'"
     >
       Library
+      <span
+        v-if="count > 0"
+        data-testid="library-count"
+        class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold tabular-nums leading-none text-foreground"
+      >{{ count }}</span>
     </NuxtLink>
   </nav>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+withDefaults(defineProps<{
   current: 'catalog' | 'library'
-}>()
+  /** Installed indexed games. Hidden when 0. */
+  count?: number
+}>(), {
+  count: 0
+})
 </script>
