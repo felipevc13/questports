@@ -1438,6 +1438,7 @@ import type { PortCategory, PortStatus } from '~/types/port'
 import { getPortCampaigns, type PortCampaign } from '~/data/expansions'
 import { campaignPartState, countInstalledParts } from '~/lib/campaignParts'
 import { APP_BRIDGE_EVENT, whenAppBridgeReady } from '~/lib/appBridge'
+import { apkInstalledOnHeadset } from '~/lib/apkInstalledState'
 import { firstInstalledPackage } from '~/lib/headsetPackages'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import {
@@ -1703,18 +1704,15 @@ const isDetectedOnConnectedQuest = computed(() => {
   return isPortInstalledOnQuest(slug, questAdb.installedPackages.value)
 })
 
-const getPersistedInstalled = (): boolean => {
-  if (import.meta.client && slug) {
-    try {
-      return localStorage.getItem(`questports_installed_${slug}`) === 'true'
-    } catch {
-      return false
-    }
-  }
-  return false
-}
+/** App bridge saw the package (primary or alt). WebUSB uses the package list. */
+const bridgePackageInstalled = ref(false)
 
-const isApkInstalled = ref(false)
+const isApkInstalled = computed(() => apkInstalledOnHeadset({
+  connected: questAdb.isConnected.value,
+  slug,
+  installedPackages: questAdb.installedPackages.value,
+  bridgeInstalled: bridgePackageInstalled.value
+}))
 const isInstallingApk = ref(false)
 const apkProgress = ref(0)
 const apkInstallError = ref<string | null>(null)
@@ -1723,48 +1721,10 @@ const spaceNoticeKind = ref<'block' | 'warn'>('warn')
 const showReinstallPrompt = ref(false)
 const reinstallError = ref<string | null>(null)
 
-// Restore persisted state on mount
 onMounted(() => {
-  if (getPersistedInstalled()) {
-    isApkInstalled.value = true
-  }
   installSupportReady.value = true
   usbPrepRemembered.value = hasRememberedQuestConnection(window.localStorage)
 })
-
-// Persist installed state to localStorage
-watch(isApkInstalled, (val) => {
-  if (import.meta.client && slug) {
-    try {
-      if (val) {
-        localStorage.setItem(`questports_installed_${slug}`, 'true')
-      } else {
-        localStorage.removeItem(`questports_installed_${slug}`)
-      }
-    } catch {}
-  }
-})
-
-// Real-time bidirectional sync between connected headset and card state:
-watch(
-  [() => questAdb.isConnected.value, isDetectedOnConnectedQuest],
-  ([connected, detected]) => {
-    if (connected) {
-      // When Quest is actively connected via USB, the headset is the single source of truth:
-      // If the user uninstalls the app directly in the visor, it unmarks immediately on the page!
-      isApkInstalled.value = detected
-      if (!detected && import.meta.client && slug) {
-        localStorage.removeItem(`questports_installed_${slug}`)
-      }
-    } else {
-      // When disconnected from USB, use persisted offline state
-      if (getPersistedInstalled()) {
-        isApkInstalled.value = true
-      }
-    }
-  },
-  { immediate: true }
-)
 
 watch(() => questAdb.installProgress.value, (progress) => {
   if (!isInstallingApk.value) return
@@ -1915,9 +1875,6 @@ const isCurrentCampaignTransferred = computed(() => {
   return !!transferredCampaigns.value[targetKey]
 })
 
-/** App bridge saw the package (primary or alt). WebUSB uses the package list below. */
-const bridgePackageInstalled = ref(false)
-
 const readBridgePackage = () => {
   if (!import.meta.client || !slug) {
     bridgePackageInstalled.value = false
@@ -1965,13 +1922,11 @@ onUnmounted(() => {
 
 watch(() => port.value?.slug, () => readBridgePackage())
 
-const packageInstalled = computed(() => {
-  if (bridgePackageInstalled.value) return true
-  if (!questAdb.isConnected.value || !slug) return false
-  return isPortInstalledOnQuest(slug, questAdb.installedPackages.value)
-})
+const packageInstalled = isApkInstalled
 
 const partFilesReady = (campaign: { id: string }) => {
+  // A folder found earlier in this visit is not still "on the Quest" once USB is gone.
+  if (!questAdb.isConnected.value) return false
   const currentPort = port.value
   if (!currentPort) return false
   const targetKey = `${currentPort.id}-${campaign.id}`
@@ -2087,10 +2042,7 @@ const handleLocalApkSelected = async (e: Event) => {
   apkProgress.value = 0
   try {
     const installed = await questAdb.installApkFile(file, port.value?.title || 'Game Port')
-    if (installed) {
-      isApkInstalled.value = true
-      scanCampaignFiles()
-    }
+    if (installed) scanCampaignFiles()
   } catch (err: any) {
     noteInstallFailure(err)
   } finally {
@@ -2099,15 +2051,9 @@ const handleLocalApkSelected = async (e: Event) => {
 }
 
 const recheckHeadsetInstalled = async () => {
-  if (questAdb.isConnected.value) {
-    await questAdb.refreshStats()
-    isApkInstalled.value = isDetectedOnConnectedQuest.value
-    if (isDetectedOnConnectedQuest.value) {
-      scanCampaignFiles()
-    } else if (import.meta.client && slug) {
-      localStorage.removeItem(`questports_installed_${slug}`)
-    }
-  }
+  if (!questAdb.isConnected.value) return
+  await questAdb.refreshStats()
+  if (isDetectedOnConnectedQuest.value) scanCampaignFiles()
 }
 
 const isAppLaunching = ref(false)
@@ -2266,7 +2212,6 @@ const executeUninstallApp = async () => {
     try {
       const ok = await questAdb.uninstallPackage(pkg)
       if (ok) {
-        isApkInstalled.value = false
         forgetHeadsetRelease(pkg)
         showUninstallPrompt.value = false
         if (port.value) {
@@ -2284,8 +2229,7 @@ const executeUninstallApp = async () => {
       isUninstallingApp.value = false
     }
   } else {
-    // Reset local card state if not ADB-connected or package not specified
-    isApkInstalled.value = false
+    // Nothing to remove over USB. Close the prompt; the card follows the package list.
     forgetHeadsetRelease(pkg)
     showUninstallPrompt.value = false
     if (port.value) {
@@ -2545,7 +2489,6 @@ const executeReinstall = async () => {
       return
     }
     showReinstallPrompt.value = false
-    isApkInstalled.value = false
     await handleApkInstall()
   } catch (err: any) {
     reinstallError.value = err?.message || 'Error executing uninstall command on headset.'
@@ -2628,7 +2571,6 @@ const handleApkInstall = async () => {
       installed: Boolean(installed),
       progressStep: questAdb.installProgress.value.step
     }) === 'success') {
-      isApkInstalled.value = true
       await questAdb.updatePackages()
       await refreshHeadsetApkVersion()
       rememberCatalogInstall()
