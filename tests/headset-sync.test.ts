@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { apkInstalledOnHeadset } from '../app/lib/apkInstalledState'
 import { isPortInstalledOnQuest, PORT_PACKAGE_CONFIGS } from '../app/data/portPackageMap'
 
 describe('Headset Real-time Sync & Package Lifecycle Test Suite', () => {
@@ -24,111 +25,68 @@ describe('Headset Real-time Sync & Package Lifecycle Test Suite', () => {
     return cfg?.packageName || null
   }
 
-  // Helper simulating the card's bidirectional sync watcher
+  // The card follows the live headset. A remembered browser flag is not an input.
   const simulateCardSync = (
     slug: string,
     isConnected: boolean,
-    installedPackages: string[],
-    mockLocalStorage: Record<string, string>,
-    currentCardState: { isApkInstalled: boolean }
+    installedPackages: string[]
   ) => {
-    const isDetectedOnConnectedQuest = isConnected ? isPortInstalledOnQuest(slug, installedPackages) : false
-
-    if (isConnected) {
-      // Headset is the single source of truth when connected:
-      currentCardState.isApkInstalled = isDetectedOnConnectedQuest
-      if (!isDetectedOnConnectedQuest) {
-        delete mockLocalStorage[`questports_installed_${slug}`]
-      } else {
-        mockLocalStorage[`questports_installed_${slug}`] = 'true'
-      }
-    } else {
-      // Disconnected: fallback to persisted state
-      if (mockLocalStorage[`questports_installed_${slug}`] === 'true') {
-        currentCardState.isApkInstalled = true
-      }
-    }
-
+    const isApkInstalled = apkInstalledOnHeadset({
+      connected: isConnected,
+      slug,
+      installedPackages,
+      bridgeInstalled: false
+    })
     return {
-      isDetectedOnConnectedQuest,
-      isApkInstalled: currentCardState.isApkInstalled
+      isDetectedOnConnectedQuest: isConnected ? isApkInstalled : false,
+      isApkInstalled
     }
   }
 
   describe('Direct Headset Uninstall Reflection (User Bug Prevention)', () => {
     it('immediately reflects uninstallation when app is removed directly inside Meta Quest', () => {
       const slug = 'halocequest'
-      const mockStorage: Record<string, string> = {
-        [`questports_installed_${slug}`]: 'true'
-      }
-      const cardState = { isApkInstalled: true }
 
       // 1. App is installed on headset
       let headsetPackages = ['com.oculus.vrshell', 'com.halo.decomp.vr', 'com.drbeef.rtcwquest']
-      let syncResult = simulateCardSync(slug, true, headsetPackages, mockStorage, cardState)
+      let syncResult = simulateCardSync(slug, true, headsetPackages)
 
       expect(syncResult.isDetectedOnConnectedQuest).toBe(true)
       expect(syncResult.isApkInstalled).toBe(true)
-      expect(mockStorage[`questports_installed_${slug}`]).toBe('true')
 
       // 2. User uninstalls Halo CE directly inside Meta Quest visor (Unknown Sources)
       // ADB updates packages list without com.halo.decomp.vr
       headsetPackages = ['com.oculus.vrshell', 'com.drbeef.rtcwquest']
-      syncResult = simulateCardSync(slug, true, headsetPackages, mockStorage, cardState)
+      syncResult = simulateCardSync(slug, true, headsetPackages)
 
-      // State MUST revert to false on page and remove localStorage
       expect(syncResult.isDetectedOnConnectedQuest).toBe(false)
       expect(syncResult.isApkInstalled).toBe(false)
-      expect(mockStorage[`questports_installed_${slug}`]).toBeUndefined()
     })
 
     it('immediately reflects uninstallation of Unreal Tournament 99 VR (ut99-vr-quest)', () => {
       const slug = 'ut99-vr-quest'
-      const mockStorage: Record<string, string> = {
-        [`questports_installed_${slug}`]: 'true'
-      }
-      const cardState = { isApkInstalled: true }
 
-      // 1. Installed
       let headsetPackages = ['com.ghwstvr.ut99quest']
-      let syncResult = simulateCardSync(slug, true, headsetPackages, mockStorage, cardState)
+      let syncResult = simulateCardSync(slug, true, headsetPackages)
       expect(syncResult.isApkInstalled).toBe(true)
 
-      // 2. Uninstalled inside headset
       headsetPackages = []
-      syncResult = simulateCardSync(slug, true, headsetPackages, mockStorage, cardState)
+      syncResult = simulateCardSync(slug, true, headsetPackages)
       expect(syncResult.isApkInstalled).toBe(false)
-      expect(mockStorage[`questports_installed_${slug}`]).toBeUndefined()
     })
   })
 
-  describe('Offline Persistence vs Connected Ground Truth', () => {
-    it('restores installed state from localStorage when headset is not connected', () => {
-      const slug = 'lambda1vr'
-      const mockStorage: Record<string, string> = {
-        [`questports_installed_${slug}`]: 'true'
-      }
-      const cardState = { isApkInstalled: false }
-
-      const syncResult = simulateCardSync(slug, false, [], mockStorage, cardState)
-      expect(syncResult.isApkInstalled).toBe(true)
-    })
-
-    it('clears stale localStorage when headset connects and app is NOT present', () => {
-      const slug = 'doom3quest'
-      // User had stale localStorage from previous session or simulated install
-      const mockStorage: Record<string, string> = {
-        [`questports_installed_${slug}`]: 'true'
-      }
-      const cardState = { isApkInstalled: true }
-
-      // Headset connects, but Doom 3 is not on headset
-      const headsetPackages = ['com.drbeef.rtcwquest']
-      const syncResult = simulateCardSync(slug, true, headsetPackages, mockStorage, cardState)
-
+  describe('Disconnected desktop does not remember an install', () => {
+    it('does not show Half-Life installed when the headset is gone, even if the package list is leftover', () => {
+      const syncResult = simulateCardSync('lambda1vr', false, ['com.drbeef.lambda1vr', 'mod.drbeef.lambda1vr'])
       expect(syncResult.isDetectedOnConnectedQuest).toBe(false)
       expect(syncResult.isApkInstalled).toBe(false)
-      expect(mockStorage[`questports_installed_${slug}`]).toBeUndefined()
+    })
+
+    it('does not show Doom 3 installed from a previous session when the connected headset lacks the package', () => {
+      const syncResult = simulateCardSync('doom3quest', true, ['com.drbeef.rtcwquest'])
+      expect(syncResult.isDetectedOnConnectedQuest).toBe(false)
+      expect(syncResult.isApkInstalled).toBe(false)
     })
   })
 
