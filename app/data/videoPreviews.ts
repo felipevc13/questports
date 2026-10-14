@@ -38,6 +38,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'avp-vr',
   'beefraiderxr',
   'citravr',
+  'crazy-taxi-vr',
   'csvr',
   'doom3quest',
   'dolphinxr',
@@ -398,5 +399,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Strikers Quest MR (Super Mario Strikers)
   'strikers-quest-mr': { start: '7:00', end: '7:15' },
-  'ZklIJja40Io': { start: '7:00', end: '7:15' }
+  'ZklIJja40Io': { start: '7:00', end: '7:15' },
+
+  // Crazy Taxi VR
+  'crazy-taxi-vr': { start: '1:20', end: '1:35' },
+  '53FEb8eGrSo': { start: '1:20', end: '1:35' }
 }
