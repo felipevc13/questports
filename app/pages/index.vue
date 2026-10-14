@@ -492,7 +492,7 @@ import { countIndexedInstalled } from '~/lib/questLibrary'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
-import { catalogCategoryFromQuery } from '~/lib/catalogQuery'
+import { catalogCategoryFromQuery, readCatalogQuery } from '~/lib/catalogQuery'
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 
@@ -511,11 +511,16 @@ const ports = computed(() => portsData.value || [])
 const { data: verificationData } = await useAsyncData('port-verifications', () => fetchVerificationRecords())
 const verificationRecords = computed(() => verificationData.value || [])
 
-const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
-const selectedCategory = ref<string>(catalogCategoryFromQuery(route.query.cat))
+// The cached HTML is the unfiltered catalog. Apply ?q, ?cat, and ?dev from the
+// address bar after hydration so the first paint matches that document.
+const bootCatalogQuery = import.meta.client && !useNuxtApp().isHydrating
+  ? readCatalogQuery(window.location.search)
+  : { q: '', cat: 'all' as const, dev: '' }
+const searchQuery = ref(bootCatalogQuery.q)
+const selectedCategory = ref<string>(bootCatalogQuery.cat)
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
-const selectedDeveloper = ref<string>((route.query.dev as string) || '')
+const selectedDeveloper = ref(bootCatalogQuery.dev)
 const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
@@ -567,13 +572,23 @@ const useFullCover = (event: Event) => {
   void card
 }
 
-onMounted(() => {
+let applyingLocation = false
+
+onMounted(async () => {
+  applyingLocation = true
+  const parsed = readCatalogQuery(window.location.search)
+  if (parsed.q !== searchQuery.value) searchQuery.value = parsed.q
+  if (parsed.cat !== selectedCategory.value) selectedCategory.value = parsed.cat
+  if (parsed.dev !== selectedDeveloper.value) selectedDeveloper.value = parsed.dev
+  await nextTick()
+  applyingLocation = false
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onKeydown)
 })
 let searchTrackTimer: ReturnType<typeof setTimeout> | undefined
 
 const trackFilter = (filter: string, value: string) => {
+  if (applyingLocation) return
   if (!value || value === 'all' || value === 'recent') return
   track('filter_used', { path: route.path, props: { filter, value } })
 }
@@ -590,7 +605,7 @@ watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selected
 })
 
 watch(searchQuery, async (value) => {
-  if (!import.meta.client || !value.trim()) return
+  if (applyingLocation || !import.meta.client || !value.trim()) return
   if (window.matchMedia('(min-width: 768px)').matches) return
   await nextTick()
   resultsAnchor.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -603,6 +618,7 @@ watch(selectedDeveloper, (value) => trackFilter('developer', value))
 watch(sortBy, (value) => trackFilter('sort', value))
 
 watch(searchQuery, (value) => {
+  if (applyingLocation) return
   if (searchTrackTimer) clearTimeout(searchTrackTimer)
   const query = value.trim()
   if (!query) return
@@ -645,6 +661,8 @@ const headsetOptions = computed(() => headsetFilterOptions(ports.value.map(port 
 const headsetSummary = computed(() => headsetOptions.value.join(' • ') || 'Quest headsets')
 
 watch(selectedDeveloper, (newDev) => {
+  const current = typeof route.query.dev === 'string' ? route.query.dev : ''
+  if (newDev === current) return
   if (newDev) {
     router.replace({ query: { ...route.query, dev: newDev } })
   } else {

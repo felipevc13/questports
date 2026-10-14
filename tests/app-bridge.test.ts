@@ -322,9 +322,11 @@ describe('app bridge install gate', () => {
 
     const composable = readFileSync(new URL('../app/composables/useAppBridge.ts', import.meta.url), 'utf8')
     expect(composable).not.toContain('useRequestHeaders')
-    expect(composable).toContain('hasInAppFlag')
+    expect(composable).toContain("useState('questports-app-bridge', () => false)")
+    expect(composable).toContain('isAppBridgeSession')
+    expect(composable).toContain('window.location.search')
+    expect(composable).toContain('window.QuestPortsApp')
     expect(composable).toContain('onMounted')
-    expect(composable).toContain("useState('questports-app-bridge'")
     expect(composable).toContain('ensureMockAppBridge')
     expect(install).not.toContain('X-QuestPorts-Unwrap')
     expect(install).not.toContain('content-disposition')

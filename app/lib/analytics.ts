@@ -776,8 +776,10 @@ export function analyticsDeliveryPlan(input: {
   return 'beacon'
 }
 
-export const ANALYTICS_FLUSH_MS = 5000
-export const ANALYTICS_BATCH_MAX = 10
+/** One page of events, including an install's steps, fits in a single POST. */
+export const ANALYTICS_BATCH_MAX = 40
+/** Stay under the 16 KB body cap on POST /api/track. */
+export const ANALYTICS_BATCH_MAX_BYTES = 12000
 
 /** One event stays a single body. Several events share one POST. */
 export function analyticsBatchBody(events: unknown[]): string {
@@ -794,37 +796,54 @@ export function analyticsRequestEvents(body: unknown, max = ANALYTICS_BATCH_MAX)
 }
 
 export function createAnalyticsBatcher(options: {
-  flushMs?: number
+  /** Optional safety interval. The page batcher does not set one. */
+  flushMs?: number | null
   max?: number
+  maxBytes?: number
   schedule?: (callback: () => void, ms: number) => { cancel: () => void }
   send: (body: string) => void
 }) {
-  const flushMs = options.flushMs ?? ANALYTICS_FLUSH_MS
+  const flushMs = options.flushMs ?? null
   const max = options.max ?? ANALYTICS_BATCH_MAX
+  const maxBytes = options.maxBytes ?? ANALYTICS_BATCH_MAX_BYTES
   const schedule = options.schedule ?? ((callback, ms) => {
     const id = setTimeout(callback, ms)
     return { cancel: () => clearTimeout(id) }
   })
   const queue: unknown[] = []
+  const sizes: number[] = []
+  let queuedBytes = 0
   let timer: { cancel: () => void } | null = null
 
   const arm = () => {
-    if (timer) return
+    if (!flushMs || flushMs <= 0 || timer) return
     timer = schedule(() => flush(), flushMs)
   }
 
   const flush = () => {
     timer?.cancel()
     timer = null
-    if (!queue.length) return
-    const batch = queue.splice(0, max)
-    options.send(analyticsBatchBody(batch))
-    if (queue.length) arm()
+    while (queue.length) {
+      let count = 1
+      let bytes = sizes[0] || 0
+      while (count < queue.length && count < max && bytes + (sizes[count] || 0) <= maxBytes) {
+        bytes += sizes[count] || 0
+        count += 1
+      }
+      const batch = queue.splice(0, count)
+      const spent = sizes.splice(0, count).reduce((sum, size) => sum + size, 0)
+      queuedBytes = Math.max(0, queuedBytes - spent)
+      options.send(analyticsBatchBody(batch))
+    }
   }
 
   return {
     enqueue(event: unknown) {
+      const size = JSON.stringify(event).length
+      if (queue.length && (queue.length >= max || queuedBytes + size > maxBytes)) flush()
       queue.push(event)
+      sizes.push(size)
+      queuedBytes += size
       if (queue.length >= max) flush()
       else arm()
     },
@@ -855,6 +874,34 @@ export async function deliverAnalyticsPayload(input: {
     }
   }
   await input.fetchImpl(url, {
+    method: 'POST',
+    body: input.body,
+    headers: { 'content-type': 'application/json' },
+    keepalive: true
+  })
+  return 'fetch'
+}
+
+/**
+ * A page's queued events. sendBeacon is started synchronously so pagehide can
+ * finish the send. keepalive fetch is the fallback when the beacon is refused.
+ */
+export function deliverAnalyticsBatch(input: {
+  body: string
+  url?: string
+  sendBeacon?: (url: string, data: Blob) => boolean
+  fetchImpl: (url: string, init: { method: string; body: string; headers: Record<string, string>; keepalive: boolean }) => void | Promise<unknown>
+}): 'beacon' | 'fetch' {
+  const url = input.url || '/api/track'
+  if (input.sendBeacon) {
+    try {
+      const blob = new Blob([input.body], { type: 'application/json' })
+      if (input.sendBeacon(url, blob)) return 'beacon'
+    } catch {
+      // Fall through to fetch.
+    }
+  }
+  void input.fetchImpl(url, {
     method: 'POST',
     body: input.body,
     headers: { 'content-type': 'application/json' },

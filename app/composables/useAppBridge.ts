@@ -1,18 +1,20 @@
 import { onMounted, watch } from 'vue'
-import { ensureMockAppBridge, hasInAppFlag, isAppBridgeSession } from '~/lib/appBridge'
+import { ensureMockAppBridge, isAppBridgeSession } from '~/lib/appBridge'
 
 /**
- * Cached HTML is shared across browsers, so the server only honors `?inApp=1`.
- * The user-agent and `window.QuestPortsApp` are applied after hydration.
+ * The ISR document is shared, so the server never renders app mode.
+ * After hydration the client checks the QuestPortsApp user-agent,
+ * window.QuestPortsApp, and ?inApp=1 on window.location.
  * `?inApp=1` installs a mock bridge that emits download progress and success.
  */
 export function useAppBridge() {
   const route = useRoute()
 
-  const inApp = useState('questports-app-bridge', () => hasInAppFlag(route.fullPath))
+  const inApp = useState('questports-app-bridge', () => false)
 
   if (import.meta.client) {
-    const sync = (fullPath: string) => {
+    const sync = () => {
+      const fullPath = `${window.location.pathname}${window.location.search}`
       ensureMockAppBridge(fullPath)
       inApp.value = isAppBridgeSession({
         userAgent: navigator.userAgent,
@@ -22,11 +24,11 @@ export function useAppBridge() {
     }
 
     onMounted(() => {
-      sync(route.fullPath)
+      sync()
     })
 
-    watch(() => route.fullPath, (fullPath) => {
-      sync(fullPath)
+    watch(() => route.fullPath, () => {
+      sync()
     })
   }
 

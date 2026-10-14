@@ -1,30 +1,30 @@
 import { onMounted, watch } from 'vue'
-import { hasQuestBrowserFlag, isQuestBrowserSession } from '~/lib/questBrowser'
+import { isQuestBrowserSession } from '~/lib/questBrowser'
 
 /**
- * Cached HTML is shared across browsers, so the server only honors the URL flag.
- * The user-agent is applied after hydration. That matches the payload on the
- * first paint and avoids a mismatch.
+ * The ISR document is shared, so the server does not branch on ?questBrowser=1.
+ * After hydration the client checks the user-agent and the URL flag.
+ * That matches the cached HTML on the first paint.
  */
 export function useQuestBrowser() {
   const route = useRoute()
 
-  const questBrowser = useState('quest-browser', () => hasQuestBrowserFlag(route.fullPath))
+  const questBrowser = useState('quest-browser', () => false)
 
   if (import.meta.client) {
-    const sync = (fullPath: string) => {
+    const sync = () => {
       questBrowser.value = isQuestBrowserSession({
         userAgent: navigator.userAgent,
-        search: fullPath
+        search: `${window.location.pathname}${window.location.search}`
       })
     }
 
     onMounted(() => {
-      sync(route.fullPath)
+      sync()
     })
 
-    watch(() => route.fullPath, (fullPath) => {
-      sync(fullPath)
+    watch(() => route.fullPath, () => {
+      sync()
     })
   }
 

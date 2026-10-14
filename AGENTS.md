@@ -166,7 +166,7 @@ Measured limits to stay inside:
 
 Consequences:
 
-- Nothing heavy is served by Vercel. Catalog HTML is ISR (`nuxt.config.ts` `routeRules`, 1 hour, `passQuery`) so a view can be a CDN hit instead of origin transfer. API and `/admin/**` stay dynamic.
+- Nothing heavy is served by Vercel. Catalog HTML is ISR (`nuxt.config.ts` `routeRules`, `catalogIsrRule()`: one day, `allowQuery: []`, `passQuery: false`) so query strings share one CDN entry and a view can be a HIT instead of origin transfer. The 04:00 UTC release sync still lands within a day. API and `/admin/**` stay dynamic.
 - Covers and previews come from `questports-media` (`NUXT_PUBLIC_MEDIA_BASE`, default `https://questports-media.questports.workers.dev`):
   - `/covers/<file>`
   - `/covers/thumbs/<file>`
