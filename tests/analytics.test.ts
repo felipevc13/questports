@@ -5,12 +5,13 @@ import {
   ANALYTICS_EVENTS,
   ANALYTICS_HOURLY_LIMIT,
   ANALYTICS_BATCH_MAX,
-  ANALYTICS_FLUSH_MS,
+  ANALYTICS_BATCH_MAX_BYTES,
   analyticsBatchBody,
   analyticsDeliveryPlan,
   analyticsRequestEvents,
   apkInstallOutcome,
   createAnalyticsBatcher,
+  deliverAnalyticsBatch,
   deliverAnalyticsPayload,
   CAMPAIGN_REF_STORAGE_KEY,
   FILTER_NAMES,
@@ -811,20 +812,13 @@ describe('analytics validation', () => {
 })
 
 describe('analytics batching', () => {
-  it('sends one body after 5 seconds and another when the tab hides', () => {
-    expect(ANALYTICS_FLUSH_MS).toBe(5000)
+  it('holds a page of events until flush, then sends one body', () => {
     const sent: string[] = []
-    const timers: Array<() => void> = []
+    let scheduled = 0
     const batcher = createAnalyticsBatcher({
-      schedule: (callback, ms) => {
-        expect(ms).toBe(ANALYTICS_FLUSH_MS)
-        timers.push(callback)
-        return {
-          cancel() {
-            const index = timers.indexOf(callback)
-            if (index >= 0) timers.splice(index, 1)
-          }
-        }
+      schedule: () => {
+        scheduled += 1
+        return { cancel() {} }
       },
       send: (body) => sent.push(body)
     })
@@ -832,9 +826,9 @@ describe('analytics batching', () => {
     batcher.enqueue({ event: 'page_view', path: '/' })
     batcher.enqueue({ event: 'port_view', path: '/ports/rtcwquest', portSlug: 'rtcwquest' })
     expect(sent).toEqual([])
-    expect(timers).toHaveLength(1)
+    expect(scheduled).toBe(0)
 
-    timers[0]!()
+    batcher.flush()
     expect(sent).toHaveLength(1)
     expect(JSON.parse(sent[0]!)).toEqual({
       events: [
@@ -854,6 +848,7 @@ describe('analytics batching', () => {
       props: { filter: 'category', value: 'source_port' }
     })
     expect(sent[1]).not.toContain('"events"')
+    expect(ANALYTICS_BATCH_MAX_BYTES).toBeLessThan(16384)
   })
 
   it('flushes a full batch immediately and accepts that body on the server', () => {
@@ -875,7 +870,7 @@ describe('analytics batching', () => {
 
     expect(analyticsBatchBody([events[0]])).toBe(JSON.stringify(events[0]))
     expect(analyticsRequestEvents(JSON.parse(sent[0]!))).toHaveLength(ANALYTICS_BATCH_MAX)
-    expect(analyticsRequestEvents({ events: Array.from({ length: 20 }, () => ({ event: 'page_view' })) })).toHaveLength(ANALYTICS_BATCH_MAX)
+    expect(analyticsRequestEvents({ events: Array.from({ length: ANALYTICS_BATCH_MAX + 5 }, () => ({ event: 'page_view' })) })).toHaveLength(ANALYTICS_BATCH_MAX)
     expect(analyticsRequestEvents({ event: 'page_view', path: '/' })).toEqual([{ event: 'page_view', path: '/' }])
 
     const handler = readFileSync(new URL('../server/api/track.post.ts', import.meta.url), 'utf8')
@@ -894,9 +889,49 @@ describe('analytics batching', () => {
     expect(deliverAt).toBeGreaterThan(flushAt)
     expect(enqueueAt).toBeGreaterThan(deliverAt)
     expect(source).toContain('keepalive: true')
+    expect(source).toContain('deliverAnalyticsBatch')
+    expect(source).toContain('navigator.sendBeacon')
     expect(source).toContain("document.visibilityState === 'hidden'")
     expect(source).toContain("document.addEventListener('visibilitychange'")
     expect(source).toContain("window.addEventListener('pagehide'")
     expect(source).toContain('batcher?.flush()')
+    expect(source).not.toContain('flushMs')
+  })
+
+  it('uses sendBeacon for a hidden-tab batch and still labels each event on the server', () => {
+    const body = analyticsBatchBody([
+      { event: 'page_view', path: '/' },
+      { event: 'port_view', path: '/ports/rtcwquest', portSlug: 'rtcwquest' }
+    ])
+    let beaconSize = 0
+    let beaconType = ''
+    const mode = deliverAnalyticsBatch({
+      body,
+      sendBeacon: (_url, data) => {
+        beaconSize = data.size
+        beaconType = data.type
+        return true
+      },
+      fetchImpl: () => {
+        throw new Error('fetch should not run when the beacon is accepted')
+      }
+    })
+    expect(mode).toBe('beacon')
+    expect(beaconType).toBe('application/json')
+    expect(beaconSize).toBe(new Blob([body]).size)
+
+    const hidden = deliverAnalyticsBatch({
+      body,
+      sendBeacon: () => false,
+      fetchImpl: () => {}
+    })
+    expect(hidden).toBe('fetch')
+
+    const events = analyticsRequestEvents(JSON.parse(body))
+    const rows = events.map(item => decide({ body: item, userAgent: CHROME_UA }))
+    expect(rows.map(row => row.record)).toEqual([true, true])
+    expect(rows.map(row => row.row?.device)).toEqual(['desktop', 'desktop'])
+    expect(rows.map(row => row.row?.browser)).toEqual(['Chrome', 'Chrome'])
+    expect(rows.map(row => row.row?.event)).toEqual(['page_view', 'port_view'])
   })
 })

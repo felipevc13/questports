@@ -3,7 +3,33 @@ import { applyRecordedFeatures } from '~/data/recordedPortFeatures'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import type { Port } from '~/types/port'
 
-const CATALOG_SELECT = '*, ports_install_count(installs, last_install_at)'
+/**
+ * Fields the catalog cards, filters, sort, library rows, and in-app home use.
+ * Guides, troubleshooting, features, and store links load on the port page.
+ */
+export const CATALOG_PORT_COLUMNS = [
+  'id',
+  'slug',
+  'title',
+  'short_description',
+  'developer',
+  'category',
+  'status',
+  'cover_image_url',
+  'supported_hardware',
+  'has_6dof_controls',
+  'last_github_update',
+  'latest_version',
+  'port_download_url',
+  'created_at'
+] as const
+
+export const CATALOG_PORT_SELECT = CATALOG_PORT_COLUMNS.join(', ')
+
+const CATALOG_SELECT = `${CATALOG_PORT_SELECT}, ports_install_count(installs, last_install_at)`
+
+/** One port. The detail page needs the guide and the rest of the row. */
+const PORT_DETAIL_SELECT = '*, ports_install_count(installs, last_install_at)'
 
 function withLocalCover(port: Port, mediaBase: string): Port {
   return {
@@ -57,7 +83,7 @@ export const usePorts = () => {
 
         const { data, error } = await client
           .from('ports')
-          .select('*')
+          .select(CATALOG_PORT_SELECT)
           .order('featured', { ascending: false })
           .order('title', { ascending: true })
 
@@ -76,7 +102,7 @@ export const usePorts = () => {
       try {
         const embedded = await client
           .from('ports')
-          .select(CATALOG_SELECT)
+          .select(PORT_DETAIL_SELECT)
           .eq('slug', slug)
           .single()
 

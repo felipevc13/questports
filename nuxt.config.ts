@@ -2,6 +2,7 @@ import { DEFAULT_MEDIA_BASE } from './app/data/coverUrl'
 import { DEFAULT_KOFI_URL } from './app/lib/kofi'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
+import { catalogIsrRule } from './app/lib/isrCache'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
@@ -44,20 +45,24 @@ export default defineNuxtConfig({
   /**
    * Vercel CDN cache. Nitro's `swr` only stores the HTML inside the function,
    * so every view still counts as Fast Origin Transfer. `isr` writes a
-   * prerender config (expiration 3600, stale while revalidating) and is what
-   * returns x-vercel-cache HIT. API, admin, and verification routes stay
-   * dynamic. Quest Browser / in-app detection is applied after hydration so
-   * this HTML does not vary on User-Agent.
+   * prerender config and is what returns x-vercel-cache HIT.
+   * `allowQuery: []` shares one entry across query strings. `passQuery: false`
+   * strips the query before render, so ?fbclid and ?inApp=1 cannot each
+   * generate a fresh document. Client code reads window.location after
+   * hydration. Expiration is one day: the 04:00 UTC release sync still
+   * shows up, and a deploy starts a new cache. API and admin stay dynamic.
+   * Quest Browser / in-app detection is applied after hydration so this HTML
+   * does not vary on User-Agent.
    * Cover and preview files are immutable for a year; URLs carry `?v=` so a
    * new file still shows up. Favicons are one stable URL cached for a year.
    * Hashed `/_nuxt/**` files already get `public, max-age=31536000, immutable`
    * from Nitro, including the Vercel preset.
    */
   routeRules: {
-    '/': { isr: { expiration: 3600, passQuery: true } },
-    '/app': { isr: { expiration: 3600, passQuery: true } },
-    '/library': { isr: { expiration: 3600, passQuery: true } },
-    '/ports/**': { isr: { expiration: 3600, passQuery: true } },
+    '/': { isr: catalogIsrRule() },
+    '/app': { isr: catalogIsrRule() },
+    '/library': { isr: catalogIsrRule() },
+    '/ports/**': { isr: catalogIsrRule() },
     '/covers/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/previews/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } },

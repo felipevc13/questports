@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
+import { CATALOG_PORT_COLUMNS, CATALOG_PORT_SELECT } from '../app/composables/usePorts'
+import { CATALOG_ISR_EXPIRATION, catalogIsrRule } from '../app/lib/isrCache'
 import {
   isAllowedApkProxyHost,
   pickPreferredApkPath,
@@ -234,8 +236,10 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
 describe('origin transfer guards', () => {
   it('caches catalog HTML on Vercel ISR and leaves API and admin dynamic', () => {
     const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
-    expect(config).toContain("'/': { isr: { expiration: 3600, passQuery: true } }")
-    expect(config).toContain("'/ports/**': { isr: { expiration: 3600, passQuery: true } }")
+    expect(config).toContain("'/': { isr: catalogIsrRule() }")
+    expect(config).toContain("'/ports/**': { isr: catalogIsrRule() }")
+    expect(config).toContain('catalogIsrRule')
+    expect(config).not.toContain('passQuery: true')
     expect(config).toContain("'/covers/**'")
     expect(config).toContain("'/previews/**'")
     expect(config).toContain('public, max-age=31536000, immutable')
@@ -243,6 +247,22 @@ describe('origin transfer guards', () => {
     expect(readFileSync(new URL('../app/data/coverUrl.ts', import.meta.url), 'utf8')).toContain(
       'https://questports-media.questports.workers.dev'
     )
+    expect(catalogIsrRule()).toEqual({
+      expiration: CATALOG_ISR_EXPIRATION,
+      allowQuery: [],
+      passQuery: false
+    })
+    expect(CATALOG_ISR_EXPIRATION).toBe(86400)
+    expect(CATALOG_PORT_SELECT.split(', ')).toEqual([...CATALOG_PORT_COLUMNS])
+    for (const column of ['slug', 'title', 'short_description', 'developer', 'category', 'status', 'cover_image_url', 'supported_hardware', 'has_6dof_controls', 'last_github_update', 'latest_version', 'port_download_url', 'created_at']) {
+      expect(CATALOG_PORT_COLUMNS).toContain(column)
+    }
+    for (const column of ['installation_guide', 'troubleshooting_notes', 'features', 'locomotion_types', 'youtube_video_id', 'github_url', 'base_game_url']) {
+      expect(CATALOG_PORT_SELECT).not.toContain(column)
+    }
+    const ports = readFileSync(new URL('../app/composables/usePorts.ts', import.meta.url), 'utf8')
+    expect(ports).toContain("const PORT_DETAIL_SELECT = '*, ports_install_count(installs, last_install_at)'")
+    expect(ports).toContain('.select(PORT_DETAIL_SELECT)')
     expect(config).toContain("'/api/**': { isr: false }")
     expect(config).toContain("'/admin/**': { isr: false }")
     expect(config).not.toMatch(/['"]\/\*\*['"]:\s*\{[^}]*\bisr\b/)

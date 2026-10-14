@@ -13,7 +13,7 @@ import {
   resolveCatalogSort,
   sortCatalogPorts
 } from '../app/lib/catalogSort'
-import { catalogCategoryFromQuery } from '../app/lib/catalogQuery'
+import { catalogCategoryFromQuery, readCatalogQuery } from '../app/lib/catalogQuery'
 import {
   LAST_VISIT_STORAGE_KEY,
   LAST_VISIT_WRITE_DELAY_MS,
@@ -263,7 +263,15 @@ describe('catalog sort', () => {
     expect(sql).not.toContain("props->>'value' in")
     expect(catalogCategoryFromQuery('decompilation')).toBe('decompilation')
     expect(catalogCategoryFromQuery('nope')).toBe('all')
+    expect(readCatalogQuery('?cat=emulator&q=doom&dev=Team+Beef&fbclid=abc')).toEqual({
+      q: 'doom',
+      cat: 'emulator',
+      dev: 'Team Beef'
+    })
+    expect(readCatalogQuery('')).toEqual({ q: '', cat: 'all', dev: '' })
     expect(index).toContain('catalogCategoryFromQuery(route.query.cat)')
+    expect(index).toContain('readCatalogQuery(window.location.search)')
+    expect(index).toContain('!useNuxtApp().isHydrating')
     const detail = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     expect(detail).toContain('`/?cat=${encodeURIComponent(port.category)}`')
     expect(detail).toContain('`/?dev=${encodeURIComponent(port.developer)}`')

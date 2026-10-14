@@ -19,3 +19,26 @@ export function catalogCategoryFromQuery(value: unknown): CatalogCategoryFilter 
     ? value as CatalogCategoryFilter
     : 'all'
 }
+
+export interface CatalogLocationQuery {
+  q: string
+  cat: CatalogCategoryFilter | 'all'
+  dev: string
+}
+
+/**
+ * Filters from the address bar. The shared ISR document is rendered without
+ * the query, so the catalog applies this after hydration.
+ */
+export function readCatalogQuery(search: string | null | undefined): CatalogLocationQuery {
+  const raw = typeof search === 'string' ? search : ''
+  const hashless = raw.split('#')[0] || ''
+  const queryIndex = hashless.indexOf('?')
+  const query = queryIndex >= 0 ? hashless.slice(queryIndex + 1) : hashless
+  const params = new URLSearchParams(query)
+  return {
+    q: params.get('q') || '',
+    cat: catalogCategoryFromQuery(params.get('cat')),
+    dev: params.get('dev') || ''
+  }
+}

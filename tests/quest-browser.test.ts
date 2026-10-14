@@ -207,7 +207,9 @@ describe('quest browser install gate', () => {
 
     const composable = readFileSync(new URL('../app/composables/useQuestBrowser.ts', import.meta.url), 'utf8')
     expect(composable).not.toContain('useRequestHeaders')
-    expect(composable).toContain('hasQuestBrowserFlag')
+    expect(composable).toContain("useState('quest-browser', () => false)")
+    expect(composable).toContain('isQuestBrowserSession')
+    expect(composable).toContain('window.location.search')
     expect(composable).toContain('onMounted')
     expect(composable).toContain('navigator.userAgent')
   })
