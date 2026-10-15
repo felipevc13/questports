@@ -126,10 +126,14 @@ describe('patch-only install', () => {
       'https://github.com/example/gta-sa-vr-quest'
     )).toBeNull()
     expect(patchOnlyGuideFor(
-      'ppsspp-vr',
-      'https://github.com/hrydgard/ppsspp/blob/master/README.md',
-      'https://github.com/hrydgard/ppsspp'
-    )?.readmeUrl).toBe('https://github.com/hrydgard/ppsspp')
+      'hexen2vr',
+      'https://github.com/sezero/uhexen2/blob/master/README.txt',
+      'https://github.com/sezero/uhexen2'
+    )?.readmeUrl).toBe('https://github.com/sezero/uhexen2')
+    const ppssppApk = 'https://www.ppsspp.org/files/1_20_4/ppsspp_vr.apk'
+    expect(isOneClickApkAsset(ppssppApk)).toBe(true)
+    expect(refusesOneClickInstall('ppsspp-vr', ppssppApk)).toBe(false)
+    expect(patchOnlyGuideFor('ppsspp-vr', ppssppApk, 'https://github.com/hrydgard/ppsspp')).toBeNull()
   })
 
   it('gives other patch URLs a short notice instead of Crazy Taxi steps', () => {
