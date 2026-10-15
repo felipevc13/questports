@@ -1,30 +1,27 @@
 <template>
   <div data-testid="app-bridge-install" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
-    <PatchOnlyInstall v-if="patchGuide" :guide="patchGuide" />
+    <PcPrepCard
+      v-if="pcPatch"
+      :title="pcPatch.title"
+      :tag="pcPatch.tag"
+      :body="pcPatch.body"
+      :href="pcPatch.href"
+      :button-label="pcPatch.buttonLabel"
+      root-test-id="pc-patch-card"
+      test-id="pc-patch-instructions"
+    />
 
-    <template v-else-if="pcBuilder">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold font-mono text-amber-300">1</span>
-          <span class="text-xs font-bold text-foreground">Step 1: Automated PC Builder Required</span>
-        </div>
-        <span class="rounded border border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300">PC Script</span>
-      </div>
-      <div class="space-y-2.5 rounded-lg border border-border/80 bg-card/60 p-3 text-xs">
-        <p class="text-[11px] leading-relaxed text-muted-foreground">
-          Due to Rockstar Games copyright, the VR mod cannot be distributed as a pre-compiled APK. An automated PC installer merges the VR injector with your legally purchased Google Play APK and installs it to your Quest via USB.
-        </p>
-        <a
-          :href="downloadUrl || githubUrl || '#'"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="app-pc-builder"
-          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-amber-600 px-3 py-2.5 text-xs font-semibold text-white shadow-md shadow-amber-950/30 transition-all hover:bg-amber-500"
-        >
-          <span>Open PC Builder & Instructions (GitHub)</span>
-        </a>
-      </div>
-    </template>
+    <PatchOnlyInstall v-else-if="patchGuide" :guide="patchGuide" />
+
+    <PcPrepCard
+      v-else-if="pcBuilder"
+      title="Step 1: Automated PC Builder Required"
+      tag="PC Script"
+      body="Due to Rockstar Games copyright, the VR mod cannot be distributed as a pre-compiled APK. An automated PC installer merges the VR injector with your legally purchased Google Play APK and installs it to your Quest via USB."
+      :href="downloadUrl || githubUrl || '#'"
+      button-label="Open PC Builder & Instructions (GitHub)"
+      test-id="app-pc-builder"
+    />
 
     <template v-else>
       <div class="flex items-center gap-2">
@@ -229,7 +226,7 @@ import {
   GAME_FILES_NEED_PC
 } from '~/lib/directQuestInstall'
 import { INSTALL_ACTION_LABEL } from '~/lib/questInstallUx'
-import { patchOnlyGuideFor } from '~/lib/patchOnlyInstall'
+import { patchOnlyGuideFor, pcPatchCardFor } from '~/lib/patchOnlyInstall'
 
 const props = withDefaults(defineProps<{
   slug: string
@@ -270,6 +267,7 @@ let stopUninstallWatch = () => {}
 
 const canUninstall = computed(() => bridgeReady.value && bridgeCanUninstall(window.QuestPortsApp))
 const patchGuide = computed(() => patchOnlyGuideFor(props.slug, props.downloadUrl, props.githubUrl))
+const pcPatch = computed(() => pcPatchCardFor(props.slug))
 
 const progressPercent = computed(() => Math.round(Math.min(1, Math.max(0, progress.value || 0)) * 100))
 const statusLabel = computed(() => appInstallStatusLabel(phase.value, progress.value))
@@ -385,6 +383,7 @@ const onBridgeEvent = (event: Event) => {
 }
 
 const startInstall = () => {
+  if (pcPatch.value) return
   if (patchGuide.value) return
   if (phase.value === 'downloading' || phase.value === 'installing') return
   ensureMockAppBridge(`${window.location.pathname}${window.location.search}`)
