@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { PORT_PACKAGE_CONFIGS, resolveWorkflowType, isPortInstalledOnQuest, isSelfContainedSideload } from '../app/data/portPackageMap'
+import { firstInstalledPackage } from '../app/lib/headsetPackages'
 
 describe('Port Package Map & Workflow Verification', () => {
   it('contains mapping configurations for key ports', () => {
@@ -91,7 +92,7 @@ describe('Port Package Map & Workflow Verification', () => {
   // via scripts/verify-apk-packages.mjs (2026-10-07)
   const VERIFIED_PACKAGES: Record<string, string> = {
     astroquest: 'com.astrobotquest.vrhost',
-    'avp-vr': 'com.bassquake.avpvr',
+    'avp-vr': 'com.bassquake.quest.avpvr',
     beefraiderxr: 'com.drbeef.beefraiderxr',
     citravr: 'org.citra.citra_emu',
     csvr: 'com.lvonasek.csvr',
@@ -125,7 +126,30 @@ describe('Port Package Map & Workflow Verification', () => {
     sourcevr: 'com.sourcevrport.hl2vr',
     'time-crisis-vr': 'org.timecrisis.quest',
     'ut99-vr-quest': 'com.ghwstvr.ut99quest',
-    winlatorxr: 'com.winlator'
+    winlatorxr: 'com.winlator.cmod',
+    'age-of-joy': 'com.curif.AgeOfJoy',
+    'descent-3-vr': 'com.descentdevelopers.descent3',
+    dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
+    'f-zero-x-vr': 'com.fzerox.vr',
+    'generals-zero-hour-xr': 'com.generalsx.zerohour.xr',
+    'homeworld-unbound': 'org.homeworldunbound.game',
+    'hotd2-vr': 'com.flycast.emulator.vr',
+    'magic-carpet-vr': 'technology.master.mc.vr',
+    'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
+    'ocarina-of-time-vr': 'com.questship.sohvr',
+    'opencmr2-vr': 'org.opencmr2.vr',
+    quake3quest: 'com.drbeef.ioquake3quest',
+    'sega-rally-vr': 'io.port0r.segarally',
+    'sm64-coop-dx-vr': 'com.fulldivegames.sm64coopdxvr',
+    'starfox-enhanced-vr': 'com.starfox.enhanced.quest',
+    'strikers-quest-mr': 'io.github.newcoke.strikers',
+    'time-crisis-2-vr': 'org.timecrisis2.arcadevr',
+    'twilight-princess-vr': 'com.joeyaw.tpvr',
+    'victory-heat-rally-vr': 'com.segadreamcat.vhrquest',
+    'virtua-cop-vr': 'io.port0r.virtuacop',
+    'wiicompiled-vr-plus': 'org.wiicompiled.quest',
+    'wipeout-rewrite-vr': 'online.portroyale.wipeoutrewritevr',
+    'xrkart-64': 'com.n64vr.spaghettikart'
   }
 
   for (const [slug, pkg] of Object.entries(VERIFIED_PACKAGES)) {
@@ -137,13 +161,37 @@ describe('Port Package Map & Workflow Verification', () => {
   }
 
   it('identifies only truly self-contained APK ports as direct sideload', () => {
-    const selfContained = ['questcraft', 'iron-lung-vr', 'time-crisis-vr']
+    const selfContained = ['questcraft', 'iron-lung-vr', 'time-crisis-vr', 'time-crisis-2-vr']
     for (const slug of selfContained) {
       const port = PORT_PACKAGE_CONFIGS[slug]
       expect(port, slug).toBeDefined()
       expect(port.installType).toBe('direct_apk')
       expect(resolveWorkflowType(port)).toBe('direct')
       expect(isSelfContainedSideload(port), slug).toBe(true)
+    }
+  })
+
+  it('detects House of the Dead 2 and Time Crisis 2 from the release APK package', () => {
+    expect(firstInstalledPackage('hotd2-vr', name => name === 'com.flycast.emulator.vr')).toBe('com.flycast.emulator.vr')
+    expect(firstInstalledPackage('hotd2-vr', () => false)).toBeNull()
+    expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['hotd2-vr'])).toBe(false)
+    expect(isPortInstalledOnQuest('sega-rally-vr', ['com.flycast.emulator.vr'])).toBe(false)
+    expect(isPortInstalledOnQuest('virtua-cop-vr', ['com.flycast.emulator.vr'])).toBe(false)
+
+    expect(firstInstalledPackage('time-crisis-2-vr', name => name === 'org.timecrisis2.arcadevr')).toBe('org.timecrisis2.arcadevr')
+    expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['time-crisis-2-vr'])).toBe(true)
+    expect(isPortInstalledOnQuest('time-crisis-2-vr', ['org.timecrisis.quest'])).toBe(false)
+    expect(isPortInstalledOnQuest('time-crisis-vr', ['org.timecrisis2.arcadevr'])).toBe(false)
+  })
+
+  it('gives every port its own package id', () => {
+    const owner = new Map<string, string>()
+    for (const [slug, cfg] of Object.entries(PORT_PACKAGE_CONFIGS)) {
+      for (const name of [cfg.packageName, ...(cfg.altPackages || [])]) {
+        const key = name.toLowerCase()
+        expect(owner.get(key), `${name} is shared by ${owner.get(key)} and ${slug}`).toBeUndefined()
+        owner.set(key, slug)
+      }
     }
   })
 

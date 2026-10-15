@@ -13,11 +13,12 @@ const catalogSlugs = INITIAL_PORTS.map(port => port.slug)
 const slugs = [...new Set([...catalogSlugs, ...Object.keys(PORT_PACKAGE_CONFIGS)])].sort()
 
 describe('APK installed card follows a live headset', () => {
-  it('covers every catalog port, including ones that only live in the package map', () => {
+  it('covers every local catalog port', () => {
     expect(catalogSlugs.length).toBeGreaterThan(30)
     expect(slugs).toEqual([...new Set(slugs)].sort())
-    for (const slug of Object.keys(PORT_PACKAGE_CONFIGS)) {
-      expect(catalogSlugs, slug).toContain(slug)
+    // Live catalog rows can have a package id without a mockPorts copy.
+    for (const slug of catalogSlugs) {
+      expect(PORT_PACKAGE_CONFIGS[slug], slug).toBeDefined()
     }
   })
 
