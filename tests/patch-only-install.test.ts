@@ -8,7 +8,9 @@ import {
   CRAZY_TAXI_PC_PATCH,
   CRAZY_TAXI_README_URL,
   DELTA_PATCHER_URL,
+  CRAZY_TAXI_PATCH_URL,
   catalogPackageName,
+  isOneClickApkAsset,
   oneClickInstallBlocked,
   patchOnlyGuideFor,
   pcPatchCardFor,
@@ -35,10 +37,20 @@ describe('patch-only install', () => {
     expect(oneClickInstallBlocked('')).toBe(false)
   })
 
-  it('refuses one-click for Crazy Taxi even before looking at the file name', () => {
-    expect(refusesOneClickInstall('crazy-taxi-vr', 'https://example.com/later.apk')).toBe(true)
+  it('requires a package id and a real APK asset before one-click', () => {
+    expect(isOneClickApkAsset(CRAZY_TAXI_PATCH_URL)).toBe(false)
+    expect(isOneClickApkAsset('https://github.com/org/repo/releases/download/v1/game.apk')).toBe(true)
+    expect(isOneClickApkAsset('https://github.com/org/repo/releases/download/v1/game.zip')).toBe(true)
+    expect(isOneClickApkAsset('https://github.com/org/repo/releases/latest')).toBe(true)
+    expect(isOneClickApkAsset('https://sidequestvr.com/app/10349/iron-lung-vr')).toBe(true)
+    expect(isOneClickApkAsset('')).toBe(false)
+
+    expect(catalogPackageName('crazy-taxi-vr')).toBe('com.baywilly.crazytaxivr')
+    expect(refusesOneClickInstall('crazy-taxi-vr', CRAZY_TAXI_PATCH_URL)).toBe(true)
+    expect(refusesOneClickInstall('crazy-taxi-vr', 'https://example.com/CrazyTaxiVR.apk')).toBe(false)
     expect(refusesOneClickInstall('iron-lung-vr', 'https://example.com/game.xdelta')).toBe(true)
     expect(refusesOneClickInstall('iron-lung-vr', 'https://example.com/game.apk')).toBe(false)
+    expect(refusesOneClickInstall('gta-sa-vr-quest', 'https://github.com/example/gta-sa-vr-quest')).toBe(true)
   })
 
   it('copies the Crazy Taxi README install steps and does not invent tools', () => {
@@ -111,11 +123,11 @@ describe('patch-only install', () => {
     expect(page).toContain('<PatchOnlyInstall v-else-if="patchOnlyGuide" :guide="patchOnlyGuide" />')
     expect(page).toContain('v-else-if="!patchOnlyGuide && !pcPatchCard"')
     expect(page).toContain(':needs-game-files="!isPcBuilderRequired && !isDirectApkOnly && !patchOnlyGuide && !pcPatchCard"')
-    const patchCard = page.slice(page.lastIndexOf('<PcPrepCard', page.indexOf('v-if="pcPatchCard"')), page.indexOf('v-else-if="patchOnlyGuide"'))
-    expect(patchCard).toContain('v-if="pcPatchCard"')
-    expect(patchCard).not.toContain('Check Headset')
-    expect(patchCard).not.toContain('Select built .apk')
-    expect(page).toContain('Select built .apk from PC')
+    const patchCard = page.slice(page.indexOf('<template v-if="pcPatchCard">'), page.indexOf('v-else-if="patchOnlyGuide"'))
+    expect(patchCard).toContain('pc-patch-check-headset')
+    expect(patchCard).toContain('Select built .apk from PC')
+    expect(patchCard).toContain('data-testid="pc-patch-local-apk"')
+    expect(patchCard).not.toContain('install-on-quest')
     const handle = page.slice(page.indexOf('const handleApkInstall'))
     expect(handle.indexOf('refusesOneClickInstall')).toBeGreaterThan(0)
     expect(handle.indexOf('refusesOneClickInstall')).toBeLessThan(handle.indexOf("trackInstall('install_click')"))

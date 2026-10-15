@@ -1151,6 +1151,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'crazy-taxi-vr': {
+    slug: 'crazy-taxi-vr',
+    packageName: 'com.baywilly.crazytaxivr',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Owner-confirmed package id from the patched APK on a Quest (version name CrazyTaxiVR-42). The GitHub release is an XDelta patch, not an APK, so one-click install stays off. This entry only lets Check Headset see the app.'
+  },
   'descent-3-vr': {
     slug: 'descent-3-vr',
     packageName: 'com.descentdevelopers.descent3',

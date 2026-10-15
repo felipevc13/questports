@@ -50,6 +50,27 @@ function downloadPath(url: string | null | undefined): string {
   }
 }
 
+function fileExtension(path: string): string {
+  const file = path.split('/').pop() || ''
+  const dot = file.lastIndexOf('.')
+  if (dot <= 0) return ''
+  return file.slice(dot + 1).toLowerCase()
+}
+
+/**
+ * A catalog download one-click can send to the headset.
+ * An APK, a ZIP the proxy unwraps, or a release page with no file extension
+ * (the proxy picks an APK out of GitHub releases and SideQuest). A named
+ * file that is not one of those, such as an XDelta patch, is not.
+ */
+export function isOneClickApkAsset(url: string | null | undefined): boolean {
+  const path = downloadPath(url)
+  if (!path) return false
+  const ext = fileExtension(path)
+  if (!ext) return true
+  return ext === 'apk' || ext === 'zip'
+}
+
 /** True when the catalog file is a patch, not an installable APK or ZIP. */
 export function oneClickInstallBlocked(url: string | null | undefined): boolean {
   return /\.(?:xdelta3?|apkm)$/i.test(downloadPath(url))
@@ -61,12 +82,13 @@ export function catalogPackageName(slug: string | null | undefined): string {
 }
 
 /**
- * One-click install is offered only when portPackageMap has a packageName.
- * Crazy Taxi stays manual even if an id is added later. Patch files stay manual too.
+ * One-click needs both a packageName and a real APK asset.
+ * A package id alone does not turn a patch file into an install.
  */
 export function refusesOneClickInstall(slug: string | null | undefined, url: string | null | undefined): boolean {
   if (!catalogPackageName(slug)) return true
-  return slug === CRAZY_TAXI_VR_SLUG || oneClickInstallBlocked(url)
+  if (PORT_PACKAGE_CONFIGS[slug || '']?.installType === 'pc_builder_required') return true
+  return !isOneClickApkAsset(url)
 }
 
 /**
