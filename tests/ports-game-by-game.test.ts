@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, resolveWorkflowType } from '../app/data/portPackageMap'
 import { getPortCampaigns } from '../app/data/expansions'
-import { isOneClickApkAsset, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
+import { isOneClickApkAsset, patchOnlyGuideFor, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
 
 describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
   it('indexes all 38 ports in database', () => {
@@ -56,6 +56,83 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
       expect(sql).toContain(release.url)
       expect(sql).toContain(`slug = '${release.slug}'`)
     }
+  })
+
+  it('replaces the remaining SideQuest listing downloads', () => {
+    const sql = readFileSync(new URL('../supabase/migrations/20261015193000_remaining_sidequest_listing_urls.sql', import.meta.url), 'utf8')
+    const releases = [
+      {
+        slug: 'preyvr',
+        url: 'https://github.com/Team-Beef-Studios/PreyVR/releases/latest',
+        packageName: 'com.lvonasek.preyvr',
+      },
+      {
+        slug: 'quake2quest',
+        url: 'https://github.com/Team-Beef-Studios/Quake2Quest/releases/latest',
+        packageName: 'com.drbeef.quake2quest',
+      },
+      {
+        slug: 'quake3quest',
+        url: 'https://github.com/Team-Beef-Studios/ioq3quest/releases/latest',
+        packageName: 'com.drbeef.ioq3quest',
+      },
+      {
+        slug: 'quakequest',
+        url: 'https://github.com/Team-Beef-Studios/QuakeQuest/releases/latest',
+        packageName: 'com.drbeef.quakequest',
+      },
+      {
+        slug: 'razexr',
+        url: 'https://github.com/Team-Beef-Studios/RazeXR/releases/latest',
+        packageName: 'com.drbeef.razexr',
+      },
+    ] as const
+    const manuals = [
+      {
+        slug: 'hexen2vr',
+        url: 'https://github.com/sezero/uhexen2/blob/master/README.txt',
+        source: 'GitHub',
+        project: 'https://github.com/sezero/uhexen2',
+      },
+      {
+        slug: 'ppsspp-vr',
+        url: 'https://github.com/hrydgard/ppsspp/blob/master/README.md',
+        source: 'GitHub',
+        project: 'https://github.com/hrydgard/ppsspp',
+      },
+      {
+        slug: 'iron-lung-vr',
+        url: 'https://jackaapacka.itch.io/iron-lung-vr',
+        source: 'Itch.io',
+        project: 'https://jackaapacka.itch.io/iron-lung-vr',
+      },
+    ] as const
+
+    for (const release of releases) {
+      const port = INITIAL_PORTS.find(p => p.slug === release.slug)
+      if (port) {
+        expect(port.port_download_url).toBe(release.url)
+        expect(port.port_download_source).toBe('GitHub Releases')
+      }
+      expect(PORT_PACKAGE_CONFIGS[release.slug]?.packageName).toBe(release.packageName)
+      expect(isOneClickApkAsset(release.url)).toBe(true)
+      expect(refusesOneClickInstall(release.slug, release.url)).toBe(false)
+      expect(sql).toContain(release.url)
+      expect(sql).toContain(`slug = '${release.slug}'`)
+    }
+
+    for (const manual of manuals) {
+      const port = INITIAL_PORTS.find(p => p.slug === manual.slug)
+      expect(port?.port_download_url).toBe(manual.url)
+      expect(port?.port_download_source).toBe(manual.source)
+      expect(refusesOneClickInstall(manual.slug, manual.url)).toBe(true)
+      expect(patchOnlyGuideFor(manual.slug, manual.url, manual.project)?.readmeUrl).toBe(manual.project)
+      expect(sql).toContain(manual.url)
+      expect(sql).toContain(`slug = '${manual.slug}'`)
+    }
+
+    expect(INITIAL_PORTS.some(port => String(port.port_download_url || '').includes('sidequestvr.com'))).toBe(false)
+    expect(PORT_PACKAGE_CONFIGS.quake3quest?.altPackages).toContain('com.drbeef.ioquake3quest')
   })
 
   // Test every individual port game-by-game

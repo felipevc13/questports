@@ -138,7 +138,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
     'opencmr2-vr': 'org.opencmr2.vr',
-    quake3quest: 'com.drbeef.ioquake3quest',
+    quake3quest: 'com.drbeef.ioq3quest',
     'sega-rally-vr': 'io.port0r.segarally',
     'sm64-coop-dx-vr': 'com.fulldivegames.sm64coopdxvr',
     'starfox-enhanced-vr': 'com.starfox.enhanced.quest',

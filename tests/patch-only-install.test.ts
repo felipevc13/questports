@@ -42,7 +42,10 @@ describe('patch-only install', () => {
     expect(isOneClickApkAsset('https://github.com/org/repo/releases/download/v1/game.apk')).toBe(true)
     expect(isOneClickApkAsset('https://github.com/org/repo/releases/download/v1/game.zip')).toBe(true)
     expect(isOneClickApkAsset('https://github.com/org/repo/releases/latest')).toBe(true)
-    expect(isOneClickApkAsset('https://sidequestvr.com/app/10349/iron-lung-vr')).toBe(true)
+    expect(isOneClickApkAsset('https://github.com/org/repo/releases')).toBe(true)
+    expect(isOneClickApkAsset('https://sidequestvr.com/app/10349/iron-lung-vr')).toBe(false)
+    expect(isOneClickApkAsset('https://jackaapacka.itch.io/iron-lung-vr')).toBe(false)
+    expect(isOneClickApkAsset('https://github.com/org/repo')).toBe(false)
     expect(isOneClickApkAsset('')).toBe(false)
 
     expect(catalogPackageName('crazy-taxi-vr')).toBe('com.baywilly.crazytaxivr')
@@ -104,6 +107,29 @@ describe('patch-only install', () => {
       }
       expect(refusesOneClickInstall(slug, 'https://example.com/game.apk'), slug).toBe(true)
     }
+  })
+
+  it('turns a non-APK project page into a short card and leaves the PC builder card alone', () => {
+    const guide = patchOnlyGuideFor(
+      'iron-lung-vr',
+      'https://jackaapacka.itch.io/iron-lung-vr',
+      'https://jackaapacka.itch.io/iron-lung-vr'
+    )
+    expect(refusesOneClickInstall('iron-lung-vr', 'https://jackaapacka.itch.io/iron-lung-vr')).toBe(true)
+    expect(guide?.steps).toEqual([])
+    expect(guide?.readmeUrl).toBe('https://jackaapacka.itch.io/iron-lung-vr')
+    expect(guide?.readmeLabel).toBe('Open the project page')
+    expect(guide?.lead).toMatch(/not an APK/)
+    expect(patchOnlyGuideFor(
+      'gta-sa-vr-quest',
+      'https://github.com/example/gta-sa-vr-quest',
+      'https://github.com/example/gta-sa-vr-quest'
+    )).toBeNull()
+    expect(patchOnlyGuideFor(
+      'ppsspp-vr',
+      'https://github.com/hrydgard/ppsspp/blob/master/README.md',
+      'https://github.com/hrydgard/ppsspp'
+    )?.readmeUrl).toBe('https://github.com/hrydgard/ppsspp')
   })
 
   it('gives other patch URLs a short notice instead of Crazy Taxi steps', () => {
