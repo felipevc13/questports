@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { QUEST_NO_DEVICE_HINT, isUsbChooserDismissed } from '~/lib/questConnectUx'
+import { QUEST_NO_DEVICE_HINT, connectionErrorAfterAutoConnect, isUsbChooserDismissed } from '~/lib/questConnectUx'
 import { isWebUsbAvailable, rememberQuestConnection } from '~/lib/questInstallUx'
 import { QUEST_USB_MESSAGES, connectionMessageForUsbError } from '~/lib/questUsbMessages'
 import {
@@ -303,17 +303,23 @@ export const useQuestAdb = () => {
       const firstDevice = devices?.[0]
       if (firstDevice) {
         console.log('[QuestPorts] Previously authorized device found, auto-connecting...', firstDevice.serial)
-        const success = await connect(firstDevice)
-        if (!success) {
-          connectionError.value = null
-          connectionPhase.value = 'idle'
+        // Keep the current message through the retry. connect() replaces it on a
+        // new failure and clears it only after the headset is actually connected.
+        const success = await connect(firstDevice, { keepConnectionError: true })
+        if (success || isConnected.value) {
+          connectionError.value = connectionErrorAfterAutoConnect(true, connectionError.value)
+          return true
         }
-        return success
+        // A newer Connect click owns the message. Do not clear or replace it.
+        if (isConnecting.value) return false
+        const nextError = connectionErrorAfterAutoConnect(false, connectionError.value)
+        connectionError.value = nextError
+        if (!nextError) connectionPhase.value = 'idle'
+        return false
       }
     } catch (e) {
       console.debug('[QuestPorts] Auto-connect skipped:', e)
-      connectionError.value = null
-      connectionPhase.value = 'idle'
+      connectionError.value = connectionErrorAfterAutoConnect(false, connectionError.value)
     }
     return false
   }
@@ -336,8 +342,10 @@ export const useQuestAdb = () => {
     connectionPhase.value = 'idle'
   }
 
-  // Connect via WebUSB (accepts optional paired device to avoid picker popup)
-  const connect = async (targetDevice?: any) => {
+  // Connect via WebUSB (accepts optional paired device to avoid picker popup).
+  // keepConnectionError is for a silent retry: leave the visible failure in place
+  // until this attempt replaces it or the headset connects.
+  const connect = async (targetDevice?: any, options?: { keepConnectionError?: boolean }) => {
     if (!import.meta.client) return false
     if (isAppBridgeClient()) return false
     if (isQuestBrowserClient()) return false
@@ -361,7 +369,9 @@ export const useQuestAdb = () => {
 
     isConnecting.value = true
     connectionPhase.value = targetDevice ? 'authorizing' : 'picker'
-    connectionError.value = null
+    if (!options?.keepConnectionError) {
+      connectionError.value = null
+    }
     connectNotice.value = null
 
     try {
@@ -440,6 +450,7 @@ export const useQuestAdb = () => {
       isConnected.value = true
       isConnecting.value = false
       connectionPhase.value = 'connected'
+      connectionError.value = null
       connectNotice.value = null
       rememberQuestConnection(window.localStorage)
 
@@ -484,6 +495,13 @@ export const useQuestAdb = () => {
 
   const dismissConnectNotice = () => {
     connectNotice.value = null
+  }
+
+  const dismissConnectionError = () => {
+    connectionError.value = null
+    if (connectionPhase.value === 'error') {
+      connectionPhase.value = 'idle'
+    }
   }
 
   const markChooserDismissed = () => {
@@ -1394,6 +1412,7 @@ export const useQuestAdb = () => {
     connectionError,
     connectNotice,
     dismissConnectNotice,
+    dismissConnectionError,
     deviceModel,
     deviceSerial,
     lastInstallAsset,

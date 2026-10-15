@@ -425,10 +425,21 @@
           <div
             v-else-if="showUsbLocked"
             data-testid="usb-locked"
-            role="status"
+            role="alert"
             class="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-left space-y-2 animate-in fade-in duration-200"
           >
-            <p class="font-semibold text-amber-200">{{ USB_LOCKED_TITLE }}</p>
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-semibold text-amber-200">{{ USB_LOCKED_TITLE }}</p>
+              <button
+                type="button"
+                data-testid="usb-locked-dismiss"
+                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-amber-100/80 hover:bg-amber-500/10 hover:text-amber-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-8 md:w-8"
+                :aria-label="DISMISS_CONNECTION_ERROR_LABEL"
+                @click="questAdb.dismissConnectionError()"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
             <p class="text-[11px] text-amber-100/90 leading-relaxed">{{ USB_LOCKED_BODY }}</p>
             <p class="text-[11px] text-muted-foreground leading-relaxed">
               {{ USB_LOCKED_PLATFORM }}
@@ -448,13 +459,25 @@
           <div
             v-else-if="showOtherConnectionError"
             data-testid="connect-failed"
+            role="alert"
             class="space-y-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3.5 text-left text-xs"
           >
-            <div class="flex items-center gap-1.5 font-semibold text-destructive">
-              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>{{ authorizeConnectionError ? AUTHORIZE_STILL_WAITING_TITLE : 'Connection Failed' }}</span>
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-1.5 font-semibold text-destructive">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{{ authorizeConnectionError ? AUTHORIZE_STILL_WAITING_TITLE : 'Connection Failed' }}</span>
+              </div>
+              <button
+                type="button"
+                data-testid="connect-error-dismiss"
+                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-destructive/80 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-8 md:w-8"
+                :aria-label="DISMISS_CONNECTION_ERROR_LABEL"
+                @click="questAdb.dismissConnectionError()"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
             </div>
             <p class="text-[11px] leading-relaxed text-muted-foreground">
               {{ questAdb.connectionError.value }}
@@ -1446,6 +1469,7 @@ import {
   AUTHORIZE_STILL_WAITING_STEPS,
   AUTHORIZE_STILL_WAITING_TITLE,
   AUTHORIZE_WAIT_HINT_MS,
+  DISMISS_CONNECTION_ERROR_LABEL,
   QUEST_PICKER_HINT,
   authorizeWaitHintVisible,
   isAuthorizeConnectionError,

@@ -1,12 +1,15 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   AUTHORIZE_PROMPT_LEAD,
   AUTHORIZE_STILL_WAITING_STEPS,
   AUTHORIZE_STILL_WAITING_TITLE,
   AUTHORIZE_WAIT_HINT_MS,
+  DISMISS_CONNECTION_ERROR_LABEL,
   QUEST_NO_DEVICE_HINT,
   QUEST_PICKER_HINT,
   authorizeWaitHintVisible,
+  connectionErrorAfterAutoConnect,
   isAuthorizeConnectionError,
   isUsbChooserDismissed,
   mockAuthorizeWaitFromSearch,
@@ -44,6 +47,30 @@ describe('quest connect chrome', () => {
   it('does not show connect prompts once the headset is connected', () => {
     expect(questConnectChrome('connected', true).navbar).toBe('connected')
     expect(questConnectChrome('idle', true).showHeadsetBanner).toBe(false)
+  })
+})
+
+describe('auto-reconnect connection error', () => {
+  it('keeps a failed retry on screen and clears the message only after a real connection', () => {
+    const message = QUEST_USB_MESSAGES.generic
+    expect(connectionErrorAfterAutoConnect(false, message)).toBe(message)
+    expect(connectionErrorAfterAutoConnect(false, null)).toBeNull()
+    expect(connectionErrorAfterAutoConnect(true, message)).toBeNull()
+    expect(DISMISS_CONNECTION_ERROR_LABEL).toBe('Dismiss connection error')
+  })
+
+  it('does not wipe the stored error when a silent retry fails', () => {
+    const adb = readFileSync(new URL('../app/composables/useQuestAdb.ts', import.meta.url), 'utf8')
+    const auto = adb.slice(adb.indexOf('const tryAutoConnect = async'), adb.indexOf('const cancelConnect'))
+    expect(auto).toContain('keepConnectionError: true')
+    expect(auto).toContain('connectionErrorAfterAutoConnect')
+    expect(auto).not.toContain('connectionError.value = null')
+
+    const connectFn = adb.slice(adb.indexOf('const connect = async'), adb.indexOf('const dismissConnectNotice'))
+    expect(connectFn).toContain('if (!options?.keepConnectionError)')
+    expect(connectFn).toContain('connectionPhase.value = \'connected\'')
+    expect(connectFn).toContain('connectionError.value = null')
+    expect(adb).toContain('const dismissConnectionError = () => {')
   })
 })
 
