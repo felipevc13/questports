@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, resolveWorkflowType } from '../app/data/portPackageMap'
 import { getPortCampaigns } from '../app/data/expansions'
+import { isOneClickApkAsset, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
 
 describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
   it('indexes all 38 ports in database', () => {
@@ -18,6 +19,43 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
     const sql = readFileSync(new URL('../supabase/migrations/20261015160000_winlatorxr_github_apk.sql', import.meta.url), 'utf8')
     expect(sql).toContain(port?.port_download_url)
     expect(sql).toContain("slug = 'winlatorxr'")
+  })
+
+  it('points SideQuest-listing ports at the GitHub release the APK proxy installs', () => {
+    const releases = [
+      {
+        slug: 'csvr',
+        url: 'https://github.com/Team-Beef-Studios/CSVR/releases/latest',
+        packageName: 'com.lvonasek.csvr',
+      },
+      {
+        slug: 'jkxr',
+        url: 'https://github.com/Team-Beef-Studios/JKXR/releases/latest',
+        packageName: 'com.drbeef.jkxr',
+      },
+      {
+        slug: 'questcraft',
+        url: 'https://github.com/QuestCraftPlusPlus/QuestCraft/releases/latest',
+        packageName: 'com.qcxr.qcxr',
+      },
+      {
+        slug: 'beefraiderxr',
+        url: 'https://github.com/Team-Beef-Studios/BeefRaiderXR/releases/latest',
+        packageName: 'com.drbeef.beefraiderxr',
+      },
+    ] as const
+    const sql = readFileSync(new URL('../supabase/migrations/20261015170000_sidequest_listing_apk_urls.sql', import.meta.url), 'utf8')
+
+    for (const release of releases) {
+      const port = INITIAL_PORTS.find(p => p.slug === release.slug)
+      expect(port?.port_download_url).toBe(release.url)
+      expect(port?.port_download_source).toBe('GitHub Releases')
+      expect(PORT_PACKAGE_CONFIGS[release.slug]?.packageName).toBe(release.packageName)
+      expect(isOneClickApkAsset(release.url)).toBe(true)
+      expect(refusesOneClickInstall(release.slug, release.url)).toBe(false)
+      expect(sql).toContain(release.url)
+      expect(sql).toContain(`slug = '${release.slug}'`)
+    }
   })
 
   // Test every individual port game-by-game
