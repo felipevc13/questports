@@ -281,7 +281,7 @@ describe('app bridge install gate', () => {
     expect(page).toContain('v-if="inApp"')
     expect(page).toContain('v-if="!inApp"')
     expect(page).toContain(':package-name="currentPackageConfig?.packageName || null"')
-    expect(page).toContain(':needs-game-files="!isPcBuilderRequired && !isDirectApkOnly"')
+    expect(page).toContain(':needs-game-files="!isPcBuilderRequired && !isDirectApkOnly && !patchOnlyGuide"')
     expect(page).toContain("if (inApp.value) return")
     expect(page).toContain('installSupport !== \'unsupported\' && !inApp')
 

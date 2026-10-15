@@ -171,6 +171,17 @@ describe('Port Package Map & Workflow Verification', () => {
     }
   })
 
+  it('uses package ids the owner confirmed on a Quest', () => {
+    expect(PORT_PACKAGE_CONFIGS['unreal-gold-vr']?.packageName).toBe('com.ghwstvr.unrealquest')
+    expect(PORT_PACKAGE_CONFIGS['sclerosis-vr']?.packageName).toBe('com.CreaTeam.Sclerosis')
+    expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['unreal-gold-vr'])).toBe(false)
+    expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['sclerosis-vr'])).toBe(false)
+    expect(firstInstalledPackage('unreal-gold-vr', name => name === 'com.ghwstvr.unrealquest')).toBe('com.ghwstvr.unrealquest')
+    expect(firstInstalledPackage('sclerosis-vr', name => name.toLowerCase() === 'com.createam.sclerosis')).toBe('com.CreaTeam.Sclerosis')
+    expect(firstInstalledPackage('sclerosis-vr', () => false)).toBeNull()
+    expect(PORT_PACKAGE_CONFIGS['crazy-taxi-vr']).toBeUndefined()
+  })
+
   it('detects House of the Dead 2 and Time Crisis 2 from the release APK package', () => {
     expect(firstInstalledPackage('hotd2-vr', name => name === 'com.flycast.emulator.vr')).toBe('com.flycast.emulator.vr')
     expect(firstInstalledPackage('hotd2-vr', () => false)).toBeNull()

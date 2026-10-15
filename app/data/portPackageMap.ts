@@ -1224,6 +1224,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'sclerosis-vr': {
+    slug: 'sclerosis-vr',
+    packageName: 'com.CreaTeam.Sclerosis',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Owner-confirmed package id. The catalog guide already says to copy the original Amnesia files to /sdcard/. This entry only records the APK package id.'
+  },
   'sm64-coop-dx-vr': {
     slug: 'sm64-coop-dx-vr',
     packageName: 'com.fulldivegames.sm64coopdxvr',
@@ -1247,6 +1254,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     packageName: 'com.joeyaw.tpvr',
     installType: 'apk_and_assets',
     criticalFiles: []
+  },
+  'unreal-gold-vr': {
+    slug: 'unreal-gold-vr',
+    packageName: 'com.ghwstvr.unrealquest',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Owner-confirmed package id. The catalog guide already says to put Unreal Gold in Download and pick it in the first-launch menu. This entry only records the APK package id.'
   },
   'victory-heat-rally-vr': {
     slug: 'victory-heat-rally-vr',
