@@ -1,5 +1,5 @@
 import { isAppBridgeClient } from '~/lib/appBridge'
-import { browserOptsOut, clientAnalyticsPayload, createAnalyticsBatcher, deliverAnalyticsBatch, deliverAnalyticsPayload, withAppAnalyticsProp, withSessionCampaignRef, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
+import { browserOptsOut, clientAnalyticsPayload, createAnalyticsBatcher, deliverAnalyticsBatch, deliverAnalyticsPayload, withAppAnalyticsProp, withSessionCampaignRef, withSessionLanding, type AnalyticsEventName, type AnalyticsTrackInput } from '~/lib/analytics'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
 
 /**
@@ -45,11 +45,20 @@ export function useTrack() {
     try {
       if (browserOptsOut(navigator)) return
       if (isMockQuestEnabled()) return
-      const payload = clientAnalyticsPayload(event, withSessionCampaignRef(event, withAppAnalyticsProp({
-        ...input,
-        path: input.path ?? window.location.pathname,
-        webusb: input.webusb ?? (typeof navigator !== 'undefined' && 'usb' in navigator)
-      }, isAppBridgeClient()), window.sessionStorage, window.location.search))
+      const payload = clientAnalyticsPayload(event, withSessionLanding(
+        event,
+        withSessionCampaignRef(event, withAppAnalyticsProp({
+          ...input,
+          path: input.path ?? window.location.pathname,
+          webusb: input.webusb ?? (typeof navigator !== 'undefined' && 'usb' in navigator)
+        }, isAppBridgeClient()), window.sessionStorage, window.location.search),
+        window.sessionStorage,
+        {
+          referrer: document.referrer,
+          search: window.location.search,
+          requestHost: window.location.host
+        }
+      ))
       if (!payload) return
       if (event === 'install_success') {
         analyticsBatcher().flush()

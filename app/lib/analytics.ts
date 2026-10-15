@@ -27,7 +27,9 @@ export const ANALYTICS_EVENTS = [
   'modal_click',
   'modal_dismiss',
   'app_page_view',
-  'app_open'
+  'app_open',
+  'game_launch',
+  'app_download_click'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -127,6 +129,14 @@ export const APP_INSTALL_VIAS = ['page', 'modal'] as const
 
 export type AppInstallVia = (typeof APP_INSTALL_VIAS)[number]
 
+/** Where the QuestPorts app APK file link was clicked. */
+export const APP_DOWNLOAD_SURFACES = ['page', 'banner', 'modal'] as const
+
+export type AppDownloadSurface = (typeof APP_DOWNLOAD_SURFACES)[number]
+
+export const UTM_VALUE_MAX = 60
+export const LANDING_STORAGE_KEY = 'questports_landing'
+
 const APP_VERSION_RE = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,31}$/
 
 const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
@@ -135,7 +145,8 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'install_success',
   'install_error',
   'install_step',
-  'video_preview_play'
+  'video_preview_play',
+  'game_launch'
 ])
 
 /** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
@@ -398,6 +409,163 @@ export interface AnalyticsSessionStore {
   setItem(key: string, value: string): void
 }
 
+/** Lowercase campaign text. Spaces become hyphens. Anything else outside the allowlist is dropped. */
+export function cleanUtmValue(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const value = input
+    .replace(/[\u0000-\u001f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9._+-]/g, '')
+    .slice(0, UTM_VALUE_MAX)
+  if (!/^[a-z0-9][a-z0-9._+-]{0,59}$/.test(value)) return null
+  return value
+}
+
+export interface LandingAttribution {
+  referrer: string | null
+  utmSource: string | null
+  utmMedium: string | null
+  utmCampaign: string | null
+  fbclid: boolean
+  gclid: boolean
+}
+
+function searchParams(search: string | null | undefined): URLSearchParams {
+  if (!search) return new URLSearchParams()
+  const hashless = search.split('#')[0] || ''
+  const queryIndex = hashless.indexOf('?')
+  const query = queryIndex >= 0 ? hashless.slice(queryIndex + 1) : hashless
+  return new URLSearchParams(query)
+}
+
+function clickIdPresent(params: URLSearchParams, name: string): boolean {
+  const value = params.get(name)
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+/** Scheme and host only. The path and query of document.referrer never leave the browser. */
+function externalReferrerOrigin(referrer: string, requestHost?: string | null): string | null {
+  const host = referrerHost(referrer, requestHost)
+  if (!host) return null
+  try {
+    const url = new URL(referrer)
+    const protocol = url.protocol === 'http:' ? 'http:' : 'https:'
+    return `${protocol}//${host}`
+  } catch {
+    return null
+  }
+}
+
+/** External referrer and campaign flags from the address bar. Click ids are flags, not values. */
+export function landingFromLocation(input: {
+  referrer?: string | null
+  search?: string | null
+  requestHost?: string | null
+}): LandingAttribution {
+  const params = searchParams(input.search)
+  const referrer = typeof input.referrer === 'string' ? input.referrer.trim().slice(0, 2000) : ''
+  return {
+    referrer: referrer ? externalReferrerOrigin(referrer, input.requestHost) : null,
+    utmSource: cleanUtmValue(params.get('utm_source')),
+    utmMedium: cleanUtmValue(params.get('utm_medium')),
+    utmCampaign: cleanUtmValue(params.get('utm_campaign')),
+    fbclid: clickIdPresent(params, 'fbclid'),
+    gclid: clickIdPresent(params, 'gclid')
+  }
+}
+
+function landingPropsFrom(landing: LandingAttribution): Record<string, string | boolean> {
+  const props: Record<string, string | boolean> = {}
+  if (landing.utmSource) props.utm_source = landing.utmSource
+  if (landing.utmMedium) props.utm_medium = landing.utmMedium
+  if (landing.utmCampaign) props.utm_campaign = landing.utmCampaign
+  if (landing.fbclid) props.fbclid = true
+  if (landing.gclid) props.gclid = true
+  return props
+}
+
+function parseStoredLanding(raw: string): LandingAttribution | null {
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    if (!parsed || typeof parsed !== 'object') return null
+    const referrer = typeof parsed.referrer === 'string' ? externalReferrerOrigin(parsed.referrer) : null
+    return {
+      referrer,
+      utmSource: cleanUtmValue(parsed.utmSource),
+      utmMedium: cleanUtmValue(parsed.utmMedium),
+      utmCampaign: cleanUtmValue(parsed.utmCampaign),
+      fbclid: parsed.fbclid === true,
+      gclid: parsed.gclid === true
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * First page view of this tab wins.
+ * Later client navigations keep that referrer and those campaign flags.
+ */
+export function rememberLanding(
+  storage: AnalyticsSessionStore | null,
+  input: {
+    referrer?: string | null
+    search?: string | null
+    requestHost?: string | null
+  }
+): LandingAttribution {
+  if (storage) {
+    try {
+      const raw = storage.getItem(LANDING_STORAGE_KEY)
+      const stored = raw ? parseStoredLanding(raw) : null
+      if (stored) return stored
+    } catch {
+      // Read the current address instead.
+    }
+  }
+  const fresh = landingFromLocation(input)
+  if (storage) {
+    try {
+      storage.setItem(LANDING_STORAGE_KEY, JSON.stringify({
+        referrer: fresh.referrer,
+        utmSource: fresh.utmSource,
+        utmMedium: fresh.utmMedium,
+        utmCampaign: fresh.utmCampaign,
+        fbclid: fresh.fbclid,
+        gclid: fresh.gclid
+      }))
+    } catch {
+      // Private mode can reject the write. This page view still carries the flags.
+    }
+  }
+  return fresh
+}
+
+/** Attach the session landing to page_view. The full referrer is not a stored column. */
+export function withSessionLanding(
+  event: AnalyticsEventName,
+  input: AnalyticsTrackInput,
+  storage: AnalyticsSessionStore | null,
+  location: {
+    referrer?: string | null
+    search?: string | null
+    requestHost?: string | null
+  }
+): AnalyticsTrackInput {
+  if (event !== 'page_view') return input
+  const landing = rememberLanding(storage, location)
+  const base = input.props && typeof input.props === 'object' && !Array.isArray(input.props)
+    ? { ...input.props }
+    : {}
+  return {
+    ...input,
+    referrer: landing.referrer,
+    props: { ...base, ...landingPropsFrom(landing) }
+  }
+}
+
 /** Keep the landing ref for this tab. A new `ref` or `utm_source` replaces it. */
 export function rememberCampaignRef(
   storage: AnalyticsSessionStore | null,
@@ -631,6 +799,44 @@ function appOpenProps(
   return { version, first: props.first }
 }
 
+function appDownloadProps(
+  props: Record<string, unknown> | null
+): { surface: AppDownloadSurface } | null {
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(APP_DOWNLOAD_SURFACES as readonly string[]).includes(surface)) return null
+  return { surface: surface as AppDownloadSurface }
+}
+
+function pageLandingProps(props: Record<string, unknown> | null): {
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
+  fbclid?: true
+  gclid?: true
+} {
+  const utmSource = cleanUtmValue(props?.utm_source)
+  const utmMedium = cleanUtmValue(props?.utm_medium)
+  const utmCampaign = cleanUtmValue(props?.utm_campaign)
+  return {
+    ...(utmSource ? { utm_source: utmSource } : {}),
+    ...(utmMedium ? { utm_medium: utmMedium } : {}),
+    ...(utmCampaign ? { utm_campaign: utmCampaign } : {}),
+    ...(props?.fbclid === true ? { fbclid: true as const } : {}),
+    ...(props?.gclid === true ? { gclid: true as const } : {})
+  }
+}
+
+/** document.referrer sent with a page_view. Ignored on every other event. */
+export function landingReferrerFromBody(body: unknown): string | null {
+  const record = readProps(body)
+  if (!record || record.event !== 'page_view') return null
+  const referrer = record.referrer
+  if (typeof referrer !== 'string') return null
+  const trimmed = referrer.trim()
+  if (!trimmed || trimmed.length > 2000) return null
+  return trimmed
+}
+
 function unsupportedBrowserProps(
   props: Record<string, unknown> | null
 ): { action: UnsupportedBrowserAction } | null {
@@ -687,8 +893,8 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const stored = { ...ref, ...(via ? { via } : {}) }
     storedProps = Object.keys(stored).length ? stored : null
   } else if (record.event === 'page_view') {
-    const ref = campaignRefProps(props)
-    storedProps = ref.ref ? ref : null
+    const landing = { ...campaignRefProps(props), ...pageLandingProps(props) }
+    storedProps = Object.keys(landing).length ? landing : null
   } else if (record.event === 'search') {
     const query = props && typeof props.q === 'string' ? props.q : ''
     const length = props && typeof props.length === 'number' ? props.length : undefined
@@ -722,6 +928,10 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const opened = appOpenProps(props)
     if (!opened) return null
     storedProps = opened
+  } else if (record.event === 'app_download_click') {
+    const download = appDownloadProps(props)
+    if (!download) return null
+    storedProps = download
   }
 
   if (props?.app === true) {
@@ -743,6 +953,8 @@ export interface AnalyticsTrackInput {
   portSlug?: string | null
   headset?: string | null
   webusb?: boolean | null
+  /** document.referrer for this session's first page view. The server stores the host only. */
+  referrer?: string | null
   props?: Record<string, unknown> | null
 }
 
@@ -926,8 +1138,8 @@ export function apkInstallOutcome(input: {
 export function clientAnalyticsPayload(
   event: AnalyticsEventName,
   input: AnalyticsTrackInput = {}
-): NormalizedAnalyticsEvent | null {
-  return normalizeAnalyticsBody({
+): (NormalizedAnalyticsEvent & { referrer?: string }) | null {
+  const normalized = normalizeAnalyticsBody({
     event,
     path: input.path ?? null,
     portSlug: input.portSlug ?? null,
@@ -935,4 +1147,10 @@ export function clientAnalyticsPayload(
     webusb: input.webusb ?? null,
     props: input.props ?? null
   })
+  if (!normalized) return null
+  const referrer = event === 'page_view' && typeof input.referrer === 'string'
+    ? input.referrer.trim()
+    : ''
+  if (!referrer || referrer.length > 2000) return normalized
+  return { ...normalized, referrer }
 }

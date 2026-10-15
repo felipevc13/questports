@@ -10,6 +10,7 @@ import {
   isAnalyticsEnabled,
   isBotUserAgent,
   isPrefetchRequest,
+  landingReferrerFromBody,
   normalizeAnalyticsBody,
   referrerHost,
   type NormalizedAnalyticsEvent
@@ -155,7 +156,8 @@ export function decideAnalyticsRequest(input: AnalyticsRequestInput): AnalyticsD
       userAgent: input.userAgent,
       countryHeader: input.countryHeader,
       referrer: input.referrer,
-      requestHost: input.requestHost
+      requestHost: input.requestHost,
+      landingReferrer: landingReferrerFromBody(input.body)
     })
   }
 }
@@ -168,6 +170,7 @@ function toInsertRow(
     countryHeader?: string | null
     referrer?: string | null
     requestHost?: string | null
+    landingReferrer?: string | null
   }
 ): AnalyticsInsertRow {
   return {
@@ -175,7 +178,8 @@ function toInsertRow(
     path: event.path,
     port_slug: event.portSlug,
     headset: event.headset,
-    referrer_host: referrerHost(server.referrer, server.requestHost),
+    referrer_host: referrerHost(server.referrer, server.requestHost)
+      || referrerHost(server.landingReferrer, server.requestHost),
     country: countryFromHeader(server.countryHeader),
     device: deviceFromUserAgent(server.userAgent),
     browser: browserFamilyFromUserAgent(server.userAgent),

@@ -37,6 +37,8 @@ import {
   UNSUPPORTED_BROWSER_ACTIONS,
   isInAppBrowserFamily,
   rememberCampaignRef,
+  rememberLanding,
+  withSessionLanding,
   searchNoResultsQuery,
   searchProps,
   withSessionCampaignRef,
@@ -118,12 +120,14 @@ describe('analytics allowlist', () => {
       'modal_click',
       'modal_dismiss',
       'app_page_view',
-      'app_open'
+      'app_open',
+      'game_launch',
+      'app_download_click'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
       const body: Record<string, unknown> = { event, path: '/' }
-      if (event === 'port_view' || event.startsWith('install_') || event === 'video_preview_play') {
+      if (event === 'port_view' || event.startsWith('install_') || event === 'video_preview_play' || event === 'game_launch') {
         body.portSlug = 'rtcwquest'
       }
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
@@ -135,6 +139,7 @@ describe('analytics allowlist', () => {
       if (event === 'tip_click') body.props = { surface: 'footer' }
       if (event === 'app_page_view') body.props = { source: 'direct', device: 'desktop' }
       if (event === 'app_open') body.props = { version: '1.0.108', first: true }
+      if (event === 'app_download_click') body.props = { surface: 'page' }
       const decision = decide({ body })
       expect(decision.record, event).toBe(true)
       expect(decision.row?.event).toBe(event)
@@ -189,6 +194,7 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261009230000_analytics_funnel_events.sql', import.meta.url),
       'utf8'
     )
+    const landingEvents = ['game_launch', 'app_download_click']
     const appBannerEvents = [
       'banner_shown',
       'banner_click',
@@ -200,11 +206,11 @@ describe('analytics allowlist', () => {
       'app_open'
     ]
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click' || appBannerEvents.includes(event)) continue
+      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
@@ -212,7 +218,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (appBannerEvents.includes(event)) continue
+      if (appBannerEvents.includes(event) || landingEvents.includes(event)) continue
       expect(tipClick).toContain(`'${event}'`)
     }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
@@ -220,7 +226,22 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261012130000_analytics_app_banner.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(appBanner).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (landingEvents.includes(event)) continue
+      expect(appBanner).toContain(`'${event}'`)
+    }
+    const landing = readFileSync(
+      new URL('../supabase/migrations/20261015161000_analytics_landing_and_launches.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(landing).toContain(`'${event}'`)
+    expect(landing).toContain('drop constraint if exists analytics_events_event_check')
+    expect(landing).toContain('analytics_events_landing_check')
+    expect(landing).toContain('analytics_events_app_download_click_check')
+    expect(landing).toContain("props->>'surface' in ('page', 'banner', 'modal')")
+    expect(landing).toContain("props->>'fbclid' = 'true'")
+    expect(landing).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(landing).not.toMatch(/drop constraint if exists analytics_events_app_open_check/i)
     expect(appBanner).toContain('drop constraint if exists analytics_events_event_check')
     expect(appBanner).toContain('analytics_events_app_page_view_check')
     expect(appBanner).toContain('analytics_events_app_open_check')
@@ -389,6 +410,71 @@ describe('analytics visitor hash', () => {
     const self = decide({ referrer: 'https://www.questports.vercel.app/ports/rtcwquest?q=secret' })
     expect(self.row?.referrer_host).toBeNull()
     expect(JSON.stringify(self.row)).not.toContain('secret')
+  })
+
+  it('stores the first page view referrer host and campaign flags, not the click id', () => {
+    const store = new Map<string, string>()
+    const storage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value) }
+    }
+    const search = '?utm_source=Facebook&utm_medium=cpc&utm_campaign=Spring Sale&fbclid=IwAR123secret&gclid='
+    const first = withSessionLanding('page_view', { path: '/' }, storage, {
+      referrer: 'https://www.reddit.com/r/oculus/comments/1?q=doom',
+      search,
+      requestHost: 'questports.vercel.app'
+    })
+    const again = withSessionLanding('page_view', { path: '/ports/rtcwquest' }, storage, {
+      referrer: 'https://questports.vercel.app/ports/rtcwquest',
+      search: '',
+      requestHost: 'questports.vercel.app'
+    })
+    expect(again.referrer).toContain('reddit.com')
+    expect(again.props).toMatchObject({
+      utm_source: 'facebook',
+      utm_medium: 'cpc',
+      utm_campaign: 'spring-sale',
+      fbclid: true
+    })
+    expect(again.props).not.toHaveProperty('gclid')
+    expect(JSON.stringify(store.get('questports_landing'))).not.toContain('IwAR123secret')
+
+    const payload = clientAnalyticsPayload('page_view', first)
+    expect(payload?.referrer).toContain('reddit.com')
+    expect(JSON.stringify(payload)).not.toContain('IwAR123secret')
+    expect(JSON.stringify(payload)).not.toContain('q=doom')
+
+    const decision = decide({
+      referrer: 'https://questports.vercel.app/',
+      requestHost: 'questports.vercel.app',
+      body: payload
+    })
+    expect(decision.row?.referrer_host).toBe('reddit.com')
+    expect(decision.row?.props).toMatchObject({
+      utm_source: 'facebook',
+      utm_medium: 'cpc',
+      utm_campaign: 'spring-sale',
+      fbclid: true
+    })
+    expect(JSON.stringify(decision.row)).not.toContain('IwAR123secret')
+    expect(JSON.stringify(decision.row)).not.toContain('/r/oculus')
+
+    expect(decide({
+      body: { event: 'game_launch', path: '/' }
+    }).record).toBe(false)
+    expect(decide({
+      body: { event: 'game_launch', path: '/ports/winlatorxr', portSlug: 'winlatorxr' }
+    }).row?.port_slug).toBe('winlatorxr')
+    expect(clientAnalyticsPayload('app_download_click', { path: '/app', props: { surface: 'banner' } })?.props).toEqual({ surface: 'banner' })
+    expect(clientAnalyticsPayload('app_download_click', { path: '/app', props: { surface: 'email' } })).toBeNull()
+    expect(clientAnalyticsPayload('app_open', { path: '/', props: { version: '1.0.108', first: true } })?.props).toEqual({ version: '1.0.108', first: true })
+
+    const page = readFileSync(new URL('../app/pages/app.vue', import.meta.url), 'utf8')
+    const install = readFileSync(new URL('../app/components/AppBridgeInstall.vue', import.meta.url), 'utf8')
+    expect(page).toContain("track('app_download_click'")
+    expect(page).toContain("from === 'banner' || from === 'modal' ? from : 'page'")
+    expect(install).toContain("track('game_launch'")
+    expect(rememberLanding(storage, { referrer: 'https://evil.example/path', search: '?utm_source=later' }).utmSource).toBe('facebook')
   })
 })
 

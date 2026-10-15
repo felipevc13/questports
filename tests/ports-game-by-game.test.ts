@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, resolveWorkflowType } from '../app/data/portPackageMap'
@@ -12,6 +13,11 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
     const port = INITIAL_PORTS.find(p => p.slug === 'winlatorxr')
     expect(port?.developer).toBe('WinlatorXR team')
     expect(port?.developer_url).toBe('https://github.com/WinlatorXR/WinlatorXR')
+    expect(port?.port_download_url).toBe('https://github.com/WinlatorXR/WinlatorXR/releases/latest')
+    expect(port?.port_download_source).toBe('GitHub Releases')
+    const sql = readFileSync(new URL('../supabase/migrations/20261015160000_winlatorxr_github_apk.sql', import.meta.url), 'utf8')
+    expect(sql).toContain(port?.port_download_url)
+    expect(sql).toContain("slug = 'winlatorxr'")
   })
 
   // Test every individual port game-by-game

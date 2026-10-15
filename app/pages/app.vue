@@ -289,9 +289,12 @@ const trackStep = (
 }
 
 const onDownload = () => {
-  track('manual_download_click', {
+  const from = appPageSourceFromSearch(window.location.search)
+  const surface = from === 'banner' || from === 'modal' ? from : 'page'
+  track('app_download_click', {
     path: QUESTPORTS_APP_INSTALL_PATH,
-    headset: headset()
+    headset: headset(),
+    props: { surface }
   })
 }
 
