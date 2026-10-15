@@ -523,20 +523,6 @@
                 :download-source="port.port_download_source"
                 :needs-game-files="!isDirectApkOnly"
               />
-              <div v-else class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  data-testid="pc-patch-check-headset"
-                  @click="recheckHeadsetInstalled"
-                  class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
-                >
-                  <span>🔄 Check Headset</span>
-                </button>
-                <label class="inline-flex min-h-11 cursor-pointer items-center text-[10px] text-muted-foreground underline hover:text-foreground md:min-h-0">
-                  <span>Select built .apk from PC</span>
-                  <input type="file" accept=".apk" class="hidden" data-testid="pc-patch-local-apk" @change="handleLocalApkSelected" />
-                </label>
-              </div>
             </template>
 
             <PatchOnlyInstall v-else-if="patchOnlyGuide" :guide="patchOnlyGuide" />
@@ -559,19 +545,6 @@
                 :download-source="port.port_download_source"
                 :needs-game-files="!isDirectApkOnly"
               />
-              <div v-else class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  @click="recheckHeadsetInstalled"
-                  class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
-                >
-                  <span>🔄 Check Headset</span>
-                </button>
-                <label class="inline-flex min-h-11 cursor-pointer items-center text-[10px] text-muted-foreground underline hover:text-foreground md:min-h-0">
-                  <span>Select built .apk from PC</span>
-                  <input type="file" accept=".apk" class="hidden" @change="handleLocalApkSelected" />
-                </label>
-              </div>
             </template>
 
             <!-- Case B: Standard 1-Click APK Sideload -->
@@ -651,20 +624,6 @@
                   </svg>
                   <span>{{ INSTALL_ACTION_LABEL }}</span>
                 </button>
-                <div class="flex flex-col gap-1 pt-0.5 font-mono text-[10px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    @click="recheckHeadsetInstalled"
-                    class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
-                    title="Check connected Quest for installed APK"
-                  >
-                    <span>🔄 Check Headset</span>
-                  </button>
-                  <label class="inline-flex min-h-11 cursor-pointer items-center underline hover:text-foreground md:min-h-0">
-                    <span>Select local .apk</span>
-                    <input type="file" accept=".apk" class="hidden" @change="handleLocalApkSelected" />
-                  </label>
-                </div>
               </div>
 
               <TransferProgress
@@ -2124,35 +2083,6 @@ const step2Title = computed(() => {
   }
   return 'Step 2: Game Data Files'
 })
-
-const handleLocalApkSelected = async (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  if (!questAdb.isConnected.value) {
-    return
-  }
-
-  spaceNotice.value = null
-  spaceNoticeKind.value = 'warn'
-  isInstallingApk.value = true
-  apkProgress.value = 0
-  try {
-    const installed = await questAdb.installApkFile(file, port.value?.title || 'Game Port')
-    if (installed) scanCampaignFiles()
-  } catch (err: any) {
-    noteInstallFailure(err)
-  } finally {
-    isInstallingApk.value = false
-  }
-}
-
-const recheckHeadsetInstalled = async () => {
-  if (!questAdb.isConnected.value) return
-  await questAdb.refreshStats()
-  if (isDetectedOnConnectedQuest.value) scanCampaignFiles()
-}
 
 const isAppLaunching = ref(false)
 const launchAppOnQuest = async () => {
