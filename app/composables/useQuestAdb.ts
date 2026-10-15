@@ -778,24 +778,6 @@ export const useQuestAdb = () => {
     await removeRemoteFile(partial)
   }
 
-  // Install from local File
-  const installApkFile = async (file: File, title: string) => {
-    activeAbortController = new AbortController()
-    lastInstallAsset.value = null
-    installSpaceWarning.value = null
-    if (isMockQuestEnabled()) armMockInstall(activeAbortController.signal)
-    try {
-      await gateFreeSpace(file.size, 'apk')
-      await installApkStream(file.stream(), file.size, title)
-      return installProgress.value.step === 'completed'
-    } catch (err: any) {
-      failInstall(title, err, 'Failed to install APK')
-      return false
-    } finally {
-      activeAbortController = null
-    }
-  }
-
   // Install from URL (via our streaming proxy to avoid CORS)
   const installApkUrl = async (url: string, title: string) => {
     activeAbortController = new AbortController()
@@ -1433,7 +1415,6 @@ export const useQuestAdb = () => {
     disconnect,
     refreshStats,
     updatePackages,
-    installApkFile,
     installApkUrl,
     cancelInstall,
     cancelFilePush,
