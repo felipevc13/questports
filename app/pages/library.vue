@@ -58,7 +58,7 @@
             </span>
           </NuxtLink>
           <button
-            v-if="entry.update && entry.port.port_download_url"
+            v-if="entry.update && entry.port.port_download_url && !refusesOneClickInstall(entry.port.slug, entry.port.port_download_url)"
             type="button"
             class="inline-flex min-h-11 shrink-0 items-center rounded bg-amber-500 px-3 text-xs font-semibold text-black hover:bg-amber-400 disabled:opacity-60 md:min-h-8"
             :disabled="updatingSlug === entry.port.slug"
@@ -119,6 +119,7 @@ import { useTrack } from '~/composables/useTrack'
 import { forgetInstalledRelease, readInstalledRelease } from '~/lib/installedRelease'
 import { formatPortVersion } from '~/lib/portVersion'
 import { libraryUpdateAvailable, orderLibraryEntries, type LibraryEntry } from '~/lib/questLibrary'
+import { refusesOneClickInstall } from '~/lib/patchOnlyInstall'
 
 const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))
 const { track } = useTrack()
@@ -224,6 +225,7 @@ const confirmUninstall = async (entry: LibraryEntry<Port>) => {
 const updatePort = async (entry: LibraryEntry<Port>) => {
   const url = entry.port.port_download_url
   if (!url || updatingSlug.value) return
+  if (refusesOneClickInstall(entry.port.slug, url)) return
   updatingSlug.value = entry.port.slug
   updateError.value = ''
   track('install_click', { path: `/ports/${entry.port.slug}`, portSlug: entry.port.slug })

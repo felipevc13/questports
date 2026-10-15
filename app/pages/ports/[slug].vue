@@ -212,7 +212,7 @@
           :github-url="port.github_url"
           :package-name="currentPackageConfig?.packageName || null"
           :latest-version="port.latest_version"
-          :needs-game-files="!isPcBuilderRequired && !isDirectApkOnly"
+          :needs-game-files="!isPcBuilderRequired && !isDirectApkOnly && !patchOnlyGuide"
           :pc-builder="isPcBuilderRequired"
         />
 
@@ -506,8 +506,10 @@
 
           <!-- APK not installed yet. One install action, whether or not the headset is connected. -->
           <div v-if="!isApkInstalled" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
+            <PatchOnlyInstall v-if="patchOnlyGuide" :guide="patchOnlyGuide" />
+
             <!-- Case A: PC Builder Required (GTA SA / Vice City) -->
-            <template v-if="isPcBuilderRequired">
+            <template v-else-if="isPcBuilderRequired">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-xs font-bold flex items-center justify-center">1</span>
@@ -704,7 +706,7 @@
               </p>
               <div class="flex items-center gap-2">
                 <button
-                  v-if="!questBrowser && !largePortMessage && isApkOutdated && !isInstallingApk && !installFlowChrome"
+                  v-if="!patchOnlyGuide && !questBrowser && !largePortMessage && isApkOutdated && !isInstallingApk && !installFlowChrome"
                   type="button"
                   @click="beginInstall()"
                   class="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-amber-500 px-3 text-xs font-semibold text-black hover:bg-amber-400"
@@ -713,7 +715,7 @@
                   Update to {{ catalogVersion }}
                 </button>
                 <button
-                  v-else-if="!questBrowser && !largePortMessage && !isInstallingApk && !installFlowChrome"
+                  v-else-if="!patchOnlyGuide && !questBrowser && !largePortMessage && !isInstallingApk && !installFlowChrome"
                   type="button"
                   @click="openReinstallPrompt"
                   class="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground hover:bg-muted"
@@ -897,7 +899,7 @@
             </div>
 
             <!-- Data Files / ROMs Box (For ports requiring assets) -->
-            <div v-else class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
+            <div v-else-if="!patchOnlyGuide" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="w-5 h-5 rounded-full bg-primary/20 text-primary font-mono text-xs font-bold flex items-center justify-center">2</span>
@@ -1225,7 +1227,35 @@
           </a>
 
           <a
-            v-if="port.port_download_url && installSupport !== 'unsupported' && !inApp"
+            v-if="patchOnlyGuide"
+            :href="patchOnlyGuide.readmeUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex min-h-11 w-full items-center justify-between rounded-lg bg-secondary px-3 py-2 text-xs text-secondary-foreground transition-colors hover:bg-secondary/80 md:min-h-0"
+            @click="trackGithub"
+          >
+            <div class="flex items-center gap-2">
+              <span>{{ patchOnlyGuide.readmeLabel }}</span>
+            </div>
+            <span class="text-muted-foreground">↗</span>
+          </a>
+
+          <a
+            v-if="patchOnlyGuide?.patchUrl"
+            :href="patchOnlyGuide.patchUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex min-h-11 w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-xs text-foreground transition-colors hover:bg-muted/50 md:min-h-0"
+            @click="trackManualDownload"
+          >
+            <div class="flex items-center gap-2">
+              <span>{{ patchOnlyGuide.patchLabel }}</span>
+            </div>
+            <span class="text-muted-foreground">↗</span>
+          </a>
+
+          <a
+            v-if="!patchOnlyGuide && port.port_download_url && installSupport !== 'unsupported' && !inApp"
             :href="port.port_download_url"
             target="_blank"
             rel="noopener noreferrer"
@@ -1266,7 +1296,8 @@
           </div>
 
           <p class="text-xs text-muted-foreground leading-relaxed">
-            <template v-if="inApp">The APK installs from the card above. When this port needs original game files, copy them from a PC. These steps explain that copy.</template>
+            <template v-if="patchOnlyGuide">The card above follows the project's own README. QuestPorts does not install this port for you.</template>
+            <template v-else-if="inApp">The APK installs from the card above. When this port needs original game files, copy them from a PC. These steps explain that copy.</template>
             <template v-else>Install on Quest, in the card above, is the one-click USB install. These steps are the manual path (SideQuest or ADB).</template>
           </p>
 
@@ -1463,6 +1494,7 @@ import { campaignPartState, countInstalledParts } from '~/lib/campaignParts'
 import { APP_BRIDGE_EVENT, whenAppBridgeReady } from '~/lib/appBridge'
 import { apkInstalledOnHeadset } from '~/lib/apkInstalledState'
 import { firstInstalledPackage } from '~/lib/headsetPackages'
+import { patchOnlyGuideFor, refusesOneClickInstall } from '~/lib/patchOnlyInstall'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 import {
   AUTHORIZE_PROMPT_LEAD,
@@ -1986,6 +2018,12 @@ const isPcBuilderRequired = computed(() => {
   return currentPackageConfig.value?.installType === 'pc_builder_required'
 })
 
+const patchOnlyGuide = computed(() => {
+  const current = port.value
+  if (!current) return null
+  return patchOnlyGuideFor(current.slug, current.port_download_url, current.github_url)
+})
+
 const publicConfig = useRuntimeConfig().public
 const apkProxyCap = computed(() => {
   const configured = Number(publicConfig.apkProxyMaxBytes)
@@ -2469,6 +2507,7 @@ const beginInstall = async (options?: { skipPrep?: boolean }) => {
   if (inApp.value) return
   if (questBrowser.value) return
   if (isInstallingApk.value || !port.value) return
+  if (refusesOneClickInstall(port.value.slug, port.value.port_download_url)) return
   if (installSupport.value !== 'supported') return
   const skipPrep = Boolean(options?.skipPrep) || questAdb.isConnected.value
   if (!skipPrep && shouldShowUsbPrep(usbPrepRemembered.value, false)) {
@@ -2524,6 +2563,7 @@ const executeReinstall = async () => {
 const handleApkInstall = async () => {
   if (inApp.value) return
   if (questBrowser.value || isInstallingApk.value || !port.value) return
+  if (refusesOneClickInstall(port.value.slug, port.value.port_download_url)) return
   apkInstallError.value = null
   spaceNotice.value = null
   spaceNoticeKind.value = 'warn'

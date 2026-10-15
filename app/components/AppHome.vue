@@ -195,6 +195,7 @@ import { APP_PACKAGE_NAME, APP_RELEASES_LATEST, parseLatestAppRelease, type AppR
 import { appStartTab, firstInstalledPackage, type AppTab } from '~/lib/headsetPackages'
 import { APP_RELEASE_SERIAL, forgetInstalledRelease, readInstalledRelease } from '~/lib/installedRelease'
 import { formatPortVersion } from '~/lib/portVersion'
+import { refusesOneClickInstall } from '~/lib/patchOnlyInstall'
 import { useTrack } from '~/composables/useTrack'
 import { useQuestAdb } from '~/composables/useQuestAdb'
 
@@ -273,7 +274,9 @@ const catalogPorts = computed(() => {
 
 const canUpdate = (port: Port) => {
   const cfg = PORT_PACKAGE_CONFIGS[port.slug]
-  return Boolean(port.port_download_url) && cfg?.installType !== 'pc_builder_required'
+  return Boolean(port.port_download_url)
+    && cfg?.installType !== 'pc_builder_required'
+    && !refusesOneClickInstall(port.slug, port.port_download_url)
 }
 
 const scanInstalled = () => {
@@ -382,6 +385,7 @@ const confirmUninstall = async (row: { port: Port, packageName: string }) => {
 const updateGame = (row: { port: Port, packageName: string }) => {
   const bridge = window.QuestPortsApp
   if (!bridge || updatingSlug.value) return
+  if (refusesOneClickInstall(row.port.slug, row.port.port_download_url)) return
   const pkg = PORT_PACKAGE_CONFIGS[row.port.slug]?.packageName || row.packageName
   const url = appBridgeApkUrl(
     configuredProxyBase || window.location.origin,

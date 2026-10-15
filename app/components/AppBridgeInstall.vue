@@ -1,6 +1,8 @@
 <template>
   <div data-testid="app-bridge-install" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
-    <template v-if="pcBuilder">
+    <PatchOnlyInstall v-if="patchGuide" :guide="patchGuide" />
+
+    <template v-else-if="pcBuilder">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold font-mono text-amber-300">1</span>
@@ -227,6 +229,7 @@ import {
   GAME_FILES_NEED_PC
 } from '~/lib/directQuestInstall'
 import { INSTALL_ACTION_LABEL } from '~/lib/questInstallUx'
+import { patchOnlyGuideFor } from '~/lib/patchOnlyInstall'
 
 const props = withDefaults(defineProps<{
   slug: string
@@ -266,6 +269,7 @@ const uninstallError = ref('')
 let stopUninstallWatch = () => {}
 
 const canUninstall = computed(() => bridgeReady.value && bridgeCanUninstall(window.QuestPortsApp))
+const patchGuide = computed(() => patchOnlyGuideFor(props.slug, props.downloadUrl, props.githubUrl))
 
 const progressPercent = computed(() => Math.round(Math.min(1, Math.max(0, progress.value || 0)) * 100))
 const statusLabel = computed(() => appInstallStatusLabel(phase.value, progress.value))
@@ -381,6 +385,7 @@ const onBridgeEvent = (event: Event) => {
 }
 
 const startInstall = () => {
+  if (patchGuide.value) return
   if (phase.value === 'downloading' || phase.value === 'installing') return
   ensureMockAppBridge(`${window.location.pathname}${window.location.search}`)
   const bridge = window.QuestPortsApp
