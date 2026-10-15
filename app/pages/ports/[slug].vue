@@ -506,17 +506,38 @@
 
           <!-- APK not installed yet. One install action, whether or not the headset is connected. -->
           <div v-if="!isApkInstalled" class="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 md:p-4">
-            <PcPrepCard
-              v-if="pcPatchCard"
-              :title="pcPatchCard.title"
-              :tag="pcPatchCard.tag"
-              :body="pcPatchCard.body"
-              :href="pcPatchCard.href"
-              :button-label="pcPatchCard.buttonLabel"
-              root-test-id="pc-patch-card"
-              test-id="pc-patch-instructions"
-              @open="trackGithub"
-            />
+            <template v-if="pcPatchCard">
+              <PcPrepCard
+                :title="pcPatchCard.title"
+                :tag="pcPatchCard.tag"
+                :body="pcPatchCard.body"
+                :href="pcPatchCard.href"
+                :button-label="pcPatchCard.buttonLabel"
+                root-test-id="pc-patch-card"
+                test-id="pc-patch-instructions"
+                @open="trackGithub"
+              />
+              <QuestBrowserNotice
+                v-if="questBrowser"
+                :download-url="port.port_download_url"
+                :download-source="port.port_download_source"
+                :needs-game-files="!isDirectApkOnly"
+              />
+              <div v-else class="flex flex-col gap-1 pt-1 font-mono text-[11px] sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  data-testid="pc-patch-check-headset"
+                  @click="recheckHeadsetInstalled"
+                  class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline md:min-h-0"
+                >
+                  <span>🔄 Check Headset</span>
+                </button>
+                <label class="inline-flex min-h-11 cursor-pointer items-center text-[10px] text-muted-foreground underline hover:text-foreground md:min-h-0">
+                  <span>Select built .apk from PC</span>
+                  <input type="file" accept=".apk" class="hidden" data-testid="pc-patch-local-apk" @change="handleLocalApkSelected" />
+                </label>
+              </div>
+            </template>
 
             <PatchOnlyInstall v-else-if="patchOnlyGuide" :guide="patchOnlyGuide" />
 
