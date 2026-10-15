@@ -504,6 +504,7 @@ const runUninstall = async () => {
 const openApp = () => {
   const pkg = matchedPackage.value || props.packageName
   if (!pkg) return
+  track('game_launch', { path: route.path, portSlug: props.slug })
   try {
     window.QuestPortsApp?.launch(pkg)
   } catch {
