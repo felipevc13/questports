@@ -57,17 +57,27 @@ function fileExtension(path: string): string {
   return file.slice(dot + 1).toLowerCase()
 }
 
+/** A GitHub releases page, where the APK proxy can pick an .apk or a ZIP. */
+function isGithubReleasePage(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.hostname === 'github.com' && parsed.pathname.toLowerCase().includes('/releases')
+  } catch {
+    return false
+  }
+}
+
 /**
  * A catalog download one-click can send to the headset.
- * An APK, a ZIP the proxy unwraps, or a release page with no file extension
- * (the proxy picks an APK out of GitHub releases and SideQuest). A named
- * file that is not one of those, such as an XDelta patch, is not.
+ * An APK, a ZIP the proxy unwraps, or a GitHub releases page with no file
+ * extension (the proxy picks an APK). A SideQuest or Itch listing, a repo
+ * homepage, and a named file that is not an APK or ZIP are not.
  */
 export function isOneClickApkAsset(url: string | null | undefined): boolean {
   const path = downloadPath(url)
   if (!path) return false
   const ext = fileExtension(path)
-  if (!ext) return true
+  if (!ext) return isGithubReleasePage(String(url || '').trim())
   return ext === 'apk' || ext === 'zip'
 }
 
@@ -216,6 +226,7 @@ export function patchOnlyGuideFor(
   githubUrl?: string | null
 ): PatchOnlyGuide | null {
   if (slug === CRAZY_TAXI_VR_SLUG) return null
+  if (PORT_PACKAGE_CONFIGS[slug || '']?.installType === 'pc_builder_required') return null
   if (oneClickInstallBlocked(downloadUrl)) {
     const readmeUrl = String(githubUrl || '').trim()
     return {
@@ -229,5 +240,15 @@ export function patchOnlyGuideFor(
     }
   }
   if (!catalogPackageName(slug)) return manualInstallGuide(downloadUrl, githubUrl)
+  if (downloadUrl && !isOneClickApkAsset(downloadUrl)) {
+    const project = String(githubUrl || downloadUrl || '').trim()
+    return {
+      lead: 'One-click install is off because this download is not an APK. Install it from the project page.',
+      pageIntro: 'The card above opens the project page. QuestPorts does not install this port for you.',
+      steps: [],
+      readmeUrl: project,
+      readmeLabel: 'Open the project page'
+    }
+  }
   return null
 }

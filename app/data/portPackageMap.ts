@@ -1221,7 +1221,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   },
   quake3quest: {
     slug: 'quake3quest',
-    packageName: 'com.drbeef.ioquake3quest',
+    packageName: 'com.drbeef.ioq3quest',
+    altPackages: ['com.drbeef.ioquake3quest'],
     installType: 'apk_and_assets',
     criticalFiles: []
   },
