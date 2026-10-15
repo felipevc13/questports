@@ -8,7 +8,9 @@ export const APK_PROXY_ALLOWED_HOSTS = [
   'lambda1vr.com',
   'doom3quest.com',
   'questzdoom.com',
-  'ut99vr.pages.dev'
+  'ut99vr.pages.dev',
+  'ppsspp.org',
+  'www.ppsspp.org'
 ]
 
 export function isAllowedApkProxyHost(hostname: string): boolean {

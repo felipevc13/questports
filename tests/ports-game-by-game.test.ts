@@ -95,12 +95,6 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
         project: 'https://github.com/sezero/uhexen2',
       },
       {
-        slug: 'ppsspp-vr',
-        url: 'https://github.com/hrydgard/ppsspp/blob/master/README.md',
-        source: 'GitHub',
-        project: 'https://github.com/hrydgard/ppsspp',
-      },
-      {
         slug: 'iron-lung-vr',
         url: 'https://jackaapacka.itch.io/iron-lung-vr',
         source: 'Itch.io',
@@ -133,6 +127,21 @@ describe('Game-by-Game Automated Verification Suite (All 38 Ports)', () => {
 
     expect(INITIAL_PORTS.some(port => String(port.port_download_url || '').includes('sidequestvr.com'))).toBe(false)
     expect(PORT_PACKAGE_CONFIGS.quake3quest?.altPackages).toContain('com.drbeef.ioquake3quest')
+  })
+
+  it('installs PPSSPP VR from the direct PPSSPP.org APK', () => {
+    const url = 'https://www.ppsspp.org/files/1_20_4/ppsspp_vr.apk'
+    const port = INITIAL_PORTS.find(p => p.slug === 'ppsspp-vr')
+    expect(port?.port_download_url).toBe(url)
+    expect(port?.port_download_source).toBe('PPSSPP.org')
+    expect(PORT_PACKAGE_CONFIGS['ppsspp-vr']?.packageName).toBe('org.ppsspp.ppssppvr')
+    expect(isOneClickApkAsset(url)).toBe(true)
+    expect(refusesOneClickInstall('ppsspp-vr', url)).toBe(false)
+    expect(patchOnlyGuideFor('ppsspp-vr', url, port?.github_url)).toBeNull()
+    const sql = readFileSync(new URL('../supabase/migrations/20261015200000_ppsspp_vr_direct_apk.sql', import.meta.url), 'utf8')
+    expect(sql).toContain(url)
+    expect(sql).toContain("slug = 'ppsspp-vr'")
+    expect(sql).toContain('PPSSPP.org')
   })
 
   // Test every individual port game-by-game

@@ -102,6 +102,17 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
       expect(validateProxyUrl('https://www.questzdoom.com/QuestZDoom.apk').valid).toBe(true)
       expect(validateProxyUrl('https://ut99vr.pages.dev/downloads/UT99Quest.apk').valid).toBe(true)
     })
+
+    it('allows the PPSSPP.org APK host', () => {
+      const apk = 'https://www.ppsspp.org/files/1_20_4/ppsspp_vr.apk'
+      expect(validateProxyUrl(apk).valid).toBe(true)
+      expect(isAllowedApkProxyHost('www.ppsspp.org')).toBe(true)
+      expect(isAllowedApkProxyHost('ppsspp.org')).toBe(true)
+      expect(validateProxyUrl('https://ppsspp.org/files/1_20_4/ppsspp_vr.apk').valid).toBe(true)
+      const worker = readFileSync(new URL('../workers/questports-apk-proxy/worker.js', import.meta.url), 'utf8')
+      expect(worker).toContain("'ppsspp.org'")
+      expect(worker).toContain("'www.ppsspp.org'")
+    })
   })
 
   describe('ZIP installer packages that contain a Quest APK', () => {
