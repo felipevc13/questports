@@ -202,6 +202,7 @@
                 :failure-steps="failureSteps"
                 @retry="retryNavbarConnect"
                 @cancel="questAdb.cancelConnect()"
+                @dismiss="dismissNavbarConnectionError"
               />
             </template>
 
@@ -447,6 +448,15 @@ const retryNavbarConnect = async () => {
   await handleConnectQuest()
 }
 
+const dismissNavbarConnectionError = () => {
+  questAdb.dismissConnectionError()
+  connectPanelOpen.value = false
+}
+
+const connectionErrorSticky = computed(() =>
+  connectPanelMode.value === 'failed' || connectPanelMode.value === 'locked'
+)
+
 const leaveErrorPage = (event: MouseEvent) => {
   if (!useError().value) return
   event.preventDefault()
@@ -471,7 +481,7 @@ const onDocumentClick = (event: MouseEvent) => {
   if (questSlotRef.value && target && !questSlotRef.value.contains(target)) {
     unsupportedOpen.value = false
     questBrowserOpen.value = false
-    if (suppressOutsideClose || connectBusy.value) return
+    if (suppressOutsideClose || connectBusy.value || connectionErrorSticky.value) return
     connectPanelOpen.value = false
   }
 }
@@ -484,6 +494,10 @@ const onKeydown = (event: KeyboardEvent) => {
   questBrowserOpen.value = false
   if (connectPanelMode.value === 'authorizing') {
     questAdb.cancelConnect()
+    return
+  }
+  if (connectionErrorSticky.value) {
+    dismissNavbarConnectionError()
     return
   }
   if (!connectBusy.value) connectPanelOpen.value = false

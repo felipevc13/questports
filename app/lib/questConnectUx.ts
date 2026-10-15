@@ -12,6 +12,17 @@ export const AUTHORIZE_PROMPT_LEAD =
 
 export const AUTHORIZE_STILL_WAITING_TITLE = 'Still waiting?'
 
+export const DISMISS_CONNECTION_ERROR_LABEL = 'Dismiss connection error'
+
+/**
+ * Auto-reconnect must not wipe a failure the user has not dismissed.
+ * A headset that actually connects clears the message.
+ */
+export function connectionErrorAfterAutoConnect(connected: boolean, error: string | null): string | null {
+  if (connected) return null
+  return error
+}
+
 export const AUTHORIZE_STILL_WAITING_STEPS = [
   'Keep the headset awake.',
   'The prompt may be hidden behind another window.',

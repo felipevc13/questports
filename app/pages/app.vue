@@ -100,13 +100,23 @@
             {{ errorMessage }}
           </p>
 
-          <p
+          <div
             v-else-if="questAdb.connectionError.value"
+            data-testid="app-connection-error"
             role="alert"
-            class="text-sm leading-relaxed text-rose-200"
+            class="flex items-start gap-2 text-sm leading-relaxed text-rose-200"
           >
-            {{ questAdb.connectionError.value }}
-          </p>
+            <p class="min-w-0 flex-1">{{ questAdb.connectionError.value }}</p>
+            <button
+              type="button"
+              data-testid="app-connection-error-dismiss"
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-rose-200/80 hover:bg-rose-500/10 hover:text-rose-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              :aria-label="DISMISS_CONNECTION_ERROR_LABEL"
+              @click="questAdb.dismissConnectionError()"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
           <p
             v-else-if="questAdb.connectNotice.value"
             role="status"
@@ -185,6 +195,7 @@ import {
   type InstallStep,
   type InstallStepStatus
 } from '~/lib/analytics'
+import { DISMISS_CONNECTION_ERROR_LABEL } from '~/lib/questConnectUx'
 import { QUEST_USB_MESSAGES } from '~/lib/questUsbMessages'
 import {
   appPageSourceFromSearch,

@@ -2,7 +2,7 @@
   <div
     data-testid="navbar-connect-panel"
     class="fixed inset-x-2 top-16 z-50 max-h-[calc(100dvh-5.5rem)] space-y-2 overflow-y-auto rounded-lg border border-border bg-card p-3.5 text-xs shadow-2xl md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:max-h-none md:w-80"
-    role="status"
+    :role="mode === 'failed' || mode === 'locked' ? 'alert' : 'status'"
   >
     <div
       v-if="mode === 'authorizing'"
@@ -82,7 +82,18 @@
     </div>
 
     <div v-else-if="mode === 'locked'" data-testid="navbar-usb-locked" class="space-y-2 text-left">
-      <p class="font-semibold text-amber-200">{{ USB_LOCKED_TITLE }}</p>
+      <div class="flex items-start justify-between gap-2">
+        <p class="font-semibold text-amber-200">{{ USB_LOCKED_TITLE }}</p>
+        <button
+          type="button"
+          data-testid="navbar-connection-error-dismiss"
+          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-8 md:w-8"
+          :aria-label="DISMISS_CONNECTION_ERROR_LABEL"
+          @click="emit('dismiss')"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
       <p class="text-[11px] leading-relaxed text-amber-100/90">{{ USB_LOCKED_BODY }}</p>
       <p class="text-[11px] leading-relaxed text-muted-foreground">
         {{ USB_LOCKED_PLATFORM }}
@@ -100,8 +111,19 @@
     </div>
 
     <div v-else data-testid="navbar-connect-failed" class="space-y-2 text-left">
-      <div class="flex items-center gap-1.5 font-semibold text-destructive">
-        <span>{{ authorizeConnectionError ? AUTHORIZE_STILL_WAITING_TITLE : 'Connection Failed' }}</span>
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-1.5 font-semibold text-destructive">
+          <span>{{ authorizeConnectionError ? AUTHORIZE_STILL_WAITING_TITLE : 'Connection Failed' }}</span>
+        </div>
+        <button
+          type="button"
+          data-testid="navbar-connection-error-dismiss"
+          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-8 md:w-8"
+          :aria-label="DISMISS_CONNECTION_ERROR_LABEL"
+          @click="emit('dismiss')"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
       <p class="text-[11px] leading-relaxed text-muted-foreground">{{ errorMessage }}</p>
       <ul data-testid="navbar-connect-failure-steps" class="space-y-1">
@@ -131,6 +153,7 @@ import {
   AUTHORIZE_PROMPT_LEAD,
   AUTHORIZE_STILL_WAITING_STEPS,
   AUTHORIZE_STILL_WAITING_TITLE,
+  DISMISS_CONNECTION_ERROR_LABEL,
   QUEST_PICKER_HINT
 } from '~/lib/questConnectUx'
 import { CHOOSER_DISMISSED_STEPS, CHOOSER_DISMISSED_TITLE } from '~/lib/questInstallUx'
@@ -154,5 +177,6 @@ defineProps<{
 const emit = defineEmits<{
   retry: []
   cancel: []
+  dismiss: []
 }>()
 </script>
