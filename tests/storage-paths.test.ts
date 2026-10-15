@@ -158,6 +158,20 @@ describe('storage paths that follow upstream install docs', () => {
     expect(isSelfContainedSideload(cfg)).toBe(true)
   })
 
+  it('time-crisis-2-vr is a plain install, and hotd2-vr still needs a ROM', () => {
+    const crisis = PORT_PACKAGE_CONFIGS['time-crisis-2-vr']
+    expect(crisis.packageName).toBe('org.timecrisis2.arcadevr')
+    expect(crisis.workflowType).toBe('direct')
+    expect(crisis.folders || []).toEqual([])
+    expect(isSelfContainedSideload(crisis)).toBe(true)
+
+    const hotd = PORT_PACKAGE_CONFIGS['hotd2-vr']
+    expect(hotd.packageName).toBe('com.flycast.emulator.vr')
+    expect(hotd.installType).toBe('apk_and_assets')
+    expect(hotd.folders || []).toEqual([])
+    expect(isSelfContainedSideload(hotd)).toBe(false)
+  })
+
   it('a denied Android/data listing on Vice City still offers confirm', async () => {
     const folder = PORT_PACKAGE_CONFIGS['vice-city-vr-quest'].folders![0]
     const check = await verifyFolderOnQuest(folder, async () => {

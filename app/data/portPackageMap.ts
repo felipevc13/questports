@@ -476,8 +476,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   },
   winlatorxr: {
     slug: 'winlatorxr',
-    packageName: 'com.winlator',
-    altPackages: ['com.winlator.xr'],
+    packageName: 'com.winlator.cmod',
+    altPackages: ['com.winlator', 'com.winlator.xr'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
     criticalFiles: [],
@@ -641,6 +641,15 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     workflowType: 'direct',
     criticalFiles: [],
     fileGuidance: 'The release APK bundles the Time Crisis ROM set and prepares it on first start. Install the APK and launch. A separate ROM import is only for an optional ROM-free build, which this catalog does not ask for.',
+    sourceStoreName: 'Other'
+  },
+  'time-crisis-2-vr': {
+    slug: 'time-crisis-2-vr',
+    packageName: 'org.timecrisis2.arcadevr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The release APK bundles the Time Crisis II ROM set, same as Time Crisis VR. Install the APK and launch. It is a separate package from Time Crisis VR, so no game-data copy step.',
     sourceStoreName: 'Other'
   },
   primedgun: {
@@ -986,8 +995,8 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   },
   'avp-vr': {
     slug: 'avp-vr',
-    packageName: 'com.bassquake.avpvr',
-    altPackages: ['com.bassquake.quest.avpvr'],
+    packageName: 'com.bassquake.quest.avpvr',
+    altPackages: ['com.bassquake.avpvr'],
     installType: 'apk_and_assets',
     workflowType: 'pc_assets',
     criticalFiles: ['avp_huds/alien.rif', 'avp_rifs/temple.rif', 'fastfile/ffinfo.txt'],
@@ -1132,6 +1141,142 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'Optional GOTY bonus chapter'
       }
     ]
+  },
+  // Manifest package ids from the catalog APK (or the APK inside its zip), read
+  // 2026-10-15. Without an entry the Quest app never calls isInstalled, so the
+  // game stays out of Library. Each id belongs to one port.
+  'age-of-joy': {
+    slug: 'age-of-joy',
+    packageName: 'com.curif.AgeOfJoy',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'descent-3-vr': {
+    slug: 'descent-3-vr',
+    packageName: 'com.descentdevelopers.descent3',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  dolphinxr: {
+    slug: 'dolphinxr',
+    packageName: 'org.dolphinemu.dolphinemu.quest.debug',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'f-zero-x-vr': {
+    slug: 'f-zero-x-vr',
+    packageName: 'com.fzerox.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'generals-zero-hour-xr': {
+    slug: 'generals-zero-hour-xr',
+    packageName: 'com.generalsx.zerohour.xr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'homeworld-unbound': {
+    slug: 'homeworld-unbound',
+    packageName: 'org.homeworldunbound.game',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'hotd2-vr': {
+    slug: 'hotd2-vr',
+    packageName: 'com.flycast.emulator.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Flycast fork. The catalog guide already tells the player to put their own Dreamcast dump in Download and let the game find it. This entry only records the APK package id.'
+  },
+  'magic-carpet-vr': {
+    slug: 'magic-carpet-vr',
+    packageName: 'technology.master.mc.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'majoras-mask-vr': {
+    slug: 'majoras-mask-vr',
+    packageName: 'com.fulldivegames.majorasmaskvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'ocarina-of-time-vr': {
+    slug: 'ocarina-of-time-vr',
+    packageName: 'com.questship.sohvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'opencmr2-vr': {
+    slug: 'opencmr2-vr',
+    packageName: 'org.opencmr2.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  quake3quest: {
+    slug: 'quake3quest',
+    packageName: 'com.drbeef.ioquake3quest',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'sega-rally-vr': {
+    slug: 'sega-rally-vr',
+    packageName: 'io.port0r.segarally',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'sm64-coop-dx-vr': {
+    slug: 'sm64-coop-dx-vr',
+    packageName: 'com.fulldivegames.sm64coopdxvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'starfox-enhanced-vr': {
+    slug: 'starfox-enhanced-vr',
+    packageName: 'com.starfox.enhanced.quest',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'strikers-quest-mr': {
+    slug: 'strikers-quest-mr',
+    packageName: 'io.github.newcoke.strikers',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'twilight-princess-vr': {
+    slug: 'twilight-princess-vr',
+    packageName: 'com.joeyaw.tpvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'victory-heat-rally-vr': {
+    slug: 'victory-heat-rally-vr',
+    packageName: 'com.segadreamcat.vhrquest',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'virtua-cop-vr': {
+    slug: 'virtua-cop-vr',
+    packageName: 'io.port0r.virtuacop',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'wiicompiled-vr-plus': {
+    slug: 'wiicompiled-vr-plus',
+    packageName: 'org.wiicompiled.quest',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'wipeout-rewrite-vr': {
+    slug: 'wipeout-rewrite-vr',
+    packageName: 'online.portroyale.wipeoutrewritevr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'xrkart-64': {
+    slug: 'xrkart-64',
+    packageName: 'com.n64vr.spaghettikart',
+    installType: 'apk_and_assets',
+    criticalFiles: []
   }
 }
 
@@ -1501,6 +1646,23 @@ export function resolveWorkflowType(target: any, category?: string): PortWorkflo
   return 'pc_assets'
 }
 
+/** True when `root` is a whole segment of the package id, not a prefix of a longer name. */
+export function packageIdHasRoot(packageName: string, root: string): boolean {
+  const pkg = packageName.toLowerCase()
+  const needle = root.toLowerCase()
+  if (!needle) return false
+  let from = 0
+  while (from <= pkg.length - needle.length) {
+    const at = pkg.indexOf(needle, from)
+    if (at < 0) return false
+    const before = at === 0 ? '.' : pkg[at - 1]!
+    const after = pkg[at + needle.length] || '.'
+    if (!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) return true
+    from = at + 1
+  }
+  return false
+}
+
 /** Package id on the headset for this port, including alt ids and the same fuzzy match as the catalog. */
 export function installedPackageOnQuest(slug: string, installedPackages: string[]): string | null {
   if (!slug || !installedPackages || installedPackages.length === 0) return null
@@ -1517,11 +1679,12 @@ export function installedPackageOnQuest(slug: string, installedPackages: string[
       if (idx >= 0) return cleaned[idx]!
     }
   }
-  // Check if any package contains the core root of the package name (e.g. "halo.decomp" or "rtcwquest")
+  // A related build (com.halo.decomp vs com.halo.decomp.vr). The root has to
+  // end on a dot, so org.timecrisis.quest does not match org.timecrisis2.arcadevr.
   if (cfg?.packageName) {
     const pkgRoot = cfg.packageName.toLowerCase().replace(/^(com|org|net|mod|su)\./, '').replace(/\.(vr|quest|xr)$/, '')
     if (pkgRoot.length >= 4) {
-      const idx = lower.findIndex(p => p.includes(pkgRoot))
+      const idx = lower.findIndex(p => packageIdHasRoot(p, pkgRoot))
       if (idx >= 0) return cleaned[idx]!
     }
   }

@@ -14,6 +14,10 @@ describe('headset package probe', () => {
     ])
     expect(firstInstalledPackage('lambda1vr', name => name === 'mod.drbeef.lambda1vr')).toBe('mod.drbeef.lambda1vr')
     expect(firstInstalledPackage('halocequest', name => name === 'com.halo.decomp')).toBe('com.halo.decomp')
+    expect(firstInstalledPackage('hotd2-vr', name => name === 'com.flycast.emulator.vr')).toBe('com.flycast.emulator.vr')
+    expect(firstInstalledPackage('time-crisis-2-vr', name => name === 'org.timecrisis2.arcadevr')).toBe('org.timecrisis2.arcadevr')
+    expect(packageCandidates('hotd2-vr')).toEqual(['com.flycast.emulator.vr'])
+    expect(packageCandidates('time-crisis-2-vr')).toEqual(['org.timecrisis2.arcadevr'])
   })
 
   it('keeps going when one package query throws', () => {
