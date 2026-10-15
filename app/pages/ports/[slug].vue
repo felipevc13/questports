@@ -1296,7 +1296,7 @@
           </div>
 
           <p class="text-xs text-muted-foreground leading-relaxed">
-            <template v-if="patchOnlyGuide">The card above follows the project's own README. QuestPorts does not install this port for you.</template>
+            <template v-if="patchOnlyGuide">{{ patchOnlyGuide.pageIntro }}</template>
             <template v-else-if="inApp">The APK installs from the card above. When this port needs original game files, copy them from a PC. These steps explain that copy.</template>
             <template v-else>Install on Quest, in the card above, is the one-click USB install. These steps are the manual path (SideQuest or ADB).</template>
           </p>
