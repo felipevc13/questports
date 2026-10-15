@@ -1,10 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { INITIAL_PORTS } from '../app/data/mockPorts'
+import { PORT_PACKAGE_CONFIGS } from '../app/data/portPackageMap'
 import {
   CRAZY_TAXI_BASE_FILE,
   CRAZY_TAXI_INSTALL_STEPS,
   CRAZY_TAXI_README_URL,
   DELTA_PATCHER_URL,
+  catalogPackageName,
   oneClickInstallBlocked,
   patchOnlyGuideFor,
   refusesOneClickInstall
@@ -53,6 +56,33 @@ describe('patch-only install', () => {
     expect(text).not.toMatch(/BUILD_AND_INSTALL/)
     expect(text).not.toMatch(/left stick/i)
     expect(guide?.steps[5].paragraphs.join(' ')).not.toMatch(/\bA button\b/)
+  })
+
+  it('refuses one-click unless portPackageMap has a packageName', () => {
+    expect(catalogPackageName('not-in-the-map')).toBe('')
+    expect(refusesOneClickInstall('not-in-the-map', 'https://example.com/game.apk')).toBe(true)
+    const guide = patchOnlyGuideFor('not-in-the-map', 'https://example.com/game.apk', 'https://github.com/example/port')
+    expect(guide?.readmeUrl).toBe('https://github.com/example/port')
+    expect(guide?.steps.map(step => step.title)).toEqual([
+      'Download the file',
+      'Follow the install instructions'
+    ])
+    expect(guide?.steps[1].links?.some(link => link.href === '#install-guide')).toBe(true)
+    expect(guide?.lead).not.toContain(CRAZY_TAXI_BASE_FILE)
+    expect(guide?.pageIntro).toMatch(/package id/)
+
+    for (const port of INITIAL_PORTS) {
+      if (refusesOneClickInstall(port.slug, port.port_download_url)) continue
+      expect(PORT_PACKAGE_CONFIGS[port.slug]?.packageName?.trim(), port.slug).toBeTruthy()
+    }
+
+    for (const [slug, cfg] of Object.entries(PORT_PACKAGE_CONFIGS)) {
+      if (cfg.packageName?.trim()) {
+        expect(catalogPackageName(slug)).toBe(cfg.packageName.trim())
+        continue
+      }
+      expect(refusesOneClickInstall(slug, 'https://example.com/game.apk'), slug).toBe(true)
+    }
   })
 
   it('gives other patch URLs a short notice instead of Crazy Taxi steps', () => {

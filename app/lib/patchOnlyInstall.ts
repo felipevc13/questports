@@ -1,8 +1,10 @@
 /**
- * Downloads that are a patch the player must apply on a PC.
- * One-click install sends the catalog URL through the APK proxy, which only
- * accepts an APK or a ZIP that contains one. An .xdelta is not either.
+ * Downloads that are a patch the player must apply on a PC, and ports with no
+ * Android package id. One-click install is offered only when portPackageMap
+ * has a packageName. The APK proxy only accepts an APK or a ZIP that contains one.
  */
+
+import { PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 
 export const CRAZY_TAXI_VR_SLUG = 'crazy-taxi-vr'
 
@@ -29,6 +31,8 @@ export interface PatchOnlyStep {
 
 export interface PatchOnlyGuide {
   lead: string
+  /** Sentence above the long installation guide. */
+  pageIntro: string
   steps: PatchOnlyStep[]
   readmeUrl: string
   readmeLabel: string
@@ -51,8 +55,17 @@ export function oneClickInstallBlocked(url: string | null | undefined): boolean 
   return /\.(?:xdelta3?|apkm)$/i.test(downloadPath(url))
 }
 
-/** Crazy Taxi is a PC patch even if the URL changes. Any other patch URL is blocked too. */
+/** Android application id recorded for this slug. Blank when the map has no entry. */
+export function catalogPackageName(slug: string | null | undefined): string {
+  return String(PORT_PACKAGE_CONFIGS[slug || '']?.packageName || '').trim()
+}
+
+/**
+ * One-click install is offered only when portPackageMap has a packageName.
+ * Crazy Taxi stays manual even if an id is added later. Patch files stay manual too.
+ */
 export function refusesOneClickInstall(slug: string | null | undefined, url: string | null | undefined): boolean {
+  if (!catalogPackageName(slug)) return true
   return slug === CRAZY_TAXI_VR_SLUG || oneClickInstallBlocked(url)
 }
 
@@ -128,11 +141,45 @@ export const CRAZY_TAXI_INSTALL_STEPS: PatchOnlyStep[] = [
 
 const CRAZY_TAXI_GUIDE: PatchOnlyGuide = {
   lead: 'Since Crazy Taxi was removed from digital stores by SEGA, this project distributes an XDelta patch instead of the complete commercial game.',
+  pageIntro: 'The card above follows the project\'s own README. QuestPorts does not install this port for you.',
   steps: CRAZY_TAXI_INSTALL_STEPS,
   readmeUrl: CRAZY_TAXI_README_URL,
   readmeLabel: 'Open the project README',
   patchUrl: CRAZY_TAXI_PATCH_URL,
   patchLabel: 'Download XDelta patch (crazywilly.xdelta)'
+}
+
+function manualInstallGuide(downloadUrl?: string | null, githubUrl?: string | null): PatchOnlyGuide {
+  const download = String(downloadUrl || '').trim()
+  const project = String(githubUrl || '').trim()
+  const steps: PatchOnlyStep[] = [
+    {
+      title: 'Download the file',
+      paragraphs: [
+        'Use the catalog download. QuestPorts will not install it onto the headset for you.'
+      ],
+      links: download ? [{ href: download, label: 'Download' }] : undefined
+    },
+    {
+      title: 'Follow the install instructions',
+      paragraphs: [
+        'Use the step-by-step installation guide on this page. When the project publishes its own instructions, follow those too.'
+      ],
+      links: [
+        { href: '#install-guide', label: 'Step-by-step installation guide' },
+        ...(project ? [{ href: project, label: 'Open the project page' }] : [])
+      ]
+    }
+  ]
+  return {
+    lead: 'One-click install is only offered when this port has an Android package id in the catalog. This one does not.',
+    pageIntro: 'One-click install needs a known Android package id. Use the manual steps in the card above and the guide below.',
+    steps,
+    readmeUrl: project || '#install-guide',
+    readmeLabel: project ? 'Open the project page' : 'Step-by-step installation guide',
+    patchUrl: download || undefined,
+    patchLabel: download ? 'Download' : undefined
+  }
 }
 
 export function patchOnlyGuideFor(
@@ -141,14 +188,18 @@ export function patchOnlyGuideFor(
   githubUrl?: string | null
 ): PatchOnlyGuide | null {
   if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_GUIDE
-  if (!oneClickInstallBlocked(downloadUrl)) return null
-  const readmeUrl = String(githubUrl || '').trim()
-  return {
-    lead: 'This catalog download is a patch file, not an APK. QuestPorts cannot install it for you. Follow the project\'s own install instructions.',
-    steps: [],
-    readmeUrl,
-    readmeLabel: 'Open the project install instructions',
-    patchUrl: String(downloadUrl || '').trim() || undefined,
-    patchLabel: 'Download the patch file'
+  if (oneClickInstallBlocked(downloadUrl)) {
+    const readmeUrl = String(githubUrl || '').trim()
+    return {
+      lead: 'This catalog download is a patch file, not an APK. QuestPorts cannot install it for you. Follow the project\'s own install instructions.',
+      pageIntro: 'The card above follows the project\'s own instructions. QuestPorts does not install this port for you.',
+      steps: [],
+      readmeUrl,
+      readmeLabel: 'Open the project install instructions',
+      patchUrl: String(downloadUrl || '').trim() || undefined,
+      patchLabel: 'Download the patch file'
+    }
   }
+  if (!catalogPackageName(slug)) return manualInstallGuide(downloadUrl, githubUrl)
+  return null
 }
