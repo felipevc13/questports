@@ -139,14 +139,20 @@ export const CRAZY_TAXI_INSTALL_STEPS: PatchOnlyStep[] = [
   }
 ]
 
-const CRAZY_TAXI_GUIDE: PatchOnlyGuide = {
-  lead: 'Since Crazy Taxi was removed from digital stores by SEGA, this project distributes an XDelta patch instead of the complete commercial game.',
-  pageIntro: 'The card above follows the project\'s own README. QuestPorts does not install this port for you.',
-  steps: CRAZY_TAXI_INSTALL_STEPS,
-  readmeUrl: CRAZY_TAXI_README_URL,
-  readmeLabel: 'Open the project README',
+/** Short install card. Same pattern as the GTA PC-builder card. The long steps stay in the page guide. */
+export const CRAZY_TAXI_PC_PATCH = {
+  title: 'Step 1: PC patch required',
+  tag: 'PC Patch',
+  body: 'SEGA removed Crazy Taxi from digital stores, so this project ships an XDelta patch instead of the game. On a PC, apply that patch to your own original Crazy Taxi Android file, then install the result on the headset over USB with SideQuest.',
+  href: CRAZY_TAXI_README_URL,
+  buttonLabel: 'Open Patch Instructions (GitHub)',
   patchUrl: CRAZY_TAXI_PATCH_URL,
-  patchLabel: 'Download XDelta patch (crazywilly.xdelta)'
+  patchLabel: 'Download XDelta patch (crazywilly.xdelta)',
+  pageIntro: 'The card above opens the project\'s README. The guide below is the full install text. QuestPorts does not install this port for you.'
+}
+
+export function pcPatchCardFor(slug: string | null | undefined): typeof CRAZY_TAXI_PC_PATCH | null {
+  return slug === CRAZY_TAXI_VR_SLUG ? CRAZY_TAXI_PC_PATCH : null
 }
 
 function manualInstallGuide(downloadUrl?: string | null, githubUrl?: string | null): PatchOnlyGuide {
@@ -187,7 +193,7 @@ export function patchOnlyGuideFor(
   downloadUrl?: string | null,
   githubUrl?: string | null
 ): PatchOnlyGuide | null {
-  if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_GUIDE
+  if (slug === CRAZY_TAXI_VR_SLUG) return null
   if (oneClickInstallBlocked(downloadUrl)) {
     const readmeUrl = String(githubUrl || '').trim()
     return {
