@@ -72,6 +72,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'questcraft',
   'questzdoom',
   'razexr',
+  'red-dead-redemption-vr',
   'road-rash-jailbreak-vr',
   'rtcwquest',
   'sclerosis-vr',
@@ -403,5 +404,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Crazy Taxi VR
   'crazy-taxi-vr': { start: '1:20', end: '1:35' },
-  '53FEb8eGrSo': { start: '1:20', end: '1:35' }
+  '53FEb8eGrSo': { start: '1:20', end: '1:35' },
+
+  // Red Dead Redemption (Undead Nightmare)
+  'red-dead-redemption-vr': { start: '6:12', end: '6:19' },
+  '6Glik2KeDcA': { start: '6:12', end: '6:19' }
 }
