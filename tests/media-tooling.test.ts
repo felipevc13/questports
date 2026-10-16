@@ -287,6 +287,18 @@ describe('preview range worker', () => {
     }), env)
     expect(tooFar.status).toBe(416)
     expect(tooFar.headers.get('Content-Range')).toBe('bytes */10')
+    expect(tooFar.headers.get('Cache-Control')).toBe('no-store')
+  })
+
+  it('never stamps a one-year cache on a file that is not there yet', async () => {
+    const env = {
+      ASSETS: { fetch: async () => new Response('not found', { status: 404 }) }
+    }
+    const miss = await worker.fetch(new Request('https://media.example/previews/late.mp4'), env)
+    expect(miss.status).toBe(404)
+    expect(miss.headers.get('Cache-Control')).toBe('no-store')
+    expect(miss.headers.get('Cache-Control')).not.toContain('immutable')
+    expect(miss.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 
   it('buffers a stream that has no content length', async () => {
