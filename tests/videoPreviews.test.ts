@@ -27,8 +27,7 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['opencmr2-vr', 'is6Sk_i0mbE', '1:30', '1:45'],
   ['virtua-cop-vr', '1qCQorbbdPc', '0:22', '0:37'],
   ['strikers-quest-mr', 'ZklIJja40Io', '7:00', '7:15'],
-  ['crazy-taxi-vr', '53FEb8eGrSo', '1:20', '1:35'],
-  ['red-dead-redemption-vr', '6Glik2KeDcA', '6:12', '6:19']
+  ['crazy-taxi-vr', '53FEb8eGrSo', '1:20', '1:35']
 ]
 
 describe('local hover previews', () => {
@@ -43,6 +42,18 @@ describe('local hover previews', () => {
     expect(hasVideoPreview('magic-carpet-vr')).toBe(false)
     expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('magic-carpet-vr')
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
+  })
+
+  it('plays the whole Red Dead Redemption VR video, with no window', () => {
+    expect(hasVideoPreview('red-dead-redemption-vr')).toBe(true)
+    expect(AVAILABLE_VIDEO_PREVIEWS).toContain('red-dead-redemption-vr')
+    expect(GAME_VIDEO_PREVIEWS['red-dead-redemption-vr']).toBeUndefined()
+    expect(GAME_VIDEO_PREVIEWS['6Glik2KeDcA']).toBeUndefined()
+    const clip = youtubeClipForPort({ slug: 'red-dead-redemption-vr', youtubeId: '6Glik2KeDcA' })
+    expect(clip?.start).toBeNull()
+    expect(clip?.end).toBeNull()
+    expect(clip?.embed).not.toContain('start=')
+    expect(clip?.embed).not.toContain('end=')
   })
 
   it('serves MP4s only from an external media base', () => {
