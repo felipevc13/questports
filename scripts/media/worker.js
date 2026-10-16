@@ -16,7 +16,17 @@ export default {
     const assetReq = new Request(request.url, { method: request.method === 'HEAD' ? 'HEAD' : 'GET' });
     const res = await env.ASSETS.fetch(assetReq);
     const headers = new Headers(res.headers);
-    for (const [k, v] of Object.entries(EXTRA)) headers.set(k, v);
+    // Only a real asset gets the one-year stamp. The site asks for a preview as
+    // soon as its slug is in the code, which can be before media:deploy has run.
+    // An immutable 404 would keep that file "missing" in the browser for a year,
+    // long after the upload. Missing is never stored.
+    if (res.status === 200) {
+      for (const [k, v] of Object.entries(EXTRA)) headers.set(k, v);
+    } else {
+      headers.set('Cache-Control', 'no-store');
+      headers.set('Access-Control-Allow-Origin', '*');
+      headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+    }
     if (res.status !== 200 || !range) return new Response(res.body, { status: res.status, headers });
     const m = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
     if (!m || (m[1] === '' && m[2] === '')) return new Response(res.body, { status: 200, headers });
@@ -30,6 +40,7 @@ export default {
     if (start >= size || start > end) {
       if (!buf && res.body) res.body.cancel();
       headers.set('Content-Range', `bytes */${size}`); headers.delete('Content-Length');
+      headers.set('Cache-Control', 'no-store');
       return new Response(null, { status: 416, headers });
     }
     headers.set('Content-Range', `bytes ${start}-${end}/${size}`);

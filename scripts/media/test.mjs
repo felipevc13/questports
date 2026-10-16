@@ -56,7 +56,10 @@ async function liveSmoke() {
   }
 
   await expectStatus('unsatisfiable', `${base}/previews/hexen2vr.mp4`, ['-H', 'Range: bytes=99999999-'], 416)
-  await expectStatus('missing', `${base}/previews/nope.mp4`, [], 404)
+  const missing = await expectStatus('missing', `${base}/previews/nope.mp4`, [], 404)
+  if (header(missing, 'cache-control').includes('immutable')) {
+    throw new Error('a missing preview must not be cached for a year')
+  }
   console.log('live smoke: cover, thumb host, mp4, range 206, 416, and 404 ok')
 }
 

@@ -249,6 +249,8 @@ npm run media:deploy:dry
 
 `media:deploy` runs the build, the guard, then `wrangler deploy` for Worker `questports-media`. It requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` equal to `42ef7aadef9e38f2860f59f826a090e9`. Any other account id is refused. The dry-run does not upload and does not need those variables.
 
+Upload the media **before** the site deploy that references a new file. The catalog asks for a preview as soon as its slug is in `AVAILABLE_VIDEO_PREVIEWS`, so a merge that lands first makes visitors request a file that is not uploaded yet. `worker.js` answers a missing preview with `Cache-Control: no-store` for that reason. A missing cover is still stamped `immutable` by `_headers`, which cannot match on status, so order matters more there.
+
 Wrangler config is `scripts/media/wrangler.toml`: `compatibility_date = "2026-10-01"`, `workers_dev = true`, `preview_urls = false`, assets directory `./dist`, binding `ASSETS`, `html_handling = "none"`, `not_found_handling = "none"`, `run_worker_first = ["/previews/*"]`. `worker.js` runs only for previews so Safari can get `206` byte ranges. The account id is not stored in the toml.
 
 `workers/questports-apk-proxy/` is the source of the live APK proxy (`worker.js` plus `wrangler.toml`, compatibility date `2026-10-01`). Optional Worker secret `GITHUB_TOKEN` (higher GitHub API rate limit). Nothing in `package.json` deploys it. Do not deploy it from a drive-by PR.
