@@ -1226,6 +1226,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'red-dead-redemption-vr': {
+    slug: 'red-dead-redemption-vr',
+    packageName: 'com.rockstargames.rdr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'sega-rally-vr': {
     slug: 'sega-rally-vr',
     packageName: 'io.port0r.segarally',

@@ -36,7 +36,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/158bcb6565a65410463e9685796db61c.png', '/covers/opencmr2-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/398436f82bedf94ca19fa91217a19eee.png', '/covers/virtua-cop-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/28b3db07c0f11d876d811a301a18edb6.jpg', '/covers/strikers-quest-mr.jpg'],
-    ['https://cdn2.steamgriddb.com/grid/99bcfcd754a98ce89cb86f73acc04645.png', '/covers/crazy-taxi-vr.png']
+    ['https://cdn2.steamgriddb.com/grid/99bcfcd754a98ce89cb86f73acc04645.png', '/covers/crazy-taxi-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/c1b8641fc22cf4122bef14bd95a331db.png', '/covers/red-dead-redemption-vr.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })

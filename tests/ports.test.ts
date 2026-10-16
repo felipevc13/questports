@@ -139,6 +139,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'ocarina-of-time-vr': 'com.questship.sohvr',
     'opencmr2-vr': 'org.opencmr2.vr',
     quake3quest: 'com.drbeef.ioq3quest',
+    'red-dead-redemption-vr': 'com.rockstargames.rdr',
     'sega-rally-vr': 'io.port0r.segarally',
     'sm64-coop-dx-vr': 'com.fulldivegames.sm64coopdxvr',
     'starfox-enhanced-vr': 'com.starfox.enhanced.quest',
