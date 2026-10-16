@@ -117,8 +117,17 @@
             enterkeyhint="search"
             placeholder="Search games"
             aria-label="Search ports"
-            class="w-full min-h-11 rounded-md border border-border bg-muted/80 py-2.5 pl-3 pr-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            class="w-full min-h-11 rounded-md border border-border bg-muted/80 py-2.5 pl-3 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="searchQuery = ''"
+            class="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-xs text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            ✕
+          </button>
         </div>
         <p class="text-xs text-muted-foreground">{{ catalogPorts.length }} {{ catalogPorts.length === 1 ? 'port' : 'ports' }}</p>
         <div v-if="catalogPorts.length" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
