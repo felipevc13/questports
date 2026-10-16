@@ -192,6 +192,9 @@ export function hasVideoPreview(slug: string, videoUrl?: string | null): boolean
 /**
  * Manual Timestamps Registry (indexed by port slug or youtube video id)
  * Edit timestamps here freely (e.g., start: '1:05', end: '1:12')
+ * A port with a youtube_video_id that is missing here plays its whole video
+ * from 0:00 on the detail page. The hover MP4 is a separate local file and is
+ * not affected either way.
  */
 export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   // GoldenEye VR (007)
@@ -404,9 +407,5 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Crazy Taxi VR
   'crazy-taxi-vr': { start: '1:20', end: '1:35' },
-  '53FEb8eGrSo': { start: '1:20', end: '1:35' },
-
-  // Red Dead Redemption (Undead Nightmare)
-  'red-dead-redemption-vr': { start: '6:12', end: '6:19' },
-  '6Glik2KeDcA': { start: '6:12', end: '6:19' }
+  '53FEb8eGrSo': { start: '1:20', end: '1:35' }
 }
