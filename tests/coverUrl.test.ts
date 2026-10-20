@@ -37,7 +37,13 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/398436f82bedf94ca19fa91217a19eee.png', '/covers/virtua-cop-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/28b3db07c0f11d876d811a301a18edb6.jpg', '/covers/strikers-quest-mr.jpg'],
     ['https://cdn2.steamgriddb.com/grid/99bcfcd754a98ce89cb86f73acc04645.png', '/covers/crazy-taxi-vr.png'],
-    ['https://cdn2.steamgriddb.com/grid/c1b8641fc22cf4122bef14bd95a331db.png', '/covers/red-dead-redemption-vr.png']
+    ['https://cdn2.steamgriddb.com/grid/c1b8641fc22cf4122bef14bd95a331db.png', '/covers/red-dead-redemption-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/e8f3e46d6d09f9b4ab31ab13ad69b841.png', '/covers/hotd-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/6ba927e95e97f5564105147a9d188931.png', '/covers/crisis-zone-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/4ea29595c25ccf7a33d3fdec75630d5a.png', '/covers/nfsu-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/39d9ed17e9496bdabfdc1d0a6d89c38d.png', '/covers/nfsu2-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/5778a79540b9f459a7f2aff2a548eb54.png', '/covers/rave-racer-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/20f40268fabfdc203f448dc64261a920.jpg', '/covers/openxwa-vr.jpg']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })

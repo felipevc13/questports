@@ -95,6 +95,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'avp-vr': 'com.bassquake.quest.avpvr',
     beefraiderxr: 'com.drbeef.beefraiderxr',
     citravr: 'org.citra.citra_emu',
+    'crisis-zone-vr': 'org.crisiszone.vr',
     csvr: 'com.lvonasek.csvr',
     doom3quest: 'com.drbeef.doom3quest',
     galaxyquest: 'com.galaxy.quest',
@@ -108,6 +109,8 @@ describe('Port Package Map & Workflow Verification', () => {
     jkxr: 'com.drbeef.jkxr',
     lambda1vr: 'com.drbeef.lambda1vr',
     'nolf-vr': 'net.relith.nolf',
+    'nfsu-vr': 'org.nfsu1.quest',
+    'nfsu2-vr': 'org.nfsu2.quest',
     'perfect-dark-vr': 'com.perfectdark.port',
     'ppsspp-vr': 'org.ppsspp.ppssppvr',
     preyvr: 'com.lvonasek.preyvr',
@@ -119,6 +122,7 @@ describe('Port Package Map & Workflow Verification', () => {
     questcraft: 'com.qcxr.qcxr',
     questsam: 'com.github.maranone.questsam',
     questzdoom: 'com.drbeef.questzdoom',
+    'rave-racer-vr': 'com.virtuavrport.raveracervr',
     razexr: 'com.drbeef.razexr',
     'road-rash-jailbreak-vr': 'com.rrjb.vr',
     rtcwquest: 'com.drbeef.rtcwquest',
@@ -133,11 +137,13 @@ describe('Port Package Map & Workflow Verification', () => {
     'f-zero-x-vr': 'com.fzerox.vr',
     'generals-zero-hour-xr': 'com.generalsx.zerohour.xr',
     'homeworld-unbound': 'org.homeworldunbound.game',
+    'hotd-vr': 'io.port0r.houseofthedead',
     'hotd2-vr': 'com.flycast.emulator.vr',
     'magic-carpet-vr': 'technology.master.mc.vr',
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
     'opencmr2-vr': 'org.opencmr2.vr',
+    'openxwa-vr': 'org.openxwa.quest',
     quake3quest: 'com.drbeef.ioq3quest',
     'red-dead-redemption-vr': 'com.rockstargames.rdr',
     'sega-rally-vr': 'io.port0r.segarally',
@@ -162,7 +168,7 @@ describe('Port Package Map & Workflow Verification', () => {
   }
 
   it('identifies only truly self-contained APK ports as direct sideload', () => {
-    const selfContained = ['questcraft', 'iron-lung-vr', 'time-crisis-vr', 'time-crisis-2-vr']
+    const selfContained = ['questcraft', 'iron-lung-vr', 'time-crisis-vr', 'time-crisis-2-vr', 'crisis-zone-vr']
     for (const slug of selfContained) {
       const port = PORT_PACKAGE_CONFIGS[slug]
       expect(port, slug).toBeDefined()

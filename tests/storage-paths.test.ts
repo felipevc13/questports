@@ -172,6 +172,73 @@ describe('storage paths that follow upstream install docs', () => {
     expect(isSelfContainedSideload(hotd)).toBe(false)
   })
 
+  const download = '/sdcard/Download/'
+  const downloadCampaign: CampaignLocation = { id: 'base', fullPath: download, folder: 'Download' }
+
+  it('hotd-vr accepts the MAME 0.289 set and ignores other downloads', async () => {
+    expect((await ready('hotd-vr', downloadCampaign, {})).exists).toBe(false)
+    expect((await ready('hotd-vr', downloadCampaign, { [download]: ['game.iso'] })).exists).toBe(false)
+    expect((await ready('hotd-vr', downloadCampaign, { [download]: ['hotd.zip'] })).exists).toBe(true)
+    expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['hotd-vr'])).toBe(false)
+    expect(PORT_PACKAGE_CONFIGS['hotd-vr'].altPackages).toBeUndefined()
+  })
+
+  it('nfsu-vr and nfsu2-vr accept any disc image name in Download', async () => {
+    for (const slug of ['nfsu-vr', 'nfsu2-vr'] as const) {
+      expect((await ready(slug, downloadCampaign, {})).exists).toBe(false)
+      expect((await ready(slug, downloadCampaign, { [download]: ['notes.txt'] })).exists).toBe(false)
+      expect((await ready(slug, downloadCampaign, { [download]: ['underground.iso'] })).exists).toBe(true)
+      expect((await ready(slug, downloadCampaign, { [download]: ['dump.xiso'] })).exists).toBe(true)
+      expect((await ready(slug, downloadCampaign, { [download]: ['disc.zip'] })).exists).toBe(true)
+      expect((await ready(slug, downloadCampaign, { [download]: ['disc.7z'] })).exists).toBe(true)
+      expect(PORT_PACKAGE_CONFIGS[slug].altPackages).toBeUndefined()
+      expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS[slug])).toBe(false)
+    }
+  })
+
+  const rave = '/sdcard/Android/data/com.virtuavrport.raveracervr/files/'
+  const raveCampaign: CampaignLocation = { id: 'base', fullPath: rave, folder: 'files' }
+
+  it('rave-racer-vr accepts either ROM zip plus namcoc74.zip and c71.bin', async () => {
+    expect((await ready('rave-racer-vr', raveCampaign, {})).exists).toBe(false)
+    expect((await ready('rave-racer-vr', raveCampaign, { [rave]: ['raverace.zip'] })).exists).toBe(false)
+    expect((await ready('rave-racer-vr', raveCampaign, { [rave]: ['raverace.zip', 'namcoc74.zip'] })).exists).toBe(false)
+    expect((await ready('rave-racer-vr', raveCampaign, { [rave]: ['raverace.zip', 'namcoc74.zip', 'c71.bin'] })).exists).toBe(true)
+    expect((await ready('rave-racer-vr', raveCampaign, { [rave]: ['raveracw.zip', 'namcoc74.zip', 'c71.bin'] })).exists).toBe(true)
+    expect((await ready('rave-racer-vr', raveCampaign, { [rave]: ['raverace.zip', 'raveracw.zip'] })).exists).toBe(false)
+    expect(PORT_PACKAGE_CONFIGS['rave-racer-vr'].altPackages).toBeUndefined()
+  })
+
+  const openxwa = '/sdcard/Android/obb/org.openxwa.quest/'
+  const openxwaCampaign: CampaignLocation = { id: 'base', fullPath: openxwa, folder: 'org.openxwa.quest' }
+
+  it('openxwa-vr requires the Windows launcher import zip', async () => {
+    const cfg = PORT_PACKAGE_CONFIGS['openxwa-vr']
+    expect(cfg.installType).toBe('pc_builder_required')
+    expect(cfg.packageName).toBe('org.openxwa.quest')
+    expect(cfg.altPackages).toBeUndefined()
+    expect((await ready('openxwa-vr', openxwaCampaign, {})).exists).toBe(false)
+    expect((await ready('openxwa-vr', openxwaCampaign, { [openxwa]: ['RESDATA.TXT'] })).exists).toBe(false)
+    expect((await ready('openxwa-vr', openxwaCampaign, { [openxwa]: ['openxwa-import.zip'] })).exists).toBe(true)
+    expect(isSelfContainedSideload(cfg)).toBe(false)
+  })
+
+  it('crisis-zone-vr is a plain APK with no folders', () => {
+    const cfg = PORT_PACKAGE_CONFIGS['crisis-zone-vr']
+    expect(cfg.packageName).toBe('org.crisiszone.vr')
+    expect(cfg.installType).toBe('direct_apk')
+    expect(cfg.workflowType).toBe('direct')
+    expect(cfg.folders || []).toEqual([])
+    expect(cfg.criticalFiles).toEqual([])
+    expect(cfg.altPackages).toBeUndefined()
+    expect(isSelfContainedSideload(cfg)).toBe(true)
+  })
+
+  it('twilight-princess-vr keeps the JoeyAW package id', () => {
+    expect(PORT_PACKAGE_CONFIGS['twilight-princess-vr'].packageName).toBe('com.joeyaw.tpvr')
+    expect(PORT_PACKAGE_CONFIGS['twilight-princess-vr'].altPackages).toBeUndefined()
+  })
+
   it('a denied Android/data listing on Vice City still offers confirm', async () => {
     const folder = PORT_PACKAGE_CONFIGS['vice-city-vr-quest'].folders![0]
     const check = await verifyFolderOnQuest(folder, async () => {
