@@ -44,6 +44,13 @@ describe('local hover previews', () => {
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
   })
 
+  it('leaves Animal Crossing VR as a cover-only card', () => {
+    expect(hasVideoPreview('animal-crossing-vr')).toBe(false)
+    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('animal-crossing-vr')
+    expect(GAME_VIDEO_PREVIEWS['animal-crossing-vr']).toBeUndefined()
+    expect(previewMp4Url({ slug: 'animal-crossing-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBeNull()
+  })
+
   it.each([
     'hotd-vr',
     'crisis-zone-vr',

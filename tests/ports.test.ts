@@ -132,6 +132,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'ut99-vr-quest': 'com.ghwstvr.ut99quest',
     winlatorxr: 'com.winlator.cmod',
     'age-of-joy': 'com.curif.AgeOfJoy',
+    'animal-crossing-vr': 'com.liquidazir.animalcrossingquest',
     'descent-3-vr': 'com.descentdevelopers.descent3',
     dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
     'f-zero-x-vr': 'com.fzerox.vr',
