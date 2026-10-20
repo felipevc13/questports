@@ -50,7 +50,8 @@ describe('local hover previews', () => {
     'nfsu-vr',
     'nfsu2-vr',
     'rave-racer-vr',
-    'openxwa-vr'
+    'openxwa-vr',
+    'wave-race-64-vr'
   ])('plays the whole %s video, with a hover clip and no YouTube window', (slug) => {
     expect(hasVideoPreview(slug)).toBe(true)
     expect(AVAILABLE_VIDEO_PREVIEWS).toContain(slug)

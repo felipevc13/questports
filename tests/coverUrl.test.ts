@@ -43,7 +43,8 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/4ea29595c25ccf7a33d3fdec75630d5a.png', '/covers/nfsu-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/39d9ed17e9496bdabfdc1d0a6d89c38d.png', '/covers/nfsu2-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/5778a79540b9f459a7f2aff2a548eb54.png', '/covers/rave-racer-vr.png'],
-    ['https://cdn2.steamgriddb.com/grid/20f40268fabfdc203f448dc64261a920.jpg', '/covers/openxwa-vr.jpg']
+    ['https://cdn2.steamgriddb.com/grid/20f40268fabfdc203f448dc64261a920.jpg', '/covers/openxwa-vr.jpg'],
+    ['https://cdn2.steamgriddb.com/grid/1bde14bdd1783d7dae116f6f46919031.png', '/covers/wave-race-64-vr.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })
