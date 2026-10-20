@@ -1401,6 +1401,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'wave-race-64-vr': {
+    slug: 'wave-race-64-vr',
+    packageName: 'com.waverace64.questvr',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Wave Race 64 (USA) Rev A, any filename ending in .z64, .n64, or .v64. The first launch asks you to pick the ROM. /sdcard/Download/ is a good place to put it.'
+  },
   'wiicompiled-vr-plus': {
     slug: 'wiicompiled-vr-plus',
     packageName: 'org.wiicompiled.quest',

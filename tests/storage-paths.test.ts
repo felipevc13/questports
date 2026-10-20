@@ -234,6 +234,21 @@ describe('storage paths that follow upstream install docs', () => {
     expect(isSelfContainedSideload(cfg)).toBe(true)
   })
 
+  it('wave-race-64-vr records the package and leaves the ROM pick to the app', () => {
+    const cfg = PORT_PACKAGE_CONFIGS['wave-race-64-vr']
+    expect(cfg.packageName).toBe('com.waverace64.questvr')
+    expect(cfg.installType).toBe('apk_and_assets')
+    expect(cfg.folders || []).toEqual([])
+    expect(cfg.criticalFiles).toEqual([])
+    expect(cfg.targetPath).toBeUndefined()
+    expect(cfg.altPackages).toBeUndefined()
+    expect(cfg.fileGuidance).toContain('/sdcard/Download/')
+    expect(cfg.fileGuidance).toContain('.z64')
+    expect(cfg.fileGuidance).toContain('.n64')
+    expect(cfg.fileGuidance).toContain('.v64')
+    expect(isSelfContainedSideload(cfg)).toBe(false)
+  })
+
   it('twilight-princess-vr keeps the JoeyAW package id', () => {
     expect(PORT_PACKAGE_CONFIGS['twilight-princess-vr'].packageName).toBe('com.joeyaw.tpvr')
     expect(PORT_PACKAGE_CONFIGS['twilight-princess-vr'].altPackages).toBeUndefined()

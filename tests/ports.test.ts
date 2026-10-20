@@ -154,6 +154,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'twilight-princess-vr': 'com.joeyaw.tpvr',
     'victory-heat-rally-vr': 'com.segadreamcat.vhrquest',
     'virtua-cop-vr': 'io.port0r.virtuacop',
+    'wave-race-64-vr': 'com.waverace64.questvr',
     'wiicompiled-vr-plus': 'org.wiicompiled.quest',
     'wipeout-rewrite-vr': 'online.portroyale.wipeoutrewritevr',
     'xrkart-64': 'com.n64vr.spaghettikart'

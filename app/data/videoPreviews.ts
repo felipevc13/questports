@@ -96,6 +96,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'vice-city-vr-quest',
   'victory-heat-rally-vr',
   'virtua-cop-vr',
+  'wave-race-64-vr',
   'wiicompiled-vr-plus',
   'winlatorxr',
   'wipeout-rewrite-vr',
