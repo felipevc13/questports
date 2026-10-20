@@ -44,6 +44,22 @@ describe('local hover previews', () => {
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
   })
 
+  it.each([
+    'hotd-vr',
+    'crisis-zone-vr',
+    'nfsu-vr',
+    'nfsu2-vr',
+    'rave-racer-vr',
+    'openxwa-vr'
+  ])('plays the whole %s video, with a hover clip and no YouTube window', (slug) => {
+    expect(hasVideoPreview(slug)).toBe(true)
+    expect(AVAILABLE_VIDEO_PREVIEWS).toContain(slug)
+    expect(GAME_VIDEO_PREVIEWS[slug]).toBeUndefined()
+    expect(previewMp4Url({ slug, mediaBase: DEFAULT_MEDIA_BASE })).toBe(
+      `${DEFAULT_MEDIA_BASE}/previews/${slug}.mp4`
+    )
+  })
+
   it('plays the whole Red Dead Redemption VR video, with no window', () => {
     expect(hasVideoPreview('red-dead-redemption-vr')).toBe(true)
     expect(AVAILABLE_VIDEO_PREVIEWS).toContain('red-dead-redemption-vr')

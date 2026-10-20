@@ -1158,6 +1158,13 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     criticalFiles: [],
     fileGuidance: 'Owner-confirmed package id from the patched APK on a Quest (version name CrazyTaxiVR-42). The GitHub release is an XDelta patch, not an APK, so one-click install stays off. A connected headset still reports this package as installed in Library and on the card.'
   },
+  'crisis-zone-vr': {
+    slug: 'crisis-zone-vr',
+    packageName: 'org.crisiszone.vr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: []
+  },
   'descent-3-vr': {
     slug: 'descent-3-vr',
     packageName: 'com.descentdevelopers.descent3',
@@ -1188,6 +1195,25 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'hotd-vr': {
+    slug: 'hotd-vr',
+    packageName: 'io.port0r.houseofthedead',
+    installType: 'apk_and_assets',
+    criticalFiles: ['hotd.zip'],
+    fileGuidance: 'MAME 0.289 set hotd.zip. The app searches storage, including /sdcard/Download/.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'hotd_rom',
+        name: 'House of the Dead ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        expectedFiles: ['hotd.zip'],
+        description: 'MAME 0.289 set hotd.zip. The app searches storage.'
+      }
+    ]
+  },
   'hotd2-vr': {
     slug: 'hotd2-vr',
     packageName: 'com.flycast.emulator.vr',
@@ -1207,6 +1233,44 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'nfsu-vr': {
+    slug: 'nfsu-vr',
+    packageName: 'org.nfsu1.quest',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your disc image in /sdcard/Download/. Any file name is fine (.iso, .xiso, .zip, or .7z). The app imports it.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'nfsu_disc',
+        name: 'Need for Speed Underground disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|xiso|zip|7z)$',
+        description: 'Disc image of any name (.iso, .xiso, .zip, or .7z). The app imports it.'
+      }
+    ]
+  },
+  'nfsu2-vr': {
+    slug: 'nfsu2-vr',
+    packageName: 'org.nfsu2.quest',
+    installType: 'apk_and_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your disc image in /sdcard/Download/. Any file name is fine (.iso, .xiso, .zip, or .7z). The app imports it.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'nfsu2_disc',
+        name: 'Need for Speed Underground 2 disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|xiso|zip|7z)$',
+        description: 'Disc image of any name (.iso, .xiso, .zip, or .7z). The app imports it.'
+      }
+    ]
+  },
   'ocarina-of-time-vr': {
     slug: 'ocarina-of-time-vr',
     packageName: 'com.questship.sohvr',
@@ -1219,12 +1283,61 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'openxwa-vr': {
+    slug: 'openxwa-vr',
+    packageName: 'org.openxwa.quest',
+    installType: 'pc_builder_required',
+    criticalFiles: ['openxwa-import.zip'],
+    fileGuidance: 'The Windows launcher normally builds openxwa-import.zip (RESDATA.TXT at the zip root). The headset reads it from /sdcard/Android/obb/org.openxwa.quest/.',
+    targetPath: '/sdcard/Android/obb/org.openxwa.quest/',
+    folders: [
+      {
+        id: 'openxwa_import',
+        name: 'OpenXWA import zip',
+        folderName: 'org.openxwa.quest',
+        targetPath: '/sdcard/Android/obb/org.openxwa.quest/',
+        required: true,
+        expectedFiles: ['openxwa-import.zip'],
+        description: 'openxwa-import.zip with RESDATA.TXT at the zip root. The Windows launcher normally builds it.'
+      }
+    ]
+  },
   quake3quest: {
     slug: 'quake3quest',
     packageName: 'com.drbeef.ioq3quest',
     altPackages: ['com.drbeef.ioquake3quest'],
     installType: 'apk_and_assets',
     criticalFiles: []
+  },
+  'rave-racer-vr': {
+    slug: 'rave-racer-vr',
+    packageName: 'com.virtuavrport.raveracervr',
+    installType: 'apk_and_assets',
+    criticalFiles: ['raverace.zip', 'raveracw.zip', 'namcoc74.zip', 'c71.bin'],
+    fileGuidance: 'Copy raverace.zip or raveracw.zip, plus namcoc74.zip and c71.bin, into /sdcard/Android/data/com.virtuavrport.raveracervr/files/. Either ROM zip is enough.',
+    targetPath: '/sdcard/Android/data/com.virtuavrport.raveracervr/files/',
+    folders: [
+      {
+        id: 'rave_rom',
+        name: 'Rave Racer ROM',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.virtuavrport.raveracervr/files/',
+        required: true,
+        expectedFiles: ['raverace.zip'],
+        fileExtensionPattern: 'raveracw\\.zip$',
+        acceptance: 'expected-or-extension',
+        description: 'raverace.zip or raveracw.zip'
+      },
+      {
+        id: 'rave_bios',
+        name: 'Namco System 22 files',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.virtuavrport.raveracervr/files/',
+        required: true,
+        expectedFiles: ['namcoc74.zip', 'c71.bin'],
+        description: 'namcoc74.zip and c71.bin next to the ROM zip'
+      }
+    ]
   },
   'red-dead-redemption-vr': {
     slug: 'red-dead-redemption-vr',
