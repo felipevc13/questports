@@ -1151,6 +1151,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'animal-crossing-vr': {
+    slug: 'animal-crossing-vr',
+    packageName: 'com.liquidazir.animalcrossingquest',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'crazy-taxi-vr': {
     slug: 'crazy-taxi-vr',
     packageName: 'com.baywilly.crazytaxivr',
