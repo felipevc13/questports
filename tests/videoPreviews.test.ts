@@ -57,6 +57,7 @@ describe('local hover previews', () => {
     'nfsu-vr',
     'nfsu2-vr',
     'rave-racer-vr',
+    'openmw-vr',
     'openxwa-vr',
     'smash-remix-vr',
     'wave-race-64-vr'

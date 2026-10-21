@@ -64,6 +64,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'nfsu2-vr',
   'ocarina-of-time-vr',
   'opencmr2-vr',
+  'openmw-vr',
   'openxwa-vr',
   'perfect-dark-vr',
   'ppsspp-vr',

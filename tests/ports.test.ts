@@ -144,6 +144,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
     'opencmr2-vr': 'org.opencmr2.vr',
+    'openmw-vr': 'org.openmw.vr',
     'openxwa-vr': 'org.openxwa.quest',
     quake3quest: 'com.drbeef.ioq3quest',
     'red-dead-redemption-vr': 'com.rockstargames.rdr',
