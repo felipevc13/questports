@@ -1370,6 +1370,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'smash-remix-vr': {
+    slug: 'smash-remix-vr',
+    packageName: 'com.ssb64.recompiled',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'starfox-enhanced-vr': {
     slug: 'starfox-enhanced-vr',
     packageName: 'com.starfox.enhanced.quest',

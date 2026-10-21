@@ -85,6 +85,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sega-rally-vr',
   'simpsonshitrun',
   'sm64-coop-dx-vr',
+  'smash-remix-vr',
   'sourcevr',
   'starfox-enhanced-vr',
   'strikers-quest-mr',
