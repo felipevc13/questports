@@ -1289,6 +1289,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'openmw-vr': {
+    slug: 'openmw-vr',
+    packageName: 'org.openmw.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'openxwa-vr': {
     slug: 'openxwa-vr',
     packageName: 'org.openxwa.quest',
