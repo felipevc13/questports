@@ -142,6 +142,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'hotd2-vr': 'com.flycast.emulator.vr',
     'magic-carpet-vr': 'technology.master.mc.vr',
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
+    'metal-gear-solid-vr': 'org.baywilly.mgsvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
     'opencmr2-vr': 'org.opencmr2.vr',
     'openmw-vr': 'org.openmw.vr',
