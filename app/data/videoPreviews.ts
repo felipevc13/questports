@@ -59,6 +59,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'jkxr',
   'lambda1vr',
   'majoras-mask-vr',
+  'metal-gear-solid-vr',
   'nolf-vr',
   'nfsu-vr',
   'nfsu2-vr',

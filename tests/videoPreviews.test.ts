@@ -54,6 +54,7 @@ describe('local hover previews', () => {
   it.each([
     'hotd-vr',
     'crisis-zone-vr',
+    'metal-gear-solid-vr',
     'nfsu-vr',
     'nfsu2-vr',
     'rave-racer-vr',

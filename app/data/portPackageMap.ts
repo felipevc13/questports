@@ -1239,6 +1239,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'metal-gear-solid-vr': {
+    slug: 'metal-gear-solid-vr',
+    packageName: 'org.baywilly.mgsvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'nfsu-vr': {
     slug: 'nfsu-vr',
     packageName: 'org.nfsu1.quest',
