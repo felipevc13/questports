@@ -149,6 +149,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'red-dead-redemption-vr': 'com.rockstargames.rdr',
     'sega-rally-vr': 'io.port0r.segarally',
     'sm64-coop-dx-vr': 'com.fulldivegames.sm64coopdxvr',
+    'smash-remix-vr': 'com.ssb64.recompiled',
     'starfox-enhanced-vr': 'com.starfox.enhanced.quest',
     'strikers-quest-mr': 'io.github.newcoke.strikers',
     'time-crisis-2-vr': 'org.timecrisis2.arcadevr',
