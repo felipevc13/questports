@@ -1474,6 +1474,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  xelee: {
+    slug: 'xelee',
+    packageName: 'dev.melee.game',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'xrkart-64': {
     slug: 'xrkart-64',
     packageName: 'com.n64vr.spaghettikart',
