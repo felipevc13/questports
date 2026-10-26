@@ -44,14 +44,21 @@ describe('local hover previews', () => {
     expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
   })
 
-  it('leaves Animal Crossing VR as a cover-only card', () => {
-    expect(hasVideoPreview('animal-crossing-vr')).toBe(false)
-    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('animal-crossing-vr')
-    expect(GAME_VIDEO_PREVIEWS['animal-crossing-vr']).toBeUndefined()
-    expect(previewMp4Url({ slug: 'animal-crossing-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBeNull()
+  it.each([
+    'animal-crossing-vr',
+    'arx-libertatis-vr',
+    'mega-man-64-vr'
+  ])('leaves %s as a cover-only card', (slug) => {
+    expect(hasVideoPreview(slug)).toBe(false)
+    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain(slug)
+    expect(GAME_VIDEO_PREVIEWS[slug]).toBeUndefined()
+    expect(previewMp4Url({ slug, mediaBase: DEFAULT_MEDIA_BASE })).toBeNull()
   })
 
   it.each([
+    'bomberman-hero-vr',
+    'daytona-usa-vr',
+    'dirt-dash-vr',
     'hotd-vr',
     'crisis-zone-vr',
     'metal-gear-solid-vr',
