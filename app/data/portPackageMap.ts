@@ -1157,6 +1157,18 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'arx-libertatis-vr': {
+    slug: 'arx-libertatis-vr',
+    packageName: 'org.arxlibertatis.vr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'bomberman-hero-vr': {
+    slug: 'bomberman-hero-vr',
+    packageName: 'com.bmhero.recompiled',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'crazy-taxi-vr': {
     slug: 'crazy-taxi-vr',
     packageName: 'com.baywilly.crazytaxivr',
@@ -1171,9 +1183,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     workflowType: 'direct',
     criticalFiles: []
   },
+  'daytona-usa-vr': {
+    slug: 'daytona-usa-vr',
+    packageName: 'io.port0r.daytona',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'descent-3-vr': {
     slug: 'descent-3-vr',
     packageName: 'com.descentdevelopers.descent3',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'dirt-dash-vr': {
+    slug: 'dirt-dash-vr',
+    packageName: 'io.port0r.dirtdash',
     installType: 'apk_and_assets',
     criticalFiles: []
   },
@@ -1236,6 +1260,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   'majoras-mask-vr': {
     slug: 'majoras-mask-vr',
     packageName: 'com.fulldivegames.majorasmaskvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
+  'mega-man-64-vr': {
+    slug: 'mega-man-64-vr',
+    packageName: 'com.megaman64recomp.vr',
     installType: 'apk_and_assets',
     criticalFiles: []
   },
