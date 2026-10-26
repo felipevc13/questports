@@ -166,6 +166,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'wave-race-64-vr': 'com.waverace64.questvr',
     'wiicompiled-vr-plus': 'org.wiicompiled.quest',
     'wipeout-rewrite-vr': 'online.portroyale.wipeoutrewritevr',
+    xelee: 'dev.melee.game',
     'xrkart-64': 'com.n64vr.spaghettikart'
   }
 

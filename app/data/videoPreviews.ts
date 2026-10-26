@@ -106,6 +106,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'wiicompiled-vr-plus',
   'winlatorxr',
   'wipeout-rewrite-vr',
+  'xelee',
   'xrkart-64'
 ]
 
