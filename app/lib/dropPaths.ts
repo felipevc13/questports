@@ -1,3 +1,16 @@
+/**
+ * A folder `mkdir` can create. Guide sentences are not paths: spaces, parentheses,
+ * angle brackets, and other prose must not be offered as a drop destination.
+ */
+const CLEAN_DROP_PATH = /^\/(?:sdcard|storage\/emulated\/0)\/(?:[A-Za-z0-9._-]+\/)+$/
+
+export function isCleanQuestDropPath(path: string | null | undefined): boolean {
+  const value = (path || '').trim()
+  if (!CLEAN_DROP_PATH.test(value)) return false
+  if (value.split('/').includes('..')) return false
+  return true
+}
+
 /** Directory a dropped file should land in, keeping subfolders the detector looks for. */
 
 export function campaignLeaf(fullPath: string): string {

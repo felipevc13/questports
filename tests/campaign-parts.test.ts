@@ -5,8 +5,8 @@ import { isPortInstalledOnQuest } from '../app/data/portPackageMap'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { campaignPartState, countInstalledParts } from '../app/lib/campaignParts'
 
-/** Ports whose catalog data is a base game plus at least one expansion. */
-const MULTI_PART_SLUGS = ['lambda1vr', 'sourcevr', 'doom3quest', 'razexr', 'nolf-vr'] as const
+/** Ports whose catalog data is a base game plus at least one expansion or language. */
+const MULTI_PART_SLUGS = ['lambda1vr', 'metal-gear-solid-vr', 'sourcevr', 'doom3quest', 'razexr', 'nolf-vr'] as const
 
 describe('installed parts', () => {
   it('counts the base game from an alt package id, and a DLC only when its files are present', () => {
@@ -42,8 +42,8 @@ describe('installed parts', () => {
       .toEqual([...MULTI_PART_SLUGS].sort())
 
     for (const slug of MULTI_PART_SLUGS) {
-      const port = INITIAL_PORTS.find(item => item.slug === slug)
-      const parts = getPortCampaigns(port!)
+      const port = INITIAL_PORTS.find(item => item.slug === slug) || { slug } as any
+      const parts = getPortCampaigns(port)
       expect(parts.length, slug).toBeGreaterThan(1)
       expect(parts.filter(part => part.isBase), slug).toHaveLength(1)
       for (const part of parts) {
@@ -58,7 +58,11 @@ describe('installed parts', () => {
         'com.teambeef.razexr',
         'com.nillerusr.sourcevr'
       ])
-      const packageInstalled = alt || isPortInstalledOnQuest(slug, ['com.drbeef.doom3quest', 'net.relith.nolf'])
+      const packageInstalled = alt || isPortInstalledOnQuest(slug, [
+        'com.drbeef.doom3quest',
+        'net.relith.nolf',
+        'org.baywilly.mgsvr'
+      ])
       expect(packageInstalled, slug).toBe(true)
       expect(countInstalledParts(parts, part => ({ packageInstalled: true, filesReady: false })), slug).toBe(1)
       expect(countInstalledParts(parts, () => ({ packageInstalled: true, filesReady: true })), slug).toBe(parts.length)

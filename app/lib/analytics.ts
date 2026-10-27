@@ -47,10 +47,27 @@ export const INSTALL_ERROR_REASONS = [
   'pm_fail',
   'timeout',
   'too_large',
+  'signature_conflict',
+  'busy',
   'other'
 ] as const
 
 export type InstallErrorReason = (typeof INSTALL_ERROR_REASONS)[number]
+
+/** Short free-text stored next to install_error reason. Kept inside the 400-byte props cap. */
+export const INSTALL_ERROR_DETAIL_MAX = 80
+
+export const SIGNATURE_CONFLICT_MESSAGE =
+  'Uninstall the existing game first (saves will be lost), then install again. The copy on the headset was signed with a different key.'
+
+/** Collapse whitespace and drop characters the analytics check will not store. */
+export function cleanInstallErrorDetail(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const collapsed = input.replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim()
+  const safe = collapsed.replace(/[^A-Za-z0-9 ._:/=+-]/g, '').trim().slice(0, INSTALL_ERROR_DETAIL_MAX)
+  if (!/^[A-Za-z0-9]/.test(safe)) return null
+  return safe
+}
 
 export const FILTER_NAMES = [
   'category',
@@ -359,7 +376,13 @@ export function installErrorReason(err: unknown): InstallErrorReason {
   if (/unauthorized/.test(text)) return 'unauthorized'
   if (/usb interface is locked|already in use|usb_locked|interface is locked|being used by another app|adb kill-server/.test(text)) return 'usb_locked'
   if (/timed out|timeout/.test(text)) return 'timeout'
-  if (/failed to download|download apk|download stream/.test(text)) return 'download_fail'
+  if (/update_incompatible|signatures do not match|signature mismatch|conflicts with an app already/i.test(text)) {
+    return 'signature_conflict'
+  }
+  if (/another install is already in progress|install already in progress/i.test(text)) return 'busy'
+  if (/failed to download|download failed|download apk|download stream|unable to download/i.test(text)) {
+    return 'download_fail'
+  }
   if (/install_failed|package manager|pm install|failure \[/.test(text)) return 'pm_fail'
   if (/not connected|adb/.test(text)) return 'adb_fail'
   return 'other'
@@ -721,12 +744,15 @@ function campaignRefProps(props: Record<string, unknown> | null): { ref?: string
   return ref ? { ref } : {}
 }
 
-function installErrorProps(props: Record<string, unknown> | null): { reason: InstallErrorReason; ref?: string } {
+function installErrorProps(
+  props: Record<string, unknown> | null
+): { reason: InstallErrorReason; detail?: string; ref?: string } {
   const reason = props && typeof props.reason === 'string' ? props.reason : ''
   const code = (INSTALL_ERROR_REASONS as readonly string[]).includes(reason)
     ? reason as InstallErrorReason
     : 'other'
-  return { reason: code, ...campaignRefProps(props) }
+  const detail = cleanInstallErrorDetail(props?.detail)
+  return { reason: code, ...(detail ? { detail } : {}), ...campaignRefProps(props) }
 }
 
 function installStepProps(
@@ -890,7 +916,8 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   } else if (record.event === 'install_click' || record.event === 'install_success') {
     const ref = campaignRefProps(props)
     const via = appInstallVia(props, path)
-    const stored = { ...ref, ...(via ? { via } : {}) }
+    const recovered = record.event === 'install_success' && props?.recovered === true
+    const stored = { ...ref, ...(via ? { via } : {}), ...(recovered ? { recovered: true as const } : {}) }
     storedProps = Object.keys(stored).length ? stored : null
   } else if (record.event === 'page_view') {
     const landing = { ...campaignRefProps(props), ...pageLandingProps(props) }

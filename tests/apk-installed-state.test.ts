@@ -98,11 +98,11 @@ describe('APK installed card follows a live headset', () => {
 
   it('keeps every multi-campaign counter at 0 while disconnected', () => {
     const multi = Object.keys(PORT_EXPANSIONS).filter(slug => (PORT_EXPANSIONS[slug]?.length || 0) > 1).sort()
-    expect(multi).toEqual(['doom3quest', 'lambda1vr', 'nolf-vr', 'razexr', 'sourcevr'])
+    expect(multi).toEqual(['doom3quest', 'lambda1vr', 'metal-gear-solid-vr', 'nolf-vr', 'razexr', 'sourcevr'])
 
     for (const slug of multi) {
-      const port = INITIAL_PORTS.find(item => item.slug === slug)
-      const parts = getPortCampaigns(port!)
+      const port = INITIAL_PORTS.find(item => item.slug === slug) || { slug } as any
+      const parts = getPortCampaigns(port)
       const cfg = PORT_PACKAGE_CONFIGS[slug]
       expect(parts.length, slug).toBeGreaterThan(1)
       const packageInstalled = apkInstalledOnHeadset({

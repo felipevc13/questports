@@ -494,5 +494,22 @@ describe('Folder & Asset Verification Engine (Real-world Quest FS simulation)', 
       })
       expect(steam.isOverallReady).toBe(true)
     })
+
+    it('treats one Metal Gear Solid language as enough and accepts bin or cue files', async () => {
+      const english = { id: 'english', fullPath: '/sdcard/languages/English/', folder: 'English' }
+      const bin = await assessCampaignOnQuest('metal-gear-solid-vr', english, async () => ['SLUS_005.94.bin'])
+      expect(bin.exists).toBe(true)
+      const cue = await assessCampaignOnQuest('metal-gear-solid-vr', english, async () => ['SLUS_005.94.cue'])
+      expect(cue.exists).toBe(true)
+      const notes = await assessCampaignOnQuest('metal-gear-solid-vr', english, async () => ['readme.txt'])
+      expect(notes.exists).toBe(false)
+
+      const ready = await verifyPortFoldersOnQuest('metal-gear-solid-vr', async (path) => {
+        if (path === '/sdcard/languages/English/') return ['disc1.bin', 'disc1.cue']
+        return []
+      })
+      expect(ready.isOverallReady).toBe(true)
+      expect(ready.folders.find(folder => folder.folderDef.folderName === 'Spanish')?.status).not.toBe('ready')
+    })
   })
 })

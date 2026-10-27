@@ -187,7 +187,9 @@ import {
   apkInstallOutcome,
   connectFailureReason,
   createInstallStepLedger,
+  cleanInstallErrorDetail,
   installErrorReason,
+  SIGNATURE_CONFLICT_MESSAGE,
   installStepEventsForConnectPhase,
   installStepEventsForConnectResult,
   installStepEventsForProgress,
@@ -390,12 +392,16 @@ const installApp = async () => {
       })
     }
   } catch (err: unknown) {
-    const message = err instanceof Error && err.message ? err.message : page.installFailed
-    errorMessage.value = message
+    const raw = err instanceof Error && err.message ? err.message : ''
+    const reason = installErrorReason(err)
+    const detail = cleanInstallErrorDetail(raw)
+    errorMessage.value = reason === 'signature_conflict'
+      ? SIGNATURE_CONFLICT_MESSAGE
+      : (raw || page.installFailed)
     track('install_error', {
       path: QUESTPORTS_APP_INSTALL_PATH,
       headset: headset(),
-      props: { reason: installErrorReason(err), via: 'page' }
+      props: { reason, via: 'page', ...(detail ? { detail } : {}) }
     })
   } finally {
     stopProgress()
