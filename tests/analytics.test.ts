@@ -267,10 +267,21 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261010120000_analytics_too_large.sql', import.meta.url),
       'utf8'
     )
-    const reasonsSql = `${sql}\n${tooLarge}`
+    const errorDetail = readFileSync(
+      new URL('../supabase/migrations/20261027010000_analytics_install_error_detail.sql', import.meta.url),
+      'utf8'
+    )
+    const reasonsSql = `${sql}\n${tooLarge}\n${errorDetail}`
     for (const reason of INSTALL_ERROR_REASONS) expect(reasonsSql).toContain(`'${reason}'`)
     expect(tooLarge).toContain('analytics_events_install_error_reason')
     expect(tooLarge).toContain("'too_large'")
+    expect(errorDetail).toContain('analytics_events_install_error_detail')
+    expect(errorDetail).toContain('analytics_events_install_success_recovered')
+    expect(errorDetail).toContain("'signature_conflict'")
+    expect(errorDetail).toContain("'busy'")
+    expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_event_check/i)
+    expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(errorDetail).not.toContain("props->>'app'")
     for (const filter of FILTER_NAMES) expect(sql).toContain(`'${filter}'`)
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
@@ -516,13 +527,43 @@ describe('analytics validation', () => {
         portSlug: 'rtcwquest',
         props: { reason: 'drop table', detail: 'serial 123' }
       }
-    }).row?.props).toEqual({ reason: 'other' })
+    }).row?.props).toEqual({ reason: 'other', detail: 'serial 123' })
     expect(decide({
       body: { event: 'install_error', portSlug: 'rtcwquest', props: { reason: 'user_cancelled' } }
     }).row?.props).toEqual({ reason: 'user_cancelled' })
     expect(decide({
       body: { event: 'install_error', portSlug: 'doom3quest', props: { reason: 'too_large' } }
     }).row?.props).toEqual({ reason: 'too_large' })
+    expect(decide({
+      body: {
+        event: 'install_error',
+        portSlug: 'time-crisis-vr',
+        props: { reason: 'signature_conflict', detail: 'INSTALL_FAILED_UPDATE_INCOMPATIBLE', junk: true }
+      }
+    }).row?.props).toEqual({ reason: 'signature_conflict', detail: 'INSTALL_FAILED_UPDATE_INCOMPATIBLE' })
+    expect(decide({
+      body: {
+        event: 'install_error',
+        portSlug: 'time-crisis-vr',
+        props: { reason: 'busy', detail: '(((' }
+      }
+    }).row?.props).toEqual({ reason: 'busy' })
+    expect(decide({
+      body: {
+        event: 'install_success',
+        portSlug: 'sega-rally-vr',
+        path: '/ports/sega-rally-vr',
+        props: { recovered: true, extra: 'no' }
+      }
+    }).row?.props).toEqual({ recovered: true })
+    expect(decide({
+      body: {
+        event: 'install_success',
+        portSlug: 'sega-rally-vr',
+        path: '/ports/sega-rally-vr',
+        props: { recovered: false }
+      }
+    }).row?.props).toBeNull()
   })
 
   it('maps install failures to short reason codes', () => {
@@ -532,6 +573,12 @@ describe('analytics validation', () => {
     expect(installErrorReason(new Error('Not enough free space. Need 1 MB.'))).toBe('storage')
     expect(installErrorReason(new Error('Failed to download APK: HTTP 404'))).toBe('download_fail')
     expect(installErrorReason(new Error('INSTALL_FAILED_INVALID_APK'))).toBe('pm_fail')
+    expect(installErrorReason(new Error('INSTALL_FAILED_UPDATE_INCOMPATIBLE'))).toBe('signature_conflict')
+    expect(installErrorReason('conflicts with an app already on the headset')).toBe('signature_conflict')
+    expect(installErrorReason('signatures do not match the existing app')).toBe('signature_conflict')
+    expect(installErrorReason('Another install is already in progress')).toBe('busy')
+    expect(installErrorReason('Unable to download the APK')).toBe('download_fail')
+    expect(installErrorReason('Download failed: HTTP 500')).toBe('download_fail')
     expect(installErrorReason(new Error('device unauthorized.'))).toBe('unauthorized')
     expect(installErrorReason(new Error('The Quest USB interface is locked by another program'))).toBe('usb_locked')
     expect(installErrorReason(new Error('Headset authorization timed out.'))).toBe('timeout')

@@ -246,6 +246,61 @@ describe('Port Campaigns & Expansions Engine', () => {
         expect(campaign?.exampleFiles, slug).not.toBe('Base game assets')
       }
     })
+
+    it('gives Metal Gear Solid a language folder and ignores the guide sentence', () => {
+      const stored = '/sdcard/languages/<Language>/ (folder created on first launch, e.g. languages/English/ for the USA discs)'
+      const campaigns = getPortCampaigns({ slug: 'metal-gear-solid-vr', internal_storage_path: stored } as any)
+      expect(campaigns.map(campaign => campaign.name)).toEqual([
+        'English', 'Spanish', 'French', 'German', 'Italian', 'Japanese'
+      ])
+      expect(campaigns.filter(campaign => campaign.isBase).map(campaign => campaign.id)).toEqual(['english'])
+      expect(campaigns.every(campaign => campaign.badge === 'Language')).toBe(true)
+      expect(campaigns[0]?.fullPath).toBe('/sdcard/languages/English/')
+      expect(campaigns[0]?.exampleFiles).toContain('.bin')
+      expect(campaigns[0]?.instruction).toContain('Do not copy the zip')
+
+      const fallback = getDefaultFolderInfo({ slug: 'metal-gear-solid-vr', internal_storage_path: stored } as any)
+      expect(fallback.fullPath).toBe('/sdcard/languages/English/')
+    })
+
+    it('uses a package folder when the stored destination is prose, and keeps a clean stored path', () => {
+      const hotd = getDefaultFolderInfo({
+        slug: 'hotd-vr',
+        internal_storage_path: 'Put hotd.zip on the headset (the app searches storage)'
+      } as any)
+      expect(hotd.fullPath).toBe('/sdcard/Download/')
+      expect(hotd.exampleFiles).toContain('hotd.zip')
+
+      const nfsu = getDefaultFolderInfo({
+        slug: 'nfsu-vr',
+        internal_storage_path: '/sdcard/Download/ (then import in the app)'
+      } as any)
+      expect(nfsu.fullPath).toBe('/sdcard/Download/')
+
+      const daytona = getDefaultFolderInfo({
+        slug: 'daytona-usa-vr',
+        internal_storage_path: 'see the guide'
+      } as any)
+      expect(daytona.fullPath).toBe('/sdcard/Download/')
+      expect(daytona.exampleFiles).toContain('daytona.zip')
+      expect(daytona.exampleFiles).toContain('model1io.zip')
+
+      const kept = getDefaultFolderInfo({
+        slug: 'hotd-vr',
+        internal_storage_path: '/sdcard/roms/hotd/'
+      } as any)
+      expect(kept.fullPath).toBe('/sdcard/roms/hotd/')
+
+      const prose = getDefaultFolderInfo({
+        slug: 'wipeout-rewrite-vr',
+        internal_storage_path: 'The installer script copies the data. Do not mkdir this yourself.'
+      } as any)
+      expect(prose.folder).toBe('guide')
+      expect(prose.fullPath).toContain('Do not mkdir')
+
+      const empty = getDefaultFolderInfo({ slug: 'unreal-gold-vr', internal_storage_path: '' } as any)
+      expect(empty.fullPath).toBe('')
+    })
   })
 
   describe('getPortCampaigns cross-validation on all 38 ports', () => {

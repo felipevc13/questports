@@ -1,5 +1,6 @@
 import type { Port } from '~/types/port'
-import { isSelfContainedSideload, normalizeQuestPath, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { MGS_DISC_LANGUAGES, isSelfContainedSideload, normalizeQuestPath, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
+import { isCleanQuestDropPath } from '~/lib/dropPaths'
 
 export interface PortCampaign {
   id: string
@@ -236,7 +237,19 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       storeUrl: 'https://en.wikipedia.org/wiki/The_Operative:_No_One_Lives_Forever',
       storeName: 'Requires your own GOTY copy'
     }
-  ]
+  ],
+  'metal-gear-solid-vr': MGS_DISC_LANGUAGES.map(language => ({
+    id: language.id,
+    name: language.name,
+    badge: 'Language',
+    isBase: language.base,
+    folder: language.name,
+    fullPath: `/sdcard/languages/${language.name}/`,
+    exampleFiles: 'Disc 1 and Disc 2 .bin and .cue files',
+    instruction: `Copy the .bin and .cue from both ${language.discs} discs into /sdcard/languages/${language.name}/. Do not copy the zip. English is the USA set. The first launch also creates languages/.`,
+    storeUrl: null,
+    storeName: null
+  }))
 }
 
 export function getDefaultFolderInfo(port: Port): {
@@ -409,14 +422,54 @@ export function getDefaultFolderInfo(port: Port): {
 
   const stored = (port.internal_storage_path || '').trim()
   const normalized = normalizeQuestPath(stored)
-  const rawPath = normalized || (stored.startsWith('N/A') ? stored : '/sdcard/')
-  const segments = rawPath.replace(/^\/sdcard\/|\/$/g, '').split('/').filter(Boolean)
-  const folder = (segments.length ? segments[segments.length - 1] : '') || 'data'
+  if (isCleanQuestDropPath(normalized)) {
+    const segments = normalized.replace(/^\/sdcard\/|\/$/g, '').split('/').filter(Boolean)
+    const folder = (segments.length ? segments[segments.length - 1] : '') || 'data'
+    return {
+      folder,
+      fullPath: normalized,
+      exampleFiles: 'Base game assets',
+      instruction: `Drop the "${folder}" folder or game files here`
+    }
+  }
+
+  const fromPackage = dropInfoFromPackageFolders(slug)
+  if (fromPackage) return fromPackage
+
   return {
-    folder,
-    fullPath: rawPath,
-    exampleFiles: 'Base game assets',
-    instruction: `Drop the "${folder}" folder or game files here`
+    folder: 'guide',
+    fullPath: stored,
+    exampleFiles: 'See the installation guide',
+    instruction: 'Copy the game files using the installation guide. This destination is not a single folder path.'
+  }
+}
+
+/** One required folder with a real path, used when the database text is a sentence. */
+function dropInfoFromPackageFolders(slug: string): {
+  folder: string
+  fullPath: string
+  exampleFiles: string
+  instruction: string
+} | null {
+  const required = (PORT_PACKAGE_CONFIGS[slug]?.folders || []).filter(folder => {
+    const path = folder.targetPath.endsWith('/') ? folder.targetPath : `${folder.targetPath}/`
+    return folder.required && isCleanQuestDropPath(path)
+  })
+  const paths = new Set(required.map(folder => (
+    folder.targetPath.endsWith('/') ? folder.targetPath : `${folder.targetPath}/`
+  )))
+  if (!required.length || paths.size !== 1) return null
+  const folder = required[0]
+  if (!folder) return null
+  const fullPath = folder.targetPath.endsWith('/') ? folder.targetPath : `${folder.targetPath}/`
+  const exampleFiles = folder.expectedFiles?.length
+    ? folder.expectedFiles.join(', ')
+    : (folder.description || 'Game files')
+  return {
+    folder: folder.folderName || 'files',
+    fullPath,
+    exampleFiles,
+    instruction: folder.description || `Drop game files into ${fullPath}`
   }
 }
 

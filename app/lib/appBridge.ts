@@ -1,4 +1,4 @@
-import { installErrorReason, type InstallErrorReason } from '~/lib/analytics'
+import { installErrorReason, SIGNATURE_CONFLICT_MESSAGE, type InstallErrorReason } from '~/lib/analytics'
 import { apkUpdateDecision, type InstalledReleaseRecord } from '~/lib/installedRelease'
 import { buildPackageState } from '~/lib/mockQuest'
 
@@ -190,13 +190,19 @@ export function appInstallErrorMessage(error?: string | null): string {
   return `${text.slice(0, 137)}…`
 }
 
-/** Map a bridge failure onto the existing install_error reason list. */
+/** Map a bridge failure onto the install_error reason list. */
 export function appBridgeInstallErrorReason(status: string, error?: string | null): InstallErrorReason {
   if (status === 'cancelled') return 'user_cancelled'
   if (status === 'needs_permission') return 'unauthorized'
   const text = String(error || '')
   if (/permission|unknown sources|request_install/i.test(text)) return 'unauthorized'
   return installErrorReason(text || 'error')
+}
+
+/** Player-facing install failure. Signature mismatches get the uninstall instruction. */
+export function appInstallFailureCopy(error?: string | null): string {
+  if (appBridgeInstallErrorReason('error', error) === 'signature_conflict') return SIGNATURE_CONFLICT_MESSAGE
+  return appInstallErrorMessage(error)
 }
 
 /**
