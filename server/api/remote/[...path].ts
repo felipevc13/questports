@@ -42,7 +42,8 @@ export default defineEventHandler(async (event) => {
     path,
     body,
     authorization: getRequestHeader(event, 'authorization') || null,
-    appVersionHeader: getRequestHeader(event, 'x-questports-app-version') || null
+    appVersionHeader: getRequestHeader(event, 'x-questports-app-version') || null,
+    acceptingHeader: getRequestHeader(event, 'x-questports-accepting') || null
   }, {
     enabled,
     repo: admin ? createSupabaseRemoteRepository(admin) : null,

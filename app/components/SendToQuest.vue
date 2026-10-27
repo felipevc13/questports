@@ -199,6 +199,7 @@ import {
   SEND_BUTTON_CLASS,
   clearStoredBrowser,
   clearStoredRequest,
+  cleanAcceptingFlag,
   formatPairCode,
   gameFilesPathForSlug,
   isRemotePairFailReason,
@@ -239,6 +240,8 @@ const progress = ref<number | null>(null)
 const errorReason = ref<string | null>(null)
 const lastSeen = ref<string | null>(null)
 const createdAt = ref<string | null>(null)
+const accepting = ref<boolean | null>(null)
+const checkedAt = ref(0)
 const modalOpen = ref(false)
 const justPaired = ref(false)
 const codeDraft = ref('')
@@ -259,6 +262,9 @@ const outdated = computed(() => {
 const label = computed(() => sendToQuestLabel(device.value?.model, Boolean(device.value)))
 const view = computed(() => {
   if (!status.value || outdated.value) return null
+  const created = createdAt.value ? Date.parse(createdAt.value) : NaN
+  const now = checkedAt.value || Date.now()
+  const ageMs = Number.isFinite(created) ? Math.max(0, now - created) : 0
   return remoteStatusView({
     status: status.value,
     progress: progress.value,
@@ -267,9 +273,11 @@ const view = computed(() => {
     title: props.title,
     version: props.version,
     lastSeen: lastSeen.value,
-    now: Date.now(),
+    now,
     needsFiles: needsFiles.value,
-    filesPath: filesPath.value
+    filesPath: filesPath.value,
+    accepting: accepting.value,
+    ageMs
   })
 })
 const toneClass = computed(() => {
@@ -350,9 +358,11 @@ function applyPreview(state: RemotePreviewState) {
   status.value = map[state] || 'queued'
   progress.value = state === 'downloading' ? 45 : null
   errorReason.value = state === 'failed' ? 'download_fail' : null
+  accepting.value = state === 'not-accepting' ? false : null
   lastSeen.value = state === 'queued' ? new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() : new Date().toISOString()
   createdAt.value = new Date().toISOString()
-  if (state === 'waiting') lastSeen.value = new Date().toISOString()
+  checkedAt.value = Date.now()
+  if (state === 'waiting' || state === 'not-accepting') lastSeen.value = new Date().toISOString()
 }
 
 function stopPoll() {
@@ -365,7 +375,7 @@ function schedulePoll() {
   if (!status.value || preview.value) return
   const ageMs = createdAt.value ? Math.max(0, Date.now() - Date.parse(createdAt.value)) : 0
   const hidden = typeof document !== 'undefined' && document.visibilityState === 'hidden'
-  const delay = remotePollDelayMs({ status: status.value, ageMs, hidden })
+  const delay = remotePollDelayMs({ status: status.value, ageMs, hidden, accepting: accepting.value })
   if (delay == null) return
   timer = setTimeout(() => { void refreshStatus() }, delay)
 }
@@ -387,6 +397,8 @@ async function refreshDevice() {
     appVersion: typeof row.app_version === 'string' ? row.app_version : device.value.appVersion
   }
   lastSeen.value = typeof row.last_seen === 'string' ? row.last_seen : lastSeen.value
+  accepting.value = cleanAcceptingFlag(row.accepting)
+  checkedAt.value = Date.now()
   writeStoredBrowser(window.localStorage, device.value)
   if (!remoteAppSupportsInstall(device.value.appVersion)) trackOutdated('paired')
 }
@@ -405,6 +417,9 @@ async function refreshStatus() {
   status.value = result.body.status
   progress.value = typeof result.body.progress === 'number' ? result.body.progress : null
   errorReason.value = typeof result.body.error_reason === 'string' ? result.body.error_reason : null
+  accepting.value = cleanAcceptingFlag(result.body.accepting)
+  if (typeof result.body.last_seen === 'string') lastSeen.value = result.body.last_seen
+  checkedAt.value = Date.now()
   schedulePoll()
 }
 
@@ -563,6 +578,7 @@ async function sendRequest() {
     progress.value = null
     errorReason.value = null
     createdAt.value = new Date().toISOString()
+    checkedAt.value = Date.now()
     writeStoredRequest(window.localStorage, {
       id: requestId.value,
       slug: props.slug,
@@ -626,6 +642,7 @@ onMounted(async () => {
   if (stored && stored.slug === props.slug) {
     requestId.value = stored.id
     createdAt.value = stored.createdAt
+    checkedAt.value = Date.now()
     status.value = 'queued'
   }
   if (device.value) await refreshDevice()

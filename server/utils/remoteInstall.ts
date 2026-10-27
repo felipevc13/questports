@@ -25,6 +25,7 @@ import {
   REMOTE_REGISTRATIONS_PER_HOUR,
   REMOTE_REQUEST_TTL_MS,
   REMOTE_REQUESTS_PER_HOUR,
+  cleanAcceptingFlag,
   cleanDeviceModel,
   cleanRemoteDetail,
   cleanRemoteErrorReason,
@@ -91,6 +92,8 @@ export interface RemoteDeviceRow {
   revoked_at: string | null
   created_at: string
   created_ip_hash: string
+  /** Null until the headset app reports Accept install requests. */
+  accepting_requests: boolean | null
 }
 
 export interface RemoteCodeRow {
@@ -138,7 +141,7 @@ export interface RemoteRepository {
   insertDevice(row: RemoteDeviceRow): Promise<RemoteDeviceRow>
   findDeviceBySecretHash(hash: string): Promise<RemoteDeviceRow | null>
   findDevice(id: string): Promise<RemoteDeviceRow | null>
-  touchDevice(id: string, patch: { last_seen_at: string; app_version?: string }): Promise<void>
+  touchDevice(id: string, patch: { last_seen_at: string; app_version?: string; accepting_requests?: boolean }): Promise<void>
   countCodes(deviceId: string, sinceIso: string): Promise<number>
   insertCode(row: RemoteCodeRow): Promise<RemoteCodeRow>
   findCodeByHash(hash: string): Promise<RemoteCodeRow | null>
@@ -206,6 +209,8 @@ export interface RemoteHttpInput {
   body: unknown
   authorization: string | null
   appVersionHeader: string | null
+  /** `x-questports-accepting` from a device call. Browser routes ignore it. */
+  acceptingHeader: string | null
 }
 
 export interface RemoteHttpResult {
@@ -252,21 +257,39 @@ async function assertClaimAllowed(deps: RemoteDeps, repo: RemoteRepository, now:
   }
 }
 
+function storedAccepting(device: RemoteDeviceRow): boolean | null {
+  return device.accepting_requests === true ? true : device.accepting_requests === false ? false : null
+}
+
+/** Body `accepting` wins when it parses. A missing value does not clear the stored flag. */
+export function acceptingFromRequest(body: unknown, header: string | null): boolean | null {
+  const record = body && typeof body === 'object' ? body as Record<string, unknown> : null
+  if (record && Object.prototype.hasOwnProperty.call(record, 'accepting')) {
+    const parsed = cleanAcceptingFlag(record.accepting)
+    if (parsed !== null) return parsed
+  }
+  return cleanAcceptingFlag(header)
+}
+
 async function touchFromRequest(
   repo: RemoteRepository,
   device: RemoteDeviceRow,
   now: Date,
-  version: string | null
+  version: string | null,
+  accepting: boolean | null = null
 ): Promise<RemoteDeviceRow> {
   const nextVersion = version && version !== device.app_version ? version : undefined
-  await repo.touchDevice(device.id, {
-    last_seen_at: now.toISOString(),
-    ...(nextVersion ? { app_version: nextVersion } : {})
-  })
+  const patch: { last_seen_at: string; app_version?: string; accepting_requests?: boolean } = {
+    last_seen_at: now.toISOString()
+  }
+  if (nextVersion) patch.app_version = nextVersion
+  if (accepting !== null) patch.accepting_requests = accepting
+  await repo.touchDevice(device.id, patch)
   return {
     ...device,
-    last_seen_at: now.toISOString(),
-    app_version: nextVersion || device.app_version
+    last_seen_at: patch.last_seen_at,
+    app_version: nextVersion || device.app_version,
+    accepting_requests: accepting === null ? storedAccepting(device) : accepting
   }
 }
 
@@ -287,7 +310,7 @@ function versionFrom(body: unknown, header: string | null): string | null {
   return cleanAppVersion(header) || cleanAppVersion(record?.app_version)
 }
 
-async function registerDevice(deps: RemoteDeps, body: unknown): Promise<Record<string, unknown>> {
+async function registerDevice(deps: RemoteDeps, body: unknown, acceptingHeader: string | null): Promise<Record<string, unknown>> {
   const repo = requireRepo(deps)
   const record = body && typeof body === 'object' ? body as Record<string, unknown> : null
   const model = cleanDeviceModel(record?.model)
@@ -310,17 +333,24 @@ async function registerDevice(deps: RemoteDeps, body: unknown): Promise<Record<s
     last_seen_at: now.toISOString(),
     revoked_at: null,
     created_at: now.toISOString(),
-    created_ip_hash: ipHash
+    created_ip_hash: ipHash,
+    accepting_requests: acceptingFromRequest(body, acceptingHeader)
   }
   await repo.insertDevice(row)
   return { device_id: row.id, device_secret: secret }
 }
 
-async function issueCode(deps: RemoteDeps, authorization: string | null, body: unknown, header: string | null) {
+async function issueCode(
+  deps: RemoteDeps,
+  authorization: string | null,
+  body: unknown,
+  header: string | null,
+  acceptingHeader: string | null
+) {
   const repo = requireRepo(deps)
   const now = deps.now()
   let device = await deviceFromSecret(deps, repo, bearerToken(authorization))
-  device = await touchFromRequest(repo, device, now, versionFrom(body, header))
+  device = await touchFromRequest(repo, device, now, versionFrom(body, header), acceptingFromRequest(body, acceptingHeader))
   const recent = await repo.countCodes(device.id, hourAgo(now))
   if (recent >= REMOTE_CODES_PER_HOUR) {
     fail('rate_limited', 429, 'Too many pairing codes. Try again in an hour.')
@@ -397,7 +427,7 @@ async function browserContext(deps: RemoteDeps, authorization: string | null, he
   const device = await repo.findDevice(link.device_id)
   if (!device || device.revoked_at) fail('unauthorized', 401, 'This Quest is no longer paired.')
   const now = deps.now()
-  const fresh = await touchFromRequest(repo, device, now, versionFrom(body, header))
+  const fresh = await touchFromRequest(repo, device, now, versionFrom(body, header), null)
   return { repo, link, device: fresh, now }
 }
 
@@ -468,7 +498,9 @@ async function readBrowserRequest(deps: RemoteDeps, authorization: string | null
     error_reason: row.error_reason,
     updated_at: row.updated_at,
     expires_at: row.expires_at,
-    needs_files: row.needs_files
+    needs_files: row.needs_files,
+    accepting: storedAccepting(device),
+    last_seen: device.last_seen_at
   }
 }
 
@@ -496,7 +528,8 @@ async function browserDevice(deps: RemoteDeps, authorization: string | null, hea
       name: device.name,
       model: device.model,
       last_seen: device.last_seen_at,
-      app_version: device.app_version
+      app_version: device.app_version,
+      accepting: storedAccepting(device)
     }
   }
 }
@@ -507,11 +540,17 @@ async function forgetPairing(deps: RemoteDeps, authorization: string | null) {
   return { ok: true }
 }
 
-async function listForDevice(deps: RemoteDeps, authorization: string | null, body: unknown, header: string | null) {
+async function listForDevice(
+  deps: RemoteDeps,
+  authorization: string | null,
+  body: unknown,
+  header: string | null,
+  acceptingHeader: string | null
+) {
   const repo = requireRepo(deps)
   const now = deps.now()
   let device = await deviceFromSecret(deps, repo, bearerToken(authorization))
-  device = await touchFromRequest(repo, device, now, versionFrom(body, header))
+  device = await touchFromRequest(repo, device, now, versionFrom(body, header), acceptingFromRequest(body, acceptingHeader))
   const expired = await repo.expireRequests(device.id, now.toISOString())
   for (const row of expired) await recordStatus(deps, row, device.model)
   const rows = await repo.listDeviceRequests(device.id, now.toISOString())
@@ -580,12 +619,13 @@ async function updateFromDevice(
   authorization: string | null,
   id: string,
   body: unknown,
-  header: string | null
+  header: string | null,
+  acceptingHeader: string | null
 ) {
   const repo = requireRepo(deps)
   const now = deps.now()
   let device = await deviceFromSecret(deps, repo, bearerToken(authorization))
-  device = await touchFromRequest(repo, device, now, versionFrom(body, header))
+  device = await touchFromRequest(repo, device, now, versionFrom(body, header), acceptingFromRequest(body, acceptingHeader))
   const row = await repo.findRequest(id)
   if (!row || row.device_id !== device.id) fail('not_found', 404, 'Request not found.')
   const record = body && typeof body === 'object' ? body as Record<string, unknown> : null
@@ -622,11 +662,16 @@ async function updateFromDevice(
   return { id: next.id, status: next.status }
 }
 
-async function listBrowsers(deps: RemoteDeps, authorization: string | null, header: string | null) {
+async function listBrowsers(
+  deps: RemoteDeps,
+  authorization: string | null,
+  header: string | null,
+  acceptingHeader: string | null
+) {
   const repo = requireRepo(deps)
   const now = deps.now()
   let device = await deviceFromSecret(deps, repo, bearerToken(authorization))
-  device = await touchFromRequest(repo, device, now, versionFrom(null, header))
+  device = await touchFromRequest(repo, device, now, versionFrom(null, header), acceptingFromRequest(null, acceptingHeader))
   const links = await repo.listLinks(device.id)
   return {
     browsers: links.filter(link => !link.revoked_at).map(link => ({
@@ -637,11 +682,17 @@ async function listBrowsers(deps: RemoteDeps, authorization: string | null, head
   }
 }
 
-async function revokeBrowser(deps: RemoteDeps, authorization: string | null, id: string, header: string | null) {
+async function revokeBrowser(
+  deps: RemoteDeps,
+  authorization: string | null,
+  id: string,
+  header: string | null,
+  acceptingHeader: string | null
+) {
   const repo = requireRepo(deps)
   const now = deps.now()
   let device = await deviceFromSecret(deps, repo, bearerToken(authorization))
-  device = await touchFromRequest(repo, device, now, versionFrom(null, header))
+  device = await touchFromRequest(repo, device, now, versionFrom(null, header), acceptingFromRequest(null, acceptingHeader))
   const links = await repo.listLinks(device.id)
   const link = links.find(item => item.id === id)
   if (!link) fail('not_found', 404, 'Browser not found.')
@@ -659,25 +710,25 @@ export async function dispatchRemote(input: RemoteHttpInput, deps: RemoteDeps): 
     const parts = path.split('/').filter(Boolean)
     let body: Record<string, unknown> | null = null
     if (method === 'POST' && parts[0] === 'device' && parts[1] === 'register' && parts.length === 2) {
-      body = await registerDevice(deps, input.body)
+      body = await registerDevice(deps, input.body, input.acceptingHeader)
     } else if (method === 'POST' && parts[0] === 'pair' && parts[1] === 'code' && parts.length === 2) {
-      body = await issueCode(deps, input.authorization, input.body, input.appVersionHeader)
+      body = await issueCode(deps, input.authorization, input.body, input.appVersionHeader, input.acceptingHeader)
     } else if (method === 'POST' && parts[0] === 'pair' && parts[1] === 'claim' && parts.length === 2) {
       body = await claimCode(deps, input.body)
     } else if (method === 'GET' && parts[0] === 'requests' && parts.length === 1) {
-      body = await listForDevice(deps, input.authorization, input.body, input.appVersionHeader)
+      body = await listForDevice(deps, input.authorization, input.body, input.appVersionHeader, input.acceptingHeader)
     } else if (method === 'POST' && parts[0] === 'requests' && parts.length === 1) {
       body = await createInstallRequest(deps, input.authorization, input.body, input.appVersionHeader)
     } else if (method === 'GET' && parts[0] === 'requests' && parts.length === 2) {
       body = await readBrowserRequest(deps, input.authorization, parts[1] || '')
     } else if (method === 'POST' && parts[0] === 'requests' && parts[2] === 'status' && parts.length === 3) {
-      body = await updateFromDevice(deps, input.authorization, parts[1] || '', input.body, input.appVersionHeader)
+      body = await updateFromDevice(deps, input.authorization, parts[1] || '', input.body, input.appVersionHeader, input.acceptingHeader)
     } else if (method === 'POST' && parts[0] === 'requests' && parts[2] === 'cancel' && parts.length === 3) {
       body = await cancelBrowserRequest(deps, input.authorization, parts[1] || '')
     } else if (method === 'GET' && parts[0] === 'browsers' && parts.length === 1) {
-      body = await listBrowsers(deps, input.authorization, input.appVersionHeader)
+      body = await listBrowsers(deps, input.authorization, input.appVersionHeader, input.acceptingHeader)
     } else if (method === 'DELETE' && parts[0] === 'browsers' && parts.length === 2) {
-      body = await revokeBrowser(deps, input.authorization, parts[1] || '', input.appVersionHeader)
+      body = await revokeBrowser(deps, input.authorization, parts[1] || '', input.appVersionHeader, input.acceptingHeader)
     } else if (method === 'GET' && parts[0] === 'device' && parts.length === 1) {
       body = await browserDevice(deps, input.authorization, input.appVersionHeader)
     } else if (method === 'DELETE' && parts[0] === 'pairing' && parts.length === 1) {
@@ -724,6 +775,7 @@ export function createMemoryRemoteRepository(): RemoteRepository {
       if (!row) return
       row.last_seen_at = patch.last_seen_at
       if (patch.app_version) row.app_version = patch.app_version
+      if (patch.accepting_requests !== undefined) row.accepting_requests = patch.accepting_requests
     },
     async countCodes(deviceId, sinceIso) {
       return codes.filter(row => row.device_id === deviceId && row.created_at >= sinceIso).length
@@ -814,6 +866,15 @@ export function createMemoryRemoteRepository(): RemoteRepository {
   }
 }
 
+function missingAcceptingColumn(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false
+  const message = error.message || ''
+  if (!/accepting_requests/i.test(message)) return false
+  return error.code === '42703'
+    || error.code === 'PGRST204'
+    || /does not exist|schema cache|could not find/i.test(message)
+}
+
 function dbFail(error: { message?: string; code?: string } | null): void {
   if (!error) return
   const message = error.message || ''
@@ -835,7 +896,14 @@ export function createSupabaseRemoteRepository(admin: SupabaseClient): RemoteRep
       return count || 0
     },
     async insertDevice(row) {
-      const { error } = await admin.from('remote_devices').insert(row)
+      const payload: Record<string, unknown> = { ...row }
+      if (payload.accepting_requests == null) delete payload.accepting_requests
+      let { error } = await admin.from('remote_devices').insert(payload)
+      if (error && missingAcceptingColumn(error)) {
+        delete payload.accepting_requests
+        const retry = await admin.from('remote_devices').insert(payload)
+        error = retry.error
+      }
       dbFail(error)
       return row
     },
@@ -850,7 +918,12 @@ export function createSupabaseRemoteRepository(admin: SupabaseClient): RemoteRep
       return (data as RemoteDeviceRow | null) || null
     },
     async touchDevice(id, patch) {
-      const { error } = await admin.from('remote_devices').update(patch).eq('id', id)
+      let { error } = await admin.from('remote_devices').update(patch).eq('id', id)
+      if (error && patch.accepting_requests !== undefined && missingAcceptingColumn(error)) {
+        const { accepting_requests: _ignored, ...rest } = patch
+        const retry = await admin.from('remote_devices').update(rest).eq('id', id)
+        error = retry.error
+      }
       dbFail(error)
     },
     async countCodes(deviceId, sinceIso) {

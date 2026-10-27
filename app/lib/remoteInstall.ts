@@ -103,6 +103,7 @@ export const REMOTE_PREVIEW_STATES = [
   'confirm',
   'installed',
   'queued',
+  'not-accepting',
   'failed'
 ] as const
 
@@ -123,6 +124,30 @@ export const SEND_BUTTON_CLASS =
 
 export const REMOTE_APP_OUTDATED_TITLE =
   'Update the QuestPorts app on your Quest to use Send to Quest'
+
+export const REMOTE_NOT_ACCEPTING_TITLE = "Your Quest isn't accepting installs"
+
+export const REMOTE_NOT_ACCEPTING_DETAIL =
+  "Turn on Accept install requests in the QuestPorts app on your headset. We'll send it as soon as it's on."
+
+export const REMOTE_QUEUED_SLOW_TITLE = "Your Quest hasn't picked this up yet"
+
+export const REMOTE_QUEUED_SLOW_DETAIL =
+  'Make sure the QuestPorts app is open and Accept install requests is on.'
+
+/**
+ * Headset toggle. `1` / `true` is on, `0` / `false` is off.
+ * Anything else, including a missing field, stays unknown.
+ */
+export function cleanAcceptingFlag(value: unknown): boolean | null {
+  if (value === true || value === 1) return true
+  if (value === false || value === 0) return false
+  if (typeof value !== 'string') return null
+  const text = value.trim().toLowerCase()
+  if (text === '1' || text === 'true') return true
+  if (text === '0' || text === 'false') return false
+  return null
+}
 
 export function remoteInstallPreviewRequested(search: string | null | undefined): boolean {
   if (!search) return false
@@ -275,10 +300,16 @@ export function remotePollDelayMs(input: {
   status: RemoteRequestStatus
   ageMs: number
   hidden: boolean
+  /** Keep the fast poll while the headset has Accept install requests turned off. */
+  accepting?: boolean | null
 }): number | null {
   if ((REMOTE_TERMINAL_STATUSES as readonly string[]).includes(input.status)) return null
   if (input.hidden) return null
-  if (input.status === 'queued' && input.ageMs >= REMOTE_POLL_QUEUED_SLOW_AFTER_MS) {
+  if (
+    input.status === 'queued'
+    && input.accepting !== false
+    && input.ageMs >= REMOTE_POLL_QUEUED_SLOW_AFTER_MS
+  ) {
     return REMOTE_POLL_QUEUED_SLOW_MS
   }
   return REMOTE_POLL_FAST_MS
@@ -338,11 +369,39 @@ export function remoteStatusView(input: {
   now: number
   needsFiles: boolean
   filesPath: string
+  /** `false` when the headset app says Accept install requests is off. Missing means unknown. */
+  accepting?: boolean | null
+  /** How long this request has stayed queued. Omitted calls keep the previous copy. */
+  ageMs?: number
 }): RemoteStatusView {
   const name = questDisplayName(input.model)
   const version = input.version ? ` ${input.version}` : ''
   const sent = `Sent ${input.title}${version} to ${name}.`
   if (input.status === 'queued') {
+    const accepting = input.accepting ?? null
+    const ageMs = input.ageMs ?? 0
+    if (accepting === false) {
+      return {
+        tone: 'queued',
+        title: REMOTE_NOT_ACCEPTING_TITLE,
+        detail: REMOTE_NOT_ACCEPTING_DETAIL,
+        progress: null,
+        showRetry: false,
+        showCancel: true,
+        showFilesNote: false
+      }
+    }
+    if (ageMs >= REMOTE_POLL_QUEUED_SLOW_AFTER_MS) {
+      return {
+        tone: 'queued',
+        title: REMOTE_QUEUED_SLOW_TITLE,
+        detail: REMOTE_QUEUED_SLOW_DETAIL,
+        progress: null,
+        showRetry: false,
+        showCancel: true,
+        showFilesNote: false
+      }
+    }
     const awake = questAppLooksAwake(input.lastSeen, input.now)
     return {
       tone: awake ? 'wait' : 'queued',
