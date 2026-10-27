@@ -46,7 +46,6 @@ describe('local hover previews', () => {
 
   it.each([
     'animal-crossing-vr',
-    'arx-libertatis-vr',
     'mega-man-64-vr'
   ])('leaves %s as a cover-only card', (slug) => {
     expect(hasVideoPreview(slug)).toBe(false)
@@ -56,6 +55,7 @@ describe('local hover previews', () => {
   })
 
   it.each([
+    'arx-libertatis-vr',
     'bomberman-hero-vr',
     'daytona-usa-vr',
     'dirt-dash-vr',

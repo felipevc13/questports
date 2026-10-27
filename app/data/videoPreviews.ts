@@ -34,6 +34,7 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  */
 export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'age-of-joy',
+  'arx-libertatis-vr',
   'astroquest',
   'avp-vr',
   'beefraiderxr',
