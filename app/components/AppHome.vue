@@ -132,15 +132,24 @@
         <p class="text-xs text-muted-foreground">{{ catalogPorts.length }} {{ catalogPorts.length === 1 ? 'port' : 'ports' }}</p>
         <div v-if="catalogPorts.length" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <PortCard
-            v-for="port in catalogPorts"
+            v-for="(port, index) in catalogPorts"
             :key="port.id"
             :port="port"
             :verifications="verificationRecords"
+            @click="trackSearchResult(port, index)"
           />
         </div>
-        <div v-else class="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-          No ports found.
-        </div>
+        <CatalogEmptyState
+          v-else
+          :query="searchQuery.trim()"
+          :suggestions="suggestionHits"
+          :filters-active="false"
+          :requestable="requestable"
+          @request="requestThisGame"
+          @suggest="suggestModal.open()"
+          @clear="searchQuery = ''"
+          @open="openSuggestion"
+        />
       </section>
 
       <section v-else class="space-y-4 rounded-lg border border-border bg-card p-4">
@@ -204,6 +213,13 @@ import { APP_PACKAGE_NAME, APP_RELEASES_LATEST, parseLatestAppRelease, type AppR
 import { appStartTab, firstInstalledPackage, type AppTab } from '~/lib/headsetPackages'
 import { APP_RELEASE_SERIAL, forgetInstalledRelease, readInstalledRelease } from '~/lib/installedRelease'
 import { formatPortVersion } from '~/lib/portVersion'
+import {
+  closestCatalogPorts,
+  searchCatalog,
+  searchOutcomeVia,
+  type CatalogSearchHit,
+  type SearchMatchVia
+} from '~/lib/catalogSearch'
 import { refusesOneClickInstall } from '~/lib/patchOnlyInstall'
 import { useTrack } from '~/composables/useTrack'
 import { useQuestAdb } from '~/composables/useQuestAdb'
@@ -269,17 +285,57 @@ const updateCount = computed(() => libraryRows.value.filter(row => row.update).l
 
 const canUninstall = computed(() => ready.value && import.meta.client && bridgeCanUninstall(window.QuestPortsApp))
 
-const catalogPorts = computed(() => {
-  const list = props.ports || []
-  const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return list
-  return list.filter(port =>
-    port.title.toLowerCase().includes(q)
-    || port.slug.toLowerCase().includes(q)
-    || port.developer.toLowerCase().includes(q)
-    || (port.short_description || '').toLowerCase().includes(q)
-  )
+const suggestModal = useSuggestModal()
+
+const rankedSearch = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query) return null
+  return searchCatalog(props.ports || [], query)
 })
+
+const catalogHits = computed(() => rankedSearch.value || [])
+
+const catalogPorts = computed(() => {
+  if (!rankedSearch.value) return props.ports || []
+  return catalogHits.value.map(hit => hit.item)
+})
+
+const suggestionHits = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query || catalogPorts.value.length > 0) return []
+  const ranked = rankedSearch.value || []
+  if (ranked.length) return ranked.slice(0, 3)
+  return closestCatalogPorts(props.ports || [], query, 3)
+})
+
+const requestable = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query || catalogPorts.value.length > 0) return false
+  return (rankedSearch.value || []).length === 0
+})
+
+const trackSearchResult = (port: Port, index: number, via?: SearchMatchVia) => {
+  const query = searchQuery.value.trim()
+  if (!query) return
+  const matchVia = via || catalogHits.value.find(hit => hit.item.slug === port.slug)?.via
+  if (!matchVia) return
+  track('search_result_click', {
+    path: route.path,
+    portSlug: port.slug,
+    props: { q: query, position: index + 1, via: matchVia }
+  })
+}
+
+const openSuggestion = (hit: CatalogSearchHit<Port>, index: number) => {
+  trackSearchResult(hit.item, index, hit.via)
+}
+
+const requestThisGame = () => {
+  const query = searchQuery.value.trim()
+  if (!query) return
+  track('game_request_click', { path: route.path, props: { q: query } })
+  suggestModal.open(query, { fromSearch: true })
+}
 
 const canUpdate = (port: Port) => {
   const cfg = PORT_PACKAGE_CONFIGS[port.slug]
@@ -449,16 +505,55 @@ const updateApp = () => {
 }
 
 let searchTrackTimer: ReturnType<typeof setTimeout> | null = null
-watch(searchQuery, (value) => {
+let searchWaits = 0
+let lastSearchKey = ''
+
+const scheduleSearchTrack = () => {
   if (searchTrackTimer) clearTimeout(searchTrackTimer)
-  const query = value.trim()
-  if (!query) return
+  const query = searchQuery.value.trim()
+  if (!query) {
+    lastSearchKey = ''
+    searchWaits = 0
+    return
+  }
   searchTrackTimer = setTimeout(() => {
-    track('search', { path: route.path, props: { q: query, length: query.length } })
-    if (catalogPorts.value.length === 0) {
+    if (!(props.ports || []).length) {
+      if (searchWaits < 8) {
+        searchWaits += 1
+        scheduleSearchTrack()
+      }
+      return
+    }
+    searchWaits = 0
+    const hits = catalogHits.value
+    const catalogMatches = rankedSearch.value?.length ?? 0
+    const via = searchOutcomeVia(hits)
+    const key = `${query}|${hits.length}|${via}|${catalogMatches}`
+    if (key === lastSearchKey) return
+    lastSearchKey = key
+    const results = hits.map(hit => hit.item.slug).join(',')
+    track('search', {
+      path: route.path,
+      props: {
+        q: query,
+        length: query.length,
+        count: hits.length,
+        via,
+        ...(results ? { results } : {})
+      }
+    })
+    if (hits.length === 0) {
       track('search_no_results', { path: route.path, props: { q: query } })
+      if (catalogMatches === 0) {
+        track('game_request_shown', { path: route.path, props: { q: query } })
+      }
     }
   }, 600)
+}
+
+watch(searchQuery, scheduleSearchTrack)
+watch(() => props.ports, () => {
+  if (searchQuery.value.trim()) scheduleSearchTrack()
 })
 
 let stopBridgeWait = () => {}

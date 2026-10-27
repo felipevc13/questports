@@ -27,9 +27,12 @@
           </UiBadge>
         </div>
         <h2 class="text-lg font-semibold text-foreground tracking-tight">
-          Suggest a Standalone Port
+          {{ fromSearch ? 'Request this game' : 'Suggest a Standalone Port' }}
         </h2>
-        <p class="text-xs text-muted-foreground">
+        <p v-if="fromSearch" class="text-xs text-muted-foreground">
+          Nothing in the catalog matched this search. Send the name and a link, if you have one.
+        </p>
+        <p v-else class="text-xs text-muted-foreground">
           Know of a native Meta Quest source port, emulator, or 6DoF injection? Add it to the queue.
         </p>
       </div>
@@ -107,7 +110,7 @@
             type="button"
             variant="ghost"
             size="sm"
-            class="w-full sm:w-auto"
+            class="min-h-11 w-full sm:w-auto"
             @click="closeModal"
           >
             Cancel
@@ -115,7 +118,7 @@
           <UiButton
             type="submit"
             size="sm"
-            class="w-full sm:w-auto"
+            class="min-h-11 w-full sm:w-auto"
             :disabled="loading"
           >
             <span v-if="loading" class="w-3 h-3 mr-1.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>
@@ -133,6 +136,7 @@ import { ref, watch } from 'vue'
 const props = defineProps<{
   isOpen: boolean
   initialTitle?: string
+  fromSearch?: boolean
 }>()
 
 const { track } = useTrack()
@@ -155,10 +159,8 @@ const errorMessage = ref('')
 
 const { client, isConfigured } = useSupabase()
 
-watch(() => props.initialTitle, (val) => {
-  if (val && !form.value.title) {
-    form.value.title = val
-  }
+watch(() => props.isOpen, (open) => {
+  if (open && props.initialTitle) form.value.title = props.initialTitle
 })
 
 const closeModal = () => {
@@ -205,8 +207,14 @@ const submitSuggestion = async () => {
 
     submitted.value = true
     track('suggest_submit')
+    if (props.fromSearch) {
+      track('game_request_submit', { props: { q: form.value.title, result: 'success' } })
+    }
   } catch (err: any) {
     errorMessage.value = err.message || 'An error occurred while saving your suggestion. Please try again.'
+    if (props.fromSearch) {
+      track('game_request_submit', { props: { q: form.value.title, result: 'fail' } })
+    }
   } finally {
     loading.value = false
   }
