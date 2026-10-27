@@ -87,15 +87,8 @@ export const REMOTE_DEVICE_STATUSES: readonly RemoteRequestStatus[] = [
   'cancelled'
 ]
 
-/**
- * install_error reasons, plus two PackageInstaller failures the USB path does not see.
- * `signature_conflict` and `busy` are remote-only.
- */
-export const REMOTE_ERROR_REASONS = [
-  ...INSTALL_ERROR_REASONS,
-  'signature_conflict',
-  'busy'
-] as const
+/** Same reasons as install_error, including signature_conflict and busy. */
+export const REMOTE_ERROR_REASONS = INSTALL_ERROR_REASONS
 
 export type RemoteErrorReason = (typeof REMOTE_ERROR_REASONS)[number]
 

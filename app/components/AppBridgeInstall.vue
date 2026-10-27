@@ -200,7 +200,7 @@ import {
   APP_INSTALL_PERMISSION_HINT,
   appBridgeApkUrl,
   appBridgeInstallErrorReason,
-  appInstallErrorMessage,
+  appInstallFailureCopy,
   appInstallStatusLabel,
   appUpdateAvailable,
   bridgeCanUninstall,
@@ -209,6 +209,11 @@ import {
   whenAppBridgeReady,
   type AppBridgeEventDetail
 } from '~/lib/appBridge'
+import { cleanInstallErrorDetail } from '~/lib/analytics'
+import {
+  takeAppInstallResult,
+  writePendingAppInstall
+} from '~/lib/appInstallRecovery'
 import {
   APP_RELEASE_SERIAL,
   assetLabelFromDownloadUrl,
@@ -256,7 +261,8 @@ const installedVersion = ref<string | null>(null)
 /** Package id the bridge actually found. Often an alt of the catalog primary. */
 const matchedPackage = ref<string | null>(null)
 const installedRelease = ref<InstalledReleaseRecord | null>(null)
-const errorMessage = ref('')
+const errorDetail = ref('')
+const errorMessage = computed(() => appInstallFailureCopy(errorDetail.value))
 const activeRequestId = ref('')
 const finished = new Set<string>()
 const bridgeReady = ref(false)
@@ -280,15 +286,24 @@ const showGameFiles = computed(() => props.needsGameFiles && installed.value && 
 
 const trackInstall = (
   event: 'install_click' | 'install_success' | 'install_error',
-  reason?: string
+  reason?: string,
+  detail?: string
 ) => {
+  const cleaned = event === 'install_error' ? cleanInstallErrorDetail(detail) : null
   track(event, {
     path: route.path,
     portSlug: props.slug,
     props: event === 'install_error'
-      ? { reason: reason || 'other', app: true }
+      ? { reason: reason || 'other', app: true, ...(cleaned ? { detail: cleaned } : {}) }
       : { app: true }
   })
+}
+
+/** One result per bridge request, shared with the global recovery listener. */
+const recordInstallResult = (requestId: string, record: () => void) => {
+  if (!import.meta.client) return
+  if (!takeAppInstallResult(window.localStorage, requestId)) return
+  record()
 }
 
 const syncRelease = () => {
@@ -358,21 +373,23 @@ const applyStatus = (detail: AppBridgeEventDetail) => {
     installed.value = true
     readInstalled()
     rememberAppInstall()
-    trackInstall('install_success')
+    recordInstallResult(detail.requestId, () => trackInstall('install_success'))
     return
   }
   if (detail.status === 'cancelled') {
     finished.add(detail.requestId)
     phase.value = installed.value ? 'success' : 'idle'
     progress.value = 0
-    trackInstall('install_error', 'user_cancelled')
+    recordInstallResult(detail.requestId, () => trackInstall('install_error', 'user_cancelled'))
     return
   }
   if (detail.status === 'error') {
     finished.add(detail.requestId)
     phase.value = 'error'
-    errorMessage.value = appInstallErrorMessage(detail.error)
-    trackInstall('install_error', appBridgeInstallErrorReason('error', detail.error))
+    errorDetail.value = detail.error || ''
+    recordInstallResult(detail.requestId, () => {
+      trackInstall('install_error', appBridgeInstallErrorReason('error', detail.error), detail.error)
+    })
   }
 }
 
@@ -390,8 +407,8 @@ const startInstall = () => {
   const bridge = window.QuestPortsApp
   if (!bridge) {
     phase.value = 'error'
-    errorMessage.value = 'QuestPorts install bridge is unavailable.'
-    trackInstall('install_error', 'other')
+    errorDetail.value = 'QuestPorts install bridge is unavailable.'
+    trackInstall('install_error', 'other', errorDetail.value)
     return
   }
   const url = appBridgeApkUrl(
@@ -401,16 +418,18 @@ const startInstall = () => {
   )
   if (!url) {
     phase.value = 'error'
-    errorMessage.value = 'No APK download URL configured for this port.'
-    trackInstall('install_error', 'other')
+    errorDetail.value = 'No APK download URL configured for this port.'
+    trackInstall('install_error', 'other', errorDetail.value)
     return
   }
 
   trackInstall('install_click')
   phase.value = 'downloading'
   progress.value = 0
-  errorMessage.value = ''
+  errorDetail.value = ''
   activeRequestId.value = ''
+  const wasInstalled = installed.value
+  const previousVersion = installedVersion.value
 
   const queued: AppBridgeEventDetail[] = []
   const capture = (event: Event) => {
@@ -423,19 +442,31 @@ const startInstall = () => {
     requestId = String(bridge.installApk(url, props.packageName ?? null) ?? '')
   } catch (err) {
     window.removeEventListener(APP_BRIDGE_EVENT, capture)
+    const raw = err instanceof Error ? err.message : ''
     phase.value = 'error'
-    errorMessage.value = appInstallErrorMessage(err instanceof Error ? err.message : '')
-    trackInstall('install_error', appBridgeInstallErrorReason('error', errorMessage.value))
+    errorDetail.value = raw
+    trackInstall('install_error', appBridgeInstallErrorReason('error', raw), raw)
     return
   }
   activeRequestId.value = requestId
   window.removeEventListener(APP_BRIDGE_EVENT, capture)
   if (!requestId) {
     phase.value = 'error'
-    errorMessage.value = 'Install failed.'
-    trackInstall('install_error', 'other')
+    errorDetail.value = 'Install failed.'
+    trackInstall('install_error', 'other', errorDetail.value)
     return
   }
+  const now = Date.now()
+  writePendingAppInstall(window.localStorage, {
+    requestId,
+    slug: props.slug,
+    packageName: props.packageName || '',
+    path: route.path,
+    startedAt: now,
+    progressAt: now,
+    wasInstalled,
+    previousVersion
+  })
   for (const detail of queued) {
     if (detail.requestId === requestId) applyStatus(detail)
   }
@@ -451,7 +482,7 @@ const cancelInstall = () => {
     window.QuestPortsApp?.cancel(requestId)
   } catch {
     phase.value = installed.value ? 'success' : 'idle'
-    trackInstall('install_error', 'user_cancelled')
+    recordInstallResult(requestId, () => trackInstall('install_error', 'user_cancelled'))
   }
 }
 

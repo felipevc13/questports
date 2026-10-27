@@ -1,7 +1,11 @@
 -- Send to Quest analytics. Compare remote installs with USB, and split ports that
 -- still need the player's game files (props.needs_files = 'true' or 'false').
 -- Apply this manually in the Supabase SQL editor after merge. Do not run it from CI.
--- Do not drop analytics_events_install_step_check or analytics_events_install_error_reason.
+-- Apply after 20261027020000_analytics_catalog_search.sql and
+-- 20261027040000_port_suggestion_search_url.sql. The event check below keeps
+-- search_result_click and game_request_* from the catalog-search migration.
+-- Do not drop analytics_events_install_step_check, analytics_events_install_error_reason,
+-- analytics_events_install_error_detail, or analytics_events_install_success_recovered.
 
 alter table public.analytics_events drop constraint if exists analytics_events_event_check;
 
@@ -34,6 +38,10 @@ alter table public.analytics_events
       'app_open',
       'game_launch',
       'app_download_click',
+      'search_result_click',
+      'game_request_shown',
+      'game_request_click',
+      'game_request_submit',
       'remote_send_click',
       'remote_pair_shown',
       'remote_pair_success',

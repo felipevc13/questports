@@ -6,7 +6,7 @@ import {
   isSelfContainedSideload,
   verifyFolderOnQuest
 } from '../app/data/portPackageMap'
-import { destinationDirForDroppedFile } from '../app/lib/dropPaths'
+import { destinationDirForDroppedFile, isCleanQuestDropPath } from '../app/lib/dropPaths'
 import type { CampaignLocation } from '../app/data/portPackageMap'
 
 function listFrom(files: Record<string, string[]>) {
@@ -282,5 +282,21 @@ describe('dropped folders keep the subdirectories detection scans', () => {
       'DATA',
       'GENERAL.TXT'
     )).toBe('/sdcard/Android/data/com.github.maranone.questcarnage/files/DATA/')
+  })
+})
+
+describe('drop destinations', () => {
+  it('accepts a real Quest folder and rejects guide prose', () => {
+    expect(isCleanQuestDropPath('/sdcard/languages/English/')).toBe(true)
+    expect(isCleanQuestDropPath('/storage/emulated/0/Download/')).toBe(true)
+    expect(isCleanQuestDropPath('/sdcard/Android/data/org.homeworldunbound.game/files/')).toBe(true)
+    expect(isCleanQuestDropPath('/sdcard/')).toBe(false)
+    expect(isCleanQuestDropPath('/sdcard/languages/../English/')).toBe(false)
+    expect(isCleanQuestDropPath(
+      '/sdcard/languages/<Language>/ (folder created on first launch, e.g. languages/English/ for the USA discs)'
+    )).toBe(false)
+    expect(isCleanQuestDropPath('/sdcard/Download (then import in the app)/')).toBe(false)
+    expect(isCleanQuestDropPath('see the installation guide')).toBe(false)
+    expect(isCleanQuestDropPath('')).toBe(false)
   })
 })

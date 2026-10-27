@@ -55,6 +55,29 @@ export interface PortPackageConfig {
   folders?: PortFolderRequirement[]
 }
 
+/** Disc languages Metal Gear Solid VR reads under /sdcard/languages/. English is the USA set. */
+export const MGS_DISC_LANGUAGES = [
+  { id: 'english', name: 'English', base: true, discs: 'USA' },
+  { id: 'spanish', name: 'Spanish', base: false, discs: 'Spain' },
+  { id: 'french', name: 'French', base: false, discs: 'France' },
+  { id: 'german', name: 'German', base: false, discs: 'Germany' },
+  { id: 'italian', name: 'Italian', base: false, discs: 'Italy' },
+  { id: 'japanese', name: 'Japanese', base: false, discs: 'Japan' }
+] as const
+
+function mgsLanguageFolder(language: (typeof MGS_DISC_LANGUAGES)[number]): PortFolderRequirement {
+  return {
+    id: `mgs_${language.id}`,
+    name: `${language.name} discs`,
+    folderName: language.name,
+    targetPath: `/sdcard/languages/${language.name}/`,
+    campaignId: language.id,
+    required: language.base,
+    fileExtensionPattern: '\\.(bin|cue)$',
+    description: `.bin and .cue from both ${language.discs} discs. Do not copy the zip.`
+  }
+}
+
 export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   rtcwquest: {
     slug: 'rtcwquest',
@@ -1145,6 +1168,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   // Manifest package ids from the catalog APK (or the APK inside its zip), read
   // 2026-10-15. Without an entry the Quest app never calls isInstalled, so the
   // game stays out of Library. Each id belongs to one port.
+  '18-wheeler-vr': {
+    slug: '18-wheeler-vr',
+    packageName: 'com.flycast.emulator.wheeler18',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'age-of-joy': {
     slug: 'age-of-joy',
     packageName: 'com.curif.AgeOfJoy',
@@ -1187,7 +1216,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'daytona-usa-vr',
     packageName: 'io.port0r.daytona',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'MAME 0.289 sets daytona.zip and model1io.zip. The Port0r README says Download is the usual folder; the app also searches the rest of storage.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'daytona_rom',
+        name: 'Daytona USA ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['daytona.zip', 'model1io.zip'],
+        description: 'daytona.zip and model1io.zip (MAME 0.289). Leave them zipped.'
+      }
+    ]
   },
   'descent-1-2-vr': {
     slug: 'descent-1-2-vr',
@@ -1205,7 +1248,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'dirt-dash-vr',
     packageName: 'io.port0r.dirtdash',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'MAME 0.289 sets dirtdash.zip and namcoc71.zip. The Port0r README says Download is the usual folder.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'dirtdash_rom',
+        name: 'Dirt Dash ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['dirtdash.zip', 'namcoc71.zip'],
+        description: 'dirtdash.zip and namcoc71.zip (MAME 0.289). Leave them zipped.'
+      }
+    ]
   },
   dolphinxr: {
     slug: 'dolphinxr',
@@ -1229,7 +1286,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'homeworld-unbound',
     packageName: 'org.homeworldunbound.game',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Full-campaign data goes in /sdcard/Android/data/org.homeworldunbound.game/files. The demo assets already ship inside the APK.',
+    targetPath: '/sdcard/Android/data/org.homeworldunbound.game/files/',
+    folders: [
+      {
+        id: 'homeworld_files',
+        name: 'Homeworld data',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/org.homeworldunbound.game/files/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'Your own Homeworld data files. The next launch switches off the bundled demo.'
+      }
+    ]
   },
   'hotd-vr': {
     slug: 'hotd-vr',
@@ -1267,7 +1337,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'majoras-mask-vr',
     packageName: 'com.fulldivegames.majorasmaskvr',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Put the Majora\'s Mask ROM in /sdcard/Download/ and pick it in the app. Mods and texture packs go in /sdcard/MMVR/.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'mm_rom',
+        name: 'Majora\'s Mask ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: 'USA .z64, .n64, or .v64. The app\'s file picker imports it. Mods live in /sdcard/MMVR/.'
+      }
+    ]
   },
   'mega-man-64-vr': {
     slug: 'mega-man-64-vr',
@@ -1279,7 +1362,10 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'metal-gear-solid-vr',
     packageName: 'org.baywilly.mgsvr',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Copy .bin and .cue from both discs into /sdcard/languages/<Language>/. English is the USA set. Spanish, French, German, Italian, and Japanese are the other folders. Do not copy the zip. The README says the first launch creates languages/.',
+    targetPath: '/sdcard/languages/English/',
+    folders: MGS_DISC_LANGUAGES.map(mgsLanguageFolder)
   },
   'nfsu-vr': {
     slug: 'nfsu-vr',
@@ -1329,13 +1415,40 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'opencmr2-vr',
     packageName: 'org.opencmr2.vr',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Zip the installed PC game and put that zip in /sdcard/Download/. The app imports it. Do not copy into Android/data.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'cmr2_zip',
+        name: 'Colin McRae Rally 2.0 zip',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.zip$',
+        description: 'A zip of the installed PC game (Game, FrontEnd, Sounds). The app imports it from Download.'
+      }
+    ]
   },
   'openmw-vr': {
     slug: 'openmw-vr',
     packageName: 'org.openmw.vr',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Copy the Morrowind folder (it must contain Data Files) to /sdcard/Morrowind/. The README also accepts the app-scoped data/ folder.',
+    targetPath: '/sdcard/Morrowind/',
+    folders: [
+      {
+        id: 'morrowind_data',
+        name: 'Morrowind Data Files',
+        folderName: 'Morrowind',
+        targetPath: '/sdcard/Morrowind/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['Data Files'],
+        description: 'The Morrowind folder with Data Files inside. Grant storage permission when the app asks.'
+      }
+    ]
   },
   'openxwa-vr': {
     slug: 'openxwa-vr',
@@ -1403,7 +1516,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'sega-rally-vr',
     packageName: 'io.port0r.segarally',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'MAME 0.289 set srallyc.zip in /sdcard/Download/. Add segabill.zip only when the set does not already include the billboard ROM. Leave them zipped.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'srally_rom',
+        name: 'Sega Rally ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['srallyc.zip'],
+        description: 'srallyc.zip (MAME 0.289). segabill.zip only if your set asks for it.'
+      }
+    ]
   },
   'sclerosis-vr': {
     slug: 'sclerosis-vr',
@@ -1416,7 +1543,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'sm64-coop-dx-vr',
     packageName: 'com.fulldivegames.sm64coopdxvr',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Put the US .z64 in /sdcard/Download/ and pick it on first launch. The app copies it into private storage. Mods go in /sdcard/SM64VR/mods/.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'sm64_rom',
+        name: 'Super Mario 64 US ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.z64$',
+        description: 'Unmodified US .z64. The in-app picker imports it. Mods go in /sdcard/SM64VR/mods/.'
+      }
+    ]
   },
   'smash-remix-vr': {
     slug: 'smash-remix-vr',
@@ -1434,7 +1574,20 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'strikers-quest-mr',
     packageName: 'io.github.newcoke.strikers',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Put the GameCube disc image (.iso, .rvz, or .wia) in /sdcard/Download/ and choose it in the app.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'strikers_disc',
+        name: 'Super Mario Strikers disc',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|rvz|wia)$',
+        description: 'Your own .iso, .rvz, or .wia. Choose game file inside the app finds it.'
+      }
+    ]
   },
   'twilight-princess-vr': {
     slug: 'twilight-princess-vr',
@@ -1459,7 +1612,21 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'virtua-cop-vr',
     packageName: 'io.port0r.virtuacop',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'MAME 0.289 sets vcop.zip and model1io2.zip. The Port0r README says Download is the usual folder. Leave them zipped.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'vcop_rom',
+        name: 'Virtua Cop ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['vcop.zip', 'model1io2.zip'],
+        description: 'vcop.zip and model1io2.zip (MAME 0.289). Leave them zipped.'
+      }
+    ]
   },
   'wave-race-64-vr': {
     slug: 'wave-race-64-vr',
@@ -1484,13 +1651,39 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     slug: 'xelee',
     packageName: 'dev.melee.game',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Copy the Melee NTSC-U 1.02 disc image into /sdcard/Download/ (.iso, .gcm, .ciso, or .rvz). The launcher checks it.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'xelee_disc',
+        name: 'Melee disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|gcm|ciso|rvz)$',
+        description: 'Super Smash Bros. Melee NTSC-U 1.02 (.iso, .gcm, .ciso, or .rvz).'
+      }
+    ]
   },
   'xrkart-64': {
     slug: 'xrkart-64',
     packageName: 'com.n64vr.spaghettikart',
     installType: 'apk_and_assets',
-    criticalFiles: []
+    criticalFiles: [],
+    fileGuidance: 'Copy the Mario Kart 64 US ROM to /sdcard/Download/ (.z64, .n64, or .v64), then pick it in the launcher.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'xrkart_rom',
+        name: 'Mario Kart 64 US ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: 'US Mario Kart 64 ROM (.z64, .n64, or .v64). The launcher imports the file you pick.'
+      }
+    ]
   }
 }
 
@@ -1877,6 +2070,18 @@ export function packageIdHasRoot(packageName: string, root: string): boolean {
   return false
 }
 
+/** True when this id is the package or an alt package of a different catalog port. */
+function exactPackageOfOtherPort(slug: string, packageName: string): boolean {
+  const name = packageName.trim().toLowerCase()
+  if (!name) return false
+  for (const [other, otherCfg] of Object.entries(PORT_PACKAGE_CONFIGS)) {
+    if (other === slug) continue
+    if (otherCfg.packageName.toLowerCase() === name) return true
+    if (otherCfg.altPackages?.some(alt => alt.toLowerCase() === name)) return true
+  }
+  return false
+}
+
 /** Package id on the headset for this port, including alt ids and the same fuzzy match as the catalog. */
 export function installedPackageOnQuest(slug: string, installedPackages: string[]): string | null {
   if (!slug || !installedPackages || installedPackages.length === 0) return null
@@ -1895,10 +2100,12 @@ export function installedPackageOnQuest(slug: string, installedPackages: string[
   }
   // A related build (com.halo.decomp vs com.halo.decomp.vr). The root has to
   // end on a dot, so org.timecrisis.quest does not match org.timecrisis2.arcadevr.
+  // Skip an id that already belongs to another port. com.flycast.emulator.vr
+  // would otherwise treat com.flycast.emulator.wheeler18 as the same app.
   if (cfg?.packageName) {
     const pkgRoot = cfg.packageName.toLowerCase().replace(/^(com|org|net|mod|su)\./, '').replace(/\.(vr|quest|xr)$/, '')
     if (pkgRoot.length >= 4) {
-      const idx = lower.findIndex(p => packageIdHasRoot(p, pkgRoot))
+      const idx = lower.findIndex(p => !exactPackageOfOtherPort(slug, p) && packageIdHasRoot(p, pkgRoot))
       if (idx >= 0) return cleaned[idx]!
     }
   }

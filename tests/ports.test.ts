@@ -131,6 +131,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'time-crisis-vr': 'org.timecrisis.quest',
     'ut99-vr-quest': 'com.ghwstvr.ut99quest',
     winlatorxr: 'com.winlator.cmod',
+    '18-wheeler-vr': 'com.flycast.emulator.wheeler18',
     'age-of-joy': 'com.curif.AgeOfJoy',
     'animal-crossing-vr': 'com.liquidazir.animalcrossingquest',
     'arx-libertatis-vr': 'org.arxlibertatis.vr',
@@ -211,6 +212,9 @@ describe('Port Package Map & Workflow Verification', () => {
     expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['hotd2-vr'])).toBe(false)
     expect(isPortInstalledOnQuest('sega-rally-vr', ['com.flycast.emulator.vr'])).toBe(false)
     expect(isPortInstalledOnQuest('virtua-cop-vr', ['com.flycast.emulator.vr'])).toBe(false)
+    expect(isPortInstalledOnQuest('hotd2-vr', ['com.flycast.emulator.wheeler18'])).toBe(false)
+    expect(isPortInstalledOnQuest('18-wheeler-vr', ['com.flycast.emulator.vr'])).toBe(false)
+    expect(isPortInstalledOnQuest('18-wheeler-vr', ['com.flycast.emulator.wheeler18'])).toBe(true)
 
     expect(firstInstalledPackage('time-crisis-2-vr', name => name === 'org.timecrisis2.arcadevr')).toBe('org.timecrisis2.arcadevr')
     expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS['time-crisis-2-vr'])).toBe(true)

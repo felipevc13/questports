@@ -6,8 +6,8 @@ The browser and the headset app never write the tables. Nuxt calls Supabase with
 
 Apply these files in the Supabase SQL editor after merge. Do not run them from CI.
 
-- `supabase/migrations/20261027030000_remote_install.sql`
-- `supabase/migrations/20261027030100_analytics_remote_install.sql`
+- `supabase/migrations/20261027050000_remote_install.sql`
+- `supabase/migrations/20261027050100_analytics_remote_install.sql`
 
 Ready-made read queries are in `supabase/queries/remote_install.sql`.
 
@@ -111,7 +111,7 @@ Device statuses: `received`, `downloading`, `awaiting_confirm`, `installed`, `fa
 
 Forward only: `queued` → `received` → `downloading` → `awaiting_confirm` → `installed`. `downloading` may repeat so progress can move. `failed` and `cancelled` are allowed from any non-terminal status. A terminal row returns `409 closed`. An expired active row is flipped to `expired` and returns `409 expired`.
 
-`error_reason` on `failed` is the USB `install_error` set plus `signature_conflict` and `busy`. An unknown or missing reason is stored as `other`. `progress` is an integer from 0 to 100. `detail` is short display text.
+`error_reason` on `failed` is the same set as USB `install_error`, including `signature_conflict` and `busy`. An unknown or missing reason is stored as `other`. `progress` is an integer from 0 to 100. `detail` is short display text.
 
 ### `GET /api/remote/browsers` and `DELETE /api/remote/browsers/:id`
 
@@ -270,7 +270,7 @@ These additions are backward compatible. Old clients can ignore the extra JSON f
 2. Claim includes `device.app_version`.
 3. Browser `GET /requests/:id` includes `expires_at` and `needs_files`.
 4. `POST /requests/:id/cancel` for the browser.
-5. `error_reason` adds `signature_conflict` and `busy`. They are not added to the USB `install_error` constraint.
+5. `error_reason` uses the USB `install_error` set, which includes `signature_conflict` and `busy`.
 6. Site poll is 2 seconds, then 15 seconds while still queued after 60 seconds, and pauses when the tab is hidden.
 7. Wrong-code lockout is per IP hash (5 failures / 60 seconds). Matching codes still use the per-code attempt counter.
 8. `POST /requests` is idempotent while an active request for that browser and port exists.

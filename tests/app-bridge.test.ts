@@ -6,6 +6,7 @@ import {
   appBridgeInstallErrorReason,
   appBridgeVersionFromUserAgent,
   appInstallErrorMessage,
+  appInstallFailureCopy,
   appInstallStatusLabel,
   appUpdateAvailable,
   createMockQuestPortsApp,
@@ -18,6 +19,7 @@ import {
 import {
   browserFamilyFromUserAgent,
   clientAnalyticsPayload,
+  SIGNATURE_CONFLICT_MESSAGE,
   withAppAnalyticsProp
 } from '../app/lib/analytics'
 import { isQuestBrowserUserAgent } from '../app/lib/questBrowser'
@@ -125,9 +127,13 @@ describe('app bridge install url and status', () => {
     expect(appBridgeInstallErrorReason('needs_permission')).toBe('unauthorized')
     expect(appBridgeInstallErrorReason('error', 'Allow permission to install unknown apps')).toBe('unauthorized')
     expect(appBridgeInstallErrorReason('error', 'Failed to download APK: HTTP 404')).toBe('download_fail')
+    expect(appBridgeInstallErrorReason('error', 'conflicts with an app already on the headset')).toBe('signature_conflict')
+    expect(appBridgeInstallErrorReason('error', 'Another install is already in progress')).toBe('busy')
     expect(appBridgeInstallErrorReason('error', 'INSTALL_FAILED_INVALID_APK')).toBe('pm_fail')
     expect(appBridgeInstallErrorReason('error', 'Not enough free space')).toBe('storage')
     expect(appBridgeInstallErrorReason('error', '')).toBe('other')
+    expect(appInstallFailureCopy('conflicts with an app already on the headset')).toBe(SIGNATURE_CONFLICT_MESSAGE)
+    expect(appInstallFailureCopy('disk full')).toBe('disk full')
 
     expect(appUpdateAvailable('1.2.0', 'v1.2.1')).toBe(true)
     expect(appUpdateAvailable('1.0.6', 'v1.0.16')).toBe(true)
@@ -308,6 +314,12 @@ describe('app bridge install gate', () => {
     expect(install).toContain("trackInstall('install_click')")
     expect(install).toContain("trackInstall('install_success')")
     expect(install).toContain("trackInstall('install_error', 'user_cancelled')")
+    expect(install).toContain('writePendingAppInstall')
+    expect(install).toContain('takeAppInstallResult')
+    const recovery = readFileSync(new URL('../app/plugins/appInstallRecovery.client.ts', import.meta.url), 'utf8')
+    expect(recovery).toContain('recovered: true')
+    expect(recovery).toContain("reason: 'timeout'")
+    expect(recovery).toContain('takeAppInstallResult')
     expect(install).toContain('configuredProxyBase || window.location.origin')
     expect(install).toContain('appBridgeApkUrl(')
     expect(install).toContain('window.location.origin')

@@ -123,6 +123,10 @@ describe('analytics allowlist', () => {
       'app_open',
       'game_launch',
       'app_download_click',
+      'search_result_click',
+      'game_request_shown',
+      'game_request_click',
+      'game_request_submit',
       'remote_send_click',
       'remote_pair_shown',
       'remote_pair_success',
@@ -145,6 +149,12 @@ describe('analytics allowlist', () => {
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
       if (event === 'install_step') body.props = { step: 'connect', status: 'start' }
       if (event === 'search') body.props = { q: 'doom', length: 4 }
+      if (event === 'search_result_click') {
+        body.portSlug = 'red-dead-redemption-vr'
+        body.props = { q: 'rdr', position: 1, via: 'alias' }
+      }
+      if (event === 'game_request_shown' || event === 'game_request_click') body.props = { q: 'call of duty' }
+      if (event === 'game_request_submit') body.props = { q: 'call of duty', result: 'success' }
       if (event === 'search_no_results') body.props = { q: 'no such game' }
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
       if (event === 'video_preview_play') body.props = { surface: 'card' }
@@ -207,6 +217,12 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     const landingEvents = ['game_launch', 'app_download_click']
+    const searchEvents = [
+      'search_result_click',
+      'game_request_shown',
+      'game_request_click',
+      'game_request_submit'
+    ]
     const remoteEvents = [
       'remote_send_click',
       'remote_pair_shown',
@@ -227,11 +243,11 @@ describe('analytics allowlist', () => {
       'app_open'
     ]
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...remoteEvents].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...searchEvents, ...remoteEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
@@ -239,7 +255,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (appBannerEvents.includes(event) || landingEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(tipClick).toContain(`'${event}'`)
     }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
@@ -248,7 +264,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (landingEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(appBanner).toContain(`'${event}'`)
     }
     const landing = readFileSync(
@@ -256,11 +272,29 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (remoteEvents.includes(event)) continue
+      if (searchEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(landing).toContain(`'${event}'`)
     }
+    const catalogSearch = readFileSync(
+      new URL('../supabase/migrations/20261027020000_analytics_catalog_search.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) {
+      if (remoteEvents.includes(event)) continue
+      expect(catalogSearch).toContain(`'${event}'`)
+    }
+    expect(catalogSearch).toContain('drop constraint if exists analytics_events_event_check')
+    expect(catalogSearch).toContain('analytics_events_search_query')
+    expect(catalogSearch).toContain('analytics_events_search_result_click_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_shown_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_click_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_submit_check')
+    expect(catalogSearch).toContain("props->>'via' in ('text', 'alias', 'fuzzy', 'none')")
+    expect(catalogSearch).toContain("props->>'result' in ('success', 'fail')")
+    expect(catalogSearch).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(catalogSearch).not.toMatch(/drop constraint if exists analytics_events_install_error_reason/i)
     const remoteSql = readFileSync(
-      new URL('../supabase/migrations/20261027030100_analytics_remote_install.sql', import.meta.url),
+      new URL('../supabase/migrations/20261027050100_analytics_remote_install.sql', import.meta.url),
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) expect(remoteSql).toContain(`'${event}'`)
@@ -268,7 +302,12 @@ describe('analytics allowlist', () => {
     expect(remoteSql).toContain("props->>'needs_files' in ('true', 'false')")
     expect(remoteSql).toContain("props->>'method' in ('usb', 'remote', 'app')")
     expect(remoteSql).toContain('analytics_events_remote_app_outdated_check')
+    expect(remoteSql).toContain("'search_result_click'")
+    expect(remoteSql).toContain("'game_request_shown'")
+    expect(remoteSql).toContain("'game_request_click'")
+    expect(remoteSql).toContain("'game_request_submit'")
     expect(remoteSql).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(remoteSql).not.toMatch(/drop constraint if exists analytics_events_install_error_reason/i)
     expect(landing).toContain('drop constraint if exists analytics_events_event_check')
     expect(landing).toContain('analytics_events_landing_check')
     expect(landing).toContain('analytics_events_app_download_click_check')
@@ -301,10 +340,21 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261010120000_analytics_too_large.sql', import.meta.url),
       'utf8'
     )
-    const reasonsSql = `${sql}\n${tooLarge}`
+    const errorDetail = readFileSync(
+      new URL('../supabase/migrations/20261027010000_analytics_install_error_detail.sql', import.meta.url),
+      'utf8'
+    )
+    const reasonsSql = `${sql}\n${tooLarge}\n${errorDetail}`
     for (const reason of INSTALL_ERROR_REASONS) expect(reasonsSql).toContain(`'${reason}'`)
     expect(tooLarge).toContain('analytics_events_install_error_reason')
     expect(tooLarge).toContain("'too_large'")
+    expect(errorDetail).toContain('analytics_events_install_error_detail')
+    expect(errorDetail).toContain('analytics_events_install_success_recovered')
+    expect(errorDetail).toContain("'signature_conflict'")
+    expect(errorDetail).toContain("'busy'")
+    expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_event_check/i)
+    expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(errorDetail).not.toContain("props->>'app'")
     for (const filter of FILTER_NAMES) expect(sql).toContain(`'${filter}'`)
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
@@ -536,6 +586,91 @@ describe('analytics validation', () => {
     expect(decision.row?.path).toBe('/')
   })
 
+  it('keeps a settled search, a result click, and the request-this-game funnel', () => {
+    const settled = clientAnalyticsPayload('search', {
+      path: '/',
+      props: {
+        q: '  RDR  ',
+        length: 3,
+        count: 1,
+        via: 'alias',
+        results: 'red-dead-redemption-vr',
+        email: 'drop-me'
+      }
+    })
+    expect(settled?.props).toEqual({
+      q: 'rdr',
+      length: 3,
+      count: 1,
+      via: 'alias',
+      results: 'red-dead-redemption-vr'
+    })
+    expect(JSON.stringify(settled)).not.toContain('drop-me')
+    expect(JSON.stringify(settled)).not.toContain('RDR')
+
+    const missed = clientAnalyticsPayload('search', {
+      path: '/',
+      props: { q: 'call of duty', length: 12, count: 0, via: 'none' }
+    })
+    expect(missed?.props).toEqual({ q: 'call of duty', length: 12, count: 0, via: 'none' })
+
+    expect(clientAnalyticsPayload('search', {
+      path: '/',
+      props: { q: 'doom', length: 4, count: 0, via: 'alias' }
+    })?.props).toEqual({ q: 'doom', length: 4 })
+
+    const click = clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      portSlug: 'red-dead-redemption-vr',
+      props: { q: 'RDR', position: 1, via: 'alias', ref: 'hn' }
+    })
+    expect(click?.portSlug).toBe('red-dead-redemption-vr')
+    expect(click?.props).toEqual({ q: 'rdr', position: 1, via: 'alias' })
+    expect(clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      props: { q: 'rdr', position: 1, via: 'alias' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      portSlug: 'red-dead-redemption-vr',
+      props: { q: 'rdr', position: 0, via: 'alias' }
+    })).toBeNull()
+
+    expect(clientAnalyticsPayload('game_request_shown', {
+      path: '/',
+      props: { q: '  Call of Duty  ' }
+    })?.props).toEqual({ q: 'call of duty' })
+    expect(clientAnalyticsPayload('game_request_click', {
+      path: '/',
+      props: { q: 'call of duty' }
+    })?.props).toEqual({ q: 'call of duty' })
+    expect(clientAnalyticsPayload('game_request_submit', {
+      path: '/',
+      props: { q: 'call of duty', result: 'success' }
+    })?.props).toEqual({ q: 'call of duty', result: 'success' })
+    expect(clientAnalyticsPayload('game_request_submit', {
+      path: '/',
+      props: { q: 'call of duty', result: 'maybe' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('game_request_shown', { path: '/', props: { q: '   ' } })).toBeNull()
+
+    const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
+    const home = readFileSync(new URL('../app/components/AppHome.vue', import.meta.url), 'utf8')
+    const empty = readFileSync(new URL('../app/components/CatalogEmptyState.vue', import.meta.url), 'utf8')
+    const modal = readFileSync(new URL('../app/components/SuggestModal.vue', import.meta.url), 'utf8')
+    expect(index).toContain('<CatalogEmptyState')
+    expect(empty).toContain('data-testid="request-this-game"')
+    expect(empty).toContain('min-h-11')
+    expect(index).toContain("track('game_request_click'")
+    expect(index).toContain("track('search_result_click'")
+    expect(home).toContain("track('search_no_results'")
+    expect(home).toContain("fromSearch: true")
+    expect(modal).toContain("track('suggest_submit')")
+    expect(modal).toContain("track('game_request_submit'")
+    expect(modal).toContain("result: 'success'")
+    expect(modal).toContain("result: 'fail'")
+  })
+
   it('keeps filter names on the allowlist and install errors as short codes', () => {
     expect(decide({
       body: { event: 'filter_used', props: { filter: 'not_a_filter', value: 'x' } }
@@ -550,13 +685,43 @@ describe('analytics validation', () => {
         portSlug: 'rtcwquest',
         props: { reason: 'drop table', detail: 'serial 123' }
       }
-    }).row?.props).toEqual({ reason: 'other' })
+    }).row?.props).toEqual({ reason: 'other', detail: 'serial 123' })
     expect(decide({
       body: { event: 'install_error', portSlug: 'rtcwquest', props: { reason: 'user_cancelled' } }
     }).row?.props).toEqual({ reason: 'user_cancelled' })
     expect(decide({
       body: { event: 'install_error', portSlug: 'doom3quest', props: { reason: 'too_large' } }
     }).row?.props).toEqual({ reason: 'too_large' })
+    expect(decide({
+      body: {
+        event: 'install_error',
+        portSlug: 'time-crisis-vr',
+        props: { reason: 'signature_conflict', detail: 'INSTALL_FAILED_UPDATE_INCOMPATIBLE', junk: true }
+      }
+    }).row?.props).toEqual({ reason: 'signature_conflict', detail: 'INSTALL_FAILED_UPDATE_INCOMPATIBLE' })
+    expect(decide({
+      body: {
+        event: 'install_error',
+        portSlug: 'time-crisis-vr',
+        props: { reason: 'busy', detail: '(((' }
+      }
+    }).row?.props).toEqual({ reason: 'busy' })
+    expect(decide({
+      body: {
+        event: 'install_success',
+        portSlug: 'sega-rally-vr',
+        path: '/ports/sega-rally-vr',
+        props: { recovered: true, extra: 'no' }
+      }
+    }).row?.props).toEqual({ recovered: true })
+    expect(decide({
+      body: {
+        event: 'install_success',
+        portSlug: 'sega-rally-vr',
+        path: '/ports/sega-rally-vr',
+        props: { recovered: false }
+      }
+    }).row?.props).toBeNull()
   })
 
   it('maps install failures to short reason codes', () => {
@@ -566,6 +731,12 @@ describe('analytics validation', () => {
     expect(installErrorReason(new Error('Not enough free space. Need 1 MB.'))).toBe('storage')
     expect(installErrorReason(new Error('Failed to download APK: HTTP 404'))).toBe('download_fail')
     expect(installErrorReason(new Error('INSTALL_FAILED_INVALID_APK'))).toBe('pm_fail')
+    expect(installErrorReason(new Error('INSTALL_FAILED_UPDATE_INCOMPATIBLE'))).toBe('signature_conflict')
+    expect(installErrorReason('conflicts with an app already on the headset')).toBe('signature_conflict')
+    expect(installErrorReason('signatures do not match the existing app')).toBe('signature_conflict')
+    expect(installErrorReason('Another install is already in progress')).toBe('busy')
+    expect(installErrorReason('Unable to download the APK')).toBe('download_fail')
+    expect(installErrorReason('Download failed: HTTP 500')).toBe('download_fail')
     expect(installErrorReason(new Error('device unauthorized.'))).toBe('unauthorized')
     expect(installErrorReason(new Error('The Quest USB interface is locked by another program'))).toBe('usb_locked')
     expect(installErrorReason(new Error('Headset authorization timed out.'))).toBe('timeout')

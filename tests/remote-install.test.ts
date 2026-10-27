@@ -357,7 +357,7 @@ describe('Send to Quest API', () => {
     expect(navbar).not.toContain('SendToQuest')
     expect(navbar).not.toContain('send-to-quest')
     expect(navbar).not.toContain('Install via USB')
-    const sql = readFileSync(new URL('../supabase/migrations/20261027030000_remote_install.sql', import.meta.url), 'utf8')
+    const sql = readFileSync(new URL('../supabase/migrations/20261027050000_remote_install.sql', import.meta.url), 'utf8')
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
     expect(sql).toContain('needs_files boolean')

@@ -30,6 +30,10 @@ export const ANALYTICS_EVENTS = [
   'app_open',
   'game_launch',
   'app_download_click',
+  'search_result_click',
+  'game_request_shown',
+  'game_request_click',
+  'game_request_submit',
   'remote_send_click',
   'remote_pair_shown',
   'remote_pair_success',
@@ -54,10 +58,27 @@ export const INSTALL_ERROR_REASONS = [
   'pm_fail',
   'timeout',
   'too_large',
+  'signature_conflict',
+  'busy',
   'other'
 ] as const
 
 export type InstallErrorReason = (typeof INSTALL_ERROR_REASONS)[number]
+
+/** Short free-text stored next to install_error reason. Kept inside the 400-byte props cap. */
+export const INSTALL_ERROR_DETAIL_MAX = 80
+
+export const SIGNATURE_CONFLICT_MESSAGE =
+  'Uninstall the existing game first (saves will be lost), then install again. The copy on the headset was signed with a different key.'
+
+/** Collapse whitespace and drop characters the analytics check will not store. */
+export function cleanInstallErrorDetail(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const collapsed = input.replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim()
+  const safe = collapsed.replace(/[^A-Za-z0-9 ._:/=+-]/g, '').trim().slice(0, INSTALL_ERROR_DETAIL_MAX)
+  if (!/^[A-Za-z0-9]/.test(safe)) return null
+  return safe
+}
 
 export const FILTER_NAMES = [
   'category',
@@ -81,6 +102,23 @@ export type UnsupportedBrowserAction = (typeof UNSUPPORTED_BROWSER_ACTIONS)[numb
 export const SEARCH_QUERY_MAX = 60
 export const SEARCH_LENGTH_MAX = 500
 export const SEARCH_NO_RESULTS_MAX = 80
+export const SEARCH_COUNT_MAX = 500
+export const SEARCH_RESULTS_MAX = 240
+export const SEARCH_POSITION_MAX = 500
+
+/** How a settled search produced its rows. `none` is a zero-result search. */
+export const SEARCH_OUTCOME_VIAS = ['text', 'alias', 'fuzzy', 'none'] as const
+
+export type SearchOutcomeVia = (typeof SEARCH_OUTCOME_VIAS)[number]
+
+/** How the port that was clicked matched. A miss has no click. */
+export const SEARCH_RESULT_VIAS = ['text', 'alias', 'fuzzy'] as const
+
+export type SearchResultVia = (typeof SEARCH_RESULT_VIAS)[number]
+
+export const GAME_REQUEST_RESULTS = ['success', 'fail'] as const
+
+export type GameRequestResult = (typeof GAME_REQUEST_RESULTS)[number]
 export const CAMPAIGN_REF_MAX = 40
 export const ANALYTICS_HOURLY_LIMIT = 120
 export const CAMPAIGN_REF_STORAGE_KEY = 'questports_ref'
@@ -191,6 +229,7 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'install_step',
   'video_preview_play',
   'game_launch',
+  'search_result_click',
   'remote_send_click',
   'remote_pair_shown',
   'remote_pair_success',
@@ -410,7 +449,13 @@ export function installErrorReason(err: unknown): InstallErrorReason {
   if (/unauthorized/.test(text)) return 'unauthorized'
   if (/usb interface is locked|already in use|usb_locked|interface is locked|being used by another app|adb kill-server/.test(text)) return 'usb_locked'
   if (/timed out|timeout/.test(text)) return 'timeout'
-  if (/failed to download|download apk|download stream/.test(text)) return 'download_fail'
+  if (/update_incompatible|signatures do not match|signature mismatch|conflicts with an app already/i.test(text)) {
+    return 'signature_conflict'
+  }
+  if (/another install is already in progress|install already in progress/i.test(text)) return 'busy'
+  if (/failed to download|download failed|download apk|download stream|unable to download/i.test(text)) {
+    return 'download_fail'
+  }
   if (/install_failed|package manager|pm install|failure \[/.test(text)) return 'pm_fail'
   if (/not connected|adb/.test(text)) return 'adb_fail'
   return 'other'
@@ -742,7 +787,65 @@ export function withSessionCampaignRef(
   return { ...input, props: { ...base, ref } }
 }
 
-export function searchProps(query: string, reportedLength?: number): { q: string; length: number } | null {
+const SEARCH_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+export interface SearchAnalyticsProps {
+  q: string
+  length: number
+  count?: number
+  via?: SearchOutcomeVia
+  results?: string
+}
+
+/** Slugs the searcher actually saw, cut so the stored props object stays small. */
+export function searchResultSlugList(slugs: readonly string[]): string {
+  const kept: string[] = []
+  for (const slug of slugs) {
+    if (!SEARCH_SLUG_RE.test(slug)) continue
+    const next = kept.length ? `${kept.join(',')},${slug}` : slug
+    if (next.length > SEARCH_RESULTS_MAX) break
+    kept.push(slug)
+    if (kept.length >= 8) break
+  }
+  return kept.join(',')
+}
+
+function cleanSearchResults(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null
+  const list = searchResultSlugList(value.split(',').map(part => part.trim()))
+  return list || null
+}
+
+function searchStoredProps(search: SearchAnalyticsProps): Record<string, string | number | boolean> {
+  const stored: Record<string, string | number | boolean> = {
+    q: search.q,
+    length: search.length
+  }
+  if (search.count !== undefined) stored.count = search.count
+  if (search.via) stored.via = search.via
+  if (search.results) stored.results = search.results
+  return stored
+}
+
+function fitSearchProps(props: SearchAnalyticsProps): SearchAnalyticsProps {
+  const next: SearchAnalyticsProps = { ...props }
+  while (next.results && JSON.stringify({ ...next, app: true }).length > 400) {
+    const parts = next.results.split(',')
+    parts.pop()
+    if (!parts.length) {
+      delete next.results
+      break
+    }
+    next.results = parts.join(',')
+  }
+  return next
+}
+
+export function searchProps(
+  query: string,
+  reportedLength?: number,
+  extra?: { count?: unknown; via?: unknown; results?: unknown }
+): SearchAnalyticsProps | null {
   const normalized = cleanSearchQuery(query)
   if (!normalized) return null
   const q = normalized.slice(0, SEARCH_QUERY_MAX)
@@ -755,7 +858,59 @@ export function searchProps(query: string, reportedLength?: number): { q: string
   ) {
     length = reportedLength
   }
-  return { q, length }
+  const base: SearchAnalyticsProps = { q, length }
+  if (!extra || (extra.count === undefined && extra.via === undefined && extra.results === undefined)) {
+    return base
+  }
+  const count = typeof extra.count === 'number'
+    && Number.isInteger(extra.count)
+    && extra.count >= 0
+    && extra.count <= SEARCH_COUNT_MAX
+    ? extra.count
+    : null
+  const via = typeof extra.via === 'string' && (SEARCH_OUTCOME_VIAS as readonly string[]).includes(extra.via)
+    ? extra.via as SearchOutcomeVia
+    : null
+  if (count === null || via === null) return base
+  if (count === 0 ? via !== 'none' : via === 'none') return base
+  const results = count === 0 ? null : cleanSearchResults(extra.results)
+  return fitSearchProps({
+    ...base,
+    count,
+    via,
+    ...(results ? { results } : {})
+  })
+}
+
+function searchResultClickProps(
+  props: Record<string, unknown> | null
+): { q: string; position: number; via: SearchResultVia } | null {
+  const query = props && typeof props.q === 'string' ? props.q : ''
+  const normalized = cleanSearchQuery(query)
+  if (!normalized) return null
+  const position = props && typeof props.position === 'number' ? props.position : NaN
+  if (!Number.isInteger(position) || position < 1 || position > SEARCH_POSITION_MAX) return null
+  const via = props && typeof props.via === 'string' ? props.via : ''
+  if (!(SEARCH_RESULT_VIAS as readonly string[]).includes(via)) return null
+  return {
+    q: normalized.slice(0, SEARCH_QUERY_MAX),
+    position,
+    via: via as SearchResultVia
+  }
+}
+
+function gameRequestProps(
+  props: Record<string, unknown> | null,
+  withResult: boolean
+): { q: string; result?: GameRequestResult } | null {
+  const query = props && typeof props.q === 'string' ? props.q : ''
+  const normalized = cleanSearchQuery(query)
+  if (!normalized) return null
+  const q = normalized.slice(0, SEARCH_QUERY_MAX)
+  if (!withResult) return { q }
+  const result = props && typeof props.result === 'string' ? props.result : ''
+  if (!(GAME_REQUEST_RESULTS as readonly string[]).includes(result)) return null
+  return { q, result: result as GameRequestResult }
 }
 
 function filterProps(props: Record<string, unknown>): { filter: AnalyticsFilterName; value: string } | null {
@@ -772,12 +927,15 @@ function campaignRefProps(props: Record<string, unknown> | null): { ref?: string
   return ref ? { ref } : {}
 }
 
-function installErrorProps(props: Record<string, unknown> | null): { reason: InstallErrorReason; ref?: string } {
+function installErrorProps(
+  props: Record<string, unknown> | null
+): { reason: InstallErrorReason; detail?: string; ref?: string } {
   const reason = props && typeof props.reason === 'string' ? props.reason : ''
   const code = (INSTALL_ERROR_REASONS as readonly string[]).includes(reason)
     ? reason as InstallErrorReason
     : 'other'
-  return { reason: code, ...campaignRefProps(props) }
+  const detail = cleanInstallErrorDetail(props?.detail)
+  return { reason: code, ...(detail ? { detail } : {}), ...campaignRefProps(props) }
 }
 
 function installStepProps(
@@ -1037,7 +1195,13 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const needs = needsFilesProp(props)
     const remote = method === 'remote' && needs ? { method: 'remote' as const, needs_files: needs } : null
     const labeled = method && method !== 'remote' ? { method } : null
-    const stored = { ...ref, ...(via ? { via } : {}), ...(remote || labeled || {}) }
+    const recovered = record.event === 'install_success' && props?.recovered === true
+    const stored = {
+      ...ref,
+      ...(via ? { via } : {}),
+      ...(remote || labeled || {}),
+      ...(recovered ? { recovered: true as const } : {})
+    }
     storedProps = Object.keys(stored).length ? stored : null
   } else if (record.event === 'remote_send_click') {
     const send = remoteSendClickProps(props)
@@ -1065,9 +1229,25 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   } else if (record.event === 'search') {
     const query = props && typeof props.q === 'string' ? props.q : ''
     const length = props && typeof props.length === 'number' ? props.length : undefined
-    const search = searchProps(query, length)
+    const search = searchProps(query, length, {
+      count: props?.count,
+      via: props?.via,
+      results: props?.results
+    })
     if (!search) return null
-    storedProps = search
+    storedProps = searchStoredProps(search)
+  } else if (record.event === 'search_result_click') {
+    const click = searchResultClickProps(props)
+    if (!click) return null
+    storedProps = click
+  } else if (record.event === 'game_request_shown' || record.event === 'game_request_click') {
+    const request = gameRequestProps(props, false)
+    if (!request) return null
+    storedProps = request
+  } else if (record.event === 'game_request_submit') {
+    const request = gameRequestProps(props, true)
+    if (!request) return null
+    storedProps = request
   } else if (record.event === 'search_no_results') {
     const query = props && typeof props.q === 'string' ? props.q : ''
     const q = searchNoResultsQuery(query)

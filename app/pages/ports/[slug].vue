@@ -231,7 +231,7 @@
             <span class="text-xs font-bold text-foreground">{{ step2Title }}</span>
           </div>
           <p class="text-xs leading-relaxed text-muted-foreground">
-            {{ manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.' }}
+            {{ languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.') }}
           </p>
           <div
             v-for="campaign in manualCopyCampaigns"
@@ -274,6 +274,22 @@
               </span>
             </div>
           </div>
+        </div>
+
+        <div
+          v-else-if="inApp && showAppGameDataGuide"
+          data-testid="app-game-data-guide"
+          class="space-y-1.5 rounded-lg border border-border/80 bg-muted/20 p-3"
+        >
+          <p class="text-xs leading-relaxed text-muted-foreground">
+            Copy the game files using the installation guide. This page does not have one folder it can fill for you.
+          </p>
+          <a
+            href="#install-guide"
+            class="inline-flex min-h-11 items-center text-[11px] font-semibold text-primary hover:underline md:min-h-0"
+          >
+            Open the installation guide
+          </a>
         </div>
 
         <div v-if="!inApp" class="space-y-3 pt-1">
@@ -909,7 +925,10 @@
                 </div>
 
                 <!-- Multi-campaign install counter / storage status -->
-                <div v-if="campaignList.length > 1" class="text-[11px] font-mono text-muted-foreground flex items-center gap-2">
+                <div v-if="languageFolders" class="text-[11px] font-mono text-muted-foreground">
+                  One language is enough
+                </div>
+                <div v-else-if="campaignList.length > 1" class="text-[11px] font-mono text-muted-foreground flex items-center gap-2">
                   <span v-if="isScanningGameFiles" class="flex items-center gap-1.5 text-primary">
                     <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -959,10 +978,11 @@
               <div v-if="campaignList.length > 1" class="space-y-1.5 pt-1">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-muted-foreground font-medium flex items-center gap-1">
-                    <span>🎮</span> Select Campaign or Expansion:
+                    <template v-if="languageFolders">Select language:</template>
+                    <template v-else><span>🎮</span> Select Campaign or Expansion:</template>
                   </span>
                   <span class="text-[10px] text-muted-foreground/80 font-mono">
-                    Installs into separate subfolders
+                    {{ languageFolders ? 'English is the USA discs' : 'Installs into separate subfolders' }}
                   </span>
                 </div>
                 <div class="grid grid-cols-1 gap-1.5">
@@ -1009,7 +1029,7 @@
               </div>
 
               <!-- Destination folder path -->
-              <div v-if="currentCampaign" class="space-y-1.5">
+              <div v-if="currentCampaign && currentDropPathClean" class="space-y-1.5">
                 <div class="flex items-center justify-between gap-2 rounded border border-border/70 bg-black/40 p-2 font-mono text-xs">
                   <div class="flex min-w-0 items-center gap-1.5">
                     <svg class="h-3.5 w-3.5 shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1040,7 +1060,7 @@
 
               <!-- Dropzone / File Upload (Real Drag-and-Drop or Click) -->
               <div
-                v-if="!isCurrentCampaignTransferred"
+                v-if="currentDropPathClean && !isCurrentCampaignTransferred"
                 id="game-file-drop"
                 @dragover.prevent
                 @drop="handleDrop"
@@ -1083,6 +1103,22 @@
                     @cancel="cancelFileTransfer"
                   />
                 </div>
+              </div>
+
+              <div
+                v-else-if="currentCampaign && !currentDropPathClean && !isCurrentCampaignTransferred"
+                data-testid="drop-zone-withheld"
+                class="rounded-lg border border-border bg-muted/30 p-3 text-left"
+              >
+                <p class="text-[11px] leading-relaxed text-muted-foreground">
+                  This destination is explained in the installation guide, so files are not copied from this page.
+                </p>
+                <a
+                  href="#install-guide"
+                  class="mt-1 inline-flex min-h-11 items-center text-[11px] font-semibold text-primary hover:underline md:min-h-0"
+                >
+                  Open the installation guide
+                </a>
               </div>
 
               <div
@@ -1176,7 +1212,7 @@
                   </button>
 
                   <button
-                    v-if="nextUntransferredCampaign"
+                    v-if="nextUntransferredCampaign && !languageFolders"
                     @click="selectCampaign(nextUntransferredCampaign.id)"
                     class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-[11px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
                   >
@@ -1370,7 +1406,7 @@
               <div class="space-y-1">
                 <span class="text-[11px] text-muted-foreground block font-mono">Asset Directory on Quest:</span>
                 <div class="min-w-0 truncate rounded border border-border/70 bg-black/40 p-2 font-mono text-[11px] text-primary">
-                  {{ currentCampaign?.fullPath }}
+                  {{ assetDirectoryText }}
                 </div>
               </div>
 
@@ -1385,8 +1421,12 @@
             <!-- If multiple campaigns (Lambda1VR, SourceVR, etc.): show Campaign Matrix -->
             <div v-else class="space-y-3" data-testid="campaign-parts">
               <div class="flex items-center justify-between">
-                <span class="text-[11px] text-muted-foreground font-mono">Campaigns & DLCs:</span>
-                <span data-testid="campaign-part-count" class="text-[10px] font-mono text-primary font-bold">
+                <span class="text-[11px] text-muted-foreground font-mono">{{ languageFolders ? 'Languages:' : 'Campaigns & DLCs:' }}</span>
+                <span
+                  v-if="!languageFolders"
+                  data-testid="campaign-part-count"
+                  class="text-[10px] font-mono text-primary font-bold"
+                >
                   {{ installedCampaignsCount }} / {{ campaignList.length }}
                 </span>
               </div>
@@ -1440,7 +1480,11 @@
                       {{ isLegitimateStoreUrl(c.storeUrl) ? c.storeName : 'About' }} ↗
                     </a>
                   </div>
-                  <div data-testid="campaign-part-path" class="break-all font-mono text-[10px] text-muted-foreground/90">
+                  <div
+                    v-if="isCleanQuestDropPath(c.fullPath)"
+                    data-testid="campaign-part-path"
+                    class="break-all font-mono text-[10px] text-muted-foreground/90"
+                  >
                     {{ c.folder }}/ → {{ c.fullPath }}
                   </div>
                   <div v-if="c.exampleFiles" data-testid="campaign-part-files" class="mt-0.5 break-words text-[10px] leading-snug text-muted-foreground">
@@ -1554,7 +1598,7 @@ import {
 } from '~/lib/questUsbMessages'
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
-import { destinationDirForDroppedFile } from '~/lib/dropPaths'
+import { destinationDirForDroppedFile, isCleanQuestDropPath } from '~/lib/dropPaths'
 import { formatPortVersion } from '~/lib/portVersion'
 import {
   apkUpdateDecision,
@@ -1587,8 +1631,10 @@ import {
   apkInstallOutcome,
   claimVideoPreviewPlay,
   connectFailureReason,
+  cleanInstallErrorDetail,
   createInstallStepLedger,
   installErrorReason,
+  SIGNATURE_CONFLICT_MESSAGE,
   installStepEventsForConnectPhase,
   installStepEventsForConnectResult,
   installStepEventsForProgress,
@@ -1868,6 +1914,20 @@ const currentCampaign = computed<PortCampaign | null>(() => {
   return list[0] ?? null
 })
 
+const languageFolders = computed(() => {
+  const list = campaignList.value
+  return list.length > 1 && list.every(campaign => campaign.badge === 'Language')
+})
+
+const currentDropPathClean = computed(() => isCleanQuestDropPath(currentCampaign.value?.fullPath))
+
+const assetDirectoryText = computed(() => {
+  const path = currentCampaign.value?.fullPath || ''
+  if (isCleanQuestDropPath(path)) return path
+  if (currentCampaign.value?.exampleFiles === 'No extra files needed') return path || 'N/A'
+  return 'See the installation guide'
+})
+
 const currentDetectedCampaign = computed(() => {
   const id = currentCampaign.value?.id
   return id ? detectedCampaigns.value[id] : undefined
@@ -1889,6 +1949,7 @@ const scanCampaignFiles = async () => {
   try {
     const slugName = port.value.slug
     for (const campaign of campaignList.value) {
+      if (!isCleanQuestDropPath(campaign.fullPath)) continue
       const res = campaignPresenceIsAnyFile(slugName)
         ? await questAdb.checkCampaignFilesOnQuest(campaign)
         : await assessCampaignOnQuest(slugName, campaign, path => questAdb.listRemoteDir(path))
@@ -2107,10 +2168,15 @@ const isDirectApkOnly = computed(() => isSelfContainedSideload(currentPackageCon
 const manualCopyCampaigns = computed(() => {
   if (isDirectApkOnly.value) return []
   return campaignList.value.filter(campaign => {
-    const path = campaign.fullPath?.trim() || ''
-    if (!path.startsWith('/')) return false
+    if (!isCleanQuestDropPath(campaign.fullPath)) return false
     return campaign.exampleFiles !== 'No extra files needed'
   })
+})
+
+const showAppGameDataGuide = computed(() => {
+  if (isDirectApkOnly.value || isPcBuilderRequired.value || patchOnlyGuide.value || pcPatchCard.value) return false
+  if (manualCopyCampaigns.value.length) return false
+  return campaignList.value.some(campaign => campaign.exampleFiles !== 'No extra files needed')
 })
 
 const step2Title = computed(() => {
@@ -2333,11 +2399,15 @@ const trackPcBuilderLink = () => {
 
 const trackInstall = (
   event: 'install_click' | 'install_success' | 'install_error',
-  reason?: string
+  reason?: string,
+  detail?: string
 ) => {
+  const cleaned = event === 'install_error' ? cleanInstallErrorDetail(detail) : null
   track(event, {
     ...trackContext(),
-    props: event === 'install_error' ? { reason: reason || 'other' } : null
+    props: event === 'install_error'
+      ? { reason: reason || 'other', ...(cleaned ? { detail: cleaned } : {}) }
+      : null
   })
 }
 
@@ -2476,12 +2546,12 @@ const noteInstallFailure = (err: any) => {
   if (isApkTooLargeError(err)) {
     largePortNotice.value = err.message || tooLargeInstallMessage(err.size)
     apkInstallError.value = null
-    trackInstall('install_error', 'too_large')
+    trackInstall('install_error', 'too_large', err?.message)
     return
   }
   if (isUserCancel(err) || isUsbChooserDismissed(err)) {
     apkInstallError.value = null
-    trackInstall('install_error', 'user_cancelled')
+    trackInstall('install_error', 'user_cancelled', err?.message)
     return
   }
   const message = err?.message || 'Failed to install APK on headset.'
@@ -2489,12 +2559,13 @@ const noteInstallFailure = (err: any) => {
     spaceNotice.value = message
     spaceNoticeKind.value = 'block'
     apkInstallError.value = null
-    trackInstall('install_error', 'storage')
+    trackInstall('install_error', 'storage', message)
     return
   }
   console.error('Failed to install APK via WebADB:', err)
-  apkInstallError.value = message
-  trackInstall('install_error', installErrorReason(err))
+  const reason = installErrorReason(err)
+  apkInstallError.value = reason === 'signature_conflict' ? SIGNATURE_CONFLICT_MESSAGE : message
+  trackInstall('install_error', reason, message)
 }
 
 const retryUsbConnect = async () => {
@@ -2732,6 +2803,7 @@ const cancelFileTransfer = async () => {
 
 const uploadRealFiles = async (files: Array<File | { file: File, relPath?: string }>) => {
   if (!currentCampaign.value || !questAdb.isConnected.value || files.length === 0) return
+  if (!isCleanQuestDropPath(currentCampaign.value.fullPath)) return
   const normalized = files.map(entry => entry instanceof File ? entry : entry.file)
   const payloadBytes = normalized.reduce((sum, file) => sum + (file.size || 0), 0)
   spaceNotice.value = null
