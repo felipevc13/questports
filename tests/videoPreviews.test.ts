@@ -45,6 +45,7 @@ describe('local hover previews', () => {
   })
 
   it.each([
+    '18-wheeler-vr',
     'animal-crossing-vr',
     'descent-1-2-vr',
     'mega-man-64-vr'
