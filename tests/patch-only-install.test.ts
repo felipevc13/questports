@@ -49,6 +49,9 @@ describe('patch-only install', () => {
     expect(isOneClickApkAsset('')).toBe(false)
 
     expect(catalogPackageName('crazy-taxi-vr')).toBe('com.baywilly.crazytaxivr')
+    expect(catalogPackageName('max-payne-vr')).toBe('com.MPQ.HaveliSkywalker')
+    expect(isOneClickApkAsset('https://drive.google.com/file/d/abc123/view')).toBe(false)
+    expect(refusesOneClickInstall('max-payne-vr', 'https://drive.google.com/file/d/abc123/view')).toBe(true)
     expect(refusesOneClickInstall('crazy-taxi-vr', CRAZY_TAXI_PATCH_URL)).toBe(true)
     expect(refusesOneClickInstall('crazy-taxi-vr', 'https://example.com/CrazyTaxiVR.apk')).toBe(false)
     expect(refusesOneClickInstall('iron-lung-vr', 'https://example.com/game.xdelta')).toBe(true)

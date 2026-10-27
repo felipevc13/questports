@@ -66,6 +66,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'lambda1vr',
   'majoras-mask-vr',
   'mario-party-4-partyboard',
+  'max-payne-vr',
   'metal-gear-solid-vr',
   'nolf-vr',
   'nfsu-vr',

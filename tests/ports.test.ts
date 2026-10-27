@@ -150,6 +150,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'magic-carpet-vr': 'technology.master.mc.vr',
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
     'mario-party-4-partyboard': 'com.mariopartyrd.partyboard',
+    'max-payne-vr': 'com.MPQ.HaveliSkywalker',
     'mega-man-64-vr': 'com.megaman64recomp.vr',
     'metal-gear-solid-vr': 'org.baywilly.mgsvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
@@ -235,8 +236,8 @@ describe('Port Package Map & Workflow Verification', () => {
     }
   })
 
-  it('does not treat Mario Party 4 Partyboard or CTR Turbocharged as another port', () => {
-    const newcomers = ['mario-party-4-partyboard', 'ctr-turbocharged-vr']
+  it('does not treat Mario Party 4 Partyboard, CTR Turbocharged, or Max Payne as another port', () => {
+    const newcomers = ['mario-party-4-partyboard', 'ctr-turbocharged-vr', 'max-payne-vr']
     for (const slug of newcomers) {
       const pkg = PORT_PACKAGE_CONFIGS[slug]?.packageName
       expect(pkg, slug).toBeTruthy()
