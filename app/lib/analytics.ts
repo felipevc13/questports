@@ -29,7 +29,14 @@ export const ANALYTICS_EVENTS = [
   'app_page_view',
   'app_open',
   'game_launch',
-  'app_download_click'
+  'app_download_click',
+  'remote_send_click',
+  'remote_pair_shown',
+  'remote_pair_success',
+  'remote_pair_fail',
+  'remote_request_created',
+  'remote_status',
+  'remote_app_outdated'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -134,6 +141,43 @@ export const APP_DOWNLOAD_SURFACES = ['page', 'banner', 'modal'] as const
 
 export type AppDownloadSurface = (typeof APP_DOWNLOAD_SURFACES)[number]
 
+/** How an install was delivered. Omitted on older USB rows. */
+export const INSTALL_METHODS = ['usb', 'remote', 'app'] as const
+
+export type InstallMethod = (typeof INSTALL_METHODS)[number]
+
+export const REMOTE_PAIR_FAIL_REASONS = [
+  'invalid_code',
+  'expired',
+  'too_many_attempts',
+  'rate_limited',
+  'unavailable',
+  'disabled'
+] as const
+
+export type RemotePairFailReason = (typeof REMOTE_PAIR_FAIL_REASONS)[number]
+
+/** Status values stored on remote_status. `queued` is not an update; creation is remote_request_created. */
+export const REMOTE_STATUS_EVENTS = [
+  'received',
+  'downloading',
+  'awaiting_confirm',
+  'installed',
+  'failed',
+  'cancelled',
+  'expired'
+] as const
+
+export type RemoteStatusEvent = (typeof REMOTE_STATUS_EVENTS)[number]
+
+export const REMOTE_APP_OUTDATED_SURFACES = ['pair_modal', 'paired', 'send'] as const
+
+export type RemoteAppOutdatedSurface = (typeof REMOTE_APP_OUTDATED_SURFACES)[number]
+
+export const NEEDS_FILES_PROP_VALUES = ['true', 'false'] as const
+
+export type NeedsFilesProp = (typeof NEEDS_FILES_PROP_VALUES)[number]
+
 export const UTM_VALUE_MAX = 60
 export const LANDING_STORAGE_KEY = 'questports_landing'
 
@@ -146,7 +190,14 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'install_error',
   'install_step',
   'video_preview_play',
-  'game_launch'
+  'game_launch',
+  'remote_send_click',
+  'remote_pair_shown',
+  'remote_pair_success',
+  'remote_pair_fail',
+  'remote_request_created',
+  'remote_status',
+  'remote_app_outdated'
 ])
 
 /** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
@@ -837,6 +888,98 @@ export function landingReferrerFromBody(body: unknown): string | null {
   return trimmed
 }
 
+function needsFilesProp(props: Record<string, unknown> | null): NeedsFilesProp | null {
+  const value = props?.needs_files
+  if (value === true || value === 'true') return 'true'
+  if (value === false || value === 'false') return 'false'
+  return null
+}
+
+function installMethodProp(props: Record<string, unknown> | null): InstallMethod | null {
+  const method = props && typeof props.method === 'string' ? props.method : ''
+  if ((INSTALL_METHODS as readonly string[]).includes(method)) return method as InstallMethod
+  return null
+}
+
+function remoteSendClickProps(
+  props: Record<string, unknown> | null
+): { paired: boolean; needs_files: NeedsFilesProp; blocked?: 'app_outdated' } | null {
+  const needs = needsFilesProp(props)
+  if (!needs || typeof props?.paired !== 'boolean') return null
+  const blocked = props.blocked === 'app_outdated' ? 'app_outdated' as const : null
+  if (props.blocked != null && props.blocked !== 'app_outdated') return null
+  return {
+    paired: props.paired,
+    needs_files: needs,
+    ...(blocked ? { blocked } : {})
+  }
+}
+
+function remoteRequestCreatedProps(
+  props: Record<string, unknown> | null
+): { needs_files: NeedsFilesProp } | null {
+  const needs = needsFilesProp(props)
+  if (!needs) return null
+  return { needs_files: needs }
+}
+
+function remotePairFailProps(
+  props: Record<string, unknown> | null
+): { reason: RemotePairFailReason } | null {
+  const reason = props && typeof props.reason === 'string' ? props.reason : ''
+  if (!(REMOTE_PAIR_FAIL_REASONS as readonly string[]).includes(reason)) return null
+  return { reason: reason as RemotePairFailReason }
+}
+
+function remoteStatusProps(
+  props: Record<string, unknown> | null
+): { status: RemoteStatusEvent; reason?: string; progress?: number; seconds?: number } | null {
+  const status = props && typeof props.status === 'string' ? props.status : ''
+  if (!(REMOTE_STATUS_EVENTS as readonly string[]).includes(status)) return null
+  const stored: { status: RemoteStatusEvent; reason?: string; progress?: number; seconds?: number } = {
+    status: status as RemoteStatusEvent
+  }
+  if (props?.reason != null) {
+    const reason = typeof props.reason === 'string' ? props.reason : ''
+    if (!(INSTALL_ERROR_REASONS as readonly string[]).includes(reason)
+      && reason !== 'signature_conflict'
+      && reason !== 'busy') return null
+    stored.reason = reason
+  }
+  if (props?.progress != null) {
+    const progress = typeof props.progress === 'number' ? props.progress : NaN
+    if (!Number.isInteger(progress) || progress < 0 || progress > 100) return null
+    stored.progress = progress
+  }
+  if (props?.seconds != null) {
+    const seconds = typeof props.seconds === 'number' ? props.seconds : NaN
+    if (!Number.isInteger(seconds) || seconds < 0 || seconds > 172800) return null
+    stored.seconds = seconds
+  }
+  return stored
+}
+
+function remoteAppOutdatedProps(
+  props: Record<string, unknown> | null
+): { surface: RemoteAppOutdatedSurface; app_version?: string; min_app_version?: string } | null {
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(REMOTE_APP_OUTDATED_SURFACES as readonly string[]).includes(surface)) return null
+  const stored: { surface: RemoteAppOutdatedSurface; app_version?: string; min_app_version?: string } = {
+    surface: surface as RemoteAppOutdatedSurface
+  }
+  if (props?.app_version != null) {
+    const version = cleanAppVersion(props.app_version)
+    if (!version) return null
+    stored.app_version = version
+  }
+  if (props?.min_app_version != null) {
+    const version = cleanAppVersion(props.min_app_version)
+    if (!version) return null
+    stored.min_app_version = version
+  }
+  return stored
+}
+
 function unsupportedBrowserProps(
   props: Record<string, unknown> | null
 ): { action: UnsupportedBrowserAction } | null {
@@ -890,8 +1033,32 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
   } else if (record.event === 'install_click' || record.event === 'install_success') {
     const ref = campaignRefProps(props)
     const via = appInstallVia(props, path)
-    const stored = { ...ref, ...(via ? { via } : {}) }
+    const method = installMethodProp(props)
+    const needs = needsFilesProp(props)
+    const remote = method === 'remote' && needs ? { method: 'remote' as const, needs_files: needs } : null
+    const labeled = method && method !== 'remote' ? { method } : null
+    const stored = { ...ref, ...(via ? { via } : {}), ...(remote || labeled || {}) }
     storedProps = Object.keys(stored).length ? stored : null
+  } else if (record.event === 'remote_send_click') {
+    const send = remoteSendClickProps(props)
+    if (!send) return null
+    storedProps = send
+  } else if (record.event === 'remote_request_created') {
+    const created = remoteRequestCreatedProps(props)
+    if (!created) return null
+    storedProps = created
+  } else if (record.event === 'remote_pair_fail') {
+    const failed = remotePairFailProps(props)
+    if (!failed) return null
+    storedProps = failed
+  } else if (record.event === 'remote_status') {
+    const status = remoteStatusProps(props)
+    if (!status) return null
+    storedProps = status
+  } else if (record.event === 'remote_app_outdated') {
+    const outdated = remoteAppOutdatedProps(props)
+    if (!outdated) return null
+    storedProps = outdated
   } else if (record.event === 'page_view') {
     const landing = { ...campaignRefProps(props), ...pageLandingProps(props) }
     storedProps = Object.keys(landing).length ? landing : null

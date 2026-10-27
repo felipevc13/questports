@@ -568,6 +568,8 @@
                 {{ spaceNotice || questAdb.installSpaceWarning.value }}
               </div>
 
+              <div :class="showSendToQuest ? 'flex flex-col gap-2' : 'contents'">
+                <div :class="showSendToQuest ? 'order-2 flex flex-col gap-3 md:order-1' : 'contents'">
               <QuestBrowserNotice
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
@@ -617,7 +619,7 @@
                   type="button"
                   data-testid="install-on-quest"
                   @click="beginInstall()"
-                  class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
+                  :class="showSendToQuest ? INSTALL_BUTTON_CLASS_WITH_SEND : INSTALL_BUTTON_CLASS"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -647,6 +649,15 @@
                 <div class="flex items-center justify-between pt-1 font-mono text-[10px]">
                   <a :href="port.port_download_url || '#'" target="_blank" rel="noopener noreferrer" class="underline text-primary" @click="trackManualDownload">Download APK directly ↗</a>
                 </div>
+              </div>
+                </div>
+                <SendToQuest
+                  v-if="showSendToQuest"
+                  class="order-1 md:order-2"
+                  :slug="port.slug"
+                  :title="port.title"
+                  :version="catalogVersion"
+                />
               </div>
             </template>
           </div>
@@ -710,6 +721,12 @@
                   <span>Uninstall</span>
                 </button>
               </div>
+              <SendToQuest
+                v-if="showSendToQuest"
+                :slug="port.slug"
+                :title="port.title"
+                :version="catalogVersion"
+              />
             </div>
 
             <KofiTip surface="install_success" />
@@ -1015,6 +1032,7 @@
               <!-- Dropzone / File Upload (Real Drag-and-Drop or Click) -->
               <div
                 v-if="!isCurrentCampaignTransferred"
+                id="game-file-drop"
                 @dragover.prevent
                 @drop="handleDrop"
                 @click="triggerFileInput"
@@ -1511,6 +1529,11 @@ import {
   primaryInstallBlocked,
   shouldShowUsbPrep
 } from '~/lib/questInstallUx'
+import {
+  INSTALL_BUTTON_CLASS,
+  INSTALL_BUTTON_CLASS_WITH_SEND,
+  showSendToQuestDecision
+} from '~/lib/remoteInstall'
 import {
   USB_LOCKED_AFTER,
   USB_LOCKED_BODY,
@@ -2042,6 +2065,15 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   installing: isInstallingApk.value,
   supported: installSupport.value === 'supported',
   tooLarge: Boolean(largePortMessage.value)
+}))
+
+const showSendToQuest = computed(() => showSendToQuestDecision({
+  ready: installSupportReady.value,
+  questBrowser: questBrowser.value,
+  inApp: inApp.value,
+  eligible: !refusesOneClickInstall(port.value?.slug, port.value?.port_download_url),
+  flag: publicConfig.remoteInstall,
+  search: import.meta.client ? window.location.search : ''
 }))
 
 const showUsbStepsLink = computed(() => {

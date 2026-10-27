@@ -122,14 +122,26 @@ describe('analytics allowlist', () => {
       'app_page_view',
       'app_open',
       'game_launch',
-      'app_download_click'
+      'app_download_click',
+      'remote_send_click',
+      'remote_pair_shown',
+      'remote_pair_success',
+      'remote_pair_fail',
+      'remote_request_created',
+      'remote_status',
+      'remote_app_outdated'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
       const body: Record<string, unknown> = { event, path: '/' }
-      if (event === 'port_view' || event.startsWith('install_') || event === 'video_preview_play' || event === 'game_launch') {
+      if (event === 'port_view' || event.startsWith('install_') || event.startsWith('remote_') || event === 'video_preview_play' || event === 'game_launch') {
         body.portSlug = 'rtcwquest'
       }
+      if (event === 'remote_send_click') body.props = { paired: false, needs_files: 'false' }
+      if (event === 'remote_request_created') body.props = { needs_files: 'true' }
+      if (event === 'remote_pair_fail') body.props = { reason: 'invalid_code' }
+      if (event === 'remote_status') body.props = { status: 'received' }
+      if (event === 'remote_app_outdated') body.props = { surface: 'pair_modal' }
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
       if (event === 'install_step') body.props = { step: 'connect', status: 'start' }
       if (event === 'search') body.props = { q: 'doom', length: 4 }
@@ -195,6 +207,15 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     const landingEvents = ['game_launch', 'app_download_click']
+    const remoteEvents = [
+      'remote_send_click',
+      'remote_pair_shown',
+      'remote_pair_success',
+      'remote_pair_fail',
+      'remote_request_created',
+      'remote_status',
+      'remote_app_outdated'
+    ]
     const appBannerEvents = [
       'banner_shown',
       'banner_click',
@@ -206,11 +227,11 @@ describe('analytics allowlist', () => {
       'app_open'
     ]
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...remoteEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event)) continue
+      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
@@ -218,7 +239,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (appBannerEvents.includes(event) || landingEvents.includes(event)) continue
+      if (appBannerEvents.includes(event) || landingEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(tipClick).toContain(`'${event}'`)
     }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
@@ -227,14 +248,27 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (landingEvents.includes(event)) continue
+      if (landingEvents.includes(event) || remoteEvents.includes(event)) continue
       expect(appBanner).toContain(`'${event}'`)
     }
     const landing = readFileSync(
       new URL('../supabase/migrations/20261015161000_analytics_landing_and_launches.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(landing).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (remoteEvents.includes(event)) continue
+      expect(landing).toContain(`'${event}'`)
+    }
+    const remoteSql = readFileSync(
+      new URL('../supabase/migrations/20261027030100_analytics_remote_install.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(remoteSql).toContain(`'${event}'`)
+    expect(remoteSql).toContain('analytics_events_remote_needs_files_check')
+    expect(remoteSql).toContain("props->>'needs_files' in ('true', 'false')")
+    expect(remoteSql).toContain("props->>'method' in ('usb', 'remote', 'app')")
+    expect(remoteSql).toContain('analytics_events_remote_app_outdated_check')
+    expect(remoteSql).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
     expect(landing).toContain('drop constraint if exists analytics_events_event_check')
     expect(landing).toContain('analytics_events_landing_check')
     expect(landing).toContain('analytics_events_app_download_click_check')

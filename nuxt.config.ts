@@ -1,4 +1,5 @@
 import { DEFAULT_MEDIA_BASE } from './app/data/coverUrl'
+import { remoteInstallFlagEnabled } from './app/lib/remoteInstallFlag'
 import { DEFAULT_KOFI_URL } from './app/lib/kofi'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
@@ -26,7 +27,10 @@ export default defineNuxtConfig({
       // Unset uses the Cloudflare media host. Empty string keeps covers here and disables MP4s.
       mediaBase: process.env.NUXT_PUBLIC_MEDIA_BASE ?? DEFAULT_MEDIA_BASE,
       // Empty string hides the Ko-fi line and footer link. Unset uses the public page.
-      kofiUrl: process.env.NUXT_PUBLIC_KOFI_URL ?? DEFAULT_KOFI_URL
+      kofiUrl: process.env.NUXT_PUBLIC_KOFI_URL ?? DEFAULT_KOFI_URL,
+      // Send to Quest stays off until the migration is applied and the headset app can pair.
+      // ?remoteInstall=1 still shows the button. The Quest app needs this set to true.
+      remoteInstall: remoteInstallFlagEnabled(process.env.NUXT_PUBLIC_REMOTE_INSTALL)
     }
   },
   /**
