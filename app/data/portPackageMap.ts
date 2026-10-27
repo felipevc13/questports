@@ -1212,6 +1212,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     workflowType: 'direct',
     criticalFiles: []
   },
+  'ctr-turbocharged-vr': {
+    slug: 'ctr-turbocharged-vr',
+    packageName: 'com.bilko.ctrvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'daytona-usa-vr': {
     slug: 'daytona-usa-vr',
     packageName: 'io.port0r.daytona',
@@ -1351,6 +1357,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'USA .z64, .n64, or .v64. The app\'s file picker imports it. Mods live in /sdcard/MMVR/.'
       }
     ]
+  },
+  'mario-party-4-partyboard': {
+    slug: 'mario-party-4-partyboard',
+    packageName: 'com.mariopartyrd.partyboard',
+    installType: 'apk_and_assets',
+    criticalFiles: []
   },
   'mega-man-64-vr': {
     slug: 'mega-man-64-vr',

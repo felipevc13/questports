@@ -63,6 +63,8 @@ describe('local hover previews', () => {
     'dirt-dash-vr',
     'hotd-vr',
     'crisis-zone-vr',
+    'ctr-turbocharged-vr',
+    'mario-party-4-partyboard',
     'metal-gear-solid-vr',
     'nfsu-vr',
     'nfsu2-vr',

@@ -97,6 +97,7 @@ describe('Port Package Map & Workflow Verification', () => {
     citravr: 'org.citra.citra_emu',
     'crisis-zone-vr': 'org.crisiszone.vr',
     csvr: 'com.lvonasek.csvr',
+    'ctr-turbocharged-vr': 'com.bilko.ctrvr',
     doom3quest: 'com.drbeef.doom3quest',
     galaxyquest: 'com.galaxy.quest',
     'goldeneye-vr': 'com.gevr.port',
@@ -148,6 +149,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'hotd2-vr': 'com.flycast.emulator.vr',
     'magic-carpet-vr': 'technology.master.mc.vr',
     'majoras-mask-vr': 'com.fulldivegames.majorasmaskvr',
+    'mario-party-4-partyboard': 'com.mariopartyrd.partyboard',
     'mega-man-64-vr': 'com.megaman64recomp.vr',
     'metal-gear-solid-vr': 'org.baywilly.mgsvr',
     'ocarina-of-time-vr': 'com.questship.sohvr',
@@ -229,6 +231,22 @@ describe('Port Package Map & Workflow Verification', () => {
         const key = name.toLowerCase()
         expect(owner.get(key), `${name} is shared by ${owner.get(key)} and ${slug}`).toBeUndefined()
         owner.set(key, slug)
+      }
+    }
+  })
+
+  it('does not treat Mario Party 4 Partyboard or CTR Turbocharged as another port', () => {
+    const newcomers = ['mario-party-4-partyboard', 'ctr-turbocharged-vr']
+    for (const slug of newcomers) {
+      const pkg = PORT_PACKAGE_CONFIGS[slug]?.packageName
+      expect(pkg, slug).toBeTruthy()
+      expect(isPortInstalledOnQuest(slug, [pkg!])).toBe(true)
+      for (const [other, cfg] of Object.entries(PORT_PACKAGE_CONFIGS)) {
+        if (other === slug) continue
+        expect(isPortInstalledOnQuest(other, [pkg!]), `${other} must not match ${pkg}`).toBe(false)
+        for (const name of [cfg.packageName, ...(cfg.altPackages || [])]) {
+          expect(isPortInstalledOnQuest(slug, [name]), `${slug} must not match ${name}`).toBe(false)
+        }
       }
     }
   })
