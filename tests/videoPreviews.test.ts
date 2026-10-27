@@ -65,6 +65,7 @@ describe('local hover previews', () => {
     'crisis-zone-vr',
     'ctr-turbocharged-vr',
     'mario-party-4-partyboard',
+    'max-payne-vr',
     'metal-gear-solid-vr',
     'nfsu-vr',
     'nfsu2-vr',

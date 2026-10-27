@@ -1364,6 +1364,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'max-payne-vr': {
+    slug: 'max-payne-vr',
+    packageName: 'com.MPQ.HaveliSkywalker',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'mega-man-64-vr': {
     slug: 'mega-man-64-vr',
     packageName: 'com.megaman64recomp.vr',
