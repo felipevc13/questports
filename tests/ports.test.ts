@@ -153,7 +153,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'max-payne-vr': 'com.MPQ.HaveliSkywalker',
     'mega-man-64-vr': 'com.megaman64recomp.vr',
     'metal-gear-solid-vr': 'org.baywilly.mgsvr',
-    'ocarina-of-time-vr': 'com.questship.sohvr',
+    'ocarina-of-time-vr': 'org.oot.vr',
     'opencmr2-vr': 'org.opencmr2.vr',
     'openmw-vr': 'org.openmw.vr',
     'openxwa-vr': 'org.openxwa.quest',
@@ -236,8 +236,15 @@ describe('Port Package Map & Workflow Verification', () => {
     }
   })
 
-  it('does not treat Mario Party 4 Partyboard, CTR Turbocharged, or Max Payne as another port', () => {
-    const newcomers = ['mario-party-4-partyboard', 'ctr-turbocharged-vr', 'max-payne-vr']
+  it('detects Ocarina of Time VR from org.oot.vr and not the old package', () => {
+    expect(PORT_PACKAGE_CONFIGS['ocarina-of-time-vr']?.packageName).toBe('org.oot.vr')
+    expect(PORT_PACKAGE_CONFIGS['ocarina-of-time-vr']?.installType).toBe('apk_and_assets')
+    expect(isPortInstalledOnQuest('ocarina-of-time-vr', ['org.oot.vr'])).toBe(true)
+    expect(isPortInstalledOnQuest('ocarina-of-time-vr', ['com.questship.sohvr'])).toBe(false)
+  })
+
+  it('does not treat newer package ids as another port', () => {
+    const newcomers = ['mario-party-4-partyboard', 'ctr-turbocharged-vr', 'max-payne-vr', 'ocarina-of-time-vr']
     for (const slug of newcomers) {
       const pkg = PORT_PACKAGE_CONFIGS[slug]?.packageName
       expect(pkg, slug).toBeTruthy()
