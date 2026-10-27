@@ -1425,7 +1425,7 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   },
   'ocarina-of-time-vr': {
     slug: 'ocarina-of-time-vr',
-    packageName: 'com.questship.sohvr',
+    packageName: 'org.oot.vr',
     installType: 'apk_and_assets',
     criticalFiles: []
   },

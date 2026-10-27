@@ -42,7 +42,7 @@ function catalogPort(slug: string, eligible: boolean): RemoteCatalogPort {
     version: 'v1.0.0',
     packageId: eligible ? 'com.example.game' : '',
     apkUrl: eligible ? CATALOG_APK : '',
-    coverUrl: 'https://questports-media.questports.workers.dev/covers/questcraft.jpg?v=3',
+    coverUrl: 'https://questports-media.questports.workers.dev/covers/questcraft.jpg?v=4',
     eligible,
     needsFiles: portNeedsUserFiles(slug),
     filesPath: gameFilesPathForSlug(slug)
