@@ -45,7 +45,6 @@ describe('local hover previews', () => {
   })
 
   it.each([
-    '18-wheeler-vr',
     'animal-crossing-vr',
     'descent-1-2-vr',
     'mega-man-64-vr'
@@ -57,6 +56,7 @@ describe('local hover previews', () => {
   })
 
   it.each([
+    '18-wheeler-vr',
     'arx-libertatis-vr',
     'bomberman-hero-vr',
     'daytona-usa-vr',
