@@ -10,6 +10,7 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 - Cartão mostra pouca coisa. Contagem de installs pode aparecer a partir de 3. `⚠ Issues` fica na tabela, não no cartão, e só quando alguém marcou problema de verdade. Site em inglês. Você fala PT-BR; o agente pode te responder em português.
 - Gorjeta: uma linha no sucesso da instalação e um link no rodapé. URL em `NUXT_PUBLIC_KOFI_URL` (vazio esconde). Evento `tip_click`. Migration `20261011180000_analytics_tip_click.sql` — aplicar no SQL editor depois do merge.
 - Busca: apelidos em `app/data/searchAliases.ts` (não é coluna). Migration `20261027020000_analytics_catalog_search.sql` — aplicar no SQL editor depois do merge. Consultas prontas em `supabase/queries/catalog_search.sql`.
+- Pedido pela busca pode ir sem link. Coluna `port_suggestions.source` (`search` ou `suggest`). Migration `20261027040000_port_suggestion_search_url.sql` — aplicar no SQL editor depois do merge, antes do deploy que manda `url` nula.
 - Nada de segredo no git. Token da Cloudflare é `CLOUDFLARE_API_TOKEN`.
 
 ---
@@ -220,7 +221,7 @@ When you add a port, add a line in that map in the same change if people will se
 
 Matching runs in the browser (`app/lib/catalogSearch.ts`). A one-character typo still matches. Do not call a search service.
 
-A search with no catalog match shows **Request this game**. That opens the existing suggestion form (`SuggestModal`, table `port_suggestions`) with the search filled in. The form still requires a title and a URL. It is the same insert as Suggest a port.
+A search with no catalog match shows **Request this game**. That opens the same suggestion form (`SuggestModal`, table `port_suggestions`) with the search filled in. The name is required. The link is optional on that path and is stored as a null `url` with `source = 'search'`. The normal Suggest a port form still requires a link (`source = 'suggest'`). `20261027040000_port_suggestion_search_url.sql` allows the null and checks that a suggest row still has a url. Apply it in the SQL editor before the deploy that sends those rows.
 
 ### Cover files
 

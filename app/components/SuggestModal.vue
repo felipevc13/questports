@@ -10,7 +10,8 @@
       <div>
         <h3 class="text-lg font-semibold text-foreground">Suggestion Received</h3>
         <p class="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto mt-1">
-          Thank you for contributing. We will verify the standalone Meta Quest compatibility, extract media, and index it into the database.
+          <template v-if="fromSearch">Thanks. We saved this request.</template>
+          <template v-else>Thank you for contributing. We will verify the standalone Meta Quest compatibility, extract media, and index it into the database.</template>
         </p>
       </div>
       <UiButton @click="resetAndClose" class="w-full">
@@ -30,7 +31,7 @@
           {{ fromSearch ? 'Request this game' : 'Suggest a Standalone Port' }}
         </h2>
         <p v-if="fromSearch" class="text-xs text-muted-foreground">
-          Nothing in the catalog matched this search. Send the name and a link, if you have one.
+          Nothing in the catalog matched this search. The name is enough. A link helps if you have one.
         </p>
         <p v-else class="text-xs text-muted-foreground">
           Know of a native Meta Quest source port, emulator, or 6DoF injection? Add it to the queue.
@@ -53,12 +54,15 @@
         <!-- URL / Repository -->
         <div class="space-y-1">
           <label class="block text-xs font-medium text-foreground">
-            GitHub, SideQuest, or Download URL <span class="text-destructive">*</span>
+            GitHub, SideQuest, or Download URL
+            <span v-if="fromSearch" class="font-normal text-muted-foreground">(Optional)</span>
+            <span v-else class="text-destructive">*</span>
           </label>
           <UiInput
             v-model="form.url"
             type="url"
-            required
+            :required="!fromSearch"
+            data-testid="suggestion-url"
             placeholder="https://github.com/... or https://sidequestvr.com/app/..."
           />
         </div>
@@ -132,6 +136,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { buildPortSuggestion } from '~/lib/portSuggestion'
 
 const props = defineProps<{
   isOpen: boolean
@@ -160,7 +165,9 @@ const errorMessage = ref('')
 const { client, isConfigured } = useSupabase()
 
 watch(() => props.isOpen, (open) => {
-  if (open && props.initialTitle) form.value.title = props.initialTitle
+  if (!open) return
+  if (props.initialTitle) form.value.title = props.initialTitle
+  if (props.fromSearch) form.value.url = ''
 })
 
 const closeModal = () => {
@@ -189,16 +196,17 @@ const submitSuggestion = async () => {
       throw new Error('Supabase client not initialized')
     }
 
+    const row = buildPortSuggestion({
+      title: form.value.title,
+      url: form.value.url,
+      videoUrl: form.value.video_url,
+      notes: form.value.notes,
+      submittedBy: form.value.submitted_by,
+      fromSearch: props.fromSearch === true
+    })
     const { error } = await client
       .from('port_suggestions')
-      .insert({
-        title: form.value.title.trim(),
-        url: form.value.url.trim(),
-        video_url: form.value.video_url ? form.value.video_url.trim() : null,
-        notes: form.value.notes ? form.value.notes.trim() : null,
-        submitted_by: form.value.submitted_by ? form.value.submitted_by.trim() : null,
-        status: 'pending'
-      })
+      .insert(row)
 
     if (error) {
       console.error('Submission error:', error)
