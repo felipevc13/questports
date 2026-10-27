@@ -1168,6 +1168,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   // Manifest package ids from the catalog APK (or the APK inside its zip), read
   // 2026-10-15. Without an entry the Quest app never calls isInstalled, so the
   // game stays out of Library. Each id belongs to one port.
+  '18-wheeler-vr': {
+    slug: '18-wheeler-vr',
+    packageName: 'com.flycast.emulator.wheeler18',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'age-of-joy': {
     slug: 'age-of-joy',
     packageName: 'com.curif.AgeOfJoy',
@@ -2064,6 +2070,18 @@ export function packageIdHasRoot(packageName: string, root: string): boolean {
   return false
 }
 
+/** True when this id is the package or an alt package of a different catalog port. */
+function exactPackageOfOtherPort(slug: string, packageName: string): boolean {
+  const name = packageName.trim().toLowerCase()
+  if (!name) return false
+  for (const [other, otherCfg] of Object.entries(PORT_PACKAGE_CONFIGS)) {
+    if (other === slug) continue
+    if (otherCfg.packageName.toLowerCase() === name) return true
+    if (otherCfg.altPackages?.some(alt => alt.toLowerCase() === name)) return true
+  }
+  return false
+}
+
 /** Package id on the headset for this port, including alt ids and the same fuzzy match as the catalog. */
 export function installedPackageOnQuest(slug: string, installedPackages: string[]): string | null {
   if (!slug || !installedPackages || installedPackages.length === 0) return null
@@ -2082,10 +2100,12 @@ export function installedPackageOnQuest(slug: string, installedPackages: string[
   }
   // A related build (com.halo.decomp vs com.halo.decomp.vr). The root has to
   // end on a dot, so org.timecrisis.quest does not match org.timecrisis2.arcadevr.
+  // Skip an id that already belongs to another port. com.flycast.emulator.vr
+  // would otherwise treat com.flycast.emulator.wheeler18 as the same app.
   if (cfg?.packageName) {
     const pkgRoot = cfg.packageName.toLowerCase().replace(/^(com|org|net|mod|su)\./, '').replace(/\.(vr|quest|xr)$/, '')
     if (pkgRoot.length >= 4) {
-      const idx = lower.findIndex(p => packageIdHasRoot(p, pkgRoot))
+      const idx = lower.findIndex(p => !exactPackageOfOtherPort(slug, p) && packageIdHasRoot(p, pkgRoot))
       if (idx >= 0) return cleaned[idx]!
     }
   }
