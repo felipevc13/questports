@@ -1189,6 +1189,12 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'descent-1-2-vr': {
+    slug: 'descent-1-2-vr',
+    packageName: 'net.gameordie.descentvr',
+    installType: 'apk_and_assets',
+    criticalFiles: []
+  },
   'descent-3-vr': {
     slug: 'descent-3-vr',
     packageName: 'com.descentdevelopers.descent3',
