@@ -5,6 +5,7 @@ import {
   CHOOSER_DISMISSED_TITLE,
   CONNECT_FAILURE_STEPS,
   INSTALL_ACTION_LABEL,
+  INSTALL_VIA_USB_LABEL,
   USB_PREP_STEPS,
   WEBUSB_UNSUPPORTED_NOTICE,
   forgetQuestConnection,
@@ -59,6 +60,7 @@ describe('usb setup steps', () => {
       'Put the headset on and accept "Allow USB debugging" when asked.'
     ])
     expect(INSTALL_ACTION_LABEL).toBe('Install on Quest')
+    expect(INSTALL_VIA_USB_LABEL).toBe('Install via USB')
   })
 })
 

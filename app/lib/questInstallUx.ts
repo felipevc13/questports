@@ -2,6 +2,9 @@
 
 export const INSTALL_ACTION_LABEL = 'Install on Quest'
 
+/** Shown only while Send to Quest sits next to this button. */
+export const INSTALL_VIA_USB_LABEL = 'Install via USB'
+
 export const USB_PREP_STORAGE_KEY = 'questports_usb_connected'
 
 export const CHOOSER_DISMISSED_TITLE = "Don't see your Quest in the list?"

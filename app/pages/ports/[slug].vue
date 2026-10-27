@@ -584,6 +584,8 @@
                 {{ spaceNotice || questAdb.installSpaceWarning.value }}
               </div>
 
+              <div :class="showSendToQuest ? 'flex flex-col gap-2' : 'contents'">
+                <div :class="showSendToQuest ? 'order-2 flex flex-col gap-3 md:order-1' : 'contents'">
               <QuestBrowserNotice
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
@@ -633,12 +635,21 @@
                   type="button"
                   data-testid="install-on-quest"
                   @click="beginInstall()"
-                  class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
+                  :class="showSendToQuest ? INSTALL_BUTTON_CLASS_WITH_SEND : INSTALL_BUTTON_CLASS"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <svg v-if="showSendToQuest" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 19a1 1 0 0 1-1-1v-2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2a1 1 0 0 1-1 1z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21v-2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14V6.5a1 1 0 0 0-7 0v11a1 1 0 0 1-7 0V10" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21v-2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5V3" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2a2 2 0 0 1-2 2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 5V3" />
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  <span>{{ INSTALL_ACTION_LABEL }}</span>
+                  <span>{{ showSendToQuest ? INSTALL_VIA_USB_LABEL : INSTALL_ACTION_LABEL }}</span>
                 </button>
               </div>
 
@@ -663,6 +674,15 @@
                 <div class="flex items-center justify-between pt-1 font-mono text-[10px]">
                   <a :href="port.port_download_url || '#'" target="_blank" rel="noopener noreferrer" class="underline text-primary" @click="trackManualDownload">Download APK directly ↗</a>
                 </div>
+              </div>
+                </div>
+                <SendToQuest
+                  v-if="showSendToQuest"
+                  class="order-1 md:order-2"
+                  :slug="port.slug"
+                  :title="port.title"
+                  :version="catalogVersion"
+                />
               </div>
             </template>
           </div>
@@ -726,6 +746,12 @@
                   <span>Uninstall</span>
                 </button>
               </div>
+              <SendToQuest
+                v-if="showSendToQuest"
+                :slug="port.slug"
+                :title="port.title"
+                :version="catalogVersion"
+              />
             </div>
 
             <KofiTip surface="install_success" />
@@ -1035,6 +1061,7 @@
               <!-- Dropzone / File Upload (Real Drag-and-Drop or Click) -->
               <div
                 v-if="currentDropPathClean && !isCurrentCampaignTransferred"
+                id="game-file-drop"
                 @dragover.prevent
                 @drop="handleDrop"
                 @click="triggerFileInput"
@@ -1550,11 +1577,17 @@ import {
   CHOOSER_DISMISSED_TITLE,
   CONNECT_FAILURE_STEPS,
   INSTALL_ACTION_LABEL,
+  INSTALL_VIA_USB_LABEL,
   USB_PREP_STEPS,
   hasRememberedQuestConnection,
   primaryInstallBlocked,
   shouldShowUsbPrep
 } from '~/lib/questInstallUx'
+import {
+  INSTALL_BUTTON_CLASS,
+  INSTALL_BUTTON_CLASS_WITH_SEND,
+  showSendToQuestDecision
+} from '~/lib/remoteInstall'
 import {
   USB_LOCKED_AFTER,
   USB_LOCKED_BODY,
@@ -2103,6 +2136,15 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   installing: isInstallingApk.value,
   supported: installSupport.value === 'supported',
   tooLarge: Boolean(largePortMessage.value)
+}))
+
+const showSendToQuest = computed(() => showSendToQuestDecision({
+  ready: installSupportReady.value,
+  questBrowser: questBrowser.value,
+  inApp: inApp.value,
+  eligible: !refusesOneClickInstall(port.value?.slug, port.value?.port_download_url),
+  flag: publicConfig.remoteInstall,
+  search: import.meta.client ? window.location.search : ''
 }))
 
 const showUsbStepsLink = computed(() => {
