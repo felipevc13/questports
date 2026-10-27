@@ -136,6 +136,7 @@ describe('Port Package Map & Workflow Verification', () => {
     'arx-libertatis-vr': 'org.arxlibertatis.vr',
     'bomberman-hero-vr': 'com.bmhero.recompiled',
     'daytona-usa-vr': 'io.port0r.daytona',
+    'descent-1-2-vr': 'net.gameordie.descentvr',
     'descent-3-vr': 'com.descentdevelopers.descent3',
     'dirt-dash-vr': 'io.port0r.dirtdash',
     dolphinxr: 'org.dolphinemu.dolphinemu.quest.debug',
