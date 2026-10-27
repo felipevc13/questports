@@ -9,6 +9,7 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 - Não rode `scripts/add-*.js`, `scripts/update-*-cover.js`, `scripts/sync-covers.js`, `scripts/upload-og.js` nem os outros one-offs. Não apague esses arquivos.
 - Cartão mostra pouca coisa. Contagem de installs pode aparecer a partir de 3. `⚠ Issues` fica na tabela, não no cartão, e só quando alguém marcou problema de verdade. Site em inglês. Você fala PT-BR; o agente pode te responder em português.
 - Gorjeta: uma linha no sucesso da instalação e um link no rodapé. URL em `NUXT_PUBLIC_KOFI_URL` (vazio esconde). Evento `tip_click`. Migration `20261011180000_analytics_tip_click.sql` — aplicar no SQL editor depois do merge.
+- Busca: apelidos em `app/data/searchAliases.ts` (não é coluna). Migration `20261027020000_analytics_catalog_search.sql` — aplicar no SQL editor depois do merge. Consultas prontas em `supabase/queries/catalog_search.sql`.
 - Nada de segredo no git. Token da Cloudflare é `CLOUDFLARE_API_TOKEN`.
 
 ---
@@ -68,6 +69,8 @@ Felipe reviews and merges. Agents do not push to `main`, do not apply SQL to pro
 - `app/lib/patchOnlyInstall.ts` — `isOneClickApkAsset`, `refusesOneClickInstall`, `pcPatchCardFor`, `patchOnlyGuideFor`. One-click is not “any URL”.
 - `app/data/coverUrl.ts` — `resolveCoverUrl`, `versionedCoverUrl`, `coverThumbUrl`, `DEFAULT_MEDIA_BASE`, `COVER_CACHE_VERSION`. Maps Storage URLs, media-host URLs, and SteamGridDB ids onto `/covers/...`, then adds `?v=` and the media host.
 - `app/data/videoPreviews.ts` — `AVAILABLE_VIDEO_PREVIEWS`, `GAME_VIDEO_PREVIEWS`, `previewMp4Url`, YouTube embed helpers. MP4s stay off unless `mediaBase` is set. Touch never starts a hover preview (`canHoverPreview`).
+- `app/data/searchAliases.ts` — extra search phrases keyed by port slug. Abbreviations and nicknames that are not in the title. See Search aliases below.
+- `app/lib/catalogSearch.ts` — client-side catalog match: folded text, aliases, and a one-edit typo. No search service.
 - `app/components/PortCard.vue` — Card UI. Cover, optional hover MP4, New / In Dev, title, Installed, one meta line, a short description when it fits. It does not print the version. The dense table prints it with `PortVersion.vue`.
 - `app/pages/ports/[slug].vue` — Detail page: guide (`installation_guide`), troubleshooting, storage path, install, YouTube click-to-play.
 - Analytics: `app/lib/analytics.ts` (event names and privacy rules), `app/composables/useTrack.ts`, `app/plugins/analytics.client.ts`, `server/utils/analytics.ts`, `server/api/track.post.ts`.
@@ -146,9 +149,11 @@ Related tables and views:
 
 ### Analytics and privacy
 
-Event names are the check constraint `analytics_events_event_check`. The current list is `ANALYTICS_EVENTS` in `app/lib/analytics.ts`, last extended by `20261015161000_analytics_landing_and_launches.sql`:
+Event names are the check constraint `analytics_events_event_check`. The current list is `ANALYTICS_EVENTS` in `app/lib/analytics.ts`, last extended by `20261027020000_analytics_catalog_search.sql`:
 
-`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_shown`, `banner_click`, `banner_dismiss`, `modal_shown`, `modal_click`, `modal_dismiss`, `app_page_view`, `app_open`, `game_launch`, `app_download_click`.
+`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_shown`, `banner_click`, `banner_dismiss`, `modal_shown`, `modal_click`, `modal_dismiss`, `app_page_view`, `app_open`, `game_launch`, `app_download_click`, `search_result_click`, `game_request_shown`, `game_request_click`, `game_request_submit`.
+
+`search` is still one settled query. It may also store `count`, `via` (`text`, `alias`, `fuzzy`, `none`), and `results` (slugs shown). Older rows that only have `q` and `length` stay valid. `search_no_results` is unchanged. `search_result_click` is a click on a result (`q`, `position`, `via`, and `port_slug`). `game_request_shown`, `game_request_click`, and `game_request_submit` (`result` `success` or `fail`) are the empty-state request. Ready-made reads are in `supabase/queries/catalog_search.sql`.
 
 `page_view` may store `utm_source`, `utm_medium`, and `utm_campaign` (`cleanUtmValue`). `ref` wins over `utm_source` for the campaign token (`campaignRefFromSearch`). `game_launch` is the headset app opening an installed game (`port_slug` required). `app_download_click` is the QuestPorts app APK link; `props.surface` is `page`, `banner`, or `modal`.
 
@@ -206,6 +211,16 @@ Do not run these. Do not delete them. They are one-offs, and several still targe
 `scripts/sync-github-stats.js` is the supported version sync. Preview with `--dry-run`. The daily job is `.github/workflows/sync-releases.yml`. `scripts/verify-apk-packages.mjs` only reads a few KB of a remote APK via HTTP Range to check `packageName`; it does not write the catalog. `npm run build:og` (`scripts/build-modern-og.js`) regenerates the local share card. It does not upload.
 
 ## Add a port, a cover, or a preview
+
+### Search aliases
+
+Catalog search folds case, accents, and punctuation, so `half life`, `half-life`, and `halflife` already match a title that says Half-Life. Roman numerals in a title match the digit (`Quake II` matches `quake 2`). Abbreviations and nicknames that are not in the title live in `app/data/searchAliases.ts`, keyed by port slug (`rdr` for `red-dead-redemption-vr`).
+
+When you add a port, add a line in that map in the same change if people will search a name the title does not contain. One slug, a list of phrases. There is no `search_aliases` column. A short code (under 4 characters) matches as a whole word, so `hl` does not hide inside an unrelated word.
+
+Matching runs in the browser (`app/lib/catalogSearch.ts`). A one-character typo still matches. Do not call a search service.
+
+A search with no catalog match shows **Request this game**. That opens the existing suggestion form (`SuggestModal`, table `port_suggestions`) with the search filled in. The form still requires a title and a URL. It is the same insert as Suggest a port.
 
 ### Cover files
 

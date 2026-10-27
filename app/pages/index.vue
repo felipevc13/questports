@@ -242,6 +242,7 @@
           :eager="index < 4"
           :verifications="verificationRecords"
           :class="index >= mobileVisible ? 'max-md:hidden' : ''"
+          @click="trackSearchResult(port, index)"
         />
       </div>
 
@@ -274,9 +275,9 @@
             </thead>
             <tbody class="divide-y divide-border">
               <tr
-                v-for="port in filteredPorts"
+                v-for="(port, index) in filteredPorts"
                 :key="port.id"
-                @click="navigateToPort(port.slug)"
+                @click="openFilteredPort(port, index)"
                 class="hover:bg-muted/40 transition-colors cursor-pointer"
               >
                 <!-- Title & Cover thumbnail -->
@@ -377,28 +378,17 @@
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-if="filteredPorts.length === 0" class="text-center py-16 px-4 rounded-lg border border-border bg-card space-y-3">
-        <h3 class="text-base font-semibold text-foreground">No ports found</h3>
-        <p class="text-xs text-muted-foreground max-w-sm mx-auto">
-          Try adjusting your search query or switching the category and hardware filters above.
-        </p>
-        <div class="flex items-center justify-center gap-2 pt-1">
-          <UiButton
-            variant="outline"
-            size="sm"
-            @click="resetFilters"
-          >
-            Clear Filters
-          </UiButton>
-          <UiButton
-            size="sm"
-            @click="suggestModal.open(searchQuery)"
-          >
-            Suggest {{ searchQuery ? `"${searchQuery}"` : 'a Game' }}
-          </UiButton>
-        </div>
-      </div>
+      <CatalogEmptyState
+        v-if="filteredPorts.length === 0"
+        :query="searchQuery.trim()"
+        :suggestions="suggestionHits"
+        :filters-active="hasActiveFilters"
+        :requestable="requestable"
+        @request="requestThisGame"
+        @suggest="suggestModal.open()"
+        @clear="resetFilters"
+        @open="openSuggestion"
+      />
 
       <button
         v-if="showBackToTop"
@@ -492,6 +482,14 @@ import { countIndexedInstalled } from '~/lib/questLibrary'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
+import {
+  closestCatalogPorts,
+  orderSearchHits,
+  searchCatalog,
+  searchOutcomeVia,
+  type CatalogSearchHit,
+  type SearchMatchVia
+} from '~/lib/catalogSearch'
 import { catalogCategoryFromQuery, readCatalogQuery } from '~/lib/catalogQuery'
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
@@ -617,17 +615,56 @@ watch(selectedHardware, (value) => trackFilter('hardware', value))
 watch(selectedDeveloper, (value) => trackFilter('developer', value))
 watch(sortBy, (value) => trackFilter('sort', value))
 
-watch(searchQuery, (value) => {
-  if (applyingLocation) return
+let searchWaits = 0
+let lastSearchKey = ''
+
+const scheduleSearchTrack = () => {
+  if (applyingLocation || inApp.value) return
   if (searchTrackTimer) clearTimeout(searchTrackTimer)
-  const query = value.trim()
-  if (!query) return
+  const query = searchQuery.value.trim()
+  if (!query) {
+    lastSearchKey = ''
+    searchWaits = 0
+    return
+  }
   searchTrackTimer = setTimeout(() => {
-    track('search', { path: route.path, props: { q: query, length: query.length } })
-    if (filteredPorts.value.length === 0) {
+    if (!ports.value.length) {
+      if (searchWaits < 8) {
+        searchWaits += 1
+        scheduleSearchTrack()
+      }
+      return
+    }
+    searchWaits = 0
+    const hits = visibleHits.value
+    const catalogMatches = rankedSearch.value?.length ?? 0
+    const via = searchOutcomeVia(hits)
+    const key = `${query}|${hits.length}|${via}|${catalogMatches}`
+    if (key === lastSearchKey) return
+    lastSearchKey = key
+    const results = hits.map(hit => hit.item.slug).join(',')
+    track('search', {
+      path: route.path,
+      props: {
+        q: query,
+        length: query.length,
+        count: hits.length,
+        via,
+        ...(results ? { results } : {})
+      }
+    })
+    if (hits.length === 0) {
       track('search_no_results', { path: route.path, props: { q: query } })
+      if (catalogMatches === 0) {
+        track('game_request_shown', { path: route.path, props: { q: query } })
+      }
     }
   }, 600)
+}
+
+watch(searchQuery, scheduleSearchTrack)
+watch(ports, () => {
+  if (searchQuery.value.trim()) scheduleSearchTrack()
 })
 
 const isPortInstalled = (slug: string) => {
@@ -724,6 +761,34 @@ const navigateToPort = (slug: string) => {
   router.push(`/ports/${slug}`)
 }
 
+const trackSearchResult = (port: Port, index: number, via?: SearchMatchVia) => {
+  const query = searchQuery.value.trim()
+  if (!query) return
+  const matchVia = via || visibleHits.value.find(hit => hit.item.slug === port.slug)?.via
+  if (!matchVia) return
+  track('search_result_click', {
+    path: route.path,
+    portSlug: port.slug,
+    props: { q: query, position: index + 1, via: matchVia }
+  })
+}
+
+const openFilteredPort = (port: Port, index: number) => {
+  trackSearchResult(port, index)
+  navigateToPort(port.slug)
+}
+
+const openSuggestion = (hit: CatalogSearchHit<Port>, index: number) => {
+  trackSearchResult(hit.item, index, hit.via)
+}
+
+const requestThisGame = () => {
+  const query = searchQuery.value.trim()
+  if (!query) return
+  track('game_request_click', { path: route.path, props: { q: query } })
+  suggestModal.open(query, { fromSearch: true })
+}
+
 const formatCategory = (cat: PortCategory) => {
   switch (cat) {
     case 'source_port': return 'Source Port'
@@ -746,35 +811,43 @@ const formatStatus = (status: PortStatus) => {
   }
 }
 
+const passesFilters = (port: Port) => {
+  if (selectedCategory.value !== 'all' && port.category !== selectedCategory.value) return false
+  if (selectedStatus.value && port.status !== selectedStatus.value) return false
+  if (selectedHardware.value && !portSupportsHeadset(port.supported_hardware, selectedHardware.value)) return false
+  if (selectedDeveloper.value && port.developer.toLowerCase() !== selectedDeveloper.value.toLowerCase()) return false
+  return true
+}
+
+const rankedSearch = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query) return null
+  return searchCatalog(ports.value, query)
+})
+
+const visibleHits = computed(() => {
+  const ranked = rankedSearch.value
+  if (!ranked) return []
+  return orderSearchHits(ranked.filter(hit => passesFilters(hit.item)), sortBy.value)
+})
+
+const suggestionHits = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query || filteredPorts.value.length > 0) return []
+  const ranked = rankedSearch.value || []
+  if (ranked.length) return orderSearchHits(ranked, sortBy.value).slice(0, 3)
+  return closestCatalogPorts(ports.value, query, 3)
+})
+
+const requestable = computed(() => {
+  const query = searchQuery.value.trim()
+  if (!query || filteredPorts.value.length > 0) return false
+  return (rankedSearch.value || []).length === 0
+})
+
 const filteredPorts = computed(() => {
-  let list = [...ports.value]
-
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.slug.toLowerCase().includes(q) ||
-      p.developer.toLowerCase().includes(q) ||
-      p.short_description?.toLowerCase().includes(q)
-    )
-  }
-
-  if (selectedCategory.value !== 'all') {
-    list = list.filter(p => p.category === selectedCategory.value)
-  }
-
-  if (selectedStatus.value) {
-    list = list.filter(p => p.status === selectedStatus.value)
-  }
-
-  if (selectedHardware.value) {
-    list = list.filter(p => portSupportsHeadset(p.supported_hardware, selectedHardware.value))
-  }
-
-  if (selectedDeveloper.value) {
-    list = list.filter(p => p.developer.toLowerCase() === selectedDeveloper.value.toLowerCase())
-  }
-
+  if (rankedSearch.value) return visibleHits.value.map(hit => hit.item)
+  const list = ports.value.filter(passesFilters)
   return sortCatalogPorts(list, sortBy.value)
 })
 </script>

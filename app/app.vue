@@ -9,7 +9,7 @@
     </main>
     <Footer v-if="!inApp" />
     <!-- Global Suggest / Feedback modals -->
-    <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" @close="suggestModal.close" />
+    <SuggestModal :is-open="suggestModal.isOpen.value" :initial-title="suggestModal.prefillTitle.value" :from-search="suggestModal.fromSearch.value" @close="suggestModal.close" />
     <FeedbackModal :is-open="feedbackModal.isOpen.value" :initial-page-path="feedbackModal.pagePath.value" @close="feedbackModal.close" />
     <ClientOnly>
       <MockQuestPanel />

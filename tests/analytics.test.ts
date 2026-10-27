@@ -122,7 +122,11 @@ describe('analytics allowlist', () => {
       'app_page_view',
       'app_open',
       'game_launch',
-      'app_download_click'
+      'app_download_click',
+      'search_result_click',
+      'game_request_shown',
+      'game_request_click',
+      'game_request_submit'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
@@ -133,6 +137,12 @@ describe('analytics allowlist', () => {
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
       if (event === 'install_step') body.props = { step: 'connect', status: 'start' }
       if (event === 'search') body.props = { q: 'doom', length: 4 }
+      if (event === 'search_result_click') {
+        body.portSlug = 'red-dead-redemption-vr'
+        body.props = { q: 'rdr', position: 1, via: 'alias' }
+      }
+      if (event === 'game_request_shown' || event === 'game_request_click') body.props = { q: 'call of duty' }
+      if (event === 'game_request_submit') body.props = { q: 'call of duty', result: 'success' }
       if (event === 'search_no_results') body.props = { q: 'no such game' }
       if (event === 'filter_used') body.props = { filter: 'category', value: 'source_port' }
       if (event === 'video_preview_play') body.props = { surface: 'card' }
@@ -195,6 +205,12 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     const landingEvents = ['game_launch', 'app_download_click']
+    const searchEvents = [
+      'search_result_click',
+      'game_request_shown',
+      'game_request_click',
+      'game_request_submit'
+    ]
     const appBannerEvents = [
       'banner_shown',
       'banner_click',
@@ -206,11 +222,11 @@ describe('analytics allowlist', () => {
       'app_open'
     ]
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...searchEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event)) continue
+      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
@@ -218,7 +234,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (appBannerEvents.includes(event) || landingEvents.includes(event)) continue
+      if (appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event)) continue
       expect(tipClick).toContain(`'${event}'`)
     }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
@@ -227,14 +243,32 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (landingEvents.includes(event)) continue
+      if (landingEvents.includes(event) || searchEvents.includes(event)) continue
       expect(appBanner).toContain(`'${event}'`)
     }
     const landing = readFileSync(
       new URL('../supabase/migrations/20261015161000_analytics_landing_and_launches.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(landing).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (searchEvents.includes(event)) continue
+      expect(landing).toContain(`'${event}'`)
+    }
+    const catalogSearch = readFileSync(
+      new URL('../supabase/migrations/20261027020000_analytics_catalog_search.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(catalogSearch).toContain(`'${event}'`)
+    expect(catalogSearch).toContain('drop constraint if exists analytics_events_event_check')
+    expect(catalogSearch).toContain('analytics_events_search_query')
+    expect(catalogSearch).toContain('analytics_events_search_result_click_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_shown_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_click_check')
+    expect(catalogSearch).toContain('analytics_events_game_request_submit_check')
+    expect(catalogSearch).toContain("props->>'via' in ('text', 'alias', 'fuzzy', 'none')")
+    expect(catalogSearch).toContain("props->>'result' in ('success', 'fail')")
+    expect(catalogSearch).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(catalogSearch).not.toMatch(/drop constraint if exists analytics_events_install_error_reason/i)
     expect(landing).toContain('drop constraint if exists analytics_events_event_check')
     expect(landing).toContain('analytics_events_landing_check')
     expect(landing).toContain('analytics_events_app_download_click_check')
@@ -500,6 +534,91 @@ describe('analytics validation', () => {
     })
     expect(decision.row?.props).toEqual({ q: 'halo ce', length: 7 })
     expect(decision.row?.path).toBe('/')
+  })
+
+  it('keeps a settled search, a result click, and the request-this-game funnel', () => {
+    const settled = clientAnalyticsPayload('search', {
+      path: '/',
+      props: {
+        q: '  RDR  ',
+        length: 3,
+        count: 1,
+        via: 'alias',
+        results: 'red-dead-redemption-vr',
+        email: 'drop-me'
+      }
+    })
+    expect(settled?.props).toEqual({
+      q: 'rdr',
+      length: 3,
+      count: 1,
+      via: 'alias',
+      results: 'red-dead-redemption-vr'
+    })
+    expect(JSON.stringify(settled)).not.toContain('drop-me')
+    expect(JSON.stringify(settled)).not.toContain('RDR')
+
+    const missed = clientAnalyticsPayload('search', {
+      path: '/',
+      props: { q: 'call of duty', length: 12, count: 0, via: 'none' }
+    })
+    expect(missed?.props).toEqual({ q: 'call of duty', length: 12, count: 0, via: 'none' })
+
+    expect(clientAnalyticsPayload('search', {
+      path: '/',
+      props: { q: 'doom', length: 4, count: 0, via: 'alias' }
+    })?.props).toEqual({ q: 'doom', length: 4 })
+
+    const click = clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      portSlug: 'red-dead-redemption-vr',
+      props: { q: 'RDR', position: 1, via: 'alias', ref: 'hn' }
+    })
+    expect(click?.portSlug).toBe('red-dead-redemption-vr')
+    expect(click?.props).toEqual({ q: 'rdr', position: 1, via: 'alias' })
+    expect(clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      props: { q: 'rdr', position: 1, via: 'alias' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('search_result_click', {
+      path: '/',
+      portSlug: 'red-dead-redemption-vr',
+      props: { q: 'rdr', position: 0, via: 'alias' }
+    })).toBeNull()
+
+    expect(clientAnalyticsPayload('game_request_shown', {
+      path: '/',
+      props: { q: '  Call of Duty  ' }
+    })?.props).toEqual({ q: 'call of duty' })
+    expect(clientAnalyticsPayload('game_request_click', {
+      path: '/',
+      props: { q: 'call of duty' }
+    })?.props).toEqual({ q: 'call of duty' })
+    expect(clientAnalyticsPayload('game_request_submit', {
+      path: '/',
+      props: { q: 'call of duty', result: 'success' }
+    })?.props).toEqual({ q: 'call of duty', result: 'success' })
+    expect(clientAnalyticsPayload('game_request_submit', {
+      path: '/',
+      props: { q: 'call of duty', result: 'maybe' }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('game_request_shown', { path: '/', props: { q: '   ' } })).toBeNull()
+
+    const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
+    const home = readFileSync(new URL('../app/components/AppHome.vue', import.meta.url), 'utf8')
+    const empty = readFileSync(new URL('../app/components/CatalogEmptyState.vue', import.meta.url), 'utf8')
+    const modal = readFileSync(new URL('../app/components/SuggestModal.vue', import.meta.url), 'utf8')
+    expect(index).toContain('<CatalogEmptyState')
+    expect(empty).toContain('data-testid="request-this-game"')
+    expect(empty).toContain('min-h-11')
+    expect(index).toContain("track('game_request_click'")
+    expect(index).toContain("track('search_result_click'")
+    expect(home).toContain("track('search_no_results'")
+    expect(home).toContain("fromSearch: true")
+    expect(modal).toContain("track('suggest_submit')")
+    expect(modal).toContain("track('game_request_submit'")
+    expect(modal).toContain("result: 'success'")
+    expect(modal).toContain("result: 'fail'")
   })
 
   it('keeps filter names on the allowlist and install errors as short codes', () => {
