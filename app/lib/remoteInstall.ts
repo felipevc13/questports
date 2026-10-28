@@ -227,8 +227,8 @@ export function questDisplayName(model: string | null | undefined): string {
 }
 
 export function sendToQuestLabel(model: string | null | undefined, paired: boolean): string {
-  if (!paired) return 'Send to Quest'
-  return `Send to ${questDisplayName(model)}`
+  if (!paired) return 'Install via Wi-Fi'
+  return `Install on ${questDisplayName(model)} (Wi-Fi)`
 }
 
 export function normalizePairCode(input: unknown): string {

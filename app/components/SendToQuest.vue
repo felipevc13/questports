@@ -120,7 +120,7 @@
             <h2 id="pair-quest-title" class="text-base font-semibold text-foreground">Pair your Quest</h2>
             <button type="button" class="text-muted-foreground hover:text-foreground" aria-label="Close" @click="closeModal">✕</button>
           </div>
-          <p class="mt-1 text-xs leading-relaxed text-muted-foreground">One time. After this, Send to Quest works from this browser.</p>
+          <p class="mt-1 text-xs leading-relaxed text-muted-foreground">One time. After this, Install via Wi-Fi works from this browser.</p>
           <ol class="mt-3 list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-foreground">
             <li>Put on your headset and open the QuestPorts app.</li>
             <li>Open <span class="font-semibold">Remote install</span>. The app shows a 6-character code.</li>
