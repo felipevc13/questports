@@ -108,3 +108,4 @@ export function setStoredUserVote(slug: string, vote: StoredUserVote): void {
     // quota exceeded or storage blocked
   }
 }
+

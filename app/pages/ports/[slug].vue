@@ -1649,6 +1649,7 @@ import { versionedCoverUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 import { claimConnectOrigin } from '~/lib/connectOrigin'
 import TransferProgress from '~/components/TransferProgress.vue'
+import CommunityReports from '~/components/CommunityReports.vue'
 
 const route = useRoute()
 const router = useRouter()

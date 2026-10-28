@@ -191,11 +191,11 @@ import {
 } from '~/lib/communityReviews'
 
 const props = defineProps<{
-  port: Port
+  port?: Port | null
 }>()
 
 const summary = ref<CommunitySummary>({
-  portSlug: props.port.slug,
+  portSlug: props.port?.slug || '',
   totalReviews: 0,
   worksGreatCount: 0,
   needsTweaksCount: 0,
@@ -218,7 +218,7 @@ const selectedHeadset = ref<string | null>(null)
 const ALL_HEADSETS = ['Quest 3', 'Quest 3S', 'Quest 2', 'Quest Pro'] as const
 
 const availableHeadsets = computed(() => {
-  const supported = Array.isArray(props.port.supported_hardware)
+  const supported = Array.isArray(props.port?.supported_hardware)
     ? props.port.supported_hardware
     : []
   return ALL_HEADSETS.map(model => ({
@@ -249,6 +249,7 @@ function cancelEditing() {
 }
 
 async function fetchSummary() {
+  if (!props.port?.slug) return
   try {
     const res = await $fetch<CommunitySummary>(`/api/ports/${props.port.slug}/community`)
     if (res) {
@@ -260,7 +261,7 @@ async function fetchSummary() {
 }
 
 async function submitReport() {
-  if (!selectedVerdict.value) return
+  if (!selectedVerdict.value || !props.port?.slug) return
   isSubmitting.value = true
   errorMessage.value = null
 
@@ -301,12 +302,15 @@ async function submitReport() {
 }
 
 onMounted(() => {
-  storedVote.value = getStoredUserVote(props.port.slug)
-  if (storedVote.value) {
-    selectedVerdict.value = storedVote.value.verdict
-    selectedIssueTag.value = storedVote.value.issueTag || null
-    selectedHeadset.value = storedVote.value.headset || null
+  if (props.port?.slug) {
+    storedVote.value = getStoredUserVote(props.port.slug)
+    if (storedVote.value) {
+      selectedVerdict.value = storedVote.value.verdict
+      selectedIssueTag.value = storedVote.value.issueTag || null
+      selectedHeadset.value = storedVote.value.headset || null
+    }
+    fetchSummary()
   }
-  fetchSummary()
 })
 </script>
+

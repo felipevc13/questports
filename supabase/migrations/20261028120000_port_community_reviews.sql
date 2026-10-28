@@ -86,3 +86,4 @@ grant select on public.port_community_summaries to service_role;
 grant select on public.port_community_headset_summaries to service_role;
 
 commit;
+
