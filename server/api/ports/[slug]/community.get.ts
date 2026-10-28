@@ -72,12 +72,11 @@ export default defineEventHandler(async (event) => {
     if (Array.isArray(headsetsRes.data)) {
       for (const h of headsetsRes.data) {
         if (!h.headset) continue
-        if (!headsetsMap[h.headset]) {
-          headsetsMap[h.headset] = { worksGreat: 0, needsTweaks: 0, cantRun: 0 }
-        }
-        if (h.verdict === 'works_great') headsetsMap[h.headset].worksGreat += h.count || 0
-        else if (h.verdict === 'needs_tweaks') headsetsMap[h.headset].needsTweaks += h.count || 0
-        else if (h.verdict === 'cant_run') headsetsMap[h.headset].cantRun += h.count || 0
+        const entry = headsetsMap[h.headset] ?? { worksGreat: 0, needsTweaks: 0, cantRun: 0 }
+        headsetsMap[h.headset] = entry
+        if (h.verdict === 'works_great') entry.worksGreat += h.count || 0
+        else if (h.verdict === 'needs_tweaks') entry.needsTweaks += h.count || 0
+        else if (h.verdict === 'cant_run') entry.cantRun += h.count || 0
       }
     }
 
