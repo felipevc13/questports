@@ -21,7 +21,9 @@ export function portSocialDescription(title: string | null | undefined): string 
   return `${label} on Meta Quest. ${ONE_CLICK_LINE}`
 }
 
-export function socialImageType(url: string): string {
+export type SocialImageType = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' | 'image/avif'
+
+export function socialImageType(url: string): SocialImageType {
   const path = url.split('?')[0]?.toLowerCase() || ''
   if (path.endsWith('.png')) return 'image/png'
   if (path.endsWith('.webp')) return 'image/webp'
@@ -37,10 +39,11 @@ export function portShareMeta(coverUrl: string | null | undefined, title: string
   const description = portSocialDescription(title)
   const image = absoluteCoverUrl(coverUrl)
   const isDefault = image === OG_IMAGE_URL
+  const type: SocialImageType = isDefault ? 'image/png' : socialImageType(image)
   return {
     description,
     image,
-    type: isDefault ? 'image/png' : socialImageType(image),
+    type,
     width: isDefault ? OG_IMAGE_WIDTH : null,
     height: isDefault ? OG_IMAGE_HEIGHT : null,
     alt: isDefault ? OG_IMAGE_ALT : (title?.replace(/\s+/g, ' ').trim() || 'QuestPorts')
