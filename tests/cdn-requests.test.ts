@@ -74,4 +74,12 @@ describe('favicon cache', () => {
     expect(iconHeader).toContain('public, max-age=31536000')
     expect(iconHeader).not.toContain('immutable')
   })
+
+  it('defines client and edge cache headers for payload json and isr pages', () => {
+    const vercel = readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')
+    expect(vercel).toContain('"source": "/_payload.json(.*)"')
+    expect(vercel).toContain('"source": "/ports/(.*)/_payload.json(.*)"')
+    expect(vercel).toContain('public, max-age=300, stale-while-revalidate=86400')
+    expect(vercel).toContain('public, max-age=120, stale-while-revalidate=86400')
+  })
 })
