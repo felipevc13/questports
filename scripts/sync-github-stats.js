@@ -145,6 +145,33 @@ async function patchPort(slug, body) {
   }
 }
 
+async function pruneOldAnalytics(days = 60) {
+  if (dryRun) {
+    console.log(`[retention] dry run: would prune analytics_events older than ${days} days`)
+    return
+  }
+  const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString()
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/analytics_events?created_at=lt.${cutoff}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        Prefer: 'count=exact'
+      }
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      console.warn(`[retention] warning pruning analytics_events: ${res.status} ${text.slice(0, 200)}`)
+    } else {
+      const range = res.headers.get('content-range') || ''
+      console.log(`[retention] pruned analytics_events older than ${days} days (${range || 'ok'})`)
+    }
+  } catch (err) {
+    console.warn('[retention] warning during analytics retention cleanup:', err instanceof Error ? err.message : err)
+  }
+}
+
 async function run() {
   if (process.argv.includes('--help')) {
     console.log('Usage: node --experimental-strip-types scripts/sync-github-stats.js [--dry-run]')
@@ -201,6 +228,8 @@ async function run() {
       console.error(`  failed ${item.slug}:`, err instanceof Error ? err.message : err)
     }
   }
+
+  await pruneOldAnalytics(60)
 
   console.log(`--- ${dryRun ? 'Dry run' : 'Sync'} finished: ${writes} write(s), ${failures} failure(s) ---`)
   if (failures) process.exit(1)

@@ -222,4 +222,10 @@ describe('last_github_update sync', () => {
     expect(source).toContain("{ slug: 'nolf-vr', repo: 'alex-nax/relith' }")
     expect(source).toContain('portSyncPatch(plan, storedUpdate)')
   })
+
+  it('prunes analytics_events older than 60 days on daily sync', () => {
+    const source = readFileSync(new URL('../scripts/sync-github-stats.js', import.meta.url), 'utf8')
+    expect(source).toContain('pruneOldAnalytics')
+    expect(source).toContain('await pruneOldAnalytics(60)')
+  })
 })
