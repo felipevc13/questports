@@ -414,6 +414,12 @@ export function getDefaultFolderInfo(port: Port): {
       fullPath: '/sdcard/Android/data/com.ghwstvr.ut99quest/files/UT99/',
       exampleFiles: 'System/Core.u, System/Engine.u, System/Botpack.u, Maps, Textures, Sounds',
       instruction: 'Copy System, Maps, Textures, and Sounds into this folder. /sdcard/UT99Quest/ is also detected.'
+    },
+    wakerquest: {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'GZLP01.iso or GZLE01.iso',
+      instruction: 'Drop your uncompressed Wind Waker GameCube ISO into the Quest Download folder'
     }
   }
 

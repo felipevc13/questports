@@ -113,6 +113,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'vice-city-vr-quest',
   'victory-heat-rally-vr',
   'virtua-cop-vr',
+  'wakerquest',
   'wave-race-64-vr',
   'wiicompiled-vr-plus',
   'winlatorxr',
@@ -456,5 +457,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // The Maze of the Kings VR
   'mok-vr': { start: '1:20', end: '1:35' },
-  'En2PYkAvBCo': { start: '1:20', end: '1:35' }
+  'En2PYkAvBCo': { start: '1:20', end: '1:35' },
+
+  // WakerQuest (The Legend of Zelda: The Wind Waker VR)
+  'wakerquest': { start: '0:45', end: '1:00' },
+  '_Y2C9td1agc': { start: '0:45', end: '1:00' }
 }

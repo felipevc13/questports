@@ -101,5 +101,6 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'ninja-assault-vr': ['ninja assault', 'ninjaslt'],
   'death-crimson-ox-vr': ['death crimson', 'death crimson ox', 'dcox', 'deathcoxj'],
   'survivor2-code-veronica-vr': ['survivor 2', 'resident evil survivor 2', 'code veronica', 'gun survivor 2', 'biohazard survivor 2', 'gunsur2'],
-  'mok-vr': ['the maze of the kings', 'maze of the kings', 'mok', 'mok vr']
+  'mok-vr': ['the maze of the kings', 'maze of the kings', 'mok', 'mok vr'],
+  'wakerquest': ['wind waker', 'zelda wind waker', 'tww', 'switchwaker', 'zelda', 'tloz']
 }
