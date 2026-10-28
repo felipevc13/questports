@@ -6,6 +6,11 @@ import {
   INSTALL_BUTTON_CLASS_WITH_SEND,
   REMOTE_INSTALL_MIN_APP_VERSION,
   REMOTE_APP_OUTDATED_TITLE,
+  REMOTE_NOT_ACCEPTING_DETAIL,
+  REMOTE_NOT_ACCEPTING_TITLE,
+  REMOTE_QUEUED_SLOW_DETAIL,
+  REMOTE_QUEUED_SLOW_TITLE,
+  cleanAcceptingFlag,
   formatPairCode,
   gameFilesPathForSlug,
   isRemotePairCode,
@@ -98,15 +103,34 @@ async function call(
   path: string,
   body?: unknown,
   authorization?: string,
-  appVersionHeader?: string
+  appVersionHeader?: string,
+  acceptingHeader?: string
 ) {
   return dispatchRemote({
     method,
     path,
     body: body ?? null,
     authorization: authorization ? `Bearer ${authorization}` : null,
-    appVersionHeader: appVersionHeader || null
+    appVersionHeader: appVersionHeader || null,
+    acceptingHeader: acceptingHeader ?? null
   }, deps)
+}
+
+function queuedView(extra: { accepting?: boolean | null; ageMs?: number; lastSeen?: string; now?: number } = {}) {
+  return remoteStatusView({
+    status: 'queued',
+    progress: null,
+    errorReason: null,
+    model: 'Quest 3S',
+    title: 'QuestCraft',
+    version: 'v6.0.0',
+    lastSeen: extra.lastSeen ?? '2026-10-27T12:00:00.000Z',
+    now: extra.now ?? Date.parse('2026-10-27T12:00:10.000Z'),
+    needsFiles: false,
+    filesPath: '',
+    accepting: extra.accepting,
+    ageMs: extra.ageMs
+  })
 }
 
 async function pair(deps: RemoteDeps, appVersion = '1.1.0') {
@@ -223,6 +247,36 @@ describe('Send to Quest rules', () => {
     })
     expect(queued.title).toContain('Queued')
     expect(queued.detail).toContain('24 hours')
+    expect(cleanAcceptingFlag('1')).toBe(true)
+    expect(cleanAcceptingFlag('0')).toBe(false)
+    expect(cleanAcceptingFlag('true')).toBe(true)
+    expect(cleanAcceptingFlag('false')).toBe(false)
+    expect(cleanAcceptingFlag(undefined)).toBeNull()
+    expect(cleanAcceptingFlag('maybe')).toBeNull()
+    expect(remotePollDelayMs({ status: 'queued', ageMs: 90_000, hidden: false, accepting: false })).toBe(2000)
+
+    const blocked = queuedView({ accepting: false, ageMs: 120_000 })
+    expect(blocked.tone).toBe('queued')
+    expect(blocked.title).toBe(REMOTE_NOT_ACCEPTING_TITLE)
+    expect(blocked.detail).toBe(REMOTE_NOT_ACCEPTING_DETAIL)
+    expect(blocked.showCancel).toBe(true)
+    expect(blocked.showRetry).toBe(false)
+
+    const waiting = queuedView({ accepting: true, ageMs: 1000 })
+    expect(waiting.tone).toBe('wait')
+    expect(waiting.title).toBe('Waiting for your Quest…')
+
+    const stalled = queuedView({ accepting: null, ageMs: 60_000 })
+    expect(stalled.tone).toBe('queued')
+    expect(stalled.title).toBe(REMOTE_QUEUED_SLOW_TITLE)
+    expect(stalled.detail).toBe(REMOTE_QUEUED_SLOW_DETAIL)
+
+    const stillBlocked = queuedView({ accepting: false, ageMs: 1000 })
+    expect(stillBlocked.title).toBe(REMOTE_NOT_ACCEPTING_TITLE)
+
+    const resumed = queuedView({ accepting: true, ageMs: 1000, lastSeen: '2026-10-27T12:00:00.000Z' })
+    expect(resumed.tone).toBe('wait')
+    expect(resumed.title).toBe('Waiting for your Quest…')
   })
 
   it('stores needs_files on the remote analytics events', () => {
@@ -361,6 +415,48 @@ describe('Send to Quest API', () => {
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
     expect(sql).toContain('needs_files boolean')
+    expect(sql).not.toContain('accepting_requests')
     expect(sql).toContain('revoke all on table public.remote_devices from public, anon, authenticated')
+    const acceptingSql = readFileSync(new URL('../supabase/migrations/20261027113000_remote_device_accepting.sql', import.meta.url), 'utf8')
+    expect(acceptingSql).toContain('add column if not exists accepting_requests boolean')
+    expect(send).toContain("view.tone === 'progress' || view.tone === 'wait'")
+    expect(send).toContain('data-testid="remote-cancel"')
+    expect(send).toContain('data-testid="remote-forget"')
+  })
+
+  it('stores the headset accepting flag and leaves it alone when the field is absent', async () => {
+    const { deps } = harness()
+    const session = await pair(deps)
+    const created = await call(deps, 'POST', 'requests', { port_slug: 'questcraft' }, session.token)
+    const requestId = String(created.body?.id)
+
+    const unknown = await call(deps, 'GET', 'device', null, session.token)
+    expect(unknown.body?.device).toMatchObject({ accepting: null, model: 'Quest 3' })
+
+    const off = await call(deps, 'GET', 'requests', null, session.secret, undefined, '0')
+    expect(off.status).toBe(200)
+    const deviceOff = await call(deps, 'GET', 'device', null, session.token)
+    expect(deviceOff.body?.device).toMatchObject({ accepting: false })
+    const requestOff = await call(deps, 'GET', `requests/${requestId}`, null, session.token)
+    expect(requestOff.body).toMatchObject({ status: 'queued', accepting: false })
+
+    await call(deps, 'GET', 'requests', null, session.secret)
+    const stillOff = await call(deps, 'GET', 'device', null, session.token)
+    expect(stillOff.body?.device).toMatchObject({ accepting: false })
+
+    const browserCannotSet = await call(deps, 'GET', 'device', null, session.token, undefined, '1')
+    expect(browserCannotSet.body?.device).toMatchObject({ accepting: false })
+
+    await call(deps, 'GET', 'requests', null, session.secret, undefined, '1')
+    const on = await call(deps, 'GET', `requests/${requestId}`, null, session.token)
+    expect(on.body).toMatchObject({ accepting: true })
+
+    const bodyWins = await call(deps, 'POST', `requests/${requestId}/status`, {
+      status: 'received',
+      accepting: false
+    }, session.secret, undefined, '1')
+    expect(bodyWins.status).toBe(200)
+    const afterBody = await call(deps, 'GET', 'device', null, session.token)
+    expect(afterBody.body?.device).toMatchObject({ accepting: false })
   })
 })

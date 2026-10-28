@@ -8,6 +8,7 @@ Apply these files in the Supabase SQL editor after merge. Do not run them from C
 
 - `supabase/migrations/20261027050000_remote_install.sql`
 - `supabase/migrations/20261027050100_analytics_remote_install.sql`
+- `supabase/migrations/20261027113000_remote_device_accepting.sql` (`remote_devices.accepting_requests`, nullable)
 
 Ready-made read queries are in `supabase/queries/remote_install.sql`.
 
@@ -23,7 +24,7 @@ The site can be previewed before that flip:
 
 - `?remoteInstall=1` shows the button after hydration. Catalog HTML is cached, so the query is read in the browser and does not create a new CDN entry.
 - Browser API calls from that page send `x-questports-remote-preview: 1`. The server treats that header as enabled for the request. Rate limits still apply.
-- `?remoteInstall=1&remotePreview=pair|outdated|waiting|downloading|confirm|installed|queued|failed` draws the UI states without calling the API. Review only.
+- `?remoteInstall=1&remotePreview=pair|outdated|waiting|downloading|confirm|installed|queued|not-accepting|failed` draws the UI states without calling the API. Review only.
 
 The button is only on one-click-eligible port pages (a package id in `portPackageMap.ts` and a real APK or GitHub releases asset). It is hidden in Quest Browser and inside the QuestPorts app webview. The USB Install button and the navbar Connect Quest control are unchanged.
 
@@ -35,6 +36,16 @@ The button is only on one-click-eligible port pages (a package id in `portPackag
 | Browser | `Authorization: Bearer <browser_token>` |
 
 Optional heartbeat: `x-questports-app-version: 1.1.0`, or `app_version` in a JSON body. Any authenticated device call updates `last_seen_at` and, when a version is present, `app_version`.
+
+Accept install requests, from the headset app only:
+
+- Header `x-questports-accepting: 1` when the toggle is on, `0` when it is off. `true` / `false` are accepted too.
+- A JSON body may include `"accepting": true` or `false`. If both are present and the body value parses, the body wins.
+- Send it on every device-authenticated call, especially `GET /api/remote/requests` (the 30 second poll). Older builds omit both. The column stays null and the site does not treat that as off.
+- A call that omits the field does not clear a value already stored.
+- Browser tokens cannot set it. `GET /api/remote/device` and `GET /api/remote/requests/:id` return `accepting` as `true`, `false`, or `null`.
+
+`remote_devices.accepting_requests` is that value. Apply `20261027113000_remote_device_accepting.sql` before the app starts sending the header. Until the column exists, the server ignores the write and the browser still sees `null`.
 
 Errors are `{ "error": "<code>", "message": "<text>", ...extra }`.
 
@@ -178,13 +189,17 @@ No request row is inserted. USB install stays available in the page.
   "error_reason": null,
   "updated_at": "<iso>",
   "expires_at": "<iso>",
-  "needs_files": true
+  "needs_files": true,
+  "accepting": false,
+  "last_seen": "<iso>"
 }
 ```
 
-`expires_at` and `needs_files` are extra. `needs_files` here is a JSON boolean from the row. Analytics uses the strings `'true'` and `'false'`.
+`expires_at` and `needs_files` are extra. `needs_files` here is a JSON boolean from the row. Analytics uses the strings `'true'` and `'false'`. `accepting` is the headset toggle (`true`, `false`, or `null` when the app has not reported it). `last_seen` is the device heartbeat.
 
-The page polls every 2 seconds while the request is active. If it is still `queued` after 60 seconds, the interval becomes 15 seconds. Polling pauses while the tab is hidden and resumes when it is visible. A 24 hour poll at 2 seconds would burn the Vercel invocation budget, so this backoff replaces a hard 10 minute cap.
+The page polls every 2 seconds while the request is active. If it is still `queued` after 60 seconds, the interval becomes 15 seconds, except while `accepting` is `false` (that stays at 2 seconds so turning the toggle on updates the card on the next poll). Polling pauses while the tab is hidden and resumes when it is visible. A 24 hour poll at 2 seconds would burn the Vercel invocation budget, so this backoff replaces a hard 10 minute cap.
+
+While the request is `queued` and `accepting` is `false`, the card says "Your Quest isn't accepting installs" and does not spin. Cancel request and Forget this Quest stay. When a later poll returns `accepting: true` and the request is still under 60 seconds old, the waiting spinner comes back. At 60 seconds or more, with the toggle unknown or already on, the card says "Your Quest hasn't picked this up yet" until the status leaves `queued`. A missing `accepting` field is the unknown case, not "off".
 
 ### `POST /api/remote/requests/:id/cancel`
 
@@ -199,7 +214,8 @@ Browser auth. Cancels a non-terminal request. `{ "id", "status": "cancelled" }`.
     "name": "Quest 3",
     "model": "Quest 3",
     "last_seen": "<iso>",
-    "app_version": "1.1.0"
+    "app_version": "1.1.0",
+    "accepting": null
   }
 }
 ```
@@ -280,3 +296,4 @@ These additions are backward compatible. Old clients can ignore the extra JSON f
 12. Flag defaults off. `?remoteInstall=1` and the preview header turn the site on. The app needs `NUXT_PUBLIC_REMOTE_INSTALL=true`.
 13. Browser label comes from the User-Agent.
 14. Returning an existing active request does not consume a new hourly slot.
+15. `x-questports-accepting` / JSON `accepting` on device calls. Browser responses include `accepting`. Null means the app has not reported the toggle.
