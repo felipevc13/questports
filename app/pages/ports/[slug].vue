@@ -1496,6 +1496,9 @@
           </div>
         </div>
 
+        <!-- Community Reports & Playability Feedback -->
+        <CommunityReports v-if="port" :port="port" />
+
         <!-- Community & Creator Support Box -->
         <div class="p-4 rounded-xl bg-card border border-border space-y-3 text-xs">
           <div class="flex items-center justify-between">
