@@ -95,5 +95,11 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'homeworld-unbound': ['homeworld'],
   'magic-carpet-vr': ['magic carpet'],
   'openxwa-vr': ['x wing', 'xwing', 'x-wing', 'x wing alliance'],
-  'age-of-joy': ['mame', 'arcade']
+  'age-of-joy': ['mame', 'arcade'],
+  'confidential-mission-vr': ['confidential mission', 'cmvr', 'confmiss'],
+  'lupin-the-third-vr': ['lupin', 'lupin the third', 'lupin the 3rd', 'lupin the shooting', 'lupinshoo'],
+  'ninja-assault-vr': ['ninja assault', 'ninjaslt'],
+  'death-crimson-ox-vr': ['death crimson', 'death crimson ox', 'dcox', 'deathcoxj'],
+  'survivor2-code-veronica-vr': ['survivor 2', 'resident evil survivor 2', 'code veronica', 'gun survivor 2', 'biohazard survivor 2', 'gunsur2'],
+  'mok-vr': ['the maze of the kings', 'maze of the kings', 'mok', 'mok vr']
 }

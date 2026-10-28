@@ -41,11 +41,13 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'beefraiderxr',
   'bomberman-hero-vr',
   'citravr',
+  'confidential-mission-vr',
   'crazy-taxi-vr',
   'crisis-zone-vr',
   'csvr',
   'ctr-turbocharged-vr',
   'daytona-usa-vr',
+  'death-crimson-ox-vr',
   'dirt-dash-vr',
   'doom3quest',
   'dolphinxr',
@@ -64,10 +66,13 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'iron-lung-vr',
   'jkxr',
   'lambda1vr',
+  'lupin-the-third-vr',
   'majoras-mask-vr',
   'mario-party-4-partyboard',
   'max-payne-vr',
   'metal-gear-solid-vr',
+  'mok-vr',
+  'ninja-assault-vr',
   'nolf-vr',
   'nfsu-vr',
   'nfsu2-vr',
@@ -99,6 +104,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sourcevr',
   'starfox-enhanced-vr',
   'strikers-quest-mr',
+  'survivor2-code-veronica-vr',
   'time-crisis-2-vr',
   'time-crisis-vr',
   'twilight-princess-vr',
@@ -426,5 +432,29 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // Crazy Taxi VR
   'crazy-taxi-vr': { start: '1:20', end: '1:35' },
-  '53FEb8eGrSo': { start: '1:20', end: '1:35' }
+  '53FEb8eGrSo': { start: '1:20', end: '1:35' },
+
+  // Confidential Mission VR
+  'confidential-mission-vr': { start: '1:00', end: '1:15' },
+  'be8uaCACx1Q': { start: '1:00', end: '1:15' },
+
+  // Lupin the Third VR
+  'lupin-the-third-vr': { start: '1:30', end: '1:45' },
+  'IBmXZJmbUVA': { start: '1:30', end: '1:45' },
+
+  // Ninja Assault VR
+  'ninja-assault-vr': { start: '1:40', end: '1:55' },
+  'Go4myYryHog': { start: '1:40', end: '1:55' },
+
+  // Death Crimson OX VR
+  'death-crimson-ox-vr': { start: '1:45', end: '2:00' },
+  '4LIxgS_KOZI': { start: '1:45', end: '2:00' },
+
+  // Survivor 2 - Code: Veronica VR
+  'survivor2-code-veronica-vr': { start: '1:10', end: '1:25' },
+  'HucHP0u5UQk': { start: '1:10', end: '1:25' },
+
+  // The Maze of the Kings VR
+  'mok-vr': { start: '1:20', end: '1:35' },
+  'En2PYkAvBCo': { start: '1:20', end: '1:35' }
 }

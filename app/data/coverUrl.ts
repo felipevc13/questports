@@ -4,7 +4,7 @@ const SITE_ORIGIN = 'https://questports.vercel.app'
 export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'
 /** Bump when a cover file changes. Paired with a year-long immutable cache. */
-export const COVER_CACHE_VERSION = '4'
+export const COVER_CACHE_VERSION = '5'
 /** Cache-busted absolute URL for the site-wide 1200×630 share card. */
 export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=${COVER_CACHE_VERSION}`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
@@ -44,7 +44,13 @@ const STEAMGRID_COVERS: Record<string, string> = {
   '39d9ed17e9496bdabfdc1d0a6d89c38d': '/covers/nfsu2-vr.png',
   '5778a79540b9f459a7f2aff2a548eb54': '/covers/rave-racer-vr.png',
   '20f40268fabfdc203f448dc64261a920': '/covers/openxwa-vr.jpg',
-  '1bde14bdd1783d7dae116f6f46919031': '/covers/wave-race-64-vr.png'
+  '1bde14bdd1783d7dae116f6f46919031': '/covers/wave-race-64-vr.png',
+  'cc1744f3b3c2032f590ca5f1bd147117': '/covers/confidential-mission-vr.png',
+  '6b382385774e24a67d7484042813b849': '/covers/confidential-mission-vr.png',
+  '5087e1134c3d46eca4f6b87a3b70b081': '/covers/ninja-assault-vr.png',
+  '79f00facc8cfccd2487a5c2d33e250e3': '/covers/death-crimson-ox-vr.png',
+  '99ae5d502b16e1ee613a7036e556e3af': '/covers/survivor2-code-veronica-vr.png',
+  '684f8cfe0649794646b26f4e412faa06': '/covers/survivor2-code-veronica-vr.png'
 }
 
 /** Map Storage, media-host and hotlink covers onto same-origin /covers files. */

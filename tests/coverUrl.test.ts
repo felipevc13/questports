@@ -44,7 +44,11 @@ describe('resolveCoverUrl', () => {
     ['https://cdn2.steamgriddb.com/grid/39d9ed17e9496bdabfdc1d0a6d89c38d.png', '/covers/nfsu2-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/5778a79540b9f459a7f2aff2a548eb54.png', '/covers/rave-racer-vr.png'],
     ['https://cdn2.steamgriddb.com/grid/20f40268fabfdc203f448dc64261a920.jpg', '/covers/openxwa-vr.jpg'],
-    ['https://cdn2.steamgriddb.com/grid/1bde14bdd1783d7dae116f6f46919031.png', '/covers/wave-race-64-vr.png']
+    ['https://cdn2.steamgriddb.com/grid/1bde14bdd1783d7dae116f6f46919031.png', '/covers/wave-race-64-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/6b382385774e24a67d7484042813b849.png', '/covers/confidential-mission-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/5087e1134c3d46eca4f6b87a3b70b081.png', '/covers/ninja-assault-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/79f00facc8cfccd2487a5c2d33e250e3.png', '/covers/death-crimson-ox-vr.png'],
+    ['https://cdn2.steamgriddb.com/grid/99ae5d502b16e1ee613a7036e556e3af.png', '/covers/survivor2-code-veronica-vr.png']
   ])('maps %s onto %s', (url, local) => {
     expect(resolveCoverUrl(url)).toBe(local)
   })
@@ -61,29 +65,29 @@ describe('resolveCoverUrl', () => {
 
 describe('coverThumbUrl', () => {
   it('points local covers at a small generated thumbnail', () => {
-    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg?v=4')
-    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg?v=4')
+    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg?v=5')
+    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg?v=5')
   })
 
   it('versions covers and can load them from an external media base', () => {
-    expect(versionedCoverUrl('/covers/nolf-vr.png')).toBe('/covers/nolf-vr.png?v=4')
+    expect(versionedCoverUrl('/covers/nolf-vr.png')).toBe('/covers/nolf-vr.png?v=5')
     expect(versionedCoverUrl(
       'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/nolf-vr.png'
-    )).toBe('/covers/nolf-vr.png?v=4')
+    )).toBe('/covers/nolf-vr.png?v=5')
     expect(versionedCoverUrl('/covers/nolf-vr.png', 'https://cdn.example.com/')).toBe(
-      'https://cdn.example.com/covers/nolf-vr.png?v=4'
+      'https://cdn.example.com/covers/nolf-vr.png?v=5'
     )
     expect(coverThumbUrl('/covers/doom3quest.jpg', 'https://cdn.example.com')).toBe(
-      'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=4'
+      'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=5'
     )
   })
 
   it('keeps absolute media-host covers versioned without double-prefixing', () => {
     const db = `${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg`
-    expect(versionedCoverUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg?v=4`)
-    expect(versionedCoverUrl(db)).toBe('/covers/doom3quest.jpg?v=4')
-    expect(coverThumbUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/thumbs/doom3quest.jpg?v=4`)
-    expect(absoluteCoverUrl(db)).toBe('https://questports.vercel.app/covers/doom3quest.jpg?v=4')
+    expect(versionedCoverUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg?v=5`)
+    expect(versionedCoverUrl(db)).toBe('/covers/doom3quest.jpg?v=5')
+    expect(coverThumbUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/thumbs/doom3quest.jpg?v=5`)
+    expect(absoluteCoverUrl(db)).toBe('https://questports.vercel.app/covers/doom3quest.jpg?v=5')
     // A value that already went through versionedCoverUrl stays stable.
     const once = versionedCoverUrl(db, DEFAULT_MEDIA_BASE)
     expect(versionedCoverUrl(once, DEFAULT_MEDIA_BASE)).toBe(once)
@@ -99,19 +103,19 @@ describe('coverThumbUrl', () => {
 describe('absoluteCoverUrl', () => {
   it('prefixes local covers for Open Graph', () => {
     expect(absoluteCoverUrl('/covers/nolf-vr.png')).toBe(
-      'https://questports.vercel.app/covers/nolf-vr.png?v=4'
+      'https://questports.vercel.app/covers/nolf-vr.png?v=5'
     )
   })
 
   it('keeps Open Graph covers on the site even when the file is on the media host', () => {
     expect(absoluteCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/nolf-vr.png?v=9`)).toBe(
-      'https://questports.vercel.app/covers/nolf-vr.png?v=4'
+      'https://questports.vercel.app/covers/nolf-vr.png?v=5'
     )
   })
 
   it('falls back to the cache-busted site card', () => {
     expect(absoluteCoverUrl(null)).toBe(
-      'https://questports.vercel.app/covers/questports-og.png?v=4'
+      'https://questports.vercel.app/covers/questports-og.png?v=5'
     )
   })
 })

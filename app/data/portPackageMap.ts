@@ -1702,6 +1702,132 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'US Mario Kart 64 ROM (.z64, .n64, or .v64). The launcher imports the file you pick.'
       }
     ]
+  },
+  'confidential-mission-vr': {
+    slug: 'confidential-mission-vr',
+    packageName: 'com.vrlightgunhub.confmiss',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NAOMI arcade MAME set confmiss (confmiss.zip, confmiss/gds-0001.chd, naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'confmiss_rom',
+        name: 'Confidential Mission ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['confmiss.zip', 'naomi.zip'],
+        description: 'confmiss.zip and naomi.zip in Download, with confmiss/gds-0001.chd disc.'
+      }
+    ]
+  },
+  'lupin-the-third-vr': {
+    slug: 'lupin-the-third-vr',
+    packageName: 'com.vrlightgunhub.lupin',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Original GDS-0018 NAOMI set lupinshoo (lupinshoo.zip, lupinshoo/gds-0018.chd, naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'lupin_rom',
+        name: 'Lupin the Third ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['lupinshoo.zip', 'naomi.zip'],
+        description: 'lupinshoo.zip and naomi.zip in Download, with lupinshoo/gds-0018.chd disc.'
+      }
+    ]
+  },
+  'ninja-assault-vr': {
+    slug: 'ninja-assault-vr',
+    packageName: 'com.vrlightgunhub.ninjaassault',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NAOMI cartridge World NJA2 Ver.A set ninjaslt (ninjaslt.zip and naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'ninjaslt_rom',
+        name: 'Ninja Assault ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['ninjaslt.zip', 'naomi.zip'],
+        description: 'ninjaslt.zip and naomi.zip in Download. No CHD required.'
+      }
+    ]
+  },
+  'death-crimson-ox-vr': {
+    slug: 'death-crimson-ox-vr',
+    packageName: 'com.vrlightgunhub.deathcrimsonox',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NAOMI cartridge Japan Rev A set deathcoxj (deathcoxj.zip and naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'deathcoxj_rom',
+        name: 'Death Crimson OX ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['deathcoxj.zip', 'naomi.zip'],
+        description: 'deathcoxj.zip and naomi.zip in Download. No CHD required.'
+      }
+    ]
+  },
+  'survivor2-code-veronica-vr': {
+    slug: 'survivor2-code-veronica-vr',
+    packageName: 'com.vrlightgunhub.survivor2',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NAOMI World cartridge set gunsur2 (gunsur2.zip and naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'gunsur2_rom',
+        name: 'Survivor 2 Code Veronica ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['gunsur2.zip', 'naomi.zip'],
+        description: 'gunsur2.zip and naomi.zip in Download. Free analog stick locomotion.'
+      }
+    ]
+  },
+  'mok-vr': {
+    slug: 'mok-vr',
+    packageName: 'com.vrlightgunhub.mok',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NAOMI MAME mok set with GDS-0022 disc (mok.zip, mok/gds-0022.chd, naomi.zip). Put them in Download.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'mok_rom',
+        name: 'The Maze of the Kings ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['mok.zip', 'naomi.zip'],
+        description: 'mok.zip and naomi.zip in Download, with mok/gds-0022.chd disc.'
+      }
+    ]
   }
 }
 

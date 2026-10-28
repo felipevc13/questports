@@ -303,9 +303,9 @@ describe('Port Campaigns & Expansions Engine', () => {
     })
   })
 
-  describe('getPortCampaigns cross-validation on all 38 ports', () => {
+  describe('getPortCampaigns cross-validation on all ports', () => {
     it('generates at least one valid campaign for every single port in INITIAL_PORTS', () => {
-      expect(INITIAL_PORTS.length).toBe(38)
+      expect(INITIAL_PORTS.length).toBe(44)
 
       for (const port of INITIAL_PORTS) {
         const campaigns = getPortCampaigns(port)
