@@ -1828,6 +1828,29 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'mok.zip and naomi.zip in Download, with mok/gds-0022.chd disc.'
       }
     ]
+  },
+  wakerquest: {
+    slug: 'wakerquest',
+    packageName: 'io.github.wakerquest',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Transfer your uncompressed Wind Waker GameCube ISO (GZLP01.iso or GZLE01.iso) into /sdcard/Download/. The app reads it from Download.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    altPaths: ['/sdcard/Android/data/io.github.wakerquest/files/'],
+    folders: [
+      {
+        id: 'wakerquest_iso',
+        name: 'The Wind Waker ISO',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        altPaths: ['/sdcard/Android/data/io.github.wakerquest/files/'],
+        required: true,
+        fileExtensionPattern: '\\.iso$',
+        description: 'Uncompressed GameCube ISO of The Wind Waker (European GZLP01 or USA GZLE01).'
+      }
+    ]
   }
 }
 
