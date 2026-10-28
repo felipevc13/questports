@@ -1683,9 +1683,9 @@ useSeoMeta({
   ogImage: () => share.value.image,
   ogImageSecureUrl: () => share.value.image,
   ogImageType: () => share.value.type,
-  ogImageWidth: () => share.value.width,
-  ogImageHeight: () => share.value.height,
-  ogImageAlt: () => share.value.alt,
+  ogImageWidth: () => share.value.width || undefined,
+  ogImageHeight: () => share.value.height || undefined,
+  ogImageAlt: () => share.value.alt || undefined,
   ogType: 'article',
   twitterCard: 'summary_large_image',
   twitterTitle: () => port.value ? `${port.value.title} (Meta Quest Standalone VR)` : 'QuestPorts',
@@ -2781,7 +2781,8 @@ const handleDrop = async (e: DragEvent) => {
   if (items && items.length > 0 && typeof items[0]?.webkitGetAsEntry === 'function') {
     const collected: { file: File, relPath: string }[] = []
     for (let i = 0; i < items.length; i++) {
-      const entry = items[i] && typeof items[i].webkitGetAsEntry === 'function' ? items[i].webkitGetAsEntry() : null
+      const item = items[i]
+      const entry = item && typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null
       if (entry) collected.push(...await traverseDroppedEntry(entry, ''))
     }
     if (collected.length > 0) {
