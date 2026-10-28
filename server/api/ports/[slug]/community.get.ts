@@ -1,4 +1,6 @@
 import { defineEventHandler, getRouterParam, setResponseHeader } from 'h3'
+import { clientIp } from '../../../utils/clientIp'
+import { fingerprintValue } from '../../../utils/verificationIngest'
 import { supabaseAdmin } from '../../../utils/supabaseAdmin'
 
 export default defineEventHandler(async (event) => {
@@ -13,12 +15,13 @@ export default defineEventHandler(async (event) => {
       appVerifiedCount: 0,
       worksPct: null,
       lastReviewAt: null,
-      headsets: {}
+      headsets: {},
+      myVote: null
     }
   }
 
-  // Cache response at edge/browser for 60s, background revalidate up to 10 min
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+  // Private cache so personal vote state is not shared across users on edge CDN
+  setResponseHeader(event, 'Cache-Control', 'private, max-age=10, stale-while-revalidate=60')
 
   const admin = supabaseAdmin()
   if (!admin) {
@@ -31,12 +34,18 @@ export default defineEventHandler(async (event) => {
       appVerifiedCount: 0,
       worksPct: null,
       lastReviewAt: null,
-      headsets: {}
+      headsets: {},
+      myVote: null
     }
   }
 
+  const ip = clientIp(event)
+  const config = useRuntimeConfig()
+  const salt = String(config.supabaseServiceRoleKey || 'questports_community_salt')
+  const ipHash = fingerprintValue(ip, salt)
+
   try {
-    const [summaryRes, headsetsRes] = await Promise.all([
+    const [summaryRes, headsetsRes, myVoteRes] = await Promise.all([
       admin
         .from('port_community_summaries')
         .select('*')
@@ -45,7 +54,16 @@ export default defineEventHandler(async (event) => {
       admin
         .from('port_community_headset_summaries')
         .select('headset, verdict, count')
+        .eq('port_slug', slug),
+      admin
+        .from('port_community_reviews')
+        .select('verdict, issue_tag, headset, port_version, updated_at, created_at')
         .eq('port_slug', slug)
+        .eq('ip_hash', ipHash)
+        .eq('is_flagged', false)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
     ])
 
     const row = summaryRes.data
@@ -63,6 +81,15 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    const myVoteRow = myVoteRes.data
+    const myVote = myVoteRow ? {
+      verdict: myVoteRow.verdict,
+      issueTag: myVoteRow.issue_tag || null,
+      headset: myVoteRow.headset || null,
+      portVersion: myVoteRow.port_version || null,
+      timestamp: new Date(myVoteRow.updated_at || myVoteRow.created_at).getTime()
+    } : null
+
     if (!row) {
       return {
         portSlug: slug,
@@ -73,7 +100,8 @@ export default defineEventHandler(async (event) => {
         appVerifiedCount: 0,
         worksPct: null,
         lastReviewAt: null,
-        headsets: headsetsMap
+        headsets: headsetsMap,
+        myVote
       }
     }
 
@@ -86,7 +114,8 @@ export default defineEventHandler(async (event) => {
       appVerifiedCount: Number(row.app_verified_count) || 0,
       worksPct: row.works_pct !== null && row.works_pct !== undefined ? Number(row.works_pct) : null,
       lastReviewAt: row.last_review_at || null,
-      headsets: headsetsMap
+      headsets: headsetsMap,
+      myVote
     }
   } catch (err) {
     console.error('[QuestPorts Community] Error reading summary for', slug, err)
@@ -99,8 +128,8 @@ export default defineEventHandler(async (event) => {
       appVerifiedCount: 0,
       worksPct: null,
       lastReviewAt: null,
-      headsets: {}
+      headsets: {},
+      myVote: null
     }
   }
 })
-

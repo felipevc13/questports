@@ -1,10 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   isValidUuid,
+  getOrCreateDeviceId,
+  getStoredUserVote,
+  setStoredUserVote,
+  rehydrateVoteFromSummary,
   ISSUE_TAG_LABELS,
   VERDICT_LABELS,
   type CommunityVerdict,
-  type CommunityIssueTag
+  type CommunityIssueTag,
+  type StoredUserVote
 } from '../app/lib/communityReviews'
 
 describe('community playability reviews', () => {
@@ -19,6 +24,104 @@ describe('community playability reviews', () => {
       expect(isValidUuid('')).toBe(false)
       expect(isValidUuid('12345')).toBe(false)
       expect(isValidUuid('f47ac10b-58cc-6372-a567-0e02b2c3d479')).toBe(false) // version 6
+    })
+  })
+
+  describe('client-side vote storage & rehydration (IP recovery)', () => {
+    let mockStorage: Map<string, string>
+    const originalWindow = globalThis.window
+
+    beforeEach(() => {
+      mockStorage = new Map<string, string>()
+      const fakeLocalStorage = {
+        getItem: (key: string) => mockStorage.get(key) ?? null,
+        setItem: (key: string, value: string) => { mockStorage.set(key, value) },
+        removeItem: (key: string) => { mockStorage.delete(key) },
+        clear: () => { mockStorage.clear() }
+      }
+      // @ts-expect-error mock window
+      globalThis.window = { localStorage: fakeLocalStorage }
+      // @ts-expect-error mock localStorage
+      globalThis.localStorage = fakeLocalStorage
+    })
+
+    afterEach(() => {
+      globalThis.window = originalWindow
+      // @ts-expect-error cleanup
+      delete globalThis.localStorage
+    })
+
+    it('generates a valid device UUID if none exists in localStorage', () => {
+      const id = getOrCreateDeviceId()
+      expect(isValidUuid(id)).toBe(true)
+      // Calling again returns the same ID
+      expect(getOrCreateDeviceId()).toBe(id)
+    })
+
+    it('saves and retrieves user vote from localStorage', () => {
+      const vote: StoredUserVote = {
+        verdict: 'works_great',
+        issueTag: null,
+        headset: 'Quest 3',
+        portVersion: 'v1.0.0',
+        timestamp: 1700000000000
+      }
+      setStoredUserVote('quake3', vote)
+      expect(getStoredUserVote('quake3')).toEqual(vote)
+      expect(getStoredUserVote('doom')).toBeNull()
+    })
+
+    it('handles corrupted JSON in localStorage gracefully', () => {
+      mockStorage.set('qp_review_quake3', '{invalid json}')
+      expect(getStoredUserVote('quake3')).toBeNull()
+    })
+
+    it('rehydrates vote from server summary when local storage was cleared', () => {
+      const serverVote: StoredUserVote = {
+        verdict: 'needs_tweaks',
+        issueTag: 'controls_broken',
+        headset: 'Quest 2',
+        portVersion: 'v1.2.0',
+        timestamp: 1710000000000
+      }
+      // User wiped history, local storage is empty
+      expect(getStoredUserVote('doom3')).toBeNull()
+
+      const restored = rehydrateVoteFromSummary('doom3', serverVote, null)
+      expect(restored).toEqual(serverVote)
+
+      // Verify it was persisted back to localStorage
+      expect(getStoredUserVote('doom3')).toEqual(serverVote)
+    })
+
+    it('does NOT overwrite existing local vote during rehydration', () => {
+      const existingLocalVote: StoredUserVote = {
+        verdict: 'works_great',
+        issueTag: null,
+        headset: 'Quest 3',
+        portVersion: 'v1.5.0',
+        timestamp: 1720000000000
+      }
+      setStoredUserVote('doom3', existingLocalVote)
+
+      const staleServerVote: StoredUserVote = {
+        verdict: 'cant_run',
+        issueTag: 'wont_launch',
+        headset: 'Quest 2',
+        portVersion: 'v1.0.0',
+        timestamp: 1700000000000
+      }
+
+      const result = rehydrateVoteFromSummary('doom3', staleServerVote, existingLocalVote)
+      expect(result).toBe(existingLocalVote)
+      expect(getStoredUserVote('doom3')?.verdict).toBe('works_great')
+    })
+
+    it('returns null if serverVote is null or has no verdict', () => {
+      expect(rehydrateVoteFromSummary('doom3', null, null)).toBeNull()
+      // @ts-expect-error invalid server vote
+      expect(rehydrateVoteFromSummary('doom3', {}, null)).toBeNull()
+      expect(getStoredUserVote('doom3')).toBeNull()
     })
   })
 
