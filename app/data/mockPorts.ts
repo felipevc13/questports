@@ -1941,6 +1941,282 @@ adb push ./relith-saves/. /sdcard/nolf/Save/
 adb push ./autoexec.cfg /sdcard/nolf/
 \`\`\``,
     troubleshooting_notes: 'Game data not found after copying: archives must sit directly in /sdcard/nolf/, not a nested folder. Menus with no text: missing nolfu003cres.rez (or nolf003cres.rez / NOLFCRES003.REZ). Bonus chapter greyed out: missing NOLFGOTY.REZ. Storage prompt every launch: All files access did not stick. Quest 2: VR menu panel can render black except the pointer line. Falling into water can apply extra fall damage vs the original. MODERNIZER by HeyThereCoffeee (haekb) is bundled; unofficial fan project, not affiliated with Monolith.'
+  },
+  {
+    id: '39',
+    slug: 'confidential-mission-vr',
+    title: 'Confidential Mission VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/confidential-mission-vr',
+    short_description: 'Sega\'s 2000 arcade light-gun spy thriller Confidential Mission (Sega NAOMI) in 6DoF stereo VR, standalone on Meta Quest. Dual-wield tracked controllers, 1:1 aiming, arcade reload, and co-op action.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/confidential-mission-vr.png',
+    youtube_video_id: 'be8uaCACx1Q',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Confidential_Mission',
+    base_game_store: 'Requires your own copy (Sega NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/confidential-mission-vr/releases/download/v1.2.6/confidential-mission-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/confidential-mission-vr',
+    latest_version: 'v1.2.6',
+    last_github_update: '2026-10-27T01:50:16Z',
+    featured: true,
+    installation_guide: `### Overview
+**Confidential Mission VR** brings Sega's 2000 arcade light-gun spy thriller (Sega NAOMI) to standalone Meta Quest in stereoscopic 6DoF VR. A VR fork of Flycast rebuilds the original 3D scenes in stereo around you while your Touch controllers act as 1:1 tracked light guns with arcade haptic recoil. Supports dual wielding and two players on one headset.
+
+> [!NOTE]
+> **No game files included.** You need your legally owned copy of the Sega NAOMI arcade set: \`confmiss.zip\`, \`confmiss/gds-0001.chd\`, and \`naomi.zip\`.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Sideloading enabled (Developer Mode or QuestPorts App).
+* MAME NAOMI ROM set: \`confmiss.zip\`, \`confmiss/gds-0001.chd\`, and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`confidential-mission-vr-quest.apk\` from GitHub Releases.
+2. Put \`confmiss.zip\`, \`confmiss/gds-0001.chd\`, and \`naomi.zip\` into your headset's \`/sdcard/Download/\` folder.
+3. Launch **Confidential Mission VR** from **Unknown Sources**.
+4. Grant All Files Access when prompted. The game verifies your ROM files and launches.`,
+    troubleshooting_notes: 'Missing game files: confmiss.zip and naomi.zip must sit directly in /sdcard/Download/, and gds-0001.chd in /sdcard/Download/confmiss/. Ensure All Files Access is granted in headset permissions.'
+  },
+  {
+    id: '40',
+    slug: 'lupin-the-third-vr',
+    title: 'Lupin the Third: The Shooting VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/lupin-the-third-vr',
+    short_description: 'Sega\'s 2001 NAOMI arcade light-gun shooter Lupin the Third: The Shooting in stereo 6DoF VR, standalone on Meta Quest. Tracked controller aiming, stereo reconstructed scenes, and Walther P38 pistol model.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/lupin-the-third-vr.png',
+    youtube_video_id: 'IBmXZJmbUVA',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Lupin_the_3rd:_The_Shooting',
+    base_game_store: 'Requires your own copy (Sega NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/lupin-the-third-vr/releases/download/v1.0.5/lupin-the-third-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/lupin-the-third-vr',
+    latest_version: 'v1.0.5',
+    last_github_update: '2026-10-27T00:00:00Z',
+    featured: true,
+    installation_guide: `### Overview
+**Lupin the Third: The Shooting VR** brings Sega's 2001 NAOMI arcade light-gun action game to standalone Meta Quest in stereo 6DoF VR. Aim with Lupin's signature Walther P38 pistol model or Jigen's revolver, dual wield, and experience classic anime arcade action rebuilt in VR.
+
+> [!NOTE]
+> **No game files included.** Requires the original GDS-0018 NAOMI set: \`lupinshoo.zip\`, \`lupinshoo/gds-0018.chd\`, and \`naomi.zip\`.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Developer Mode enabled.
+* Original GDS-0018 set: \`lupinshoo.zip\`, \`lupinshoo/gds-0018.chd\`, and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`lupin-the-third-vr-quest.apk\` from GitHub Releases.
+2. Put \`lupinshoo.zip\`, \`lupinshoo/gds-0018.chd\`, and \`naomi.zip\` into \`/sdcard/Download/\`.
+3. Launch **Lupin the Third VR** from **Unknown Sources**.
+4. Allow file access when prompted, then select **Play**.`,
+    troubleshooting_notes: 'Rev A (lupinsho / gds-0018a) is unsupported; use the original GDS-0018 set lupinshoo.zip. Verify naomi.zip is also present in /sdcard/Download/.'
+  },
+  {
+    id: '41',
+    slug: 'ninja-assault-vr',
+    title: 'Ninja Assault VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/ninja-assault-vr',
+    short_description: 'Namco\'s 2000 arcade ninja light-gun shooter Ninja Assault (NAOMI) in 6DoF stereo VR, standalone on Meta Quest. Dual ninja guns, 1:1 motion aiming, arcade recoil, and feudal Japanese action.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/ninja-assault-vr.png',
+    youtube_video_id: 'Go4myYryHog',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Ninja_Assault',
+    base_game_store: 'Requires your own copy (Namco NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/ninja-assault-vr/releases/download/v1.0.5/ninja-assault-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/ninja-assault-vr',
+    latest_version: 'v1.0.5',
+    last_github_update: '2026-10-27T00:00:00Z',
+    featured: true,
+    installation_guide: `### Overview
+**Ninja Assault VR** brings Namco's 2000 feudal Japanese arcade light-gun shooter to Meta Quest in 6DoF stereo VR. Features 1:1 tracked controllers as ninja guns, arcade recoil, and attract mode generation of your Mach Gun.
+
+> [!NOTE]
+> **No game files included.** Requires the NAOMI World NJA2 Ver.A cartridge set: \`ninjaslt.zip\` and \`naomi.zip\`. No CHD is required.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Developer Mode enabled.
+* NAOMI cartridge set: \`ninjaslt.zip\` and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`ninja-assault-vr-quest.apk\` from GitHub Releases.
+2. Put \`ninjaslt.zip\` and \`naomi.zip\` into \`/sdcard/Download/\`.
+3. Launch **Ninja Assault VR** from **Unknown Sources**.
+4. Grant storage access and wait for first-time gun generation.`,
+    troubleshooting_notes: 'Regional sets (ninjaslta, ninjasltj, ninjasltu) are unsupported; use the complete World NJA2 Ver.A set ninjaslt.zip with all 12 ROM entries.'
+  },
+  {
+    id: '42',
+    slug: 'death-crimson-ox-vr',
+    title: 'Death Crimson OX VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/death-crimson-ox-vr',
+    short_description: 'Ecole Software\'s 2000 arcade cult-classic light-gun shooter Death Crimson OX (NAOMI) in 6DoF VR on Meta Quest. Native Crimson gun extraction, tracked controller aim, and dual-wielding.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/death-crimson-ox-vr.png',
+    youtube_video_id: '4LIxgS_KOZI',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Death_Crimson_OX',
+    base_game_store: 'Requires your own copy (Sega NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/death-crimson-ox-vr/releases/download/v1.0.4/death-crimson-ox-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/death-crimson-ox-vr',
+    latest_version: 'v1.0.4',
+    last_github_update: '2026-10-27T00:00:00Z',
+    featured: true,
+    installation_guide: `### Overview
+**Death Crimson OX VR** brings Ecole Software's 2000 cult-classic NAOMI arcade rail shooter to Meta Quest in stereoscopic 6DoF VR. Includes local native pistol model generation, 1:1 aim tracking, recoil, and two-player arcade action.
+
+> [!NOTE]
+> **No game files included.** Requires the NAOMI Japan Rev A set: \`deathcoxj.zip\` and \`naomi.zip\`. No CHD is required.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Developer Mode enabled.
+* NAOMI cartridge set: \`deathcoxj.zip\` and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`death-crimson-ox-vr-quest.apk\` from GitHub Releases.
+2. Put \`deathcoxj.zip\` and \`naomi.zip\` into \`/sdcard/Download/\`.
+3. Launch **Death Crimson OX VR** from **Unknown Sources**.
+4. Grant storage access and select **Play**.`,
+    troubleshooting_notes: 'Must be Japan Rev A (deathcoxj.zip) containing epr-23524a.ic22 and chips ic1 through ic10. USA set deathcox is currently unsupported.'
+  },
+  {
+    id: '43',
+    slug: 'survivor2-code-veronica-vr',
+    title: 'Resident Evil Survivor 2: Code Veronica VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/survivor2-code-veronica-vr',
+    short_description: 'Capcom & Namco\'s 2001 NAOMI survival horror arcade game in 6DoF VR on Meta Quest. Features free analog thumbstick locomotion, snap turns, 1:1 motion aiming, and Nemesis.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/survivor2-code-veronica-vr.png',
+    youtube_video_id: 'HucHP0u5UQk',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion (analog stick)', 'Snap Turn', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Resident_Evil_Survivor_2_%E2%80%93_Code:_Veronica',
+    base_game_store: 'Requires your own copy (Capcom / Namco NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/survivor2-code-veronica-vr/releases/download/v1.0.4/survivor2-code-veronica-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/survivor2-code-veronica-vr',
+    latest_version: 'v1.0.5',
+    last_github_update: '2026-10-27T00:00:00Z',
+    featured: true,
+    installation_guide: `### Overview
+**Resident Evil Survivor 2: Code Veronica VR** adapts Capcom & Namco's 2001 NAOMI survival horror arcade game for Meta Quest. Unlike traditional on-rails light-gun games, this port features **full analog thumbstick locomotion and 30° snap turns** alongside 1:1 motion aiming and dynamic weapon extraction (BR-93R, Python, Gold Luger, Ingram, SPAS-12, AK47S, M79, LN-02).
+
+> [!NOTE]
+> **No game files included.** Requires the NAOMI World cartridge set: \`gunsur2.zip\` and \`naomi.zip\`.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Developer Mode enabled.
+* NAOMI cartridge set: \`gunsur2.zip\` and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`survivor2-code-veronica-vr-quest.apk\` from GitHub Releases.
+2. Put \`gunsur2.zip\` and \`naomi.zip\` into \`/sdcard/Download/\`.
+3. Launch **Survivor 2 Code: Veronica VR** from **Unknown Sources**.
+4. Move with the left thumbstick and snap-turn with the right thumbstick.`,
+    troubleshooting_notes: 'Requires the World cartridge gunsur2.zip (15 ROMs). Both controllers must be tracked for analog movement. Weapon models are extracted automatically on first start.'
+  },
+  {
+    id: '44',
+    slug: 'mok-vr',
+    title: 'The Maze of the Kings VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone/mok-vr',
+    short_description: 'Sega\'s 2002 ancient Egyptian arcade rail shooter The Maze of the Kings (NAOMI) in 6DoF VR on Meta Quest. Hold the illuminated 3D magical crystal staff with emerald ripples and gold motes.',
+    category: 'emulator',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/mok-vr.png',
+    youtube_video_id: 'En2PYkAvBCo',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/The_Maze_of_the_Kings',
+    base_game_store: 'Requires your own copy (Sega NAOMI arcade set)',
+    port_download_url: 'https://github.com/vr4all-standalone/mok-vr/releases/download/v1.0.5/mok-vr-quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/vr4all-standalone/mok-vr',
+    latest_version: 'v1.0.5',
+    last_github_update: '2026-10-28T00:00:00Z',
+    featured: true,
+    installation_guide: `### Overview
+**The Maze of the Kings VR** puts you inside Sega's 2002 ancient Egyptian arcade rail shooter on Meta Quest. Hold the illuminated 3D magical crystal staff with emerald ripples and gold motes in your hands, shoot undead mummies in stereo VR, and explore ancient tombs.
+
+> [!NOTE]
+> **No game files included.** Requires the NAOMI MAME set \`mok.zip\`, disc \`mok/gds-0022.chd\`, and \`naomi.zip\`.
+
+---
+
+### Prerequisites
+* Meta Quest 2, Quest 3, Quest 3S, or Quest Pro.
+* Developer Mode enabled.
+* NAOMI set: \`mok.zip\`, \`mok/gds-0022.chd\`, and \`naomi.zip\`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`mok-vr-quest.apk\` from GitHub Releases.
+2. Put \`mok.zip\`, \`mok/gds-0022.chd\`, and \`naomi.zip\` into \`/sdcard/Download/\`.
+3. Launch **The Maze of the Kings VR** from **Unknown Sources**.
+4. Grant storage access and aim your magical staff to play!`,
+    troubleshooting_notes: 'Requires mok.zip (containing 317-0333-com.pic) and mok/gds-0022.chd. The app extracts and generates the magical staff on first boot.'
   }
 ]
 

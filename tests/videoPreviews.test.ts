@@ -27,7 +27,13 @@ const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['opencmr2-vr', 'is6Sk_i0mbE', '1:30', '1:45'],
   ['virtua-cop-vr', '1qCQorbbdPc', '0:22', '0:37'],
   ['strikers-quest-mr', 'ZklIJja40Io', '7:00', '7:15'],
-  ['crazy-taxi-vr', '53FEb8eGrSo', '1:20', '1:35']
+  ['crazy-taxi-vr', '53FEb8eGrSo', '1:20', '1:35'],
+  ['confidential-mission-vr', 'be8uaCACx1Q', '1:00', '1:15'],
+  ['lupin-the-third-vr', 'IBmXZJmbUVA', '1:30', '1:45'],
+  ['ninja-assault-vr', 'Go4myYryHog', '1:40', '1:55'],
+  ['death-crimson-ox-vr', '4LIxgS_KOZI', '1:45', '2:00'],
+  ['survivor2-code-veronica-vr', 'HucHP0u5UQk', '1:10', '1:25'],
+  ['mok-vr', 'En2PYkAvBCo', '1:20', '1:35']
 ]
 
 describe('local hover previews', () => {
