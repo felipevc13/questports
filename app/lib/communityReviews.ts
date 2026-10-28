@@ -30,6 +30,7 @@ export interface CommunitySummary {
   worksPct: number | null
   lastReviewAt: string | null
   headsets?: Record<string, { worksGreat: number; needsTweaks: number; cantRun: number }>
+  myVote?: StoredUserVote | null
 }
 
 export interface StoredUserVote {
@@ -107,5 +108,24 @@ export function setStoredUserVote(slug: string, vote: StoredUserVote): void {
   } catch {
     // quota exceeded or storage blocked
   }
+}
+
+/** Rehydrates stored vote from server response if local storage was cleared */
+export function rehydrateVoteFromSummary(
+  slug: string,
+  serverVote: StoredUserVote | null | undefined,
+  currentVote: StoredUserVote | null
+): StoredUserVote | null {
+  if (currentVote) return currentVote
+  if (!serverVote || !serverVote.verdict) return null
+  const restored: StoredUserVote = {
+    verdict: serverVote.verdict,
+    issueTag: serverVote.issueTag || null,
+    headset: serverVote.headset || null,
+    portVersion: serverVote.portVersion || null,
+    timestamp: serverVote.timestamp || Date.now()
+  }
+  setStoredUserVote(slug, restored)
+  return restored
 }
 

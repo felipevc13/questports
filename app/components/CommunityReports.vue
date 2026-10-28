@@ -182,6 +182,7 @@ import {
   getOrCreateDeviceId,
   getStoredUserVote,
   setStoredUserVote,
+  rehydrateVoteFromSummary,
   ISSUE_TAG_LABELS,
   VERDICT_LABELS,
   type CommunityVerdict,
@@ -254,6 +255,16 @@ async function fetchSummary() {
     const res = await $fetch<CommunitySummary>(`/api/ports/${props.port.slug}/community`)
     if (res) {
       summary.value = res
+      // If client has no local record (e.g. wiped history), rehydrate from server IP vote
+      if (!storedVote.value && res.myVote) {
+        const restored = rehydrateVoteFromSummary(props.port.slug, res.myVote, storedVote.value)
+        if (restored) {
+          storedVote.value = restored
+          selectedVerdict.value = restored.verdict
+          selectedIssueTag.value = restored.issueTag || null
+          selectedHeadset.value = restored.headset || null
+        }
+      }
     }
   } catch {
     // Graceful fallback to default 0 counts
