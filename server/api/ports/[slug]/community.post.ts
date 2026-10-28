@@ -1,4 +1,6 @@
 import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
+import { clientIp } from '../../../utils/clientIp'
+import { fingerprintValue } from '../../../utils/verificationIngest'
 import { supabaseAdmin } from '../../../utils/supabaseAdmin'
 
 const VALID_VERDICTS = ['works_great', 'needs_tweaks', 'cant_run'] as const
@@ -81,11 +83,29 @@ export default defineEventHandler(async (event) => {
     ? body.portVersion.trim()
     : (portRow.latest_version || null)
 
+  const ip = clientIp(event)
+  const config = useRuntimeConfig()
+  const salt = String(config.supabaseServiceRoleKey || 'questports_community_salt')
+  const ipHash = fingerprintValue(ip, salt)
+
+  // Rate limit: max 10 community reports per IP per hour across all ports
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  const { count: recentReports, error: countError } = await admin
+    .from('port_community_reviews')
+    .select('*', { count: 'exact', head: true })
+    .eq('ip_hash', ipHash)
+    .gte('created_at', oneHourAgo)
+
+  if (!countError && typeof recentReports === 'number' && recentReports >= 10) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many reports from this network. Please wait an hour.' })
+  }
+
   const { error: upsertError } = await admin
     .from('port_community_reviews')
     .upsert({
       port_slug: slug,
       device_id: deviceId,
+      ip_hash: ipHash,
       verdict,
       issue_tag: issueTag,
       headset,

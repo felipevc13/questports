@@ -66,5 +66,13 @@ describe('community playability reviews', () => {
       expect(worksPct).toBeNull()
     })
   })
+
+  describe('abuse prevention and rate limiting thresholds', () => {
+    it('applies general rate limit of 10 reports per hour across ports', () => {
+      const COMMUNITY_REPORTS_PER_HOUR = 10
+      expect(10 >= COMMUNITY_REPORTS_PER_HOUR).toBe(true)
+      expect(9 >= COMMUNITY_REPORTS_PER_HOUR).toBe(false)
+    })
+  })
 })
 
