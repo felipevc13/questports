@@ -75,11 +75,15 @@ describe('favicon cache', () => {
     expect(iconHeader).not.toContain('immutable')
   })
 
-  it('defines client and edge cache headers for payload json and isr pages', () => {
+  it('does not override ISR routes in vercel.json so Nitro controls edge cache', () => {
     const vercel = readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')
-    expect(vercel).toContain('"source": "/_payload.json(.*)"')
-    expect(vercel).toContain('"source": "/ports/(.*)/_payload.json(.*)"')
-    expect(vercel).toContain('public, max-age=300, stale-while-revalidate=86400')
-    expect(vercel).toContain('public, max-age=120, stale-while-revalidate=86400')
+    // vercel.json headers override edge CDN behavior. Setting low max-age (e.g. 120s)
+    // on ISR routes breaks the 86400s edge cache, causing 60k+ revalidations and burning
+    // Fast Origin Transfer quota.
+    expect(vercel).not.toContain('"source": "/"')
+    expect(vercel).not.toContain('"source": "/app"')
+    expect(vercel).not.toContain('"source": "/library"')
+    expect(vercel).not.toContain('"source": "/ports/(.*)"')
+    expect(vercel).not.toContain('"source": "/_payload.json(.*)"')
   })
 })
