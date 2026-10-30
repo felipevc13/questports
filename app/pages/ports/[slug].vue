@@ -715,18 +715,18 @@
             <div
               data-testid="installed-status"
               class="space-y-2 rounded-lg border p-3"
-              :class="installedAwaitsFiles ? 'border-amber-500/30 bg-amber-500/10' : 'border-emerald-500/30 bg-emerald-500/10'"
+              :class="installedFiles === 'missing' ? 'border-amber-500/30 bg-amber-500/10' : installedFiles === 'unknown' ? 'border-border bg-muted/30' : 'border-emerald-500/30 bg-emerald-500/10'"
             >
               <div class="flex items-center gap-2">
                 <span
                   class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                  :class="installedAwaitsFiles ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'"
-                >{{ installedAwaitsFiles ? '1' : '✓' }}</span>
+                  :class="installedFiles === 'missing' ? 'bg-amber-500/20 text-amber-400' : installedFiles === 'unknown' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/20 text-emerald-400'"
+                >{{ installedFiles === 'missing' ? '1' : '✓' }}</span>
                 <span
                   class="min-w-0 flex-1 text-xs font-semibold"
-                  :class="installedAwaitsFiles ? 'text-amber-300' : 'whitespace-nowrap text-emerald-400'"
+                  :class="installedFiles === 'missing' ? 'text-amber-300' : installedFiles === 'unknown' ? 'whitespace-nowrap text-foreground' : 'whitespace-nowrap text-emerald-400'"
                 >
-                  {{ isApkOutdated ? 'Update available' : (installedAwaitsFiles ? INSTALLED_APP_ONLY_TITLE : 'APK Installed on Quest!') }}
+                  {{ installedStatusTitle }}
                 </span>
                 <span
                   v-if="isDetectedOnConnectedQuest"
@@ -737,7 +737,7 @@
                 </span>
               </div>
               <p class="text-[11px] leading-relaxed text-muted-foreground">
-                {{ installedAwaitsFiles ? INSTALLED_APP_ONLY_NOTE : installedStatusDetail }}
+                {{ installedStatusNote }}
               </p>
               <div class="flex items-center gap-2">
                 <button
@@ -1614,13 +1614,16 @@ import {
   GAME_FILES_ON_PC_LABEL,
   INSTALLED_APP_ONLY_NOTE,
   INSTALLED_APP_ONLY_TITLE,
+  INSTALLED_FILES_CHECKING_NOTE,
+  INSTALLED_FILES_UNKNOWN_NOTE,
+  INSTALLED_FILES_UNKNOWN_TITLE,
   INSTALL_ACTION_LABEL,
   INSTALL_VIA_USB_LABEL,
   TWO_STEP_APP_LINE,
   TWO_STEP_TITLE,
   USB_PREP_STEPS,
   hasRememberedQuestConnection,
-  installedAppAwaitsFiles,
+  installedFilesState,
   primaryInstallBlocked,
   shouldShowUsbPrep,
   twoStepFilesLine
@@ -2228,11 +2231,29 @@ const needsGameFilesStep = computed(() => {
   return campaignList.value.some(campaign => campaign.exampleFiles !== 'No extra files needed')
 })
 
-const installedAwaitsFiles = computed(() => installedAppAwaitsFiles({
-  needsGameFiles: needsGameFilesStep.value,
-  filesReady: campaignList.value.some(campaign => partState(campaign) === 'ready') || isCurrentCampaignTransferred.value,
-  outdated: isApkOutdated.value
-}))
+const installedFiles = computed(() => {
+  const detected = currentDetectedCampaign.value
+  return installedFilesState({
+    needsGameFiles: needsGameFilesStep.value,
+    filesReady: campaignList.value.some(campaign => partState(campaign) === 'ready') || isCurrentCampaignTransferred.value,
+    outdated: isApkOutdated.value,
+    scanned: Boolean(detected) && !isScanningGameFiles.value,
+    unverifiable: Boolean(detected?.confirmReason)
+  })
+})
+
+const installedStatusTitle = computed(() => {
+  if (isApkOutdated.value) return 'Update available'
+  if (installedFiles.value === 'missing') return INSTALLED_APP_ONLY_TITLE
+  if (installedFiles.value === 'unknown') return INSTALLED_FILES_UNKNOWN_TITLE
+  return 'APK Installed on Quest!'
+})
+
+const installedStatusNote = computed(() => {
+  if (installedFiles.value === 'missing') return INSTALLED_APP_ONLY_NOTE
+  if (installedFiles.value === 'unknown') return isScanningGameFiles.value ? INSTALLED_FILES_CHECKING_NOTE : INSTALLED_FILES_UNKNOWN_NOTE
+  return installedStatusDetail.value
+})
 
 const gameFilesGuidance = computed(() => currentPackageConfig.value?.fileGuidance?.trim() || '')
 

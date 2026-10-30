@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { installedAppAwaitsFiles, twoStepFilesLine } from '../app/lib/questInstallUx'
+import { installedFilesState, twoStepFilesLine } from '../app/lib/questInstallUx'
 import {
   describeByteProgress,
   formatByteSize,
@@ -196,11 +196,18 @@ describe('mock free space and download progress', () => {
 })
 
 describe('two-step install copy', () => {
-  it('flags an installed app that still lacks its files', () => {
-    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: false, outdated: false })).toBe(true)
-    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: true, outdated: false })).toBe(false)
-    expect(installedAppAwaitsFiles({ needsGameFiles: false, filesReady: false, outdated: false })).toBe(false)
-    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: false, outdated: true })).toBe(false)
+  it('says files are missing only after a scan that could read the folder', () => {
+    const base = { needsGameFiles: true, filesReady: false, outdated: false, scanned: true, unverifiable: false }
+    expect(installedFilesState(base)).toBe('missing')
+    expect(installedFilesState({ ...base, filesReady: true })).toBe('ready')
+    expect(installedFilesState({ ...base, needsGameFiles: false })).toBe('ready')
+    expect(installedFilesState({ ...base, outdated: true })).toBe('ready')
+  })
+
+  it('stays neutral while scanning or when Android blocks the listing', () => {
+    const base = { needsGameFiles: true, filesReady: false, outdated: false, scanned: true, unverifiable: false }
+    expect(installedFilesState({ ...base, scanned: false })).toBe('unknown')
+    expect(installedFilesState({ ...base, unverifiable: true })).toBe('unknown')
   })
 
   it('names the store only when the catalog has one', () => {

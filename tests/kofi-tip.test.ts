@@ -159,7 +159,7 @@ describe('Ko-fi tip', () => {
 
   it('places the line on install success and the footer, and not on catalog cards', () => {
     const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
-    const installedAt = page.indexOf('APK Installed on Quest!')
+    const installedAt = page.indexOf('data-testid="installed-status"')
     const notInstalled = page.slice(page.indexOf('APK not installed yet'), installedAt)
     expect(installedAt).toBeGreaterThan(0)
     expect(notInstalled).not.toContain('KofiTip')

@@ -138,13 +138,30 @@ export const INSTALLED_APP_ONLY_TITLE = 'App installed. Game files still needed.
 
 export const INSTALLED_APP_ONLY_NOTE = 'The game will not start until its files are on the Quest. Step 2 is right below.'
 
+export const INSTALLED_FILES_UNKNOWN_TITLE = 'App installed'
+
+export const INSTALLED_FILES_CHECKING_NOTE = 'Checking the Quest for game files…'
+
+export const INSTALLED_FILES_UNKNOWN_NOTE = 'Check Step 2 below for the game files.'
+
 export const GAME_FILES_ON_PC_LABEL = 'What to take from your PC'
 
-/** True when the APK is on the headset but the player's files are not yet confirmed. */
-export function installedAppAwaitsFiles(input: {
+/**
+ * ready: nothing to flag (files found, no files needed, or an update is the news).
+ * missing: a finished scan read the folder and did not find the files.
+ * unknown: still scanning, the scan failed, or Android would not let it read the folder.
+ * Only `missing` may tell the player the game will not start.
+ */
+export type InstalledFilesState = 'ready' | 'missing' | 'unknown'
+
+export function installedFilesState(input: {
   needsGameFiles: boolean
   filesReady: boolean
   outdated: boolean
-}): boolean {
-  return input.needsGameFiles && !input.filesReady && !input.outdated
+  scanned: boolean
+  unverifiable: boolean
+}): InstalledFilesState {
+  if (!input.needsGameFiles || input.filesReady || input.outdated) return 'ready'
+  if (!input.scanned || input.unverifiable) return 'unknown'
+  return 'missing'
 }
