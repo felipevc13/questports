@@ -2,6 +2,7 @@ import { INITIAL_PORTS, mockPortInstallCount } from '~/data/mockPorts'
 import { applyRecordedFeatures } from '~/data/recordedPortFeatures'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import type { Port } from '~/types/port'
+import { withCatalogFilterFields } from '~/lib/portOrigin'
 
 /**
  * Fields the catalog cards, filters, sort, library rows, and in-app home use.
@@ -26,7 +27,19 @@ export const CATALOG_PORT_COLUMNS = [
 
 export const CATALOG_PORT_SELECT = CATALOG_PORT_COLUMNS.join(', ')
 
-const CATALOG_SELECT = `${CATALOG_PORT_SELECT}, ports_install_count(installs, last_install_at)`
+/**
+ * Read only to derive the "Original platform" and "VR style" filters. They are
+ * stripped again in `catalogRow`, so they never reach the cached page.
+ */
+export const CATALOG_FILTER_SOURCE_COLUMNS = ['base_game_store', 'locomotion_types'] as const
+
+const CATALOG_ROW_SELECT = `${CATALOG_PORT_SELECT}, ${CATALOG_FILTER_SOURCE_COLUMNS.join(', ')}`
+const CATALOG_SELECT = `${CATALOG_ROW_SELECT}, ports_install_count(installs, last_install_at)`
+
+function catalogRow(row: Port): Port {
+  const { base_game_store: _store, locomotion_types: _locomotion, ...rest } = withCatalogFilterFields(row)
+  return rest as Port
+}
 
 /** One port. The detail page needs the guide and the rest of the row. */
 const PORT_DETAIL_SELECT = '*, ports_install_count(installs, last_install_at)'
@@ -50,12 +63,12 @@ function readInstallCount(value: unknown): number {
 function attachInstallCount(row: Port & { ports_install_count?: unknown }, mediaBase: string): Port {
   const installs = readInstallCount(row.ports_install_count)
   const { ports_install_count: _embed, ...port } = row
-  return withLocalCover({ ...port, installs }, mediaBase)
+  return withLocalCover({ ...catalogRow(port as Port), installs }, mediaBase)
 }
 
 function mockPort(port: Port, mediaBase: string): Port {
   return applyRecordedFeatures(withLocalCover({
-    ...port,
+    ...withCatalogFilterFields(port),
     installs: mockPortInstallCount(port.slug)
   }, mediaBase))
 }
@@ -83,12 +96,12 @@ export const usePorts = () => {
 
         const { data, error } = await client
           .from('ports')
-          .select(CATALOG_PORT_SELECT)
+          .select(CATALOG_ROW_SELECT)
           .order('featured', { ascending: false })
           .order('title', { ascending: true })
 
         if (!error && data && data.length > 0) {
-          return (data as Port[]).map(port => withLocalCover({ ...port, installs: 0 }, mediaBase))
+          return (data as Port[]).map(port => withLocalCover({ ...catalogRow(port), installs: 0 }, mediaBase))
         }
       } catch (err) {
         console.warn('Failed to connect to Supabase, falling back to local dataset:', err)

@@ -1,3 +1,5 @@
+import type { OriginPlatform, VrStyle } from '~/lib/portOrigin'
+
 export type PortCategory =
   | 'source_port'
   | 'decompilation'
@@ -62,6 +64,9 @@ export interface Port {
   supported_hardware: string[]
   locomotion_types: string[]
   has_6dof_controls: boolean
+  /** Derived when the catalog loads (app/lib/portOrigin.ts). Not database columns. */
+  origin_platform?: OriginPlatform | null
+  vr_style?: VrStyle
   has_motion_controls?: boolean
   /**
    * Optional VR claims recorded for this port. A missing key or null means
