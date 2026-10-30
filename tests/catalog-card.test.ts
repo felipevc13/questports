@@ -256,9 +256,16 @@ describe('catalog sort', () => {
       const text = readFileSync(new URL(name, migrationsDir), 'utf8')
       return text.includes('analytics_events_filter_used')
     })
-    expect(filterConstraints).toEqual(['20261009200000_analytics_events.sql'])
+    expect(filterConstraints).toEqual([
+      '20261009200000_analytics_events.sql',
+      '20261030160000_analytics_filter_platform_style.sql'
+    ])
     const sql = readFileSync(new URL('20261009200000_analytics_events.sql', migrationsDir), 'utf8')
     expect(sql).toContain("'sort'")
+    const widened = readFileSync(new URL('20261030160000_analytics_filter_platform_style.sql', migrationsDir), 'utf8')
+    expect(widened).toContain("'platform'")
+    expect(widened).toContain("'style'")
+    expect(widened).toContain("char_length(coalesce(props->>'value', '')) between 1 and 60")
     expect(sql).toContain("char_length(coalesce(props->>'value', '')) between 1 and 60")
     expect(sql).not.toContain("props->>'value' in")
     expect(catalogCategoryFromQuery('decompilation')).toBe('decompilation')

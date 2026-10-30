@@ -86,6 +86,8 @@ export const FILTER_NAMES = [
   'hardware',
   'developer',
   'quest',
+  'platform',
+  'style',
   'sort'
 ] as const
 

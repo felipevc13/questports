@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   ANALYTICS_EVENTS,
@@ -355,7 +355,11 @@ describe('analytics allowlist', () => {
     expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_event_check/i)
     expect(errorDetail).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
     expect(errorDetail).not.toContain("props->>'app'")
-    for (const filter of FILTER_NAMES) expect(sql).toContain(`'${filter}'`)
+    const filterSql = readdirSync(new URL('../supabase/migrations/', import.meta.url))
+      .filter(name => name.includes('analytics'))
+      .map(name => readFileSync(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'))
+      .join('\n')
+    for (const filter of FILTER_NAMES) expect(filterSql).toContain(`'${filter}'`)
     expect(sql).toContain('enable row level security')
     expect(sql).not.toMatch(/create policy/i)
     expect(sql).toContain('analytics_events_created_at_idx')

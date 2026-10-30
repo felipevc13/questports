@@ -84,18 +84,19 @@
             </button>
           </div>
 
-          <!-- Category Buttons -->
-          <div class="hidden md:flex md:flex-wrap items-center gap-1.5">
+          <!-- Original platform chips -->
+          <div class="hidden md:flex md:flex-wrap items-center gap-1.5" data-testid="origin-chips">
             <button
-              v-for="cat in categories"
-              :key="cat.id"
-              @click="selectedCategory = cat.id"
+              v-for="chip in originChips"
+              :key="chip.id || 'all'"
+              type="button"
+              @click="selectedOrigin = chip.id"
               class="px-3 py-1.5 rounded-md text-xs transition-colors border select-none cursor-pointer"
-              :class="selectedCategory === cat.id
+              :class="selectedOrigin === chip.id
                 ? 'bg-primary text-primary-foreground border-primary font-bold shadow'
                 : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted border-border font-medium'"
             >
-              {{ cat.label }}
+              {{ chip.label }}
             </button>
           </div>
         </div>
@@ -113,22 +114,6 @@
                 <option value="added">Newest</option>
                 <option value="az">A–Z (Alphabetical)</option>
                 <option value="installs">Most installed</option>
-              </select>
-              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-
-            <!-- Developer Filter -->
-            <div class="relative inline-flex items-center">
-              <select
-                v-model="selectedDeveloper"
-                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
-              >
-                <option value="">All Developers</option>
-                <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
-                  {{ dev }}
-                </option>
               </select>
               <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -153,6 +138,65 @@
               </svg>
             </div>
 
+            <!-- VR style Filter -->
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedStyle"
+                data-testid="style-filter"
+                aria-label="VR style"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="">VR style</option>
+                <option v-for="option in styleOptions" :key="option.id" :value="option.id">
+                  {{ option.label }} ({{ option.count }})
+                </option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+
+            <button
+              type="button"
+              data-testid="more-filters"
+              class="rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer"
+              :aria-expanded="moreOpen"
+              @click="moreOpen = !moreOpen"
+            >
+              More filters<span v-if="moreActiveCount" class="ml-1 font-bold text-primary">{{ moreActiveCount }}</span>
+            </button>
+            <template v-if="moreOpen">
+            <!-- Type (port category) Filter -->
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedCategory"
+                data-testid="type-filter"
+                aria-label="Type"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.id === 'all' ? 'All Types' : cat.label }}</option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+
+            <!-- Developer Filter -->
+            <div class="relative inline-flex items-center">
+              <select
+                v-model="selectedDeveloper"
+                class="appearance-none bg-muted/80 text-xs text-foreground border border-border rounded-md pl-2.5 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
+              >
+                <option value="">All Developers</option>
+                <option v-for="dev in availableDevelopers" :key="dev" :value="dev">
+                  {{ dev }}
+                </option>
+              </select>
+              <svg class="w-3 h-3 text-muted-foreground absolute right-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+
             <!-- Status Filter -->
             <div class="relative inline-flex items-center">
               <select
@@ -168,6 +212,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
+
+            </template>
 
             <button
               v-if="hasActiveFilters"
@@ -409,20 +455,33 @@
 
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="cat in categories"
-              :key="`sheet-${cat.id}`"
+              v-for="chip in originChips"
+              :key="`sheet-${chip.id || 'all'}`"
               type="button"
               class="min-h-11 rounded-md border px-3 text-sm"
-              :class="selectedCategory === cat.id
+              :class="selectedOrigin === chip.id
                 ? 'border-primary bg-primary font-bold text-primary-foreground'
                 : 'border-border bg-muted/40 text-muted-foreground'"
-              @click="selectedCategory = cat.id"
+              @click="selectedOrigin = chip.id"
             >
-              {{ cat.label }}
+              {{ chip.label }}
             </button>
           </div>
 
           <div class="mt-4 space-y-3">
+            <label class="block space-y-1 text-sm text-foreground">
+              <span>Type</span>
+              <select v-model="selectedCategory" aria-label="Type" class="w-full rounded-md border border-border bg-muted/80 px-3 text-base">
+                <option v-for="cat in categories" :key="`m-${cat.id}`" :value="cat.id">{{ cat.id === 'all' ? 'All Types' : cat.label }}</option>
+              </select>
+            </label>
+            <label class="block space-y-1 text-sm text-foreground">
+              <span>VR style</span>
+              <select v-model="selectedStyle" aria-label="VR style" class="w-full rounded-md border border-border bg-muted/80 px-3 text-base">
+                <option value="">All styles</option>
+                <option v-for="option in styleOptions" :key="`m-${option.id}`" :value="option.id">{{ option.label }} ({{ option.count }})</option>
+              </select>
+            </label>
             <label class="block space-y-1 text-sm text-foreground">
               <span>Developer</span>
               <select v-model="selectedDeveloper" class="w-full rounded-md border border-border bg-muted/80 px-3 text-base">
@@ -481,6 +540,7 @@ import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { countIndexedInstalled } from '~/lib/questLibrary'
 import { formatPortVersion } from '~/lib/portVersion'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
+import { originPlatformOptions, vrStyleOptions } from '~/lib/portOrigin'
 import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
 import {
   closestCatalogPorts,
@@ -518,6 +578,8 @@ const searchQuery = ref(bootCatalogQuery.q)
 const selectedCategory = ref<string>(bootCatalogQuery.cat)
 const selectedStatus = ref<string>('')
 const selectedHardware = ref<string>('')
+const selectedOrigin = ref<string>('')
+const selectedStyle = ref<string>('')
 const selectedDeveloper = ref(bootCatalogQuery.dev)
 const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
@@ -532,6 +594,8 @@ const sheetFilterCount = computed(() => {
   if (selectedCategory.value !== 'all') count += 1
   if (selectedStatus.value) count += 1
   if (selectedHardware.value) count += 1
+  if (selectedOrigin.value) count += 1
+  if (selectedStyle.value) count += 1
   if (selectedDeveloper.value) count += 1
   return count
 })
@@ -544,6 +608,8 @@ const resetSheetFilters = () => {
   selectedCategory.value = 'all'
   selectedStatus.value = ''
   selectedHardware.value = ''
+  selectedOrigin.value = ''
+  selectedStyle.value = ''
   selectedDeveloper.value = ''
 }
 
@@ -598,7 +664,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedDeveloper, sortBy], () => {
+watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedOrigin, selectedStyle, selectedDeveloper, sortBy], () => {
   mobileVisible.value = MOBILE_PAGE
 })
 
@@ -612,6 +678,8 @@ watch(searchQuery, async (value) => {
 watch(selectedCategory, (value) => trackFilter('category', value))
 watch(selectedStatus, (value) => trackFilter('status', value))
 watch(selectedHardware, (value) => trackFilter('hardware', value))
+watch(selectedOrigin, (value) => trackFilter('platform', value))
+watch(selectedStyle, (value) => trackFilter('style', value))
 watch(selectedDeveloper, (value) => trackFilter('developer', value))
 watch(sortBy, (value) => trackFilter('sort', value))
 
@@ -695,6 +763,24 @@ watch(() => route.query.q, (q) => {
 })
 
 const headsetOptions = computed(() => headsetFilterOptions(ports.value.map(port => port.supported_hardware)))
+const originOptions = computed(() => originPlatformOptions(ports.value))
+const styleOptions = computed(() => vrStyleOptions(ports.value))
+// Chips for the original platform. '' is "All"; it clears the filter.
+const originChips = computed(() => [
+  { id: '', label: 'All' },
+  ...originOptions.value.map(option => ({ id: option.id as string, label: option.label }))
+])
+
+// Type, developer, and status are rarely used, so they sit behind "More filters".
+// A ?cat= or ?dev= link, or an active value, keeps the row open so the filter stays visible.
+const moreOpen = ref(Boolean(bootCatalogQuery.dev) || bootCatalogQuery.cat !== 'all')
+const moreActiveCount = computed(() =>
+  (selectedCategory.value !== 'all' ? 1 : 0) + (selectedDeveloper.value ? 1 : 0) + (selectedStatus.value ? 1 : 0)
+)
+watch(moreActiveCount, (count) => {
+  if (count) moreOpen.value = true
+})
+
 const headsetSummary = computed(() => headsetOptions.value.join(' • ') || 'Quest headsets')
 
 watch(selectedDeveloper, (newDev) => {
@@ -743,6 +829,8 @@ const hasActiveFilters = computed(() => {
     selectedCategory.value !== 'all' ||
     selectedStatus.value !== '' ||
     selectedHardware.value !== '' ||
+    selectedOrigin.value !== '' ||
+    selectedStyle.value !== '' ||
     selectedDeveloper.value !== '' ||
     sortBy.value !== 'recent'
   )
@@ -753,6 +841,8 @@ const resetFilters = () => {
   selectedCategory.value = 'all'
   selectedStatus.value = ''
   selectedHardware.value = ''
+  selectedOrigin.value = ''
+  selectedStyle.value = ''
   selectedDeveloper.value = ''
   sortBy.value = 'recent'
 }
@@ -815,6 +905,8 @@ const passesFilters = (port: Port) => {
   if (selectedCategory.value !== 'all' && port.category !== selectedCategory.value) return false
   if (selectedStatus.value && port.status !== selectedStatus.value) return false
   if (selectedHardware.value && !portSupportsHeadset(port.supported_hardware, selectedHardware.value)) return false
+  if (selectedOrigin.value && port.origin_platform !== selectedOrigin.value) return false
+  if (selectedStyle.value && port.vr_style !== selectedStyle.value) return false
   if (selectedDeveloper.value && port.developer.toLowerCase() !== selectedDeveloper.value.toLowerCase()) return false
   return true
 }
