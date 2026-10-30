@@ -233,6 +233,10 @@
           <p class="text-xs leading-relaxed text-muted-foreground">
             {{ languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.') }}
           </p>
+          <div v-if="gameFilesGuidance" data-testid="game-files-guidance" class="space-y-1 rounded border border-border/70 bg-muted/30 p-2.5">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{{ GAME_FILES_ON_PC_LABEL }}</p>
+            <p class="text-[11px] leading-relaxed text-foreground">{{ gameFilesGuidance }}</p>
+          </div>
           <div
             v-for="campaign in manualCopyCampaigns"
             :key="campaign.id"
@@ -574,6 +578,18 @@
               </div>
 
               <div
+                v-if="needsGameFilesStep"
+                data-testid="two-step-notice"
+                class="space-y-1 rounded-lg border border-border/70 bg-muted/30 p-2.5 text-[11px] leading-relaxed"
+              >
+                <p class="font-semibold text-foreground">{{ TWO_STEP_TITLE }}</p>
+                <ol class="list-decimal space-y-0.5 pl-4 text-muted-foreground">
+                  <li>{{ TWO_STEP_APP_LINE }}</li>
+                  <li>{{ twoStepFilesLine(port.base_game_store) }}</li>
+                </ol>
+              </div>
+
+              <div
                 v-if="spaceNotice || questAdb.installSpaceWarning.value"
                 data-testid="space-notice"
                 class="p-3 rounded-lg border text-[11px] leading-relaxed"
@@ -698,12 +714,19 @@
             <!-- Installed Badge -->
             <div
               data-testid="installed-status"
-              class="space-y-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3"
+              class="space-y-2 rounded-lg border p-3"
+              :class="installedAwaitsFiles ? 'border-amber-500/30 bg-amber-500/10' : 'border-emerald-500/30 bg-emerald-500/10'"
             >
               <div class="flex items-center gap-2">
-                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">✓</span>
-                <span class="min-w-0 flex-1 whitespace-nowrap text-xs font-semibold text-emerald-400">
-                  {{ isApkOutdated ? 'Update available' : 'APK Installed on Quest!' }}
+                <span
+                  class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                  :class="installedAwaitsFiles ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'"
+                >{{ installedAwaitsFiles ? '1' : '✓' }}</span>
+                <span
+                  class="min-w-0 flex-1 text-xs font-semibold"
+                  :class="installedAwaitsFiles ? 'text-amber-300' : 'whitespace-nowrap text-emerald-400'"
+                >
+                  {{ isApkOutdated ? 'Update available' : (installedAwaitsFiles ? INSTALLED_APP_ONLY_TITLE : 'APK Installed on Quest!') }}
                 </span>
                 <span
                   v-if="isDetectedOnConnectedQuest"
@@ -714,7 +737,7 @@
                 </span>
               </div>
               <p class="text-[11px] leading-relaxed text-muted-foreground">
-                {{ installedStatusDetail }}
+                {{ installedAwaitsFiles ? INSTALLED_APP_ONLY_NOTE : installedStatusDetail }}
               </p>
               <div class="flex items-center gap-2">
                 <button
@@ -1026,6 +1049,15 @@
                     </div>
                   </button>
                 </div>
+              </div>
+
+              <div
+                v-if="gameFilesGuidance && !isCurrentCampaignTransferred"
+                data-testid="game-files-guidance"
+                class="space-y-1 rounded-lg border border-border/70 bg-muted/30 p-2.5"
+              >
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{{ GAME_FILES_ON_PC_LABEL }}</p>
+                <p class="text-[11px] leading-relaxed text-foreground">{{ gameFilesGuidance }}</p>
               </div>
 
               <!-- Destination folder path -->
@@ -1579,12 +1611,19 @@ import {
   CHOOSER_DISMISSED_STEPS,
   CHOOSER_DISMISSED_TITLE,
   CONNECT_FAILURE_STEPS,
+  GAME_FILES_ON_PC_LABEL,
+  INSTALLED_APP_ONLY_NOTE,
+  INSTALLED_APP_ONLY_TITLE,
   INSTALL_ACTION_LABEL,
   INSTALL_VIA_USB_LABEL,
+  TWO_STEP_APP_LINE,
+  TWO_STEP_TITLE,
   USB_PREP_STEPS,
   hasRememberedQuestConnection,
+  installedAppAwaitsFiles,
   primaryInstallBlocked,
-  shouldShowUsbPrep
+  shouldShowUsbPrep,
+  twoStepFilesLine
 } from '~/lib/questInstallUx'
 import {
   INSTALL_BUTTON_CLASS,
@@ -2182,6 +2221,20 @@ const showAppGameDataGuide = computed(() => {
   if (manualCopyCampaigns.value.length) return false
   return campaignList.value.some(campaign => campaign.exampleFiles !== 'No extra files needed')
 })
+
+/** Same rule the native app card uses: the APK alone does not make the game start. */
+const needsGameFilesStep = computed(() => {
+  if (isDirectApkOnly.value || isPcBuilderRequired.value || patchOnlyGuide.value || pcPatchCard.value) return false
+  return campaignList.value.some(campaign => campaign.exampleFiles !== 'No extra files needed')
+})
+
+const installedAwaitsFiles = computed(() => installedAppAwaitsFiles({
+  needsGameFiles: needsGameFilesStep.value,
+  filesReady: campaignList.value.some(campaign => partState(campaign) === 'ready') || isCurrentCampaignTransferred.value,
+  outdated: isApkOutdated.value
+}))
+
+const gameFilesGuidance = computed(() => currentPackageConfig.value?.fileGuidance?.trim() || '')
 
 const step2Title = computed(() => {
   if (currentPackageConfig.value?.workflowType === 'emulator_roms') {

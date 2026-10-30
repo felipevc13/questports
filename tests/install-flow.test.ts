@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { installedAppAwaitsFiles, twoStepFilesLine } from '../app/lib/questInstallUx'
 import {
   describeByteProgress,
   formatByteSize,
@@ -191,5 +192,20 @@ describe('mock free space and download progress', () => {
     expect(first.done).toBe(false)
     expect(first.value!.byteLength).toBeGreaterThan(0)
     await reader.cancel()
+  })
+})
+
+describe('two-step install copy', () => {
+  it('flags an installed app that still lacks its files', () => {
+    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: false, outdated: false })).toBe(true)
+    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: true, outdated: false })).toBe(false)
+    expect(installedAppAwaitsFiles({ needsGameFiles: false, filesReady: false, outdated: false })).toBe(false)
+    expect(installedAppAwaitsFiles({ needsGameFiles: true, filesReady: false, outdated: true })).toBe(false)
+  })
+
+  it('names the store only when the catalog has one', () => {
+    expect(twoStepFilesLine('Steam')).toContain('(Steam)')
+    expect(twoStepFilesLine('  ')).not.toContain('(')
+    expect(twoStepFilesLine(null)).not.toContain('()')
   })
 })

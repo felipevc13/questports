@@ -121,3 +121,30 @@ export function progressBarA11y(percent: number, indeterminate: boolean, statusT
     ariaLive: 'polite' as const
   }
 }
+
+/** Shown before install on ports that still need the player's own files. Copy only: no step is blocked or reordered. */
+export const TWO_STEP_TITLE = 'This game has 2 steps'
+
+export const TWO_STEP_APP_LINE = 'Install the app on your Quest.'
+
+export function twoStepFilesLine(store: string | null | undefined): string {
+  const source = String(store || '').trim()
+  return source
+    ? `Add the game files from your own copy (${source}). You can send them over USB or copy them yourself.`
+    : 'Add the game files from your own copy. You can send them over USB or copy them yourself.'
+}
+
+export const INSTALLED_APP_ONLY_TITLE = 'App installed. Game files still needed.'
+
+export const INSTALLED_APP_ONLY_NOTE = 'The game will not start until its files are on the Quest. Step 2 is right below.'
+
+export const GAME_FILES_ON_PC_LABEL = 'What to take from your PC'
+
+/** True when the APK is on the headset but the player's files are not yet confirmed. */
+export function installedAppAwaitsFiles(input: {
+  needsGameFiles: boolean
+  filesReady: boolean
+  outdated: boolean
+}): boolean {
+  return input.needsGameFiles && !input.filesReady && !input.outdated
+}
