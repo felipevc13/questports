@@ -420,6 +420,42 @@ export function getDefaultFolderInfo(port: Port): {
       fullPath: '/sdcard/Download/',
       exampleFiles: 'GZLP01.iso or GZLE01.iso',
       instruction: 'Drop your uncompressed Wind Waker GameCube ISO into the Quest Download folder'
+    },
+    'ghost-squad-evolution-vr': {
+      folder: 'vsg_l',
+      fullPath: '/sdcard/GhostSquadEvolution/vsg_l/',
+      exampleFiles: 'vsg (the executable) and the rest of the vsg_l folder',
+      instruction: 'Copy the whole vsg_l folder into /sdcard/GhostSquadEvolution/ so the executable is at /sdcard/GhostSquadEvolution/vsg_l/vsg'
+    },
+    'hotd4-vr': {
+      folder: 'HouseOfTheDead4',
+      fullPath: '/sdcard/HouseOfTheDead4/',
+      exampleFiles: 'elf/hod4M.elf, fs, drv',
+      instruction: 'Copy the elf, fs and drv folders into /sdcard/HouseOfTheDead4/ so the executable is at /sdcard/HouseOfTheDead4/elf/hod4M.elf'
+    },
+    'teraburst-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'terabrst.zip',
+      instruction: 'Put your complete terabrst.zip (Teraburst, July 17, 1998 US UEL) in Download. Keep it zipped. No CHD or BIOS is needed.'
+    },
+    'carnevil-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'carnevil.zip, carnevil/carnevil.chd',
+      instruction: 'Put carnevil.zip in Download and carnevil.chd in Download/carnevil/. Keep the ROM zip packed.'
+    },
+    'mystical-ninja-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Mystical Ninja Starring Goemon (USA) .z64, .n64 or .v64',
+      instruction: 'Put your North American Goemon ROM in Download, then choose it in the start window on first launch'
+    },
+    'sin-and-punishment-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Sin and Punishment .z64, .n64 or .v64',
+      instruction: 'Put your Sin and Punishment ROM in Download, then choose it in the ROM window on first launch'
     }
   }
 

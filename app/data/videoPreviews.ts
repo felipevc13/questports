@@ -99,6 +99,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'sclerosis-vr',
   'sega-rally-vr',
   'simpsonshitrun',
+  'sin-and-punishment-vr',
   'sm64-coop-dx-vr',
   'smash-remix-vr',
   'sourcevr',

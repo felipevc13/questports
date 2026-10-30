@@ -1851,6 +1851,160 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'Uncompressed GameCube ISO of The Wind Waker (European GZLP01 or USA GZLE01).'
       }
     ]
+  },
+  'ghost-squad-evolution-vr': {
+    slug: 'ghost-squad-evolution-vr',
+    packageName: 'org.lindbergh.gse.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['vsg_l/vsg'],
+    fileGuidance: 'Copy your whole Ghost Squad Evolution vsg_l folder into /sdcard/GhostSquadEvolution/, so the executable is at /sdcard/GhostSquadEvolution/vsg_l/vsg. The app runs only the game version it was built from.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/GhostSquadEvolution/',
+    folders: [
+      {
+        id: 'gse_vsg_l',
+        name: 'Ghost Squad Evolution game folder',
+        folderName: 'vsg_l',
+        targetPath: '/sdcard/GhostSquadEvolution/vsg_l/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['vsg'],
+        description: 'The whole vsg_l folder from your Lindbergh copy. The vsg executable has to sit directly inside it.'
+      }
+    ]
+  },
+  'hotd4-vr': {
+    slug: 'hotd4-vr',
+    packageName: 'org.lindbergh.hotd4.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['elf/hod4M.elf'],
+    fileGuidance: 'Copy the elf, fs and drv folders of your House of the Dead 4 copy into /sdcard/HouseOfTheDead4/, so the executable is at /sdcard/HouseOfTheDead4/elf/hod4M.elf. The app runs only the game version it was built from.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/HouseOfTheDead4/',
+    folders: [
+      {
+        id: 'hotd4_elf',
+        name: 'Game executable (elf)',
+        folderName: 'elf',
+        targetPath: '/sdcard/HouseOfTheDead4/elf/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['hod4M.elf'],
+        description: 'The elf folder with hod4M.elf inside.'
+      },
+      {
+        id: 'hotd4_fs',
+        name: 'Game filesystem (fs)',
+        folderName: 'fs',
+        targetPath: '/sdcard/HouseOfTheDead4/fs/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The fs folder from your copy.'
+      },
+      {
+        id: 'hotd4_drv',
+        name: 'Game drivers (drv)',
+        folderName: 'drv',
+        targetPath: '/sdcard/HouseOfTheDead4/drv/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The drv folder from your copy.'
+      }
+    ]
+  },
+  'teraburst-vr': {
+    slug: 'teraburst-vr',
+    packageName: 'com.vrlightgunhub.teraburst',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Teraburst, July 17, 1998 US UEL (MAME set terabrst): the complete terabrst.zip in Download. Keep it zipped. No CHD and no BIOS are required.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'terabrst_rom',
+        name: 'Teraburst ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['terabrst.zip'],
+        description: 'terabrst.zip in Download. No CHD or BIOS required.'
+      }
+    ]
+  },
+  'carnevil-vr': {
+    slug: 'carnevil-vr',
+    packageName: 'com.vrlightgunhub.carnevil',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'CarnEvil v1.0.3: carnevil.zip in Download (keep it packed) and the matching disc image at Download/carnevil/carnevil.chd. No BIOS is required.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'carnevil_rom',
+        name: 'CarnEvil ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['carnevil.zip'],
+        description: 'carnevil.zip in Download.'
+      },
+      {
+        id: 'carnevil_chd',
+        name: 'CarnEvil disc image',
+        folderName: 'carnevil',
+        targetPath: '/sdcard/Download/carnevil/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['carnevil.chd'],
+        description: 'carnevil.chd inside a carnevil folder in Download.'
+      }
+    ]
+  },
+  'mystical-ninja-vr': {
+    slug: 'mystical-ninja-vr',
+    packageName: 'com.goemon64.recompiled',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your North American Mystical Ninja Starring Goemon ROM on the headset, for example in /sdcard/Download/, and choose it in the start window on first launch.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'goemon_rom',
+        name: 'Mystical Ninja Starring Goemon ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: 'USA .z64, .n64, or .v64. The start window checks the file and remembers it.'
+      }
+    ]
+  },
+  'sin-and-punishment-vr': {
+    slug: 'sin-and-punishment-vr',
+    packageName: 'com.sinandpunishment.recompiled',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your Sin and Punishment ROM (.z64, .n64 or .v64; Japanese or the English fan translation) on the headset, for example in /sdcard/Download/, and choose it in the ROM window on first launch. HD texture packs go in Android/data/com.sinandpunishment.recompiled/files/snprecomp/texture_packs/.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'snp_rom',
+        name: 'Sin and Punishment ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: '.z64, .n64, or .v64. The ROM window copies it into the app once.'
+      }
+    ]
   }
 }
 
