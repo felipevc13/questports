@@ -121,3 +121,47 @@ export function progressBarA11y(percent: number, indeterminate: boolean, statusT
     ariaLive: 'polite' as const
   }
 }
+
+/** Shown before install on ports that still need the player's own files. Copy only: no step is blocked or reordered. */
+export const TWO_STEP_TITLE = 'This game has 2 steps'
+
+export const TWO_STEP_APP_LINE = 'Install the app on your Quest.'
+
+export function twoStepFilesLine(store: string | null | undefined): string {
+  const source = String(store || '').trim()
+  return source
+    ? `Add the game files from your own copy (${source}). You can send them over USB or copy them yourself.`
+    : 'Add the game files from your own copy. You can send them over USB or copy them yourself.'
+}
+
+export const INSTALLED_APP_ONLY_TITLE = 'App installed. Game files still needed.'
+
+export const INSTALLED_APP_ONLY_NOTE = 'The game will not start until its files are on the Quest. Step 2 is right below.'
+
+export const INSTALLED_FILES_UNKNOWN_TITLE = 'App installed'
+
+export const INSTALLED_FILES_CHECKING_NOTE = 'Checking the Quest for game files…'
+
+export const INSTALLED_FILES_UNKNOWN_NOTE = 'Check Step 2 below for the game files.'
+
+export const GAME_FILES_ON_PC_LABEL = 'What to take from your PC'
+
+/**
+ * ready: nothing to flag (files found, no files needed, or an update is the news).
+ * missing: a finished scan read the folder and did not find the files.
+ * unknown: still scanning, the scan failed, or Android would not let it read the folder.
+ * Only `missing` may tell the player the game will not start.
+ */
+export type InstalledFilesState = 'ready' | 'missing' | 'unknown'
+
+export function installedFilesState(input: {
+  needsGameFiles: boolean
+  filesReady: boolean
+  outdated: boolean
+  scanned: boolean
+  unverifiable: boolean
+}): InstalledFilesState {
+  if (!input.needsGameFiles || input.filesReady || input.outdated) return 'ready'
+  if (!input.scanned || input.unverifiable) return 'unknown'
+  return 'missing'
+}

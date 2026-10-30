@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { installedFilesState, twoStepFilesLine } from '../app/lib/questInstallUx'
 import {
   describeByteProgress,
   formatByteSize,
@@ -191,5 +192,27 @@ describe('mock free space and download progress', () => {
     expect(first.done).toBe(false)
     expect(first.value!.byteLength).toBeGreaterThan(0)
     await reader.cancel()
+  })
+})
+
+describe('two-step install copy', () => {
+  it('says files are missing only after a scan that could read the folder', () => {
+    const base = { needsGameFiles: true, filesReady: false, outdated: false, scanned: true, unverifiable: false }
+    expect(installedFilesState(base)).toBe('missing')
+    expect(installedFilesState({ ...base, filesReady: true })).toBe('ready')
+    expect(installedFilesState({ ...base, needsGameFiles: false })).toBe('ready')
+    expect(installedFilesState({ ...base, outdated: true })).toBe('ready')
+  })
+
+  it('stays neutral while scanning or when Android blocks the listing', () => {
+    const base = { needsGameFiles: true, filesReady: false, outdated: false, scanned: true, unverifiable: false }
+    expect(installedFilesState({ ...base, scanned: false })).toBe('unknown')
+    expect(installedFilesState({ ...base, unverifiable: true })).toBe('unknown')
+  })
+
+  it('names the store only when the catalog has one', () => {
+    expect(twoStepFilesLine('Steam')).toContain('(Steam)')
+    expect(twoStepFilesLine('  ')).not.toContain('(')
+    expect(twoStepFilesLine(null)).not.toContain('()')
   })
 })
