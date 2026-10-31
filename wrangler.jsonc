@@ -1,0 +1,12 @@
+{
+  // Site Worker. Nitro merges this into .output/server/wrangler.json at build.
+  // Deploy by hand: npm run deploy:cf. Needs `wrangler login` first.
+  "name": "questports",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "questports.com", "custom_domain": true },
+    { "pattern": "www.questports.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": false }
+}
