@@ -6,8 +6,8 @@ deployment on 31 Oct 2026 after 3M CDN requests (limit 1M). Everything here stay
 ## One-time setup
 1. `npx wrangler login`
 2. Put the secrets on the Worker (copy the values from the old Vercel project):
-   `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`, then `VERIFICATION_ADMIN_SECRET`,
-   `ANALYTICS_SALT`, `SUPABASE_URL`, `SUPABASE_KEY`.
+   `npx wrangler --cwd .output secret put NUXT_SUPABASE_SERVICE_ROLE_KEY`, then `NUXT_VERIFICATION_ADMIN_SECRET`,
+   `NUXT_ANALYTICS_SALT`. The `NUXT_` prefix is what Nuxt reads at runtime.
    Optional: `NUXT_PUBLIC_*` values and `ANALYTICS_ENABLED`. Nuxt reads `SUPABASE_URL`,
    `SUPABASE_KEY` and `NUXT_PUBLIC_*` at **build** time, so export them before `npm run build:cf`.
 
