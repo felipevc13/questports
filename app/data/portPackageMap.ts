@@ -2005,6 +2005,96 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: '.z64, .n64, or .v64. The ROM window copies it into the app once.'
       }
     ]
+  },
+  'gran-turismo-3-vr': {
+    slug: 'gran-turismo-3-vr',
+    packageName: 'org.gt3revisited.gt3r',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'Copy an .iso image of your own Gran Turismo 3 A-Spec disc into /sdcard/Download/, then choose Open disc image in the app. NTSC-U (SCUS-97102) is the verified region. Only .iso images are accepted.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'gt3_disc',
+        name: 'Gran Turismo 3 A-Spec disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.iso$',
+        description: 'An .iso of your own Gran Turismo 3 A-Spec disc. The app remembers the path and your last five discs.'
+      }
+    ]
+  },
+  'wwf-no-mercy-vr': {
+    slug: 'wwf-no-mercy-vr',
+    packageName: 'com.nomercyrecomp.questvr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your North American (USA) Rev 1 / "Rev A" WWF No Mercy ROM on the headset, for example in /sdcard/Download/, and provide it in the main menu. No separate extraction step is needed.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'nomercy_rom',
+        name: 'WWF No Mercy ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: 'North American Rev 1 / Rev A ROM. The game loads its assets from it.'
+      }
+    ]
+  },
+  'opentie-vr': {
+    slug: 'opentie-vr',
+    packageName: 'com.bilko.opentievr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'From your Steam folder "STAR WARS Tie Fighter", copy collectors_cd to /sdcard/OpenTIE/TIE95 and remastered to /sdcard/OpenTIE/TIE98. Allow "access to all files" when the app asks. Optional: the X-Wing Alliance folder in /sdcard/OpenXWA (or TIECOCKPIT.OPT in /sdcard/OpenTIE/) adds the TIE Defender and Missile Boat cockpits.',
+    sourceStoreName: 'Steam',
+    targetPath: '/sdcard/OpenTIE/',
+    folders: [
+      {
+        id: 'opentie_tie95',
+        name: 'TIE Fighter 1995 data (collectors_cd)',
+        folderName: 'TIE95',
+        targetPath: '/sdcard/OpenTIE/TIE95/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The collectors_cd folder from your Steam install, renamed TIE95.'
+      },
+      {
+        id: 'opentie_tie98',
+        name: 'TIE Fighter 1998 data (remastered)',
+        folderName: 'TIE98',
+        targetPath: '/sdcard/OpenTIE/TIE98/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The remastered folder from your Steam install, renamed TIE98.'
+      }
+    ]
+  },
+  'daggerfall-unity-vr': {
+    slug: 'daggerfall-unity-vr',
+    packageName: 'com.dfworkshop.dfuquest3',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Push the arena2 folder of a DOS Daggerfall install (free on Steam) into the app\'s own storage with adb: adb push <path>/Daggerfall/arena2 /storage/emulated/0/Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2. Scoped storage only lets the app read its own directory. Keep AntialiasingMethod=0 in settings.ini.',
+    targetPath: '/sdcard/Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2/',
+    folders: [
+      {
+        id: 'dfu_arena2',
+        name: 'Daggerfall game data (arena2)',
+        folderName: 'arena2',
+        targetPath: '/sdcard/Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2/',
+        required: true,
+        acceptance: 'confirm',
+        description: 'The arena2 folder pushed with adb. USB cannot list another app\'s Android/data folder, so confirm after the push.'
+      }
+    ]
   }
 }
 
