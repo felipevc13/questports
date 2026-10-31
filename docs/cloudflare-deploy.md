@@ -16,8 +16,14 @@ Static files (`/_nuxt`, `/covers`, `/previews`) are Workers static assets and do
 the Worker limit. Page HTML and `/api/**` run the Worker: 100k requests per day on the free plan.
 A Cache Rule does **not** help here, because Cache Rules do not apply to responses a Worker generates
 (checked on 31 Oct 2026: no `cf-cache-status` on HTML). Watch Workers & Pages → questports → Metrics.
-If traffic nears 100k per day, prerender `/`, `/app`, `/library` and `/ports/**` at build time
-(`routeRules` `prerender: true`) and rebuild daily after the 04:00 UTC release sync, so they become static assets.
+Because the free plan allows about 10 ms of CPU per request and the SSR of `/` is heavier than that, the
+home page returned some 503 (`exceededResources`) on 31 Oct 2026 (mostly GPTBot). So on Cloudflare the catalog
+is **prerendered at build time** (`nitro.prerender` with `crawlLinks`, rule `catalogPrerenderRule()`): `/`, `/app`,
+`/library` and every `/ports/<slug>` become static assets, which cost no Worker request and no CPU.
+`wrangler.jsonc` sets `html_handling: "drop-trailing-slash"` so `/ports/<slug>` serves without a 307.
+The build reads Supabase, so export `SUPABASE_URL` and `SUPABASE_KEY` first. The pages are frozen until the next
+deploy: run `npm run deploy:cf` again after the 04:00 UTC release sync (or after any catalog change) to refresh
+"Recently updated" and install counts. `/api/**` and `/admin/**` still run in the Worker.
 
 ## Deploy
 ```bash

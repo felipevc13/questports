@@ -3,7 +3,7 @@ import { remoteInstallFlagEnabled } from './app/lib/remoteInstallFlag'
 import { DEFAULT_KOFI_URL } from './app/lib/kofi'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
-import { catalogCacheRule } from './app/lib/isrCache'
+import { catalogCacheRule, isCloudflarePreset } from './app/lib/isrCache'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
@@ -82,6 +82,10 @@ export default defineNuxtConfig({
    * writes .output/server/wrangler.json from the root wrangler.jsonc.
    */
   nitro: {
+    // Crawl links from the prerendered home so every /ports/<slug> is built too (Cloudflare only).
+    prerender: isCloudflarePreset(process.env.NITRO_PRESET)
+      ? { routes: ['/', '/library', '/app'], crawlLinks: true, failOnError: true }
+      : {},
     cloudflare: {
       deployConfig: true,
       nodeCompat: true

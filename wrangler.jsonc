@@ -8,5 +8,7 @@
     { "pattern": "questports.com", "custom_domain": true },
     { "pattern": "www.questports.com", "custom_domain": true }
   ],
+  // Prerendered pages live at <path>/index.html; serve /ports/slug without a 307 to /ports/slug/.
+  "assets": { "binding": "ASSETS", "directory": "../public", "html_handling": "drop-trailing-slash" },
   "observability": { "enabled": false }
 }

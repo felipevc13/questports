@@ -4,9 +4,9 @@
  * off the cache key, and `passQuery: false` strips that query before the function
  * runs, so the cached HTML is the canonical page. The browser address bar still
  * has the query; client code reads window.location.
- * On Cloudflare (NITRO_PRESET=cloudflare_module) Nitro has no ISR, so the rule only
- * sends `s-maxage` for downstream caches. Cloudflare does not cache Worker responses,
- * so each page view still runs the Worker (free plan: 100k requests per day).
+ * On Cloudflare (NITRO_PRESET=cloudflare_module) Nitro has no ISR, so the same pages are
+ * prerendered at build time and served as static assets (no Worker request, no CPU).
+ * Anything not prerendered still falls back to the Worker.
  * 86400 seconds is one day. The GitHub release sync runs at 04:00 UTC, so
  * "Recently updated" is regenerated at least daily. A new deploy has its own cache.
  */
@@ -24,15 +24,14 @@ export function isCloudflarePreset(preset: string | undefined): boolean {
   return (preset || '').startsWith('cloudflare')
 }
 
-/** Cloudflare: browsers revalidate, shared caches may keep a day, then serve stale for an hour. */
-export function catalogEdgeCacheRule() {
-  return {
-    headers: {
-      'cache-control': `public, max-age=0, s-maxage=${CATALOG_ISR_EXPIRATION}, stale-while-revalidate=3600`
-    }
-  }
+/**
+ * Cloudflare: render the page at build time so it ships as a static asset, which costs no
+ * Worker request and no CPU. Daily freshness comes from rebuilding after the 04:00 UTC sync.
+ */
+export function catalogPrerenderRule() {
+  return { prerender: true }
 }
 
 export function catalogCacheRule(preset: string | undefined = process.env.NITRO_PRESET) {
-  return isCloudflarePreset(preset) ? catalogEdgeCacheRule() : { isr: catalogIsrRule() }
+  return isCloudflarePreset(preset) ? catalogPrerenderRule() : { isr: catalogIsrRule() }
 }
