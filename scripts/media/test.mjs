@@ -39,7 +39,7 @@ async function expectStatus(label, url, extraArgs, status) {
 
 async function liveSmoke() {
   const base = MEDIA_HOST
-  const jpg = await expectStatus('cover jpg', `${base}/covers/astroquest.jpg`, ['-H', 'Origin: https://questports.vercel.app'], 200)
+  const jpg = await expectStatus('cover jpg', `${base}/covers/astroquest.jpg`, ['-H', 'Origin: https://questports.com'], 200)
   if (!header(jpg, 'cache-control').includes('immutable')) throw new Error('cover jpg is missing immutable cache')
   if (!header(jpg, 'access-control-allow-origin')) throw new Error('cover jpg is missing CORS')
 

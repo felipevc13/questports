@@ -1,6 +1,6 @@
 # Send to Quest API
 
-Shared contract for the QuestPorts site and the QuestPorts Android app. Base URL is the site origin (`https://questports.vercel.app` in production). Routes live under `/api/remote/*`.
+Shared contract for the QuestPorts site and the QuestPorts Android app. Base URL is the site origin (`https://questports.com` in production). Routes live under `/api/remote/*`.
 
 The browser and the headset app never write the tables. Nuxt calls Supabase with the service role. Row level security is on and there are no anon or authenticated policies. Only SHA-256 hashes of `device_secret`, `browser_token`, and pairing codes are stored. The plaintext secret and token are returned once.
 

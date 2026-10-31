@@ -40,8 +40,8 @@ describe('QuestPorts app one-click offer', () => {
   })
 
   it('points the fallback at the production /app page and does not start an install', () => {
-    expect(QUEST_APP_INSTALL_PAGE_URL).toBe('https://questports.vercel.app/app')
-    expect(QUESTPORTS_APP_PAGE.pcInstallUrl).toBe('questports.vercel.app/app')
+    expect(QUEST_APP_INSTALL_PAGE_URL).toBe('https://questports.com/app')
+    expect(QUESTPORTS_APP_PAGE.pcInstallUrl).toBe('questports.com/app')
     expect(QUESTPORTS_APP_PAGE.pcInstallMessage).toBe(
       'Open this page on a PC with Chrome or Edge to install with one click.'
     )

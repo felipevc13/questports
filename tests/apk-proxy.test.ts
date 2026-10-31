@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { CATALOG_PORT_COLUMNS, CATALOG_PORT_SELECT } from '../app/composables/usePorts'
-import { CATALOG_ISR_EXPIRATION, catalogIsrRule } from '../app/lib/isrCache'
+import { CATALOG_ISR_EXPIRATION, catalogCacheRule, catalogIsrRule } from '../app/lib/isrCache'
 import {
   isAllowedApkProxyHost,
   pickPreferredApkPath,
@@ -247,9 +247,12 @@ describe('APK Proxy Endpoint Security & URL Validation', () => {
 describe('origin transfer guards', () => {
   it('caches catalog HTML on Vercel ISR and leaves API and admin dynamic', () => {
     const config = readFileSync(new URL('../nuxt.config.ts', import.meta.url), 'utf8')
-    expect(config).toContain("'/': { isr: catalogIsrRule() }")
-    expect(config).toContain("'/ports/**': { isr: catalogIsrRule() }")
-    expect(config).toContain('catalogIsrRule')
+    expect(config).toContain("'/': catalogCacheRule()")
+    expect(config).toContain("'/ports/**': catalogCacheRule()")
+    expect(catalogCacheRule('vercel')).toEqual({ isr: catalogIsrRule() })
+    expect(catalogCacheRule('cloudflare_module')).toEqual({
+      headers: { 'cache-control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=3600' }
+    })
     expect(config).not.toContain('passQuery: true')
     expect(config).toContain("'/covers/**'")
     expect(config).toContain("'/previews/**'")

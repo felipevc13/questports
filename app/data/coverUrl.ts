@@ -1,5 +1,5 @@
 const STORAGE_MARKER = '/storage/v1/object/public/port-covers/'
-const SITE_ORIGIN = 'https://questports.vercel.app'
+const SITE_ORIGIN = 'https://questports.com'
 /** Cloudflare media host. Empty NUXT_PUBLIC_MEDIA_BASE falls back to this site instead. */
 export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'

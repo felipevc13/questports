@@ -1,4 +1,4 @@
-export const SITE_ORIGIN = 'https://questports.vercel.app'
+export const SITE_ORIGIN = 'https://questports.com'
 
 /** Absolute URL for the page the visitor is actually on. */
 export function canonicalPageUrl(path: string): string {

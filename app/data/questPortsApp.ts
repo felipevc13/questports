@@ -52,7 +52,7 @@ export const QUESTPORTS_APP_PAGE = {
     }
   ],
   pcInstallMessage: 'Open this page on a PC with Chrome or Edge to install with one click.',
-  pcInstallUrl: 'questports.vercel.app/app',
+  pcInstallUrl: 'questports.com/app',
   copyUrl: 'Copy',
   copiedUrl: 'Copied',
   inAppNote: 'You are already in the QuestPorts app. It installs ports from the headset and updates itself.',

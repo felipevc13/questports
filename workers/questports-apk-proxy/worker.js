@@ -89,7 +89,7 @@ const MAX_RELEASES = 10
 const MAX_HTML_RELEASES = 5
 
 const GH_HTML_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; QuestPorts/1.0; +https://questports.vercel.app)',
+  'User-Agent': 'Mozilla/5.0 (compatible; QuestPorts/1.0; +https://questports.com)',
   Accept: 'text/html,application/xhtml+xml'
 }
 
@@ -109,7 +109,7 @@ function pickFromReleases(releases) {
 async function viaApi(owner, repo, env) {
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=${MAX_RELEASES}`, {
     headers: {
-      'User-Agent': 'QuestPorts/1.0 (+https://questports.vercel.app)',
+      'User-Agent': 'QuestPorts/1.0 (+https://questports.com)',
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       ...(env.GITHUB_TOKEN ? { Authorization: `Bearer ${env.GITHUB_TOKEN}` } : {})

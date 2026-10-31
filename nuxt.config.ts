@@ -3,7 +3,7 @@ import { remoteInstallFlagEnabled } from './app/lib/remoteInstallFlag'
 import { DEFAULT_KOFI_URL } from './app/lib/kofi'
 import { isAnalyticsEnabled } from './app/lib/analytics'
 import { APK_PROXY_WORKER_BASE, apkProxyMaxBytes } from './app/lib/apkProxyPolicy'
-import { catalogIsrRule } from './app/lib/isrCache'
+import { catalogCacheRule } from './app/lib/isrCache'
 import { SOCIAL_DESCRIPTION, SOCIAL_TITLE, defaultSocialMeta } from './app/lib/socialMeta'
 
 export default defineNuxtConfig({
@@ -63,10 +63,10 @@ export default defineNuxtConfig({
    * from Nitro, including the Vercel preset.
    */
   routeRules: {
-    '/': { isr: catalogIsrRule() },
-    '/app': { isr: catalogIsrRule() },
-    '/library': { isr: catalogIsrRule() },
-    '/ports/**': { isr: catalogIsrRule() },
+    '/': catalogCacheRule(),
+    '/app': catalogCacheRule(),
+    '/library': catalogCacheRule(),
+    '/ports/**': catalogCacheRule(),
     '/covers/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/previews/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/favicon.ico': { headers: { 'cache-control': 'public, max-age=31536000' } },
@@ -76,6 +76,16 @@ export default defineNuxtConfig({
     '/apple-touch-icon-precomposed.png': { headers: { 'cache-control': 'public, max-age=31536000' } },
     '/api/**': { isr: false },
     '/admin/**': { isr: false }
+  },
+  /**
+   * Deploy target. `npm run build:cf` sets NITRO_PRESET=cloudflare_module and Nitro
+   * writes .output/server/wrangler.json from the root wrangler.jsonc.
+   */
+  nitro: {
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true
+    }
   },
   app: {
     head: {

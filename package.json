@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
+    "build:cf": "NITRO_PRESET=cloudflare_module nuxt build",
+    "deploy:cf": "npm run build:cf && wrangler --cwd .output deploy",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
