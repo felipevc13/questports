@@ -108,5 +108,9 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'teraburst-vr': ['teraburst', 'tera burst', 'terabrst', 'konami teraburst'],
   'carnevil-vr': ['carnevil', 'carn evil', 'carnival evil'],
   'mystical-ninja-vr': ['mystical ninja', 'goemon', 'ganbare goemon', 'goemon 64', 'mystical ninja starring goemon'],
-  'sin-and-punishment-vr': ['sin and punishment', 'sin & punishment', 'snp', 'tsumi to batsu']
+  'sin-and-punishment-vr': ['sin and punishment', 'sin & punishment', 'snp', 'tsumi to batsu'],
+  'gran-turismo-3-vr': ['gt3', 'gt 3', 'gran turismo 3', 'gran turismo 3 a-spec', 'gt3 a spec', 'gt3 revisited', 'gt3r', 'ps2 gran turismo'],
+  'wwf-no-mercy-vr': ['wwf no mercy', 'no mercy', 'wwe no mercy', 'wwf', 'wwe', 'wrestling', 'n64 wrestling'],
+  'opentie-vr': ['tie fighter', 'star wars tie fighter', 'opentie', 'tie', 'star wars tie'],
+  'daggerfall-unity-vr': ['daggerfall', 'elder scrolls', 'elder scrolls 2', 'elder scrolls ii', 'tes2', 'dfu', 'dfu quest']
 }

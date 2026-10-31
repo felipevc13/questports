@@ -456,6 +456,30 @@ export function getDefaultFolderInfo(port: Port): {
       fullPath: '/sdcard/Download/',
       exampleFiles: 'Sin and Punishment .z64, .n64 or .v64',
       instruction: 'Put your Sin and Punishment ROM in Download, then choose it in the ROM window on first launch'
+    },
+    'gran-turismo-3-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Gran Turismo 3 A-Spec.iso',
+      instruction: 'Put an .iso of your own Gran Turismo 3 A-Spec disc in Download, then choose Open disc image in the app'
+    },
+    'wwf-no-mercy-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'WWF No Mercy (USA) Rev 1 .z64, .n64 or .v64',
+      instruction: 'Put your North American Rev 1 / Rev A ROM in Download, then provide it in the main menu'
+    },
+    'opentie-vr': {
+      folder: 'OpenTIE',
+      fullPath: '/sdcard/OpenTIE/',
+      exampleFiles: 'TIE95 (collectors_cd) and TIE98 (remastered)',
+      instruction: 'Copy collectors_cd to /sdcard/OpenTIE/TIE95 and remastered to /sdcard/OpenTIE/TIE98 from your Steam TIE Fighter folder'
+    },
+    'daggerfall-unity-vr': {
+      folder: 'arena2',
+      fullPath: '/sdcard/Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2/',
+      exampleFiles: 'ARENA2 .BSA and .SND files',
+      instruction: 'Push your Daggerfall arena2 folder with adb into Android/data/com.dfworkshop.dfuquest3/files/Daggerfall/arena2'
     }
   }
 
