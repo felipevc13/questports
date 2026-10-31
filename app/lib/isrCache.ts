@@ -4,9 +4,9 @@
  * off the cache key, and `passQuery: false` strips that query before the function
  * runs, so the cached HTML is the canonical page. The browser address bar still
  * has the query; client code reads window.location.
- * On Cloudflare (NITRO_PRESET=cloudflare_module) Nitro has no ISR, so the rule
- * sends `s-maxage` and a Cloudflare Cache Rule stores the HTML at the edge. Hits
- * there never start the Worker, which keeps the free 100k requests per day.
+ * On Cloudflare (NITRO_PRESET=cloudflare_module) Nitro has no ISR, so the rule only
+ * sends `s-maxage` for downstream caches. Cloudflare does not cache Worker responses,
+ * so each page view still runs the Worker (free plan: 100k requests per day).
  * 86400 seconds is one day. The GitHub release sync runs at 04:00 UTC, so
  * "Recently updated" is regenerated at least daily. A new deploy has its own cache.
  */
@@ -24,7 +24,7 @@ export function isCloudflarePreset(preset: string | undefined): boolean {
   return (preset || '').startsWith('cloudflare')
 }
 
-/** Edge cache for Cloudflare: browsers revalidate, the edge keeps a day, then serves stale for an hour. */
+/** Cloudflare: browsers revalidate, shared caches may keep a day, then serve stale for an hour. */
 export function catalogEdgeCacheRule() {
   return {
     headers: {

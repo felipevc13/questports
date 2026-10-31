@@ -10,12 +10,14 @@ deployment on 31 Oct 2026 after 3M CDN requests (limit 1M). Everything here stay
    `ANALYTICS_SALT`, `SUPABASE_URL`, `SUPABASE_KEY`.
    Optional: `NUXT_PUBLIC_*` values and `ANALYTICS_ENABLED`. Nuxt reads `SUPABASE_URL`,
    `SUPABASE_KEY` and `NUXT_PUBLIC_*` at **build** time, so export them before `npm run build:cf`.
-3. In the Cloudflare dashboard, zone `questports.com` → Caching → Cache Rules, one rule:
-   - Match: hostname equals `questports.com` and path is not under `/api/` or `/admin/`
-   - Cache eligibility: Eligible for cache
-   - Edge TTL: Use cache-control header if present
-   - Cache key: ignore query string
-   Cache hits never start the Worker, which keeps the free 100k Worker requests per day.
+
+## Request budget
+Static files (`/_nuxt`, `/covers`, `/previews`) are Workers static assets and do not count against
+the Worker limit. Page HTML and `/api/**` run the Worker: 100k requests per day on the free plan.
+A Cache Rule does **not** help here, because Cache Rules do not apply to responses a Worker generates
+(checked on 31 Oct 2026: no `cf-cache-status` on HTML). Watch Workers & Pages → questports → Metrics.
+If traffic nears 100k per day, prerender `/`, `/app`, `/library` and `/ports/**` at build time
+(`routeRules` `prerender: true`) and rebuild daily after the 04:00 UTC release sync, so they become static assets.
 
 ## Deploy
 ```bash
@@ -25,9 +27,8 @@ npm run deploy:cf
 
 ## Check
 ```bash
-curl -sI https://questports.com/ | grep -i "cf-cache-status\|cache-control"
+curl -sI https://questports.com/ | head -5
 ```
-`cf-cache-status: HIT` on the second request means the edge serves the page.
 
 ## Redirect from the old host
 `questports.vercel.app` answers 402 while the Vercel team is paused, so it cannot redirect.
