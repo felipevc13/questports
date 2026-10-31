@@ -250,9 +250,7 @@ describe('origin transfer guards', () => {
     expect(config).toContain("'/': catalogCacheRule()")
     expect(config).toContain("'/ports/**': catalogCacheRule()")
     expect(catalogCacheRule('vercel')).toEqual({ isr: catalogIsrRule() })
-    expect(catalogCacheRule('cloudflare_module')).toEqual({
-      headers: { 'cache-control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=3600' }
-    })
+    expect(catalogCacheRule('cloudflare_module')).toEqual({ prerender: true })
     expect(config).not.toContain('passQuery: true')
     expect(config).toContain("'/covers/**'")
     expect(config).toContain("'/previews/**'")
