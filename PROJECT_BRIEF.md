@@ -2,7 +2,7 @@
 
 ## 1. Overview & Value Proposition
 
-* **Project Name:** QuestPorts (`questports.vercel.app`)
+* **Project Name:** QuestPorts (`questports.com`)
 * **Tagline:** *The standalone VR database for ports, emulators & injections. Zero PC required.*
 * **Objective:** Build a centralized catalog (wiki/database) of unofficial game experiences for Meta Quest that run **100% natively on headset hardware (standalone)**, eliminating any dependency on PCs, cables, or Wi-Fi streaming (PCVR).
 * **Problem Statement:** Lack of standardized technical curation. SideQuest prioritizes indie games and App Lab titles without solving friction points of classic ports (where to copy original files, Steam requirements, per-headset compatibility). Newer developments (injections, wrappers, community ports) are fragmented across Discord servers, Reddit threads, and GitHub repositories.
@@ -38,7 +38,7 @@ Each individual port entry features a standardized structure:
 
 * **Frontend:** Nuxt 3 (SSR/Nitro hybrid) + Tailwind CSS + `@heroicons/vue` + `marked`.
 * **Database & Auth:** Supabase (Managed PostgreSQL, free tier with Row Level Security - RLS).
-* **Deployment / Hosting:** Vercel (Free custom subdomain, automated Git CI/CD).
+* **Deployment / Hosting:** Cloudflare Workers (free tier, manual deploy with `npm run deploy:cf`).
 * **Media Storage:** Covers, thumbnails and preview videos on the Cloudflare media host (`questports-media.questports.workers.dev`, free static assets) + YouTube embeds. Supabase Storage is no longer used for covers.
 
 ---

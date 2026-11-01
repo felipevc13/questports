@@ -4,7 +4,8 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 
 - Não faça push na `main`. Branch, PR pequeno, `npm ci && npx vitest run` verde, e no corpo do PR o que foi testado (e prints, se mudou a UI).
 - Banco: toda mudança vira SQL novo em `supabase/migrations/` (nome com data e hora). Não edite migration já aplicada. O agente só prepara o arquivo. Você aplica no SQL editor do Supabase **depois** do merge. Nenhum bot aplica isso. Projeto `ccjteoxolasldhfgnoyx`.
-- Capas e vídeos **não** passam pela Vercel nem pelo Storage do Supabase. Arquivos em `public/covers`, `public/covers/thumbs` e `public/previews`. O deploy do Worker `questports-media` troca o conjunto inteiro e só sai quando você aprovar (`npm run media:deploy`; o dry-run é `npm run media:deploy:dry`). APKs saem pelo Worker `questports-apk-proxy`, não por função da Vercel.
+- Hospedagem: o site roda como Worker da **Cloudflare** em `questports.com` (a Vercel foi pausada em 31/out/2026). Merge **não** publica: o deploy é manual, `NUXT_PUBLIC_REMOTE_INSTALL=true npm run deploy:cf` (veja `docs/cloudflare-deploy.md`). Sem essa variável no build, o botão Send to Quest some e o app do Quest para de funcionar. Só o Felipe aprova o deploy.
+- Capas e vídeos **não** passam pelo Worker do site nem pelo Storage do Supabase. Arquivos em `public/covers`, `public/covers/thumbs` e `public/previews`. O deploy do Worker `questports-media` troca o conjunto inteiro e só sai quando você aprovar (`npm run media:deploy`; o dry-run é `npm run media:deploy:dry`). APKs saem pelo Worker `questports-apk-proxy`, não por rota do Worker do site.
 - Papéis: Curador só pesquisa. Testador usa o Quest simulado e abre PR. Produto & UX analisa. Divulgação só rascunha, não publica.
 - Não rode `scripts/add-*.js`, `scripts/update-*-cover.js`, `scripts/sync-covers.js`, `scripts/upload-og.js` nem os outros one-offs. Não apague esses arquivos.
 - Cartão mostra pouca coisa. Contagem de installs pode aparecer a partir de 3. `⚠ Issues` fica na tabela, não no cartão, e só quando alguém marcou problema de verdade. Site em inglês. Você fala PT-BR; o agente pode te responder em português.
@@ -17,17 +18,17 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 
 ## Overview
 
-QuestPorts (`questports.vercel.app`) is a catalog of standalone Meta Quest ports, emulators, and injections. No PC streaming. The UI is English.
+QuestPorts (`questports.com`) is a catalog of standalone Meta Quest ports, emulators, and injections. No PC streaming. The UI is English.
 
 Stack, from `package.json` and `nuxt.config.ts`:
 
-- **Nuxt 4** (`nuxt` ^4.5.2) and **Vue 3**, SSR on **Vercel** (Nitro). `README.md` used to say Nuxt 3; the installed package is Nuxt 4.
+- **Nuxt 4** (`nuxt` ^4.5.2) and **Vue 3**, on a **Cloudflare Worker** (Nitro preset `cloudflare_module`; the catalog is prerendered at build, `/api/**` runs in the Worker). Vercel Hobby paused the old deployment on 31 Oct 2026. `README.md` used to say Nuxt 3; the installed package is Nuxt 4.
 - **Tailwind CSS** via `@nuxtjs/tailwindcss` (`tailwind.config.js`, `app/assets/css/main.css`).
 - **Supabase** project `ccjteoxolasldhfgnoyx` (`https://ccjteoxolasldhfgnoyx.supabase.co`). The browser uses the anon/publishable key. Writes go through the Nuxt server with the service role.
-- Covers, thumbs, and MP4 previews are **not** on Vercel and **not** in Supabase Storage. They are Cloudflare Workers static assets: `https://questports-media.questports.workers.dev`.
-- APK bytes for one-click install go through `https://questports-apk-proxy.questports.workers.dev`, not through a Vercel function.
+- Covers, thumbs, and MP4 previews are **not** served by the site Worker and **not** in Supabase Storage. They are Cloudflare Workers static assets: `https://questports-media.questports.workers.dev`.
+- APK bytes for one-click install go through `https://questports-apk-proxy.questports.workers.dev`, not through the site Worker.
 
-Felipe reviews and merges. Agents do not push to `main`, do not apply SQL to production, and do not deploy Workers. There is no bot that does those steps after merge. Stay on the free tiers: Vercel Hobby, Supabase free, and Cloudflare Workers free.
+Felipe reviews and merges. Agents do not push to `main`, do not apply SQL to production, and do not deploy Workers (the site Worker included). There is no bot that does those steps after merge, and a merge does not publish the site. Stay on the free tiers: Supabase free and Cloudflare Workers free.
 
 ## Folder map
 
@@ -78,7 +79,7 @@ Felipe reviews and merges. Agents do not push to `main`, do not apply SQL to pro
 - App-mode bridge: `app/lib/appBridge.ts` (`window.QuestPortsApp`, user-agent `QuestPortsApp/<version>`), `app/composables/useAppBridge.ts` (real app after hydration; `?inApp=1` is the mock). The native wrapper installs with PackageInstaller instead of WebUSB. The bridge does not open URLs. Ko-fi links stay `target="_blank"`. In the app, the click uses `window.open(url, '_blank')` first (no `noopener` feature: Chrome returns null for that even when the tab opened) and then clears `opener`. If `open` returns null, the https URL is assigned so `shouldOverrideUrlLoading` can send it to the system browser (`app/lib/kofi.ts`).
 - Quest Browser: `app/lib/questBrowser.ts`. Unsupported browsers: `app/lib/unsupportedBrowser.ts`.
 - Versions: `app/lib/versionFormat.ts` (`formatPortVersion`, re-exported by `app/lib/portVersion.ts`). One leading `v` on semver-like tags (`1.0.84` and `vv1.0.84` both display as `v1.0.84`). Do not prefix another `v` in a template. Build names (`b004`, `cats27`) stay as names. Placeholders such as `Latest` are hidden. `PortCard.vue` does not render the version; `PortVersion.vue` does, on the dense table and anywhere else that imports it.
-- APK routing: `app/lib/apkProxyPolicy.ts`. Default base `https://questports-apk-proxy.questports.workers.dev`. Empty `NUXT_PUBLIC_APK_PROXY_BASE` keeps `/api/apk-proxy` on this origin, which is capped (`APK_PROXY_MAX_BYTES`, default 150 MiB) because that path is a Vercel function.
+- APK routing: `app/lib/apkProxyPolicy.ts`. Default base `https://questports-apk-proxy.questports.workers.dev`. Empty `NUXT_PUBLIC_APK_PROXY_BASE` keeps `/api/apk-proxy` on this origin, which is capped (`APK_PROXY_MAX_BYTES`, default 150 MiB) because that path runs in the site Worker.
 
 ## Dev, test, build
 
@@ -168,25 +169,25 @@ Privacy, implemented in `server/utils/analytics.ts` and `app/lib/analytics.ts`:
 - `visitor_hash` is SHA-256 of a daily UTC salt, the IP, and the user-agent. The raw IP and user-agent are not stored. The hash changes at UTC midnight.
 - Do Not Track and Global Privacy Control skip the write (`dnt: 1`, `sec-gpc: 1`, `navigator.doNotTrack`, `navigator.globalPrivacyControl`).
 - Prefetch requests and `?mockQuest=1` are not recorded.
-- Production collects unless `ANALYTICS_ENABLED=false`. Local dev and Vercel preview stay off unless `ANALYTICS_ENABLED=true`.
+- Production collects unless `ANALYTICS_ENABLED=false`. Local dev stays off unless `ANALYTICS_ENABLED=true`.
 - The browser cannot read or insert `analytics_events`. `POST /api/track` writes with the service role.
 
 ## Media and cost
 
-Stay on the free tiers. Felipe is not paying for bandwidth. Do not enable a paid Vercel, Supabase, or Cloudflare add-on.
+Stay on the free tiers. Felipe is not paying for bandwidth. Do not enable a paid Supabase or Cloudflare add-on.
 
 Measured limits to stay inside:
 
-- Vercel: Fast Origin Transfer 10 GB, Fast Data Transfer 100 GB, 1M CDN requests, deployment storage.
+- Cloudflare site Worker: 100k requests per day on the free plan for page HTML and `/api/**` (static assets do not count), about 10 ms CPU per request. The old Vercel deployment was paused at 3M CDN requests against a 1M limit.
 - Supabase: cached egress 5 GB, database 500 MB. The `port-covers` bucket already blew the egress quota (5–8 Oct 2026). That is why covers left Storage.
 - Cloudflare Workers free CPU time is 10 ms per request. The preview Worker only parses a `Range` header and streams a slice. Do not decode video, recompress images, or buffer a whole MP4 or APK inside a Worker.
 
 Consequences:
 
-- Nothing heavy is served by Vercel. `/`, `/app`, `/library`, and `/ports/**` are on-demand ISR (`nuxt.config.ts` `routeRules`, `catalogIsrRule()` in `app/lib/isrCache.ts`: `expiration` 86400, `allowQuery: []`, `passQuery: false`). Query strings share one CDN entry. `?mockQuest=1` still works because the client reads `window.location` after hydration, and it does not fetch a fresh document. A new deploy starts a new cache. The 04:00 UTC release sync still lands within a day. `/api/**` and `/admin/**` stay dynamic (`isr: false`).
-- Install counts are part of that HTML (`ports_install_count` in `usePorts.ts`). A cache HIT can show a count up to a day behind the database. The same delay applies to a guide or `latest_version` that changed only in Supabase.
-- Check freshness with `curl -sI`. `x-vercel-cache: HIT` plus `age` means the edge is serving the stored document. `cache-control` on a 200 is `public, max-age=0, must-revalidate` (the browser revalidates; the edge still holds the ISR entry). There is no query-string cache buster.
-- A `/ports/<slug>` visit before the row exists throws a fatal 404 (`createError` in `app/pages/ports/[slug].vue`). That response is on the same route rule. On 27 Oct 2026 a missing slug on production was stored by the edge (`x-vercel-cache: HIT`, `cache-control: no-cache`). Do not open the production URL until the row exists. A cached 404 clears when a new production deploy starts a new cache, or when the one-day expiration passes. To see the row without that cache, use `npm run dev`. A Vercel preview is a separate deployment and has its own cache.
+- The catalog is **prerendered at build time** on Cloudflare (`nitro.prerender` with `crawlLinks`, `catalogPrerenderRule()` in `app/lib/isrCache.ts`): `/`, `/app`, `/library`, and every `/ports/<slug>` become static assets. SSR of `/` is heavier than the 10 ms CPU budget and returned 503 on 31 Oct 2026. `/api/**` and `/admin/**` stay dynamic. `?mockQuest=1` still works because the client reads `window.location` after hydration.
+- The pages are **frozen until the next deploy**. Install counts (`ports_install_count` in `usePorts.ts`), `latest_version`, and a guide changed only in Supabase show up after `npm run deploy:cf`. Run it again after the 04:00 UTC release sync or any catalog change. The build reads Supabase, so `SUPABASE_URL` and `SUPABASE_KEY` must be set (the repo `.env` has them).
+- **Build-time public flags.** `NUXT_PUBLIC_*` values are baked into the HTML at build. Build without `NUXT_PUBLIC_REMOTE_INSTALL=true` and the Send to Quest button disappears and the Quest app stops calling the API. This happened on the first Cloudflare deploy (31 Oct 2026) and was fixed on 1 Nov 2026. Check with `curl -s https://questports.com/ports/rtcwquest | grep -o 'remoteInstall:[a-z]*'`.
+- A `/ports/<slug>` that is not in the build has no static page, so a new port is not visible until a deploy. To see a row before that, use `npm run dev`.
 - Covers and previews come from `questports-media` (`NUXT_PUBLIC_MEDIA_BASE`, default `https://questports-media.questports.workers.dev`):
   - `/covers/<file>`
   - `/covers/thumbs/<file>`
@@ -194,7 +195,7 @@ Consequences:
 - Empty `NUXT_PUBLIC_MEDIA_BASE` means covers stay on this origin and MP4 previews turn off (`localVideoPreviewsEnabled`). Do not use that in production.
 - APKs go through `questports-apk-proxy`. Do not stream them through `server/api/apk-proxy.get.ts` except as the explicit empty-base fallback.
 - Never upload or serve covers from Supabase Storage.
-- Cache: `vercel.json` and the `/covers/**` and `/previews/**` route rules set `public, max-age=31536000, immutable`. The media Worker `_headers` file does the same, plus CORS. Favicons and `/_nuxt/**` are cached for a year. After replacing a cover file, bump `COVER_CACHE_VERSION` in `coverUrl.ts` so `?v=` changes.
+- Cache: the `/covers/**` and `/previews/**` route rules set `public, max-age=31536000, immutable`. The media Worker `_headers` file does the same, plus CORS. Favicons and `/_nuxt/**` are cached for a year. After replacing a cover file, bump `COVER_CACHE_VERSION` in `coverUrl.ts` so `?v=` changes.
 - NuxtLink prefetch is interaction only. `nuxt.config.ts` sets `experimental.defaults.nuxtLink.prefetchOn` to `{ visibility: false, interaction: true }` because Nuxt 4.5 otherwise downloads `/ports/<slug>/_payload.json` for every card that scrolls into view. `app/plugins/portPrefetch.client.ts` also ignores `pointerenter` when the pointer has not moved, so a resting mouse does not prefetch every card that slides underneath. Do not turn visibility prefetch back on.
 
 `scripts/media/dist` is the Worker asset directory. A static-asset deploy **replaces the whole set**. `npm run media:deploy` refuses to upload if that directory is missing any file referenced by `public/covers`, `public/covers/thumbs`, `public/previews`, `AVAILABLE_VIDEO_PREVIEWS`, or a `/covers/...` path in `coverUrl.ts` (including the thumb `coverThumbUrl` would request).
@@ -225,7 +226,7 @@ A search with no catalog match shows **Request this game**. That opens the same 
 
 ### Cover files
 
-Cards use `aspect-[460/215]` (about 2.14:1). New art is a SteamGridDB horizontal capsule, 920×430 or the 460×215 size already in the tree, with no console branding. An older sentence in this file counted 35 files at 460×215 and 19 at 920×430. That split is stale. Recount before quoting it. Exceptions already in the tree, which are not the template for a new port: `questports-og.png` is the 1200×630 share card (the site serves that URL from `questports.vercel.app`, via `absoluteCoverUrl`), plus a few non-capsule images.
+Cards use `aspect-[460/215]` (about 2.14:1). New art is a SteamGridDB horizontal capsule, 920×430 or the 460×215 size already in the tree, with no console branding. An older sentence in this file counted 35 files at 460×215 and 19 at 920×430. That split is stale. Recount before quoting it. Exceptions already in the tree, which are not the template for a new port: `questports-og.png` is the 1200×630 share card (the site serves that URL from its own origin, via `absoluteCoverUrl`), plus a few non-capsule images.
 
 `npm run media:build` writes `scripts/media/dist` and does not modify `public/`:
 
@@ -363,13 +364,11 @@ These are process, not code.
 
 Felipe merges, applies SQL, approves media deploys, and tests on a real Quest.
 
-## Vercel preview
+## PR previews
 
-Each PR gets a Preview link from `vercel[bot]` on the GitHub comment, and the Vercel check points at the same deployment. On 27 Oct 2026 an anonymous request to a preview host (`questports-git-…vercel.app`, PR #98) returned 302 to `https://vercel.com/sso-api` and then the Vercel login page. Deployment Protection is on. Someone without a Vercel login on this team cannot open the preview. Felipe can.
+There are no per-PR preview deployments since the move to Cloudflare. Test with `npm run dev` and `?mockQuest=1` / `?inApp=1`, and say in the PR what was exercised. `isAnalyticsEnabled` still keeps analytics off for `VERCEL_ENV` `preview` or `development` and for local dev, unless `ANALYTICS_ENABLED=true`.
 
-`isAnalyticsEnabled` keeps analytics off when `VERCEL_ENV` is `preview` or `development`, unless `ANALYTICS_ENABLED=true`.
-
-`?mockQuest=1` is client-side, so it works on a preview after the HTML loads. The APK proxy base defaults to the public Worker `https://questports-apk-proxy.questports.workers.dev` (`NUXT_PUBLIC_APK_PROXY_BASE` unset). That host is not behind the preview login. The preview page that calls it is. This pass could not load the preview HTML, so the mock and a real proxy download were not clicked through there.
+The APK proxy base defaults to the public Worker `https://questports-apk-proxy.questports.workers.dev` (`NUXT_PUBLIC_APK_PROXY_BASE` unset).
 
 ## Quest app and the headset
 
@@ -387,14 +386,15 @@ Never commit tokens, service-role keys, or `.env`. Names only:
 | --- | --- |
 | `SUPABASE_URL` | Public project URL. Also a GitHub Actions secret for the daily sync |
 | `SUPABASE_KEY` | Anon/publishable key, `runtimeConfig.public` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server only. Vercel and the Actions secret. Never `public` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server only. Worker secret (`NUXT_SUPABASE_SERVICE_ROLE_KEY`) and the Actions secret. Never `public` |
 | `VERIFICATION_ADMIN_SECRET` | Header for `POST /api/admin/verifications` |
 | `ANALYTICS_SALT` | Optional. Else the server hashes the service role key |
+| `NUXT_PUBLIC_REMOTE_INSTALL` | Build time. Must be `true` for Send to Quest and the Quest app. Pass it to `npm run deploy:cf` |
 | `ANALYTICS_ENABLED` | `true` / `false` override described above |
 | `NUXT_PUBLIC_MEDIA_BASE` | Unset → media Worker. Empty → covers on this origin, no MP4s |
-| `NUXT_PUBLIC_APK_PROXY_BASE` | Unset → APK Worker. Empty → Vercel `/api/apk-proxy` |
+| `NUXT_PUBLIC_APK_PROXY_BASE` | Unset → APK Worker. Empty → site Worker `/api/apk-proxy` |
 | `NUXT_PUBLIC_KOFI_URL` | Unset → `https://ko-fi.com/questports`. Empty → hide the tip line and the footer link |
-| `APK_PROXY_MAX_BYTES` | Cap for the Vercel route only |
+| `APK_PROXY_MAX_BYTES` | Cap for the site Worker route only |
 | `GITHUB_TOKEN` | Actions, `sync-github-stats.js`, and optional APK-proxy Worker secret |
 | `CLOUDFLARE_API_TOKEN` | `npm run media:deploy` only |
 | `CLOUDFLARE_ACCOUNT_ID` | Must be `42ef7aadef9e38f2860f59f826a090e9` to deploy |

@@ -21,7 +21,7 @@ QuestPorts is a centralized directory and knowledge base cataloging classic sour
 * **Framework:** [Nuxt 4](https://nuxt.com/) (Vue 3, SSR/Nitro)
 * **Styling:** [Tailwind CSS](https://tailwindcss.com/) + Glassmorphism Dark Theme
 * **Database:** [Supabase](https://supabase.com/) (PostgreSQL 17 with Row Level Security)
-* **Hosting:** [Vercel](https://vercel.com/)
+* **Hosting:** Cloudflare Workers (`npm run deploy:cf`, see `docs/cloudflare-deploy.md`)
 * **Media:** covers, thumbnails and preview videos are served from the Cloudflare media host (`https://questports-media.questports.workers.dev`); APK one-click downloads go through the Cloudflare Worker proxy
 
 ---
@@ -64,12 +64,12 @@ Run `supabase/full_setup.sql` in your Supabase SQL Editor to initialize the `por
 
 Headset checks live in `port_verifications` (one row per check). Apply `supabase/migrations/20261008220000_port_verifications.sql` in the SQL editor on an existing project. The public API can only read `approved` rows. Browsers cannot insert.
 
-Server environment (Vercel, never `NEXT_PUBLIC` / Nuxt `public`):
+Server environment (Cloudflare Worker, never `NEXT_PUBLIC` / Nuxt `public`):
 
 * `SUPABASE_SERVICE_ROLE_KEY` — one-click install reports and the admin form write through this key.
 * `VERIFICATION_ADMIN_SECRET` — required header for `POST /api/admin/verifications`. The unlisted form is `/admin/verify`.
 * `ANALYTICS_SALT` — optional secret for the daily visitor hash. If unset, the server uses a hash of `SUPABASE_SERVICE_ROLE_KEY`.
-* `ANALYTICS_ENABLED` — set to `true` to collect stats in local dev or Vercel preview. Production is on unless this is `false`.
+* `ANALYTICS_ENABLED` — set to `true` to collect stats in local dev. Production is on unless this is `false`.
 
 Anonymous usage stats live in `public.analytics_events`. Apply `supabase/migrations/20261009200000_analytics_events.sql` in the Supabase SQL editor after it is merged. Do not run it from CI. The browser cannot read or insert that table. `POST /api/track` writes with the service role. There are no cookies. The visitor hash changes every UTC day, and the raw IP and user-agent are not stored.
 
