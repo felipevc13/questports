@@ -1935,6 +1935,90 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'virtua-cop-2-vr': {
+    slug: 'virtua-cop-2-vr',
+    packageName: 'com.vrlightgunhub.vcop2',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Virtua Cop 2 v0.2.14: vcop2.zip and the billboard firmware segabill.zip in Download (or one vcop2.zip with all 31 payloads). Keep them packed. No CHD.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'vcop2_rom',
+        name: 'Virtua Cop 2 ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['vcop2.zip'],
+        description: 'vcop2.zip in Download, plus segabill.zip unless it is already inside. No CHD required.'
+      }
+    ]
+  },
+  'gunblade-ny-vr': {
+    slug: 'gunblade-ny-vr',
+    packageName: 'com.vrlightgunhub.gunbladeny',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Gunblade NY v0.1.0-beta: the Revision A gunblade.zip (18 payloads) in Download. A split set also needs segabill.zip. Keep it packed. No CHD.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'gunblade_rom',
+        name: 'Gunblade NY ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['gunblade.zip'],
+        description: 'gunblade.zip (Revision A) in Download. A split set also needs segabill.zip.'
+      }
+    ]
+  },
+  'behind-enemy-lines-vr': {
+    slug: 'behind-enemy-lines-vr',
+    packageName: 'com.vrlightgunhub.bel',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Behind Enemy Lines v0.1.1-beta: bel.zip with all 31 payloads in Download. Keep it packed. No CHD or billboard firmware.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'bel_rom',
+        name: 'Behind Enemy Lines ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['bel.zip'],
+        description: 'bel.zip in Download. No CHD or billboard firmware required.'
+      }
+    ]
+  },
+  'rail-chase-2-vr': {
+    slug: 'rail-chase-2-vr',
+    packageName: 'com.vrlightgunhub.rchase2',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Rail Chase 2 v0.1.0-beta: the Revision A rchase2.zip (23 payloads) in Download. A split set also needs segabill.zip. Keep it packed. No CHD.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'rchase2_rom',
+        name: 'Rail Chase 2 ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['rchase2.zip'],
+        description: 'rchase2.zip (Revision A) in Download. A split set also needs segabill.zip.'
+      }
+    ]
+  },
   'carnevil-vr': {
     slug: 'carnevil-vr',
     packageName: 'com.vrlightgunhub.carnevil',
