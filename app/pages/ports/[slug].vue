@@ -95,17 +95,6 @@
       <p class="max-w-4xl pt-0.5 text-sm leading-relaxed text-muted-foreground line-clamp-3 md:line-clamp-none">
         {{ port.short_description }}
       </p>
-
-      <NoPcNotice
-        v-if="!questBrowser && !inApp"
-        class="max-w-2xl"
-        :slug="port.slug"
-        :needs-files="!isDirectApkOnly"
-        :folders="noPcFolderPaths"
-        :download-url="port.port_download_url"
-        :download-source="port.port_download_source"
-        @download="trackManualDownload"
-      />
     </div>
 
     <!-- HERO SPLIT SECTION (Trailer/Media on Left, Action Hub on Right) -->
@@ -611,6 +600,15 @@
                   <li>{{ TWO_STEP_APP_LINE }}</li>
                   <li>{{ twoStepFilesLine(port.base_game_store) }}</li>
                 </ol>
+                <NoPcNotice
+                  v-if="!questBrowser"
+                  :slug="port.slug"
+                  :needs-files="true"
+                  :folders="noPcFolderPaths"
+                  :download-url="port.port_download_url"
+                  :download-source="port.port_download_source"
+                  @download="trackManualDownload"
+                />
               </div>
 
               <div

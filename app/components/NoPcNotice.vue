@@ -1,19 +1,20 @@
 <template>
-  <div
+  <details
     v-if="status === 'yes'"
     data-testid="no-pc-notice"
-    class="space-y-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3"
+    class="group mt-1.5 text-[11px] leading-relaxed"
+    :open="open"
   >
-    <p class="text-xs font-semibold text-foreground">{{ NO_PC_TITLE }}</p>
-    <ol class="space-y-1.5">
+    <summary class="inline-flex min-h-11 cursor-pointer list-none items-center gap-1 font-semibold text-primary hover:underline md:min-h-0 [&::-webkit-details-marker]:hidden">
+      <span aria-hidden="true" class="transition-transform group-open:rotate-90">›</span>
+      {{ NO_PC_TITLE }}
+    </summary>
+    <ol class="mt-1 space-y-1 pl-4 text-muted-foreground">
       <li
         v-for="(step, index) in steps"
         :key="step"
-        class="flex items-start gap-2 text-[11px] leading-relaxed text-foreground"
-      >
-        <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300">{{ index + 1 }}</span>
-        <span>{{ step }}</span>
-      </li>
+        class="list-decimal"
+      >{{ step }}</li>
     </ol>
     <a
       v-if="downloadUrl"
@@ -21,24 +22,17 @@
       target="_blank"
       rel="noopener noreferrer"
       data-testid="no-pc-apk"
-      class="inline-flex min-h-11 items-center text-[11px] font-semibold text-primary underline md:min-h-0"
+      class="mt-1 inline-flex min-h-11 items-center pl-4 font-semibold text-primary underline md:min-h-0"
       @click="emit('download')"
     >
-      Download the APK<span v-if="downloadSource"> ({{ downloadSource }})</span>
+      Download the APK<span v-if="downloadSource">&nbsp;({{ downloadSource }})</span>
     </a>
-  </div>
-  <p
-    v-else-if="status === 'no'"
-    data-testid="pc-needed-notice"
-    class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-50"
-  >
-    {{ PC_REQUIRED_NOTE }}
-  </p>
+  </details>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NO_PC_TITLE, PC_REQUIRED_NOTE, isReleasePageUrl, noPcInstall, noPcSteps } from '~/lib/noPcInstall'
+import { NO_PC_TITLE, isReleasePageUrl, noPcInstall, noPcSteps } from '~/lib/noPcInstall'
 
 const props = defineProps<{
   slug: string
@@ -46,6 +40,8 @@ const props = defineProps<{
   folders?: string[]
   downloadUrl?: string | null
   downloadSource?: string | null
+  /** Start expanded. The Quest Browser notice uses this: there it is the main path. */
+  open?: boolean
 }>()
 
 const emit = defineEmits<{ download: [] }>()

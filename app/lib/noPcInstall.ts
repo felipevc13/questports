@@ -49,7 +49,7 @@ export function noPcInstall(slug: string | null | undefined): NoPcInstall {
 export const NO_PC_BADGE = 'No PC needed'
 export const PC_REQUIRED_BADGE = 'PC needed'
 
-export const NO_PC_TITLE = 'No PC needed. Do it all on your Quest.'
+export const NO_PC_TITLE = 'No PC? Do it all on your Quest'
 
 /** A GitHub releases page: the link lands on a list of files, not on the APK itself. */
 export function isReleasePageUrl(url: string | null | undefined): boolean {
@@ -79,8 +79,6 @@ export function noPcSteps(input: {
   steps.push('Open the game from Library > Unknown Sources.')
   return steps
 }
-
-export const PC_REQUIRED_NOTE = 'This port needs a PC to prepare the game before it can run on your Quest.'
 
 /**
  * Folders worth naming: under /sdcard, not Downloads and not Android/data (the

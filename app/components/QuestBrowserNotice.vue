@@ -1,6 +1,7 @@
 <template>
   <NoPcNotice
     v-if="noPc"
+    open
     :slug="slug"
     :needs-files="needsGameFiles"
     :folders="noPcFolders"
