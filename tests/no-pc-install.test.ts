@@ -11,9 +11,21 @@ describe('noPcInstall', () => {
   })
 
   it('marks picker and /sdcard ports as yes', () => {
-    for (const slug of ['xrkart-64', 'wave-race-64-vr', 'quake3quest', 'time-crisis-vr', 'openmw-vr']) {
+    for (const slug of ['xrkart-64', 'wave-race-64-vr', 'time-crisis-vr', 'hotd-vr', 'twilight-princess-vr']) {
       expect(noPcInstall(slug)).toBe('yes')
     }
+  })
+
+  it('does not call a game that needs a PC install yes', () => {
+    for (const slug of ['qualyx', 'quake2quest', 'openmw-vr', 'rtcwquest', 'simpsonshitrun', 'nolf-vr', 'doom3quest']) {
+      expect(noPcInstall(slug)).toBe('unknown')
+    }
+  })
+
+  it('treats in-app ROM pickers as yes even when the app copies to Android/data', () => {
+    expect(noPcInstall('goldeneye-vr')).toBe('yes')
+    expect(noPcInstall('perfect-dark-vr')).toBe('yes')
+    expect(noPcInstall('galaxyquest')).toBe('no')
   })
 
   it('leaves Android/data ports unknown until someone tests them on a Quest', () => {
@@ -63,8 +75,8 @@ describe('noPcInstall', () => {
     const mapped = Object.keys(PORT_PACKAGE_CONFIGS)
     const yes = mapped.filter(slug => noPcInstall(slug) === 'yes')
     const no = mapped.filter(slug => noPcInstall(slug) === 'no')
-    expect(yes.length).toBeGreaterThan(60)
-    expect(no.length).toBe(13)
+    expect(yes.length).toBe(49)
+    expect(no.length).toBe(11)
     expect(yes.filter(slug => no.includes(slug))).toEqual([])
     for (const slug of mapped) {
       if (PORT_PACKAGE_CONFIGS[slug].installType === 'pc_builder_required') expect(noPcInstall(slug)).toBe('no')

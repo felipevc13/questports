@@ -1,37 +1,40 @@
 /**
  * Can this port be set up with only the headset: no PC, no USB cable?
  *
- * `yes` means the APK and the player's own files can both be handled from the
- * Quest Browser and the Files app (the files go to a folder under /sdcard or are
- * picked inside the app). Worked out from each port's install guide and target
- * folder. Nobody has run these on a headset yet.
+ * `yes` means all of this holds:
+ * - the APK can be installed from the Quest Browser and the Files app;
+ * - nothing on a PC has to prepare, convert, patch or build anything;
+ * - the player's own files are a console, arcade or disc image (ROM, ISO, arcade
+ *   set) that goes in Downloads, an /sdcard folder or an in-app picker, or the
+ *   game is already inside the APK.
  * `no` means a PC tool must prepare, convert or build something first.
- * A port in neither list is `unknown`: files under Android/data (which the Quest
- * file manager may not write), a manual APK link, or a port added after this
- * review. The page says nothing about it rather than promise too much.
+ * Everything else is `unknown` and the page says nothing: games whose files
+ * come from a PC install (Steam, GOG, PC discs), steps that need ADB, files
+ * under Android/data, a manual APK link, and any port added after this review.
+ *
+ * Worked out from each port's install guide and target folder, not run on a
+ * headset. Reviewed twice: the first pass looked at the target folder only and
+ * marked 22 PC-install ports (Qualyx among them) as yes.
  */
 
 const NO_PC_READY = new Set([
-  '18-wheeler-vr', 'age-of-joy', 'arx-libertatis-vr', 'beefraiderxr', 'behind-enemy-lines-vr',
-  'bomberman-hero-vr', 'carnevil-vr', 'citravr', 'confidential-mission-vr', 'crisis-zone-vr',
-  'csvr', 'ctr-turbocharged-vr', 'daytona-usa-vr', 'death-crimson-ox-vr', 'dirt-dash-vr',
-  'dolphinxr', 'doom3quest', 'f-zero-x-vr', 'generals-zero-hour-xr',
-  'ghost-squad-evolution-vr', 'gran-turismo-3-vr', 'gunblade-ny-vr', 'halocequest', 'hotd-vr',
-  'hotd2-vr', 'hotd4-vr', 'jkxr', 'lambda1vr', 'lupin-the-third-vr', 'majoras-mask-vr',
-  'mario-party-4-partyboard', 'metal-gear-solid-vr', 'mok-vr', 'mystical-ninja-vr', 'nfsu-vr',
-  'nfsu2-vr', 'ninja-assault-vr', 'nolf-vr', 'ocarina-of-time-vr', 'opencmr2-vr', 'openmw-vr',
-  'opentie-vr', 'ppsspp-vr', 'preyvr', 'primedgun', 'quake2quest', 'quake3quest', 'quakequest',
-  'qualyx', 'questzdoom', 'rail-chase-2-vr', 'razexr', 'rtcwquest', 'sega-rally-vr',
-  'simpsonshitrun', 'sin-and-punishment-vr', 'sm64-coop-dx-vr', 'smash-remix-vr', 'sourcevr',
-  'strikers-quest-mr', 'survivor2-code-veronica-vr', 'teraburst-vr', 'time-crisis-2-vr',
-  'time-crisis-vr', 'twilight-princess-vr', 'virtua-cop-2-vr', 'virtua-cop-vr', 'wakerquest',
-  'wave-race-64-vr', 'winlatorxr', 'wwf-no-mercy-vr', 'xelee', 'xrkart-64'
+  'behind-enemy-lines-vr', 'bomberman-hero-vr', 'carnevil-vr', 'confidential-mission-vr',
+  'crisis-zone-vr', 'ctr-turbocharged-vr', 'daytona-usa-vr', 'death-crimson-ox-vr',
+  'dirt-dash-vr', 'dolphinxr', 'f-zero-x-vr', 'ghost-squad-evolution-vr', 'goldeneye-vr',
+  'gran-turismo-3-vr', 'gunblade-ny-vr', 'halocequest', 'hotd-vr', 'hotd2-vr', 'hotd4-vr',
+  'lupin-the-third-vr', 'majoras-mask-vr', 'mario-party-4-partyboard', 'metal-gear-solid-vr',
+  'mok-vr', 'mystical-ninja-vr', 'nfsu-vr', 'nfsu2-vr', 'ninja-assault-vr',
+  'ocarina-of-time-vr', 'perfect-dark-vr', 'ppsspp-vr', 'primedgun', 'rail-chase-2-vr',
+  'sega-rally-vr', 'sin-and-punishment-vr', 'sm64-coop-dx-vr', 'strikers-quest-mr',
+  'survivor2-code-veronica-vr', 'teraburst-vr', 'time-crisis-2-vr', 'time-crisis-vr',
+  'twilight-princess-vr', 'virtua-cop-2-vr', 'virtua-cop-vr', 'wakerquest', 'wave-race-64-vr',
+  'wwf-no-mercy-vr', 'xelee', 'xrkart-64'
 ])
 
 const PC_REQUIRED = new Set([
-  'animal-crossing-vr', 'crazy-taxi-vr', 'galaxyquest', 'goldeneye-vr', 'gta-sa-vr-quest',
-  'magic-carpet-vr', 'openxwa-vr', 'perfect-dark-vr', 'red-dead-redemption-vr',
-  'starfox-enhanced-vr', 'vice-city-vr-quest', 'victory-heat-rally-vr', 'wipeout-rewrite-vr'
+  'animal-crossing-vr', 'crazy-taxi-vr', 'galaxyquest', 'gta-sa-vr-quest', 'magic-carpet-vr',
+  'openxwa-vr', 'red-dead-redemption-vr', 'starfox-enhanced-vr', 'vice-city-vr-quest',
+  'victory-heat-rally-vr', 'wipeout-rewrite-vr'
 ])
 
 export type NoPcInstall = 'yes' | 'no' | 'unknown'
