@@ -600,15 +600,6 @@
                   <li>{{ TWO_STEP_APP_LINE }}</li>
                   <li>{{ twoStepFilesLine(port.base_game_store) }}</li>
                 </ol>
-                <NoPcNotice
-                  v-if="!questBrowser"
-                  :slug="port.slug"
-                  :needs-files="true"
-                  :folders="noPcFolderPaths"
-                  :download-url="port.port_download_url"
-                  :download-source="port.port_download_source"
-                  @download="trackManualDownload"
-                />
               </div>
 
               <div
