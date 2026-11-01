@@ -109,6 +109,7 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'carnevil-vr': ['carnevil', 'carn evil', 'carnival evil'],
   'virtua-cop-2-vr': ['virtua cop 2', 'vcop2', 'vc2', 'virtua cop ii'],
   'gunblade-ny-vr': ['gunblade', 'gun blade', 'gunblade ny', 'gun blade ny'],
+  'rail-chase-2-vr': ['rail chase', 'rail chase 2', 'railchase', 'rchase2'],
   'behind-enemy-lines-vr': ['behind enemy lines', 'bel', 'sega behind enemy lines'],
   'mystical-ninja-vr': ['mystical ninja', 'goemon', 'ganbare goemon', 'goemon 64', 'mystical ninja starring goemon'],
   'sin-and-punishment-vr': ['sin and punishment', 'sin & punishment', 'snp', 'tsumi to batsu'],

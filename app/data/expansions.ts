@@ -457,6 +457,12 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'bel.zip',
       instruction: 'Put your complete bel.zip (all 31 payloads) in Download. Keep it zipped. No CHD or billboard firmware is needed.'
     },
+    'rail-chase-2-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'rchase2.zip',
+      instruction: 'Put your complete Revision A rchase2.zip (23 payloads) in Download. A split set also needs segabill.zip. Keep it zipped. No CHD is needed.'
+    },
     'carnevil-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',

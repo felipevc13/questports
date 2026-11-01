@@ -1,6 +1,6 @@
--- Add three Sega Model 2 arcade light-gun ports from vr4all-standalone:
--- Virtua Cop 2 VR, Gunblade NY VR, Behind Enemy Lines VR. All three are early releases
--- (in_development) and need the player's own arcade set.
+-- Add four Sega arcade light-gun ports from vr4all-standalone:
+-- Virtua Cop 2 VR, Gunblade NY VR, Rail Chase 2 VR, Behind Enemy Lines VR. All four are
+-- early releases (in_development) and need the player's own arcade set.
 --
 -- Apply manually in the Supabase SQL editor after merge.
 -- Do not run this from CI or against production from the agent.
@@ -178,6 +178,52 @@ insert into public.ports (
 > [!TIP]
 > Quest 3S play has been observed on an earlier build. The latest defaults and the full game routes are still being checked.',
   'The app checks the size and checksum of every payload, so use the complete bel.zip and keep it zipped. If the setup screen cannot find it, check that it sits directly in /sdcard/Download/.'
+),
+(
+  'rail-chase-2-vr',
+  'Rail Chase 2 VR',
+  'vr4all-standalone',
+  'https://github.com/vr4all-standalone/rail-chase-2-vr',
+  'Sega''s ride-on rail shooter Rail Chase 2 in stereo VR, standalone on Meta Quest. Tracked guns, both native player inputs, and a custom reticle.',
+  'emulator',
+  'in_development',
+  'https://questports-media.questports.workers.dev/covers/rail-chase-2-vr.png',
+  null,
+  array['Quest 3', 'Quest 3S'],
+  array['On-Rails (game-driven camera)', 'Roomscale', 'Seated'],
+  true,
+  '/sdcard/Download/',
+  'https://en.wikipedia.org/wiki/Rail_Chase_2',
+  'Requires your own copy (Sega arcade set, Revision A)',
+  'https://github.com/vr4all-standalone/rail-chase-2-vr/releases/download/v0.1.0-beta/rail-chase-2-vr-quest.apk',
+  'GitHub Releases',
+  'https://github.com/vr4all-standalone/rail-chase-2-vr',
+  'v0.1.0-beta',
+  '2026-10-31T03:17:21Z',
+  false,
+  '### Overview
+**Rail Chase 2 VR** brings Sega''s ride-on rail shooter to Meta Quest 3 and 3S in stereo VR with head tracking and tracked guns. It is a public beta. The routes, audio and cabinet logic come from your own game data.
+
+> [!NOTE]
+> **No game files included.** You need the Revision A `rchase2.zip` with all 23 required payloads. Older 21-file sets are incomplete. If the files are split, also provide `segabill.zip`. No CHD is required.
+
+---
+
+### Prerequisites
+* Meta Quest 3 or Quest 3S.
+* Your own Rail Chase 2 Revision A `rchase2.zip`.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download `rail-chase-2-vr-quest.apk` from GitHub Releases.
+2. Put `rchase2.zip` (and `segabill.zip` if your set is split) into `/sdcard/Download/`. Keep them packed.
+3. Open **Rail Chase 2 - VR4ALL** from **Unknown Sources** and finish the ROM check on the setup screen.
+4. Play. Both native player inputs and the VR4ALL settings menu are available.
+
+> [!TIP]
+> Quest 3S play has been observed. The measured scene runs at about 82 to 90% of full speed, and longer routes and Quest 3 are still unverified.',
+  'Use the complete Revision A rchase2.zip with all 23 payloads; older 21-file sets are rejected. Keep it zipped. If the setup screen cannot find it, check that it sits directly in /sdcard/Download/.'
 )
 on conflict (slug) do update set
   title = excluded.title,

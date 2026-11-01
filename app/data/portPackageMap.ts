@@ -1998,6 +1998,27 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'rail-chase-2-vr': {
+    slug: 'rail-chase-2-vr',
+    packageName: 'com.vrlightgunhub.rchase2',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Rail Chase 2 v0.1.0-beta: the Revision A rchase2.zip (23 payloads) in Download. A split set also needs segabill.zip. Keep it packed. No CHD.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'rchase2_rom',
+        name: 'Rail Chase 2 ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['rchase2.zip'],
+        description: 'rchase2.zip (Revision A) in Download. A split set also needs segabill.zip.'
+      }
+    ]
+  },
   'carnevil-vr': {
     slug: 'carnevil-vr',
     packageName: 'com.vrlightgunhub.carnevil',
