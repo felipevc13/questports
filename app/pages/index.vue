@@ -566,7 +566,14 @@ import {
   type CatalogSearchHit,
   type SearchMatchVia
 } from '~/lib/catalogSearch'
-import { catalogCategoryFromQuery, readCatalogQuery } from '~/lib/catalogQuery'
+import {
+  CATALOG_FILTER_PARAM_KEYS,
+  catalogCategoryFromQuery,
+  readCatalogQuery,
+  sanitizeCatalogFilters,
+  withCatalogFilterParams,
+  type CatalogFilterValues
+} from '~/lib/catalogQuery'
 import { NO_PC_BADGE, noPcInstall } from '~/lib/noPcInstall'
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
@@ -590,16 +597,23 @@ const verificationRecords = computed(() => verificationData.value || [])
 // address bar after hydration so the first paint matches that document.
 const bootCatalogQuery = import.meta.client && !useNuxtApp().isHydrating
   ? readCatalogQuery(window.location.search)
-  : { q: '', cat: 'all' as const, dev: '', nopc: false }
+  : { q: '', cat: 'all' as const, dev: '', nopc: false, platform: '', hw: '', style: '', status: '', sort: '' }
+// Menu filters from the address, limited to values this catalog has.
+const catalogFilterOptions = () => ({
+  platforms: originPlatformOptions(ports.value).map(option => option.id as string),
+  headsets: headsetFilterOptions(ports.value.map(port => port.supported_hardware)),
+  styles: vrStyleOptions(ports.value).map(option => option.id as string)
+})
+const bootFilters = sanitizeCatalogFilters(bootCatalogQuery, catalogFilterOptions())
 const searchQuery = ref(bootCatalogQuery.q)
 const selectedCategory = ref<string>(bootCatalogQuery.cat)
-const selectedStatus = ref<string>('')
-const selectedHardware = ref<string>('')
-const selectedOrigin = ref<string>('')
-const selectedStyle = ref<string>('')
+const selectedStatus = ref<string>(bootFilters.status)
+const selectedHardware = ref<string>(bootFilters.hw)
+const selectedOrigin = ref<string>(bootFilters.platform)
+const selectedStyle = ref<string>(bootFilters.style)
 const selectedDeveloper = ref(bootCatalogQuery.dev)
 const onlyNoPc = ref(bootCatalogQuery.nopc)
-const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
+const sortBy = ref<CatalogSort>(bootFilters.sort)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
 const mobileVisible = ref(12)
@@ -663,6 +677,19 @@ const hydratedSearch = import.meta.client && useNuxtApp().isHydrating
   ? String(useNuxtApp().$initialSearch || '')
   : ''
 
+// Grid or table is how you like to read the list, not a filter, so it stays in this
+// browser and not in the address.
+const VIEW_MODE_KEY = 'questports_catalog_view'
+const readViewMode = () => {
+  try {
+    const saved = window.localStorage.getItem(VIEW_MODE_KEY)
+    if (saved === 'grid' || saved === 'table') viewMode.value = saved
+  } catch { /* private window or blocked storage */ }
+}
+watch(viewMode, (mode) => {
+  try { window.localStorage.setItem(VIEW_MODE_KEY, mode) } catch { /* ignore */ }
+})
+
 onMounted(async () => {
   applyingLocation = true
   const parsed = readCatalogQuery(hydratedSearch || window.location.search)
@@ -670,6 +697,13 @@ onMounted(async () => {
   if (parsed.cat !== selectedCategory.value) selectedCategory.value = parsed.cat
   if (parsed.dev !== selectedDeveloper.value) selectedDeveloper.value = parsed.dev
   if (parsed.nopc !== onlyNoPc.value) onlyNoPc.value = parsed.nopc
+  const filters = sanitizeCatalogFilters(parsed, catalogFilterOptions())
+  if (filters.status !== selectedStatus.value) selectedStatus.value = filters.status
+  if (filters.hw !== selectedHardware.value) selectedHardware.value = filters.hw
+  if (filters.platform !== selectedOrigin.value) selectedOrigin.value = filters.platform
+  if (filters.style !== selectedStyle.value) selectedStyle.value = filters.style
+  if (filters.sort !== sortBy.value) sortBy.value = filters.sort
+  readViewMode()
   await nextTick()
   applyingLocation = false
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -800,7 +834,7 @@ const originChips = computed(() => [
 
 // Type, developer, and status are rarely used, so they sit behind "More filters".
 // A ?cat= or ?dev= link, or an active value, keeps the row open so the filter stays visible.
-const moreOpen = ref(Boolean(bootCatalogQuery.dev) || bootCatalogQuery.cat !== 'all')
+const moreOpen = ref(Boolean(bootCatalogQuery.dev) || bootCatalogQuery.cat !== 'all' || Boolean(bootFilters.status))
 const moreActiveCount = computed(() =>
   (selectedCategory.value !== 'all' ? 1 : 0) + (selectedDeveloper.value ? 1 : 0) + (selectedStatus.value ? 1 : 0)
 )
@@ -837,6 +871,21 @@ watch(selectedDeveloper, (newDev) => {
     delete query.dev
     router.replace({ query })
   }
+})
+
+// Keep the menu filters in the address too (?platform, ?hw, ?style, ?status, ?sort).
+watch([selectedOrigin, selectedHardware, selectedStyle, selectedStatus, sortBy], () => {
+  const values: CatalogFilterValues = {
+    platform: selectedOrigin.value,
+    hw: selectedHardware.value,
+    style: selectedStyle.value,
+    status: selectedStatus.value,
+    sort: sortBy.value
+  }
+  const next = withCatalogFilterParams(route.query, values)
+  const same = CATALOG_FILTER_PARAM_KEYS.every(key => String(route.query[key] ?? '') === String(next[key] ?? ''))
+  if (same) return
+  router.replace({ query: next as Record<string, string> })
 })
 
 // Keep the filter in the address so Back from a port page brings it back.

@@ -7,8 +7,8 @@ export type CatalogSort = (typeof CATALOG_SORTS)[number]
 export const DEFAULT_CATALOG_SORT: CatalogSort = 'recent'
 
 /**
- * The menu used to offer "featured". Sort is not stored in the URL or
- * localStorage. If a stored value still says featured, it sorts as installs.
+ * The menu used to offer "featured". Sort lives in the address as ?sort=.
+ * If a value still says featured, it sorts as installs.
  */
 export const LEGACY_CATALOG_SORT_ALIASES = { featured: 'installs' } as const
 
