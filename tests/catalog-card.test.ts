@@ -234,7 +234,7 @@ describe('catalog sort', () => {
     expect(index.match(/value="added"/g)).toHaveLength(2)
     expect(index.match(/value="installs"/g)).toHaveLength(2)
     expect(index).toContain('sortCatalogPorts(list, sortBy.value)')
-    expect(index).toContain('ref<CatalogSort>(DEFAULT_CATALOG_SORT)')
+    expect(index).toContain('ref<CatalogSort>(bootFilters.sort)')
     expect(index).toContain("watch(sortBy, (value) => trackFilter('sort', value))")
     expect(index).toContain("value === 'recent'")
 
@@ -274,9 +274,14 @@ describe('catalog sort', () => {
       q: 'doom',
       cat: 'emulator',
       dev: 'Team Beef',
-      nopc: false
+      nopc: false,
+      platform: '',
+      hw: '',
+      style: '',
+      status: '',
+      sort: ''
     })
-    expect(readCatalogQuery('')).toEqual({ q: '', cat: 'all', dev: '', nopc: false })
+    expect(readCatalogQuery('')).toEqual({ q: '', cat: 'all', dev: '', nopc: false, platform: '', hw: '', style: '', status: '', sort: '' })
     expect(readCatalogQuery('?nopc=1').nopc).toBe(true)
     expect(readCatalogQuery('?nopc=true').nopc).toBe(false)
     expect(index).toContain('catalogCategoryFromQuery(route.query.cat)')
