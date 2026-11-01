@@ -153,6 +153,16 @@
 
             <button
               type="button"
+              data-testid="no-pc-filter"
+              class="rounded-md border px-2.5 py-1.5 text-xs font-medium cursor-pointer"
+              :class="onlyNoPc ? 'border-primary bg-primary text-primary-foreground font-bold' : 'border-border bg-muted/40 text-muted-foreground hover:text-foreground'"
+              :aria-pressed="onlyNoPc"
+              @click="onlyNoPc = !onlyNoPc"
+            >
+              {{ NO_PC_BADGE }} ({{ noPcCount }})
+            </button>
+            <button
+              type="button"
               data-testid="more-filters"
               class="rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer"
               :aria-expanded="moreOpen"
@@ -463,6 +473,16 @@
             </button>
           </div>
 
+          <button
+            type="button"
+            class="mt-3 min-h-11 w-full rounded-md border px-3 text-sm"
+            :class="onlyNoPc ? 'border-primary bg-primary font-bold text-primary-foreground' : 'border-border bg-muted/40 text-muted-foreground'"
+            :aria-pressed="onlyNoPc"
+            @click="onlyNoPc = !onlyNoPc"
+          >
+            {{ NO_PC_BADGE }} ({{ noPcCount }})
+          </button>
+
           <div class="mt-4 space-y-3">
             <label class="block space-y-1 text-sm text-foreground">
               <span>Type</span>
@@ -547,6 +567,7 @@ import {
   type SearchMatchVia
 } from '~/lib/catalogSearch'
 import { catalogCategoryFromQuery, readCatalogQuery } from '~/lib/catalogQuery'
+import { NO_PC_BADGE, noPcInstall } from '~/lib/noPcInstall'
 import { coverThumbUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 
@@ -577,6 +598,7 @@ const selectedHardware = ref<string>('')
 const selectedOrigin = ref<string>('')
 const selectedStyle = ref<string>('')
 const selectedDeveloper = ref(bootCatalogQuery.dev)
+const onlyNoPc = ref(false)
 const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
@@ -593,6 +615,7 @@ const sheetFilterCount = computed(() => {
   if (selectedOrigin.value) count += 1
   if (selectedStyle.value) count += 1
   if (selectedDeveloper.value) count += 1
+  if (onlyNoPc.value) count += 1
   return count
 })
 
@@ -607,6 +630,7 @@ const resetSheetFilters = () => {
   selectedOrigin.value = ''
   selectedStyle.value = ''
   selectedDeveloper.value = ''
+  onlyNoPc.value = false
 }
 
 const scrollToTop = () => {
@@ -660,7 +684,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedOrigin, selectedStyle, selectedDeveloper, sortBy], () => {
+watch([searchQuery, selectedCategory, selectedStatus, selectedHardware, selectedOrigin, selectedStyle, selectedDeveloper, onlyNoPc, sortBy], () => {
   mobileVisible.value = MOBILE_PAGE
 })
 
@@ -758,6 +782,7 @@ watch(() => route.query.q, (q) => {
   searchQuery.value = typeof q === 'string' ? q : ''
 })
 
+const noPcCount = computed(() => ports.value.filter(port => noPcInstall(port.slug) === 'yes').length)
 const headsetOptions = computed(() => headsetFilterOptions(ports.value.map(port => port.supported_hardware)))
 const originOptions = computed(() => originPlatformOptions(ports.value))
 const styleOptions = computed(() => vrStyleOptions(ports.value))
@@ -845,6 +870,7 @@ const hasActiveFilters = computed(() => {
     selectedOrigin.value !== '' ||
     selectedStyle.value !== '' ||
     selectedDeveloper.value !== '' ||
+    onlyNoPc.value ||
     sortBy.value !== 'recent'
   )
 })
@@ -857,6 +883,7 @@ const resetFilters = () => {
   selectedOrigin.value = ''
   selectedStyle.value = ''
   selectedDeveloper.value = ''
+  onlyNoPc.value = false
   sortBy.value = 'recent'
 }
 
@@ -921,6 +948,7 @@ const passesFilters = (port: Port) => {
   if (selectedOrigin.value && port.origin_platform !== selectedOrigin.value) return false
   if (selectedStyle.value && port.vr_style !== selectedStyle.value) return false
   if (selectedDeveloper.value && port.developer.toLowerCase() !== selectedDeveloper.value.toLowerCase()) return false
+  if (onlyNoPc.value && noPcInstall(port.slug) !== 'yes') return false
   return true
 }
 

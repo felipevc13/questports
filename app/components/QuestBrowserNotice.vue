@@ -1,5 +1,13 @@
 <template>
-  <div data-testid="quest-browser-notice" class="space-y-2" role="status">
+  <NoPcNotice
+    v-if="noPc"
+    :slug="slug"
+    :needs-files="needsGameFiles"
+    :folder="noPcFolder"
+    :download-url="downloadUrl"
+    :download-source="downloadSource"
+  />
+  <div v-else data-testid="quest-browser-notice" class="space-y-2" role="status">
     <p class="text-xs font-semibold text-foreground">{{ QUEST_BROWSER_NOTICE_TITLE }}</p>
     <DirectQuestInstall
       v-if="!needsGameFiles"
@@ -30,26 +38,30 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePageLinkShare } from '~/composables/usePageLinkShare'
 import { useTrack } from '~/composables/useTrack'
 import { portSlugFromPath } from '~/lib/analytics'
+import { noPcInstall } from '~/lib/noPcInstall'
 import {
   QUEST_BROWSER_NOTICE_BODY,
   QUEST_BROWSER_NOTICE_TITLE,
   QUEST_BROWSER_PC_FALLBACK
 } from '~/lib/questBrowser'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   downloadUrl?: string | null
   downloadSource?: string | null
   needsGameFiles?: boolean
+  noPcFolder?: string | null
 }>(), {
   needsGameFiles: true
 })
 
 const route = useRoute()
+const slug = computed(() => portSlugFromPath(route.path) || '')
+const noPc = computed(() => noPcInstall(slug.value) === 'yes')
 const { track } = useTrack()
 const { copied, label, send } = usePageLinkShare()
 const noticed = useState('quest-browser-notice-tracked', () => false)
