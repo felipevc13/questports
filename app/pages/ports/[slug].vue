@@ -2,7 +2,7 @@
   <div v-if="port" class="mx-auto w-full min-w-0 max-w-[1720px] space-y-6 px-4 py-4 sm:px-6 md:py-6 lg:px-10">
     <!-- Breadcrumb & Top Bar -->
     <div class="flex min-w-0 items-center justify-between gap-2 border-b border-border/50 pb-2 text-xs text-muted-foreground">
-      <NuxtLink to="/" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 font-medium transition-colors hover:text-foreground md:min-h-0">
+      <NuxtLink :to="backTo" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 font-medium transition-colors hover:text-foreground md:min-h-0">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -1659,6 +1659,7 @@ import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/un
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile, isCleanQuestDropPath } from '~/lib/dropPaths'
 import { formatPortVersion } from '~/lib/portVersion'
+import { catalogReturnTarget } from '~/lib/catalogReturn'
 import {
   apkUpdateDecision,
   assetLabelFromDownloadUrl,
@@ -1709,6 +1710,10 @@ import CommunityReports from '~/components/CommunityReports.vue'
 
 const route = useRoute()
 const router = useRouter()
+const backTo = ref('/')
+onMounted(() => {
+  backTo.value = catalogReturnTarget(window.history.state?.back)
+})
 const slug = route.params.slug as string
 const { fetchPortBySlug } = usePorts()
 const questAdb = useQuestAdb()
