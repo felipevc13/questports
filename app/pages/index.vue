@@ -2,41 +2,36 @@
   <AppHome v-if="inApp" :ports="ports" :verifications="verificationRecords" />
   <div v-else class="space-y-8">
     <!-- Hero Section: Clean, Direct, High Signal -->
-    <section class="border-b border-border bg-card/30 pb-3 pt-4 md:pb-6 md:pt-8">
+    <section class="border-b border-border bg-card/30 pb-3 pt-4 md:pb-4 md:pt-5">
       <div class="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-10">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
-          <div class="space-y-2 max-w-3xl md:space-y-3">
-            <div class="flex flex-wrap items-center gap-2">
-              <UiBadge variant="outline" class="max-w-full whitespace-normal font-mono text-xs">
-                {{ headsetSummary }}
-              </UiBadge>
-              <UiBadge variant="success" class="text-xs">
-                Zero PC Required
-              </UiBadge>
-            </div>
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-6">
+          <div class="space-y-2 max-w-3xl md:space-y-2.5">
+            <UiBadge variant="success" class="text-xs">
+              Plays on Quest, no PC streaming
+            </UiBadge>
 
-            <h1 class="text-2xl font-bold tracking-tight text-foreground md:text-4xl">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
               Standalone VR Ports & Emulators
             </h1>
 
-            <p class="text-sm leading-relaxed text-muted-foreground line-clamp-2 md:line-clamp-none md:text-base">
-              Open-source directory of classic PC and console games running natively on Meta Quest hardware. Storage paths, APK links, and step-by-step installation guides. A port is marked Verified only when a headset check of that version is on record.
+            <p class="text-sm leading-relaxed text-muted-foreground md:text-base">
+              Classic PC and console games running natively on Quest. Install guides, APK links and storage paths.
             </p>
           </div>
 
           <!-- Quick Stats Counter -->
-          <div class="flex items-center gap-4 border-t border-border pt-3 text-xs font-mono md:gap-6 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+          <div class="flex items-center gap-4 border-t border-border pt-3 text-xs font-mono md:gap-6 md:border-l md:border-t-0 md:pl-6 md:pt-0" data-testid="hero-stats">
             <div>
               <div class="text-xl font-bold text-foreground md:text-2xl">{{ ports.length }}</div>
               <div class="text-muted-foreground">Indexed Ports</div>
             </div>
             <div>
-              <div class="text-xl font-bold text-emerald-400 md:text-2xl">100%</div>
-              <div class="text-muted-foreground">Free & Open</div>
+              <div class="text-xl font-bold text-emerald-400 md:text-2xl">{{ verifiedCount }}</div>
+              <div class="text-muted-foreground">Verified on Headset</div>
             </div>
-            <div>
-              <div class="text-xl font-bold text-primary md:text-2xl">6DoF</div>
-              <div class="text-muted-foreground">Motion VR</div>
+            <div v-if="lastUpdateLabel">
+              <div class="text-xl font-bold text-primary md:text-2xl">{{ lastUpdateLabel }}</div>
+              <div class="text-muted-foreground">Last Update</div>
             </div>
           </div>
         </div>
@@ -539,6 +534,7 @@ import { useAppBridge } from '~/composables/useAppBridge'
 import { isPortInstalledOnQuest } from '~/data/portPackageMap'
 import { countIndexedInstalled } from '~/lib/questLibrary'
 import { formatPortVersion } from '~/lib/portVersion'
+import { portVerificationSignal } from '~/lib/verification'
 import { headsetFilterOptions, normalizeHeadsetList, portSupportsHeadset } from '~/lib/headsets'
 import { originPlatformOptions, vrStyleOptions } from '~/lib/portOrigin'
 import { DEFAULT_CATALOG_SORT, sortCatalogPorts, type CatalogSort } from '~/lib/catalogSort'
@@ -781,7 +777,21 @@ watch(moreActiveCount, (count) => {
   if (count) moreOpen.value = true
 })
 
-const headsetSummary = computed(() => headsetOptions.value.join(' • ') || 'Quest headsets')
+// Same rule as the card badge: a manual check of the current catalog version.
+const verifiedCount = computed(() =>
+  ports.value.filter(port => portVerificationSignal(verificationRecords.value, port.slug, port.latest_version).kind === 'verified').length
+)
+
+// Fixed locale and UTC so the prerendered HTML and the hydrated page print the same text.
+const lastUpdateLabel = computed(() => {
+  let newest = 0
+  for (const port of ports.value) {
+    const time = port.updated_at ? Date.parse(port.updated_at) : NaN
+    if (Number.isFinite(time) && time > newest) newest = time
+  }
+  if (!newest) return ''
+  return new Date(newest).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+})
 
 watch(selectedDeveloper, (newDev) => {
   const current = typeof route.query.dev === 'string' ? route.query.dev : ''
