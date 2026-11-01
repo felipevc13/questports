@@ -50,7 +50,7 @@ Felipe reviews and merges. Agents do not push to `main`, do not apply SQL to pro
 | `server/utils/` | Service-role Supabase, analytics decisions, APK proxy gate |
 | `public/covers/` | Cover source of truth (jpg/png). 85 files on `0003e66` (27 Oct 2026). Recount after adding one |
 | `public/covers/thumbs/` | 120px JPEG thumbs. 84 files on that commit. `ut99vr.png` and `ut99vr.jpg` share `thumbs/ut99vr.jpg` |
-| `public/previews/` | Hover MP4s, `<slug>.mp4`. 76 files, same slugs as `AVAILABLE_VIDEO_PREVIEWS` |
+| `public/previews/` | Hover MP4s, `<slug>.mp4`. 108 files, same slugs as `AVAILABLE_VIDEO_PREVIEWS` |
 | `supabase/migrations/` | The only schema/data changes agents add |
 | `supabase/schema.sql` | Canonical shape for a new database. Not a place to patch production |
 | `supabase/seed.sql` | Historical seed. Still has Unsplash and Storage URLs. Do not apply it |
@@ -303,7 +303,7 @@ Some ports have to be opened once so Android creates the app folder. Do not `mkd
 ### Video preview
 
 1. Add `public/previews/<slug>.mp4`. The filename is the port slug (`gran-turismo-2-vr.mp4`), which can differ from the cover filename (`gran_turismo_2_vr.jpg`). Commit about 15 seconds of Quest gameplay, no menus, no audio. 640×360 is a good source size. The media build does not enforce either number. It strips audio and caps width at 854.
-2. Append that slug to `AVAILABLE_VIDEO_PREVIEWS`. `previewMp4Url` then requests `/previews/<slug>.mp4` on the media host. Hover waits `PREVIEW_HOVER_MS` (400) and only runs for a fine pointer. A port with no Quest footage stays off this list and shows the cover only. That is the case for `magic-carpet-vr`, `animal-crossing-vr`, and `descent-3-vr` (`hasVideoPreview` is false). `red-dead-redemption-vr` is on the list and has `public/previews/red-dead-redemption-vr.mp4`. Mega Man 64 is not a slug in this repo.
+2. Append that slug to `AVAILABLE_VIDEO_PREVIEWS`. `previewMp4Url` then requests `/previews/<slug>.mp4` on the media host. Hover waits `PREVIEW_HOVER_MS` (400) and only runs for a fine pointer. Every port has a preview and a YouTube video. When no Quest footage of the port exists, use gameplay of the original game (arcade, N64, PC...) so no card is cover-only. `red-dead-redemption-vr` is on the list and has `public/previews/red-dead-redemption-vr.mp4`. Mega Man 64 is not a slug in this repo.
 3. YouTube, on the detail page, is click-to-play. Put the window in `GAME_VIDEO_PREVIEWS` twice when you have both keys: the slug and the `youtube_video_id`.
 
 ```ts
