@@ -439,6 +439,24 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'terabrst.zip',
       instruction: 'Put your complete terabrst.zip (Teraburst, July 17, 1998 US UEL) in Download. Keep it zipped. No CHD or BIOS is needed.'
     },
+    'virtua-cop-2-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'vcop2.zip, segabill.zip',
+      instruction: 'Put vcop2.zip and segabill.zip in Download (or one vcop2.zip that holds all 31 payloads). Keep them zipped. No CHD is needed.'
+    },
+    'gunblade-ny-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'gunblade.zip',
+      instruction: 'Put your complete Revision A gunblade.zip in Download. A split set also needs segabill.zip. Keep it zipped. No CHD is needed.'
+    },
+    'behind-enemy-lines-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'bel.zip',
+      instruction: 'Put your complete bel.zip (all 31 payloads) in Download. Keep it zipped. No CHD or billboard firmware is needed.'
+    },
     'carnevil-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',
