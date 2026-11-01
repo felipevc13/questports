@@ -3,7 +3,7 @@
     v-if="noPc"
     :slug="slug"
     :needs-files="needsGameFiles"
-    :folder="noPcFolder"
+    :folders="noPcFolders"
     :download-url="downloadUrl"
     :download-source="downloadSource"
   />
@@ -54,7 +54,7 @@ const props = withDefaults(defineProps<{
   downloadUrl?: string | null
   downloadSource?: string | null
   needsGameFiles?: boolean
-  noPcFolder?: string | null
+  noPcFolders?: string[]
 }>(), {
   needsGameFiles: true
 })

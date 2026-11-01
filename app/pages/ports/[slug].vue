@@ -101,7 +101,7 @@
         class="max-w-2xl"
         :slug="port.slug"
         :needs-files="!isDirectApkOnly"
-        :folder="noPcFolderPath"
+        :folders="noPcFolderPaths"
         :download-url="port.port_download_url"
         :download-source="port.port_download_source"
         @download="trackManualDownload"
@@ -560,7 +560,7 @@
                 @open="trackGithub"
               />
               <QuestBrowserNotice
-                :no-pc-folder="noPcFolderPath"
+                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -583,7 +583,7 @@
               />
 
               <QuestBrowserNotice
-                :no-pc-folder="noPcFolderPath"
+                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -627,7 +627,7 @@
               <div :class="showSendToQuest ? 'flex flex-col gap-2' : 'contents'">
                 <div :class="showSendToQuest ? 'order-2 flex flex-col gap-3 md:order-1' : 'contents'">
               <QuestBrowserNotice
-                :no-pc-folder="noPcFolderPath"
+                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -731,7 +731,7 @@
           <!-- STATE 3: APK INSTALLED -->
           <div v-else class="space-y-3">
             <QuestBrowserNotice
-                :no-pc-folder="noPcFolderPath"
+                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -1671,7 +1671,7 @@ import {
   QUEST_USB_MESSAGES
 } from '~/lib/questUsbMessages'
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
-import { NO_PC_BADGE, PC_REQUIRED_BADGE, noPcFolder, noPcInstall } from '~/lib/noPcInstall'
+import { NO_PC_BADGE, PC_REQUIRED_BADGE, noPcFolders, noPcInstall } from '~/lib/noPcInstall'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile, isCleanQuestDropPath } from '~/lib/dropPaths'
 import { formatPortVersion } from '~/lib/portVersion'
@@ -2251,7 +2251,7 @@ const noPcBadge = computed(() => {
   if (status === 'no') return PC_REQUIRED_BADGE
   return isDirectApkOnly.value ? 'Zero PC Required' : 'Standalone VR'
 })
-const noPcFolderPath = computed(() => noPcFolder(campaignList.value[0]?.fullPath))
+const noPcFolderPaths = computed(() => noPcFolders(campaignList.value.map(campaign => campaign.fullPath)))
 
 const manualCopyCampaigns = computed(() => {
   if (isDirectApkOnly.value) return []

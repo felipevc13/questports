@@ -38,12 +38,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NO_PC_TITLE, PC_REQUIRED_NOTE, noPcInstall, noPcSteps } from '~/lib/noPcInstall'
+import { NO_PC_TITLE, PC_REQUIRED_NOTE, isReleasePageUrl, noPcInstall, noPcSteps } from '~/lib/noPcInstall'
 
 const props = defineProps<{
   slug: string
   needsFiles: boolean
-  folder?: string | null
+  folders?: string[]
   downloadUrl?: string | null
   downloadSource?: string | null
 }>()
@@ -51,5 +51,9 @@ const props = defineProps<{
 const emit = defineEmits<{ download: [] }>()
 
 const status = computed(() => noPcInstall(props.slug))
-const steps = computed(() => noPcSteps({ needsFiles: props.needsFiles, folder: props.folder }))
+const steps = computed(() => noPcSteps({
+  needsFiles: props.needsFiles,
+  folders: props.folders,
+  releasePage: isReleasePageUrl(props.downloadUrl)
+}))
 </script>

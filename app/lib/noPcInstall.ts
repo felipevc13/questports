@@ -48,15 +48,30 @@ export const PC_REQUIRED_BADGE = 'PC needed'
 
 export const NO_PC_TITLE = 'No PC needed. Do it all on your Quest.'
 
-export function noPcSteps(input: { needsFiles: boolean; folder?: string | null }): string[] {
+/** A GitHub releases page: the link lands on a list of files, not on the APK itself. */
+export function isReleasePageUrl(url: string | null | undefined): boolean {
+  const value = String(url || '').split('?')[0].toLowerCase()
+  return /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases/.test(value) && !/\.(apk|zip)$/.test(value)
+}
+
+export function noPcSteps(input: {
+  needsFiles: boolean
+  folders?: string[]
+  releasePage?: boolean
+}): string[] {
   const steps = [
-    'Download the APK with the Quest Browser, then open Files > Downloads > ⋮ > Open with > Package Installer and tap Install.'
+    input.releasePage
+      ? 'Open the download link, tap the .apk file under Assets, then open Files > Downloads > ⋮ > Open with > Package Installer and tap Install.'
+      : 'Download the APK with the Quest Browser, then open Files > Downloads > ⋮ > Open with > Package Installer and tap Install.'
   ]
   if (input.needsFiles) {
+    const folders = input.folders || []
     steps.push('Download your own game files the same way. We do not host them.')
-    steps.push(input.folder
-      ? `Move them to ${input.folder} with the Files app.`
-      : 'Open the game and pick the files when it asks, or leave them in Downloads.')
+    steps.push(folders.length === 1
+      ? `Move them to ${folders[0]} with the Files app.`
+      : folders.length > 1
+        ? 'Move them to the folders named in the install guide below, with the Files app.'
+        : 'Open the game and pick the files when it asks, or leave them in Downloads.')
   }
   steps.push('Open the game from Library > Unknown Sources.')
   return steps
@@ -64,9 +79,17 @@ export function noPcSteps(input: { needsFiles: boolean; folder?: string | null }
 
 export const PC_REQUIRED_NOTE = 'This port needs a PC to prepare the game before it can run on your Quest.'
 
-/** A folder worth naming: under /sdcard but not Downloads or Android/data, which the Quest file manager may not write. */
-export function noPcFolder(fullPath: string | null | undefined): string {
-  const path = String(fullPath || '').trim()
-  if (!/^\/sdcard\//.test(path) || /^\/sdcard\/(Download|Android)/i.test(path)) return ''
-  return /^\/sdcard\/[A-Za-z0-9._\/-]+$/.test(path) ? path : ''
+/**
+ * Folders worth naming: under /sdcard, not Downloads and not Android/data (the
+ * Quest file manager may not write there). Repeats are dropped.
+ */
+export function noPcFolders(fullPaths: Array<string | null | undefined>): string[] {
+  const found: string[] = []
+  for (const raw of fullPaths) {
+    const path = String(raw || '').trim()
+    if (!/^\/sdcard\/[A-Za-z0-9._\/-]+$/.test(path)) continue
+    if (/^\/sdcard\/(Download|Android)/i.test(path)) continue
+    if (!found.includes(path)) found.push(path)
+  }
+  return found
 }
