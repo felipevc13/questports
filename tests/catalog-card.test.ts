@@ -273,9 +273,12 @@ describe('catalog sort', () => {
     expect(readCatalogQuery('?cat=emulator&q=doom&dev=Team+Beef&fbclid=abc')).toEqual({
       q: 'doom',
       cat: 'emulator',
-      dev: 'Team Beef'
+      dev: 'Team Beef',
+      nopc: false
     })
-    expect(readCatalogQuery('')).toEqual({ q: '', cat: 'all', dev: '' })
+    expect(readCatalogQuery('')).toEqual({ q: '', cat: 'all', dev: '', nopc: false })
+    expect(readCatalogQuery('?nopc=1').nopc).toBe(true)
+    expect(readCatalogQuery('?nopc=true').nopc).toBe(false)
     expect(index).toContain('catalogCategoryFromQuery(route.query.cat)')
     expect(index).toContain('readCatalogQuery(window.location.search)')
     expect(index).toContain('!useNuxtApp().isHydrating')

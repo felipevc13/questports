@@ -590,7 +590,7 @@ const verificationRecords = computed(() => verificationData.value || [])
 // address bar after hydration so the first paint matches that document.
 const bootCatalogQuery = import.meta.client && !useNuxtApp().isHydrating
   ? readCatalogQuery(window.location.search)
-  : { q: '', cat: 'all' as const, dev: '' }
+  : { q: '', cat: 'all' as const, dev: '', nopc: false }
 const searchQuery = ref(bootCatalogQuery.q)
 const selectedCategory = ref<string>(bootCatalogQuery.cat)
 const selectedStatus = ref<string>('')
@@ -598,7 +598,7 @@ const selectedHardware = ref<string>('')
 const selectedOrigin = ref<string>('')
 const selectedStyle = ref<string>('')
 const selectedDeveloper = ref(bootCatalogQuery.dev)
-const onlyNoPc = ref(false)
+const onlyNoPc = ref(bootCatalogQuery.nopc)
 const sortBy = ref<CatalogSort>(DEFAULT_CATALOG_SORT)
 const viewMode = ref<'grid' | 'table'>('grid')
 const filtersOpen = ref(false)
@@ -664,6 +664,7 @@ onMounted(async () => {
   if (parsed.q !== searchQuery.value) searchQuery.value = parsed.q
   if (parsed.cat !== selectedCategory.value) selectedCategory.value = parsed.cat
   if (parsed.dev !== selectedDeveloper.value) selectedDeveloper.value = parsed.dev
+  if (parsed.nopc !== onlyNoPc.value) onlyNoPc.value = parsed.nopc
   await nextTick()
   applyingLocation = false
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -831,6 +832,15 @@ watch(selectedDeveloper, (newDev) => {
     delete query.dev
     router.replace({ query })
   }
+})
+
+// Keep the filter in the address so Back from a port page brings it back.
+watch(onlyNoPc, (value) => {
+  if ((route.query.nopc === '1') === value) return
+  const query = { ...route.query }
+  if (value) query.nopc = '1'
+  else delete query.nopc
+  router.replace({ query })
 })
 
 watch(selectedCategory, (value) => {

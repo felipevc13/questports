@@ -44,7 +44,7 @@
           ● {{ formatStatus(port.status) }}
         </span>
         <span class="inline-flex items-center px-2 py-0.5 rounded border border-border text-xs font-mono text-muted-foreground">
-          {{ noPcBadge }}
+          {{ isDirectApkOnly ? 'Zero PC Required' : 'Standalone VR' }}
         </span>
         <PortVersion
           v-if="catalogVersion"
@@ -95,17 +95,6 @@
       <p class="max-w-4xl pt-0.5 text-sm leading-relaxed text-muted-foreground line-clamp-3 md:line-clamp-none">
         {{ port.short_description }}
       </p>
-
-      <NoPcNotice
-        v-if="!questBrowser && !inApp"
-        class="max-w-2xl"
-        :slug="port.slug"
-        :needs-files="!isDirectApkOnly"
-        :folders="noPcFolderPaths"
-        :download-url="port.port_download_url"
-        :download-source="port.port_download_source"
-        @download="trackManualDownload"
-      />
     </div>
 
     <!-- HERO SPLIT SECTION (Trailer/Media on Left, Action Hub on Right) -->
@@ -560,7 +549,6 @@
                 @open="trackGithub"
               />
               <QuestBrowserNotice
-                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -583,7 +571,6 @@
               />
 
               <QuestBrowserNotice
-                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -627,7 +614,6 @@
               <div :class="showSendToQuest ? 'flex flex-col gap-2' : 'contents'">
                 <div :class="showSendToQuest ? 'order-2 flex flex-col gap-3 md:order-1' : 'contents'">
               <QuestBrowserNotice
-                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -731,7 +717,6 @@
           <!-- STATE 3: APK INSTALLED -->
           <div v-else class="space-y-3">
             <QuestBrowserNotice
-                :no-pc-folders="noPcFolderPaths"
                 v-if="questBrowser"
                 :download-url="port.port_download_url"
                 :download-source="port.port_download_source"
@@ -1671,7 +1656,6 @@ import {
   QUEST_USB_MESSAGES
 } from '~/lib/questUsbMessages'
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
-import { NO_PC_BADGE, PC_REQUIRED_BADGE, noPcFolders, noPcInstall } from '~/lib/noPcInstall'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile, isCleanQuestDropPath } from '~/lib/dropPaths'
 import { formatPortVersion } from '~/lib/portVersion'
@@ -2244,14 +2228,6 @@ const showUsbStepsLink = computed(() => {
 })
 
 const isDirectApkOnly = computed(() => isSelfContainedSideload(currentPackageConfig.value))
-
-const noPcBadge = computed(() => {
-  const status = noPcInstall(port.value?.slug)
-  if (status === 'yes') return NO_PC_BADGE
-  if (status === 'no') return PC_REQUIRED_BADGE
-  return isDirectApkOnly.value ? 'Zero PC Required' : 'Standalone VR'
-})
-const noPcFolderPaths = computed(() => noPcFolders(campaignList.value.map(campaign => campaign.fullPath)))
 
 const manualCopyCampaigns = computed(() => {
   if (isDirectApkOnly.value) return []

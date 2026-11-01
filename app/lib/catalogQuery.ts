@@ -24,6 +24,8 @@ export interface CatalogLocationQuery {
   q: string
   cat: CatalogCategoryFilter | 'all'
   dev: string
+  /** ?nopc=1, the "No PC needed" filter. */
+  nopc: boolean
 }
 
 /**
@@ -39,6 +41,7 @@ export function readCatalogQuery(search: string | null | undefined): CatalogLoca
   return {
     q: params.get('q') || '',
     cat: catalogCategoryFromQuery(params.get('cat')),
-    dev: params.get('dev') || ''
+    dev: params.get('dev') || '',
+    nopc: params.get('nopc') === '1'
   }
 }
