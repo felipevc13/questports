@@ -1,14 +1,14 @@
 # QuestPorts 🥽
 
-> **The standalone VR database for ports, emulators & injections. Zero PC required.**
+> **The standalone VR database for ports, emulators & injections. No PC streaming.**
 
-QuestPorts is a centralized directory and knowledge base cataloging classic source ports, VR injections, and emulators that run **100% natively on Meta Quest hardware** (Quest 2, Quest 3, Quest 3S) without requiring a PC or streaming.
+QuestPorts is a centralized directory and knowledge base cataloging classic source ports, VR injections, and emulators that run **100% natively on Meta Quest hardware** (Quest 2, Quest 3, Quest 3S) with no PC streaming. Some ports still need files prepared on a PC, and each guide says so.
 
 ---
 
 ## ✨ Features
 
-* **Zero PC Required:** Dedicated solely to standalone Quest experiences.
+* **Standalone Quest Experiences:** Everything runs on the headset. Some ports need game files or a build prepared on a PC first, and the guide says so.
 * **Instant Folder Mappings:** Accurate storage paths (e.g. `/sdcard/RTCWQuest/main/`) with one-click copy shortcuts.
 * **Curated Installation Guides:** Step-by-step instructions in Markdown with prerequisites and troubleshooting tips.
 * **Hardware & 6DoF Filtering:** Filter by headset model (Quest 2, 3, 3S), category, status, and developer (Team Beef, amwatson, etc.).

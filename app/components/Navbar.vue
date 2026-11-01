@@ -12,7 +12,7 @@
               QuestPorts
             </span>
             <UiBadge variant="secondary" class="hidden text-[10px] font-mono uppercase md:inline-flex">
-              Zero PC
+              Standalone
             </UiBadge>
           </div>
         </div>
