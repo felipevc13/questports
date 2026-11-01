@@ -70,9 +70,12 @@ describe('Gran Turismo 3, WWF No Mercy, OpenTIE and Daggerfall Unity ports', () 
     expect(PORT_PACKAGE_CONFIGS['daggerfall-unity-vr']?.folders?.[0]?.acceptance).toBe('confirm')
   })
 
-  it('has no Quest footage yet, so none gets a hover preview', () => {
+  it('has a hover preview and a YouTube video for every port', () => {
     const withPreview = NEW_PORTS.map(([slug]) => slug).filter(slug => AVAILABLE_VIDEO_PREVIEWS.includes(slug))
-    expect(withPreview).toEqual([])
+    expect(withPreview).toEqual(NEW_PORTS.map(([slug]) => slug))
+    for (const port of INITIAL_PORTS.filter(p => NEW_PORTS.some(([slug]) => slug === p.slug))) {
+      expect(port.youtube_video_id, port.slug).toBeTruthy()
+    }
   })
 
   it('finds each game by the names people type', () => {

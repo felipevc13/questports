@@ -120,7 +120,27 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'winlatorxr',
   'wipeout-rewrite-vr',
   'xelee',
-  'xrkart-64'
+  'xrkart-64',
+  'animal-crossing-vr',
+  'behind-enemy-lines-vr',
+  'carnevil-vr',
+  'daggerfall-unity-vr',
+  'descent-1-2-vr',
+  'descent-3-vr',
+  'ghost-squad-evolution-vr',
+  'gothic2-vr',
+  'gran-turismo-3-vr',
+  'gunblade-ny-vr',
+  'hotd4-vr',
+  'magic-carpet-vr',
+  'mega-man-64-vr',
+  'mystical-ninja-vr',
+  'opentie-vr',
+  'questsam',
+  'rail-chase-2-vr',
+  'teraburst-vr',
+  'virtua-cop-2-vr',
+  'wwf-no-mercy-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -462,5 +482,92 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // WakerQuest (The Legend of Zelda: The Wind Waker VR)
   'wakerquest': { start: '0:45', end: '1:00' },
-  '_Y2C9td1agc': { start: '0:45', end: '1:00' }
+  '_Y2C9td1agc': { start: '0:45', end: '1:00' },
+
+
+
+
+
+
+
+
+  // behind-enemy-lines-vr
+  'behind-enemy-lines-vr': { start: '2:00' },
+  'k_YhddRrvDU': { start: '2:00' },
+
+  // mystical-ninja-vr
+  'mystical-ninja-vr': { start: '3:00' },
+  'eY7IhAR5LqU': { start: '3:00' },
+
+  // animal-crossing-vr
+  'animal-crossing-vr': { start: '1:00' },
+  'qXONlV97YAQ': { start: '1:00' },
+
+  // carnevil-vr
+  'carnevil-vr': { start: '5:00' },
+  'bqyUFgN5OUU': { start: '5:00' },
+
+  // daggerfall-unity-vr
+  'daggerfall-unity-vr': { start: '0:40' },
+  'artpN5o2vKc': { start: '0:40' },
+
+  // descent-1-2-vr
+  'descent-1-2-vr': { start: '2:00' },
+  'JQkiFOKlkl4': { start: '2:00' },
+
+  // descent-3-vr
+  'descent-3-vr': { start: '2:00' },
+  '0M3W7Glswu0': { start: '2:00' },
+
+  // ghost-squad-evolution-vr
+  'ghost-squad-evolution-vr': { start: '3:00' },
+  'zov4RGwmpf0': { start: '3:00' },
+
+  // gothic2-vr
+  'gothic2-vr': { start: '8:00' },
+  'dbsjnLCVw-8': { start: '8:00' },
+
+  // gran-turismo-3-vr
+  'gran-turismo-3-vr': { start: '3:00' },
+  'UQzIiN9SwvE': { start: '3:00' },
+
+  // gunblade-ny-vr
+  'gunblade-ny-vr': { start: '2:00' },
+  'jOfONbACBTA': { start: '2:00' },
+
+  // hotd4-vr
+  'hotd4-vr': { start: '4:00' },
+  'jBh8O0l8iug': { start: '4:00' },
+
+  // magic-carpet-vr
+  'magic-carpet-vr': { start: '2:00' },
+  'i07CSd0f8VI': { start: '2:00' },
+
+  // mega-man-64-vr
+  'mega-man-64-vr': { start: '4:00' },
+  'PUUKNAc8wpw': { start: '4:00' },
+
+  // opentie-vr
+  'opentie-vr': { start: '2:00' },
+  'IYks9ZfupZ0': { start: '2:00' },
+
+  // questsam
+  'questsam': { start: '0:30' },
+  'Zw1phT4fK0Y': { start: '0:30' },
+
+  // rail-chase-2-vr
+  'rail-chase-2-vr': { start: '7:00' },
+  'mHj4Gr_SY7Q': { start: '7:00' },
+
+  // teraburst-vr
+  'teraburst-vr': { start: '5:00' },
+  '2MPzU1OBpZU': { start: '5:00' },
+
+  // virtua-cop-2-vr
+  'virtua-cop-2-vr': { start: '2:30' },
+  'Wd_cD4H6gsE': { start: '2:30' },
+
+  // wwf-no-mercy-vr
+  'wwf-no-mercy-vr': { start: '5:00' },
+  'tFMdpnK-bg8': { start: '5:00' }
 }

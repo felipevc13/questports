@@ -73,10 +73,13 @@ describe('Lindbergh, vr4all and VistaLargaGames ports', () => {
     expect(PORT_PACKAGE_CONFIGS['teraburst-vr']?.folders?.[0]?.expectedFiles).toEqual(['terabrst.zip'])
   })
 
-  it('only Sin & Punishment has Quest footage, so only it gets a hover preview', () => {
+  it('has a hover preview file and a YouTube video for every port', () => {
     const withPreview = NEW_PORTS.map(([slug]) => slug).filter(slug => AVAILABLE_VIDEO_PREVIEWS.includes(slug))
-    expect(withPreview).toEqual(['sin-and-punishment-vr'])
-    expect(existsSync(new URL('../public/previews/sin-and-punishment-vr.mp4', import.meta.url))).toBe(true)
+    expect(withPreview).toEqual(NEW_PORTS.map(([slug]) => slug))
+    for (const [slug] of NEW_PORTS) {
+      expect(existsSync(new URL(`../public/previews/${slug}.mp4`, import.meta.url)), slug).toBe(true)
+      expect(INITIAL_PORTS.find(p => p.slug === slug)?.youtube_video_id, slug).toBeTruthy()
+    }
   })
 
   it('finds each game by the names people type', () => {

@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_MEDIA_BASE } from '../app/data/coverUrl'
+import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { AVAILABLE_VIDEO_PREVIEWS, GAME_VIDEO_PREVIEWS, hasVideoPreview, localVideoPreviewsEnabled, previewMp4Url, youtubeClipForPort, PREVIEW_HOVER_MS } from '../app/data/videoPreviews'
 
 const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
@@ -44,21 +45,21 @@ describe('local hover previews', () => {
     expect(GAME_VIDEO_PREVIEWS[youtubeId]).toEqual({ start, end })
   })
 
-  it('leaves Magic Carpet without a hover preview', () => {
-    expect(hasVideoPreview('magic-carpet-vr')).toBe(false)
-    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('magic-carpet-vr')
-    expect(GAME_VIDEO_PREVIEWS['magic-carpet-vr']).toBeUndefined()
+  it('gives every ported game a hover MP4 file, so no card is left cover-only', () => {
+    expect(AVAILABLE_VIDEO_PREVIEWS).toHaveLength(108)
+    expect(new Set(AVAILABLE_VIDEO_PREVIEWS).size).toBe(AVAILABLE_VIDEO_PREVIEWS.length)
+    for (const slug of AVAILABLE_VIDEO_PREVIEWS) {
+      expect(existsSync(new URL(`../public/previews/${slug}.mp4`, import.meta.url)), slug).toBe(true)
+    }
+    for (const slug of ['magic-carpet-vr', 'animal-crossing-vr', 'descent-1-2-vr', 'descent-3-vr', 'mega-man-64-vr']) {
+      expect(hasVideoPreview(slug), slug).toBe(true)
+    }
   })
 
-  it.each([
-    'animal-crossing-vr',
-    'descent-1-2-vr',
-    'mega-man-64-vr'
-  ])('leaves %s as a cover-only card', (slug) => {
-    expect(hasVideoPreview(slug)).toBe(false)
-    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain(slug)
-    expect(GAME_VIDEO_PREVIEWS[slug]).toBeUndefined()
-    expect(previewMp4Url({ slug, mediaBase: DEFAULT_MEDIA_BASE })).toBeNull()
+  it('gives every catalog port a YouTube video', () => {
+    for (const port of INITIAL_PORTS) {
+      expect(port.youtube_video_id, port.slug).toBeTruthy()
+    }
   })
 
   it.each([
@@ -118,7 +119,9 @@ describe('local hover previews', () => {
       `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4`
     )
     expect(PREVIEW_HOVER_MS).toBe(400)
-    expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBeNull()
+    expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBe(
+      'https://cdn.example.com/previews/magic-carpet-vr.mp4'
+    )
   })
 
   it('builds a click-to-play youtube-nocookie clip from the saved timestamps', () => {
@@ -160,11 +163,5 @@ describe('local hover previews', () => {
     expect(detail).toContain('if (youtubeClip.value) return null')
     expect(detail).toContain('data-testid="youtube-lite"')
     expect(detail).toContain('canHoverPreview')
-  })
-
-  it('leaves Descent 3 VR without a hover preview', () => {
-    expect(hasVideoPreview('descent-3-vr')).toBe(false)
-    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain('descent-3-vr')
-    expect(GAME_VIDEO_PREVIEWS['descent-3-vr']).toBeUndefined()
   })
 })
