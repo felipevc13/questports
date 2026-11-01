@@ -25,7 +25,7 @@
               <div class="text-xl font-bold text-foreground md:text-2xl">{{ ports.length }}</div>
               <div class="text-muted-foreground">Indexed Ports</div>
             </div>
-            <div>
+            <div v-if="verifiedCount > 0">
               <div class="text-xl font-bold text-emerald-400 md:text-2xl">{{ verifiedCount }}</div>
               <div class="text-muted-foreground">Verified on Headset</div>
             </div>
@@ -786,7 +786,7 @@ const verifiedCount = computed(() =>
 const lastUpdateLabel = computed(() => {
   let newest = 0
   for (const port of ports.value) {
-    const time = port.updated_at ? Date.parse(port.updated_at) : NaN
+    const time = port.last_github_update ? Date.parse(port.last_github_update) : NaN
     if (Number.isFinite(time) && time > newest) newest = time
   }
   if (!newest) return ''
