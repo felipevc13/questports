@@ -1063,15 +1063,18 @@ function installMethodProp(props: Record<string, unknown> | null): InstallMethod
 
 function remoteSendClickProps(
   props: Record<string, unknown> | null
-): { paired: boolean; needs_files: NeedsFilesProp; blocked?: 'app_outdated' } | null {
+): { paired: boolean; needs_files: NeedsFilesProp; blocked?: 'app_outdated'; via?: 'usb_locked' } | null {
   const needs = needsFilesProp(props)
   if (!needs || typeof props?.paired !== 'boolean') return null
   const blocked = props.blocked === 'app_outdated' ? 'app_outdated' as const : null
   if (props.blocked != null && props.blocked !== 'app_outdated') return null
+  const via = props.via === 'usb_locked' ? 'usb_locked' as const : null
+  if (props.via != null && props.via !== 'usb_locked') return null
   return {
     paired: props.paired,
     needs_files: needs,
-    ...(blocked ? { blocked } : {})
+    ...(blocked ? { blocked } : {}),
+    ...(via ? { via } : {})
   }
 }
 

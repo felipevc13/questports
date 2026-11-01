@@ -30,6 +30,10 @@ export const REMOTE_BROWSER_STORAGE_KEY = 'questports_remote_browser'
 export const REMOTE_REQUEST_STORAGE_KEY = 'questports_remote_request'
 export const REMOTE_PREVIEW_HEADER = 'x-questports-remote-preview'
 
+/** The USB-locked panel asks the page's Send to Quest button to run. */
+export const SEND_TO_QUEST_EVENT = 'questports:send-to-quest'
+export const SEND_TO_QUEST_VIA_USB_LOCKED = 'usb_locked'
+
 export const REMOTE_CODE_TTL_MS = 10 * 60 * 1000
 export const REMOTE_REQUEST_TTL_MS = 24 * 60 * 60 * 1000
 export const REMOTE_CODE_ATTEMPT_LIMIT = 5

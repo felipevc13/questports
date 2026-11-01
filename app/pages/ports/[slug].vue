@@ -466,6 +466,17 @@
               <code class="rounded bg-black/40 px-1 py-0.5 font-mono text-[10px] text-foreground">{{ USB_LOCKED_COMMAND }}</code>.
               {{ USB_LOCKED_AFTER }}
             </p>
+            <p v-if="showSendToQuest" class="text-[11px] text-amber-100/90 leading-relaxed">
+              {{ USB_LOCKED_WIFI_HINT }}
+              <button
+                type="button"
+                data-testid="usb-locked-wifi"
+                class="inline-flex min-h-11 items-center font-semibold text-primary underline md:min-h-0"
+                @click="sendToQuestFromUsbLocked"
+              >
+                Send over Wi-Fi
+              </button>
+            </p>
             <button
               type="button"
               data-testid="usb-locked-retry"
@@ -1631,6 +1642,8 @@ import {
 import {
   INSTALL_BUTTON_CLASS,
   INSTALL_BUTTON_CLASS_WITH_SEND,
+  SEND_TO_QUEST_EVENT,
+  SEND_TO_QUEST_VIA_USB_LOCKED,
   showSendToQuestDecision
 } from '~/lib/remoteInstall'
 import {
@@ -1639,6 +1652,7 @@ import {
   USB_LOCKED_COMMAND,
   USB_LOCKED_PLATFORM,
   USB_LOCKED_TITLE,
+  USB_LOCKED_WIFI_HINT,
   QUEST_USB_MESSAGES
 } from '~/lib/questUsbMessages'
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
@@ -2183,6 +2197,10 @@ const showPrimaryInstall = computed(() => !primaryInstallBlocked({
   supported: installSupport.value === 'supported',
   tooLarge: Boolean(largePortMessage.value)
 }))
+
+function sendToQuestFromUsbLocked() {
+  window.dispatchEvent(new CustomEvent(SEND_TO_QUEST_EVENT, { detail: { via: SEND_TO_QUEST_VIA_USB_LOCKED } }))
+}
 
 const showSendToQuest = computed(() => showSendToQuestDecision({
   ready: installSupportReady.value,

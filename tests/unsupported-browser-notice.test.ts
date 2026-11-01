@@ -114,6 +114,8 @@ describe('usb claim failure copy', () => {
     expect(page).toContain('CHOOSER_DISMISSED_STEPS')
     expect(page).toContain('data-testid="usb-locked"')
     expect(page).toContain('data-testid="usb-locked-retry"')
+    expect(page).toContain('data-testid="usb-locked-wifi"')
+    expect(page).toContain('sendToQuestFromUsbLocked')
     expect(page).toContain('USB_LOCKED_COMMAND')
     expect(page).toContain('retryUsbConnect')
     expect(page).toContain('v-else-if="installSupport === \'unsupported\'"')

@@ -288,6 +288,14 @@ describe('Send to Quest rules', () => {
       portSlug: 'questcraft',
       props: { paired: false }
     })).toBeNull()
+    expect(clientAnalyticsPayload('remote_send_click', {
+      portSlug: 'lambda1vr',
+      props: { paired: false, needs_files: 'true', via: 'usb_locked' }
+    })?.props).toEqual({ paired: false, needs_files: 'true', via: 'usb_locked' })
+    expect(clientAnalyticsPayload('remote_send_click', {
+      portSlug: 'lambda1vr',
+      props: { paired: false, needs_files: 'true', via: 'somewhere' }
+    })).toBeNull()
     expect(clientAnalyticsPayload('remote_request_created', {
       portSlug: 'lambda1vr',
       props: { needs_files: true }
