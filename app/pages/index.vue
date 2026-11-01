@@ -657,10 +657,15 @@ const useFullCover = (event: Event) => {
 }
 
 let applyingLocation = false
+// The prerendered page hydrates on "/" while the router briefly drops the query, so
+// window.location.search is empty here on a reload. The plugin saved the real one.
+const hydratedSearch = import.meta.client && useNuxtApp().isHydrating
+  ? String(useNuxtApp().$initialSearch || '')
+  : ''
 
 onMounted(async () => {
   applyingLocation = true
-  const parsed = readCatalogQuery(window.location.search)
+  const parsed = readCatalogQuery(hydratedSearch || window.location.search)
   if (parsed.q !== searchQuery.value) searchQuery.value = parsed.q
   if (parsed.cat !== selectedCategory.value) selectedCategory.value = parsed.cat
   if (parsed.dev !== selectedDeveloper.value) selectedDeveloper.value = parsed.dev
