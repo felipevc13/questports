@@ -27,8 +27,11 @@ deploy: run `npm run deploy:cf` again after the 04:00 UTC release sync (or after
 
 ## Deploy
 ```bash
-npm run deploy:cf
+NUXT_PUBLIC_REMOTE_INSTALL=true npm run deploy:cf
 ```
+`NUXT_PUBLIC_*` values are baked into the pages at build. Without `NUXT_PUBLIC_REMOTE_INSTALL=true` the
+Send to Quest button is hidden and the Quest app stops calling the API (the 31 Oct 2026 deploy shipped
+without it; fixed 1 Nov 2026). Check: `curl -s https://questports.com/ports/rtcwquest | grep -o 'remoteInstall:[a-z]*'`.
 `wrangler.jsonc` attaches `questports.com` and `www.questports.com` as custom domains.
 
 ## Check
