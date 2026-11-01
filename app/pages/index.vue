@@ -785,9 +785,12 @@ const verifiedCount = computed(() =>
 // Fixed locale and UTC so the prerendered HTML and the hydrated page print the same text.
 const lastUpdateLabel = computed(() => {
   let newest = 0
+  // A port added today counts as an update even when its upstream release is older.
   for (const port of ports.value) {
-    const time = port.last_github_update ? Date.parse(port.last_github_update) : NaN
-    if (Number.isFinite(time) && time > newest) newest = time
+    for (const value of [port.last_github_update, port.created_at]) {
+      const time = value ? Date.parse(value) : NaN
+      if (Number.isFinite(time) && time > newest) newest = time
+    }
   }
   if (!newest) return ''
   return new Date(newest).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
