@@ -13,6 +13,9 @@ export const USB_LOCKED_COMMAND = 'adb kill-server'
 export const USB_LOCKED_AFTER =
   'Then unplug the cable, plug it back in, and click Try again.'
 
+export const USB_LOCKED_WIFI_HINT =
+  'Rather not close those apps? Send the install over Wi-Fi from the QuestPorts app on your Quest.'
+
 export const QUEST_USB_MESSAGES = {
   unsupported: 'WebUSB is not supported in this browser. Please use Chrome, Edge, or Brave.',
   usbLocked: `${USB_LOCKED_TITLE} on this computer. ${USB_LOCKED_BODY} ${USB_LOCKED_PLATFORM} ${USB_LOCKED_COMMAND}. ${USB_LOCKED_AFTER}`,

@@ -83,7 +83,7 @@
       data-testid="send-to-quest-button"
       :class="SEND_BUTTON_CLASS"
       :disabled="busy"
-      @click="onSendClick"
+      @click="onSendClick()"
     >
       <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01M5.05 12.343a10 10 0 0113.9 0M1.5 8.5a14.5 14.5 0 0121 0" />
@@ -197,6 +197,8 @@ import {
   REMOTE_INSTALL_MIN_APP_VERSION,
   REMOTE_PREVIEW_HEADER,
   SEND_BUTTON_CLASS,
+  SEND_TO_QUEST_EVENT,
+  SEND_TO_QUEST_VIA_USB_LOCKED,
   clearStoredBrowser,
   clearStoredRequest,
   cleanAcceptingFlag,
@@ -292,14 +294,15 @@ function previewOn(): boolean {
   return remoteInstallPreviewRequested(window.location.search)
 }
 
-function trackSend(blocked?: 'app_outdated') {
+function trackSend(blocked?: 'app_outdated', via?: 'usb_locked') {
   const input: AnalyticsTrackInput = {
     portSlug: props.slug,
     path: `/ports/${props.slug}`,
     props: {
       paired: Boolean(device.value),
       needs_files: needsFilesProp(props.slug),
-      ...(blocked ? { blocked } : {})
+      ...(blocked ? { blocked } : {}),
+      ...(via ? { via } : {})
     }
   }
   track('remote_send_click', input)
@@ -449,18 +452,18 @@ function onCodeInput() {
   codeDraft.value = formatPairCode(codeDraft.value)
 }
 
-async function onSendClick() {
+async function onSendClick(via?: 'usb_locked') {
   errorMessage.value = ''
   if (preview.value) {
     if (!device.value) modalOpen.value = true
     return
   }
   if (device.value && !remoteAppSupportsInstall(device.value.appVersion)) {
-    trackSend('app_outdated')
+    trackSend('app_outdated', via)
     trackOutdated('send')
     return
   }
-  trackSend()
+  trackSend(undefined, via)
   if (!device.value) {
     modalOpen.value = true
     track('remote_pair_shown', { portSlug: props.slug, path: `/ports/${props.slug}` })
@@ -628,7 +631,14 @@ watch(modalOpen, async (open) => {
   codeInput.value?.focus()
 })
 
+function onSendRequested(event: Event) {
+  const via = (event as CustomEvent<{ via?: string }>).detail?.via
+  if (busy.value || view.value) return
+  void onSendClick(via === SEND_TO_QUEST_VIA_USB_LOCKED ? SEND_TO_QUEST_VIA_USB_LOCKED : undefined)
+}
+
 onMounted(async () => {
+  window.addEventListener(SEND_TO_QUEST_EVENT, onSendRequested)
   document.addEventListener('visibilitychange', onVisible)
   window.addEventListener('keydown', onKeydown)
   const fixture = remotePreviewFromSearch(window.location.search)
@@ -652,6 +662,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   stopPoll()
   if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisible)
-  if (typeof window !== 'undefined') window.removeEventListener('keydown', onKeydown)
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', onKeydown)
+    window.removeEventListener(SEND_TO_QUEST_EVENT, onSendRequested)
+  }
 })
 </script>
