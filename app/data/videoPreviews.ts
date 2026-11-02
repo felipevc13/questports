@@ -149,7 +149,11 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'armsx2-3d',
   'openmohaa-vr',
   'starship-vr',
-  'vpinball-vr'
+  'vpinball-vr',
+  'openxvt-vr',
+  'openxw-vr',
+  'supertuxkart-vr',
+  'xwing-revival-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -614,5 +618,21 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // armsx2-3d
   'armsx2-3d': { start: '7:30' },
-  '7PQwEcLB51Q': { start: '7:30' }
+  '7PQwEcLB51Q': { start: '7:30' },
+
+  // xwing-revival-vr
+  'xwing-revival-vr': { start: '1:30' },
+  'hJu7S6qEg24': { start: '1:30' },
+
+  // openxw-vr
+  'openxw-vr': { start: '15:00' },
+  'Ea_e0qiZz7c': { start: '15:00' },
+
+  // openxvt-vr
+  'openxvt-vr': { start: '2:00' },
+  'amOYTpdpNYI': { start: '2:00' },
+
+  // supertuxkart-vr
+  'supertuxkart-vr': { start: '2:00' },
+  'YZDw85U44xo': { start: '2:00' }
 }
