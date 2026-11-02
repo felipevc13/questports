@@ -980,7 +980,7 @@
                       {{ installedCampaignsCount }} / {{ campaignList.length }}
                     </span>
                     <button
-                      @click="scanCampaignFiles"
+                      @click="scanCampaignFiles()"
                       class="text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer"
                       title="Scan Quest storage for files"
                     >
@@ -999,7 +999,7 @@
                   </span>
                   <button
                     v-else
-                    @click="scanCampaignFiles"
+                    @click="scanCampaignFiles()"
                     class="text-[11px] font-mono text-muted-foreground hover:text-foreground underline cursor-pointer"
                     title="Scan Quest storage for files"
                   >
@@ -1264,7 +1264,7 @@
                   </button>
 
                   <button
-                    @click="scanCampaignFiles"
+                    @click="scanCampaignFiles()"
                     class="px-2.5 py-1.5 rounded bg-secondary hover:bg-secondary/80 text-secondary-foreground text-[10px] font-mono border border-border/60 transition-colors cursor-pointer flex items-center gap-1"
                     title="Re-check files on Quest"
                   >
@@ -1293,6 +1293,7 @@
             :href="port.base_game_url"
             target="_blank"
             rel="noopener noreferrer"
+            @click="trackBaseGame(port.base_game_url, 'action')"
             class="flex min-h-11 w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-xs text-foreground transition-colors hover:bg-muted/50 md:min-h-0"
           >
             <div class="flex items-center gap-2">
@@ -1438,6 +1439,7 @@
                     :href="port.base_game_url"
                     target="_blank"
                     rel="noopener noreferrer"
+                    @click="trackBaseGame(port.base_game_url, 'details')"
                     class="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[10px] text-primary hover:underline md:min-h-0"
                   >
                     {{ isLegitimateStoreUrl(port.base_game_url) ? 'Store Page ↗' : 'About ↗' }}
@@ -1516,7 +1518,7 @@
                       :href="c.storeUrl"
                       target="_blank"
                       rel="noopener noreferrer"
-                      @click.stop
+                      @click.stop="trackBaseGame(c.storeUrl, 'campaign')"
                       class="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap font-mono text-[10px] text-primary hover:underline md:min-h-0"
                       :title="isLegitimateStoreUrl(c.storeUrl) ? 'View on Store' : 'About the original game'"
                     >
@@ -1670,7 +1672,7 @@ import {
   rememberInstalledRelease,
   type InstalledReleaseRecord
 } from '~/lib/installedRelease'
-import { isLegitimateStoreUrl } from '~/lib/baseGameLink'
+import { baseGameStoreKind, isLegitimateStoreUrl } from '~/lib/baseGameLink'
 import { portShareMeta } from '~/lib/socialMeta'
 import { softenGuideHtml } from '~/lib/guideHtml'
 import { isMockQuestEnabled } from '~/lib/mockQuest'
@@ -1698,6 +1700,8 @@ import {
   installStepEventsForConnectPhase,
   installStepEventsForConnectResult,
   installStepEventsForProgress,
+  type BaseGameSurface,
+  type GameFilesReadySource,
   type InstallStep,
   type InstallStepStatus
 } from '~/lib/analytics'
@@ -2007,7 +2011,7 @@ const selectCampaign = (campaignId: string) => {
 }
 
 // Automatically scan Quest storage for all campaigns of this port
-const scanCampaignFiles = async () => {
+const scanCampaignFiles = async (readySource: GameFilesReadySource = 'found') => {
   if (!questAdb.isConnected.value || !port.value) return
   isScanningGameFiles.value = true
 
@@ -2028,6 +2032,7 @@ const scanCampaignFiles = async () => {
       if (res.exists) {
         const targetKey = `${port.value.id}-${campaign.id}`
         transferredCampaigns.value[targetKey] = true
+        trackGameFilesReady(readySource)
       }
     }
   } catch (err) {
@@ -2053,6 +2058,7 @@ const confirmImportedFiles = () => {
   const id = currentCampaign.value?.id
   if (!id) return
   confirmedCampaigns.value = { ...confirmedCampaigns.value, [id]: true }
+  trackGameFilesReady('confirmed')
 }
 
 const confirmCopy = computed(() => {
@@ -2491,6 +2497,22 @@ const trackGithub = () => {
 
 const trackManualDownload = () => {
   track('manual_download_click', trackContext())
+}
+
+const trackBaseGame = (url: string | null | undefined, surface: BaseGameSurface) => {
+  track('base_game_click', {
+    ...trackContext(),
+    props: { store: baseGameStoreKind(url), surface }
+  })
+}
+
+// One game_files_ready per port per page load: the first way the files showed up.
+const filesReadyTracked = new Set<string>()
+const trackGameFilesReady = (source: GameFilesReadySource) => {
+  const slug = port.value?.slug
+  if (!slug || filesReadyTracked.has(slug) || isDirectApkOnly.value) return
+  filesReadyTracked.add(slug)
+  track('game_files_ready', { ...trackContext(), props: { source } })
 }
 
 const trackPcBuilderLink = () => {
@@ -2970,7 +2992,7 @@ const uploadRealFiles = async (files: Array<File | { file: File, relPath?: strin
       transferredCampaigns.value[targetKey] = true
     }
     allowFileTransferOverride.value = false
-    await scanCampaignFiles()
+    await scanCampaignFiles('copied')
   } catch (err: any) {
     copyOutcome = 'fail'
     if (fileTransferCancelRequested.value || isUserCancel(err)) {
