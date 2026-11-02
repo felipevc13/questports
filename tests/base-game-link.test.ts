@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
-import { isLegitimateStoreUrl } from '../app/lib/baseGameLink'
+import { baseGameStoreKind, isLegitimateStoreUrl } from '../app/lib/baseGameLink'
 
 const BLOCKED_BUY_HOSTS = [
   'myabandonware.com',
@@ -21,6 +21,16 @@ describe('base game links', () => {
     expect(isLegitimateStoreUrl('https://www.mobygames.com/game/1597/gran-turismo-2/')).toBe(false)
     expect(isLegitimateStoreUrl('https://www.myabandonware.com/game/the-simpsons-hit-run-bg6')).toBe(false)
     expect(isLegitimateStoreUrl(null)).toBe(false)
+  })
+
+  it('names the store a base game link opens', () => {
+    expect(baseGameStoreKind('https://store.steampowered.com/app/70/HalfLife/')).toBe('steam')
+    expect(baseGameStoreKind('https://www.gog.com/en/game/gothic_2_gold_edition')).toBe('gog')
+    expect(baseGameStoreKind('https://play.google.com/store/apps/details?id=com.rockstargames.gtasa')).toBe('store')
+    expect(baseGameStoreKind('https://en.wikipedia.org/wiki/Halo:_Combat_Evolved')).toBe('info')
+    expect(baseGameStoreKind('https://notsteampowered.com/app/70')).toBe('info')
+    expect(baseGameStoreKind('not a url')).toBe('info')
+    expect(baseGameStoreKind(null)).toBe('info')
   })
 
   it('does not point any port at a ROM or abandonware download site', () => {

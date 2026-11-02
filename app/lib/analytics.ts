@@ -40,7 +40,9 @@ export const ANALYTICS_EVENTS = [
   'remote_pair_fail',
   'remote_request_created',
   'remote_status',
-  'remote_app_outdated'
+  'remote_app_outdated',
+  'base_game_click',
+  'game_files_ready'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -214,6 +216,25 @@ export const REMOTE_APP_OUTDATED_SURFACES = ['pair_modal', 'paired', 'send'] as 
 
 export type RemoteAppOutdatedSurface = (typeof REMOTE_APP_OUTDATED_SURFACES)[number]
 
+/** Which kind of link a base_game_click opened. `info` is a reference page, not a store. */
+export const BASE_GAME_STORES = ['steam', 'gog', 'store', 'info'] as const
+
+export type BaseGameStore = (typeof BASE_GAME_STORES)[number]
+
+/** Where on the port page the base game link sits. */
+export const BASE_GAME_SURFACES = ['action', 'details', 'campaign'] as const
+
+export type BaseGameSurface = (typeof BASE_GAME_SURFACES)[number]
+
+/**
+ * How the port page learned the game files are on the headset.
+ * copied: our USB copy finished and the scan found them. found: the scan found files
+ * copied some other way. confirmed: the player pressed "I already imported the files".
+ */
+export const GAME_FILES_READY_SOURCES = ['copied', 'found', 'confirmed'] as const
+
+export type GameFilesReadySource = (typeof GAME_FILES_READY_SOURCES)[number]
+
 export const NEEDS_FILES_PROP_VALUES = ['true', 'false'] as const
 
 export type NeedsFilesProp = (typeof NEEDS_FILES_PROP_VALUES)[number]
@@ -238,7 +259,9 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'remote_pair_fail',
   'remote_request_created',
   'remote_status',
-  'remote_app_outdated'
+  'remote_app_outdated',
+  'base_game_click',
+  'game_files_ready'
 ])
 
 /** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
@@ -975,6 +998,24 @@ function tipClickProps(
   return { surface: surface as TipClickSurface }
 }
 
+function baseGameClickProps(
+  props: Record<string, unknown> | null
+): { store: BaseGameStore; surface: BaseGameSurface } | null {
+  const store = props && typeof props.store === 'string' ? props.store : ''
+  const surface = props && typeof props.surface === 'string' ? props.surface : ''
+  if (!(BASE_GAME_STORES as readonly string[]).includes(store)) return null
+  if (!(BASE_GAME_SURFACES as readonly string[]).includes(surface)) return null
+  return { store: store as BaseGameStore, surface: surface as BaseGameSurface }
+}
+
+function gameFilesReadyProps(
+  props: Record<string, unknown> | null
+): { source: GameFilesReadySource } | null {
+  const source = props && typeof props.source === 'string' ? props.source : ''
+  if (!(GAME_FILES_READY_SOURCES as readonly string[]).includes(source)) return null
+  return { source: source as GameFilesReadySource }
+}
+
 export function cleanAppVersion(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const version = value.trim()
@@ -1272,6 +1313,14 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const tip = tipClickProps(props)
     if (!tip) return null
     storedProps = tip
+  } else if (record.event === 'base_game_click') {
+    const click = baseGameClickProps(props)
+    if (!click) return null
+    storedProps = click
+  } else if (record.event === 'game_files_ready') {
+    const ready = gameFilesReadyProps(props)
+    if (!ready) return null
+    storedProps = ready
   } else if (record.event === 'app_page_view') {
     const page = appPageViewProps(props)
     if (!page) return null

@@ -133,14 +133,18 @@ describe('analytics allowlist', () => {
       'remote_pair_fail',
       'remote_request_created',
       'remote_status',
-      'remote_app_outdated'
+      'remote_app_outdated',
+      'base_game_click',
+      'game_files_ready'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
       const body: Record<string, unknown> = { event, path: '/' }
-      if (event === 'port_view' || event.startsWith('install_') || event.startsWith('remote_') || event === 'video_preview_play' || event === 'game_launch') {
+      if (event === 'port_view' || event.startsWith('install_') || event.startsWith('remote_') || event === 'video_preview_play' || event === 'game_launch' || event === 'base_game_click' || event === 'game_files_ready') {
         body.portSlug = 'rtcwquest'
       }
+      if (event === 'base_game_click') body.props = { store: 'steam', surface: 'action' }
+      if (event === 'game_files_ready') body.props = { source: 'found' }
       if (event === 'remote_send_click') body.props = { paired: false, needs_files: 'false' }
       if (event === 'remote_request_created') body.props = { needs_files: 'true' }
       if (event === 'remote_pair_fail') body.props = { reason: 'invalid_code' }
@@ -242,12 +246,13 @@ describe('analytics allowlist', () => {
       'app_page_view',
       'app_open'
     ]
+    const baseGameEvents = ['base_game_click', 'game_files_ready']
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
-      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...searchEvents, ...remoteEvents].includes(event)
+      !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...searchEvents, ...remoteEvents, ...baseGameEvents].includes(event)
     )
     for (const event of originalEvents) expect(sql).toContain(`'${event}'`)
     for (const event of ANALYTICS_EVENTS) {
-      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (event === 'tip_click' || appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event) || baseGameEvents.includes(event)) continue
       expect(funnel).toContain(`'${event}'`)
     }
     const tipClick = readFileSync(
@@ -255,7 +260,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (appBannerEvents.includes(event) || landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event) || baseGameEvents.includes(event)) continue
       expect(tipClick).toContain(`'${event}'`)
     }
     expect(tipClick).toContain('drop constraint if exists analytics_events_event_check')
@@ -264,7 +269,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (landingEvents.includes(event) || searchEvents.includes(event) || remoteEvents.includes(event) || baseGameEvents.includes(event)) continue
       expect(appBanner).toContain(`'${event}'`)
     }
     const landing = readFileSync(
@@ -272,7 +277,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (searchEvents.includes(event) || remoteEvents.includes(event)) continue
+      if (searchEvents.includes(event) || remoteEvents.includes(event) || baseGameEvents.includes(event)) continue
       expect(landing).toContain(`'${event}'`)
     }
     const catalogSearch = readFileSync(
@@ -280,7 +285,7 @@ describe('analytics allowlist', () => {
       'utf8'
     )
     for (const event of ANALYTICS_EVENTS) {
-      if (remoteEvents.includes(event)) continue
+      if (remoteEvents.includes(event) || baseGameEvents.includes(event)) continue
       expect(catalogSearch).toContain(`'${event}'`)
     }
     expect(catalogSearch).toContain('drop constraint if exists analytics_events_event_check')
@@ -297,7 +302,23 @@ describe('analytics allowlist', () => {
       new URL('../supabase/migrations/20261027050100_analytics_remote_install.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(remoteSql).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (baseGameEvents.includes(event)) continue
+      expect(remoteSql).toContain(`'${event}'`)
+    }
+    const baseGameSql = readFileSync(
+      new URL('../supabase/migrations/20261102120000_analytics_base_game_and_files_ready.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(baseGameSql).toContain(`'${event}'`)
+    expect(baseGameSql).toContain('drop constraint if exists analytics_events_event_check')
+    expect(baseGameSql).toContain('analytics_events_base_game_click_check')
+    expect(baseGameSql).toContain("props->>'store' in ('steam', 'gog', 'store', 'info')")
+    expect(baseGameSql).toContain("props->>'surface' in ('action', 'details', 'campaign')")
+    expect(baseGameSql).toContain('analytics_events_game_files_ready_check')
+    expect(baseGameSql).toContain("props->>'source' in ('copied', 'found', 'confirmed')")
+    expect(baseGameSql).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
+    expect(baseGameSql).not.toMatch(/drop constraint if exists analytics_events_install_method_check/i)
     expect(remoteSql).toContain('analytics_events_remote_needs_files_check')
     expect(remoteSql).toContain("props->>'needs_files' in ('true', 'false')")
     expect(remoteSql).toContain("props->>'method' in ('usb', 'remote', 'app')")
@@ -567,6 +588,48 @@ describe('analytics visitor hash', () => {
 })
 
 describe('analytics validation', () => {
+  it('stores base_game_click and game_files_ready with known values only', () => {
+    const click = decide({
+      body: {
+        event: 'base_game_click',
+        path: '/ports/rtcwquest',
+        portSlug: 'rtcwquest',
+        props: { store: 'gog', surface: 'details', url: 'https://www.gog.com/' }
+      }
+    })
+    expect(click.record).toBe(true)
+    expect(click.row?.props).toEqual({ store: 'gog', surface: 'details' })
+
+    const ready = decide({
+      body: { event: 'game_files_ready', path: '/ports/rtcwquest', portSlug: 'rtcwquest', props: { source: 'copied' } }
+    })
+    expect(ready.record).toBe(true)
+    expect(ready.row?.props).toEqual({ source: 'copied' })
+
+    const bad = [
+      { event: 'base_game_click', portSlug: 'rtcwquest', props: { store: 'epic', surface: 'action' } },
+      { event: 'base_game_click', portSlug: 'rtcwquest', props: { store: 'steam', surface: 'footer' } },
+      { event: 'base_game_click', portSlug: 'rtcwquest' },
+      { event: 'base_game_click', props: { store: 'steam', surface: 'action' } },
+      { event: 'game_files_ready', portSlug: 'rtcwquest', props: { source: 'steam' } },
+      { event: 'game_files_ready', props: { source: 'found' } }
+    ]
+    for (const body of bad) {
+      expect(decide({ body: { path: '/', ...body } }).record, JSON.stringify(body)).toBe(false)
+    }
+  })
+
+  it('wires the base game links and the files-ready signal on the port page', () => {
+    const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
+    expect(page).toContain("@click=\"trackBaseGame(port.base_game_url, 'action')\"")
+    expect(page).toContain("@click=\"trackBaseGame(port.base_game_url, 'details')\"")
+    expect(page).toContain("@click.stop=\"trackBaseGame(c.storeUrl, 'campaign')\"")
+    expect(page).toContain("trackGameFilesReady('confirmed')")
+    expect(page).toContain("await scanCampaignFiles('copied')")
+    // A bare handler would pass the click event as the files-ready source.
+    expect(page).not.toContain('@click="scanCampaignFiles"')
+  })
+
   it('stores a lowercased search query cut to 60 characters and its length', () => {
     const long = `  ${'Doom'.repeat(30)}  `
     const props = searchProps(long, long.trim().length)

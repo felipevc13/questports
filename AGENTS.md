@@ -13,6 +13,7 @@ Resumo para o Felipe (o restante deste arquivo está em inglês de propósito: a
 - Busca: apelidos em `app/data/searchAliases.ts` (não é coluna). Migration `20261027020000_analytics_catalog_search.sql` — aplicar no SQL editor depois do merge. Consultas prontas em `supabase/queries/catalog_search.sql`.
 - Pedido pela busca pode ir sem link. Coluna `port_suggestions.source` (`search` ou `suggest`). Migration `20261027040000_port_suggestion_search_url.sql` — aplicar no SQL editor depois do merge, antes do deploy que manda `url` nula.
 - Filtro "No PC needed": duas listas de slugs em `app/lib/noPcInstall.ts`. Porta nova fica fora do filtro até alguém ler o guia e decidir (passo 7 de "Add a port"). A página do jogo não fala disso, só o filtro da lista. Todos os filtros do catálogo ficam no endereço (`?platform`, `?hw`, `?style`, `?status`, `?sort`, `?cat`, `?dev`, `?q`, `?nopc`).
+- Funil Steam/GOG: eventos `base_game_click` e `game_files_ready`. Migration `20261102120000_analytics_base_game_and_files_ready.sql` — aplicar no SQL editor depois do merge, antes do deploy. Consultas prontas em `supabase/queries/steam_gog_funnel.sql`.
 - Nada de segredo no git. Token da Cloudflare é `CLOUDFLARE_API_TOKEN`.
 
 ---
@@ -153,9 +154,11 @@ Related tables and views:
 
 ### Analytics and privacy
 
-Event names are the check constraint `analytics_events_event_check`. The current list is `ANALYTICS_EVENTS` in `app/lib/analytics.ts`, last extended by `20261027020000_analytics_catalog_search.sql`:
+Event names are the check constraint `analytics_events_event_check`. The current list is `ANALYTICS_EVENTS` in `app/lib/analytics.ts`, last extended by `20261102120000_analytics_base_game_and_files_ready.sql`:
 
-`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_shown`, `banner_click`, `banner_dismiss`, `modal_shown`, `modal_click`, `modal_dismiss`, `app_page_view`, `app_open`, `game_launch`, `app_download_click`, `search_result_click`, `game_request_shown`, `game_request_click`, `game_request_submit`.
+`page_view`, `port_view`, `install_click`, `install_success`, `install_error`, `install_step`, `manual_download_click`, `github_click`, `suggest_submit`, `feedback_submit`, `filter_used`, `search`, `search_no_results`, `unsupported_browser_view`, `video_preview_play`, `tip_click`, `banner_shown`, `banner_click`, `banner_dismiss`, `modal_shown`, `modal_click`, `modal_dismiss`, `app_page_view`, `app_open`, `game_launch`, `app_download_click`, `search_result_click`, `game_request_shown`, `game_request_click`, `game_request_submit`, `remote_send_click`, `remote_pair_shown`, `remote_pair_success`, `remote_pair_fail`, `remote_request_created`, `remote_status`, `remote_app_outdated`, `base_game_click`, `game_files_ready`.
+
+`base_game_click` is a click on a port page's base game link: `props.store` (`steam`, `gog`, `store`, `info` for a reference page, from `baseGameStoreKind`) and `props.surface` (`action`, `details`, `campaign`). `game_files_ready` fires once per port per page load when the page sees the player's game files on the headset over USB: `props.source` is `copied` (our copy, then the scan), `found` (the scan found files copied another way), or `confirmed` (**I already imported the files**). The app cannot see game files, so this event is site-only. Ready-made reads are in `supabase/queries/steam_gog_funnel.sql`.
 
 `search` is still one settled query. It may also store `count`, `via` (`text`, `alias`, `fuzzy`, `none`), and `results` (slugs shown). Older rows that only have `q` and `length` stay valid. `search_no_results` is unchanged. `search_result_click` is a click on a result (`q`, `position`, `via`, and `port_slug`). `game_request_shown`, `game_request_click`, and `game_request_submit` (`result` `success` or `fail`) are the empty-state request. Ready-made reads are in `supabase/queries/catalog_search.sql`.
 
