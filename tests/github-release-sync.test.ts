@@ -217,10 +217,18 @@ describe('last_github_update sync', () => {
     expect(portSyncPatch(olderCandidate, '2026-10-08T21:39:44Z')).toEqual({})
   })
 
-  it('syncs nolf-vr from alex-nax/relith', () => {
+  it('builds the repo list from the catalog instead of a hardcoded list', () => {
     const source = readFileSync(new URL('../scripts/sync-github-stats.js', import.meta.url), 'utf8')
-    expect(source).toContain("{ slug: 'nolf-vr', repo: 'alex-nax/relith' }")
+    expect(source).not.toContain("{ slug: 'nolf-vr', repo: 'alex-nax/relith' }")
+    expect(source).toContain('buildSyncTargets(rows)')
     expect(source).toContain('portSyncPatch(plan, storedUpdate)')
+  })
+
+  it('does not let a rolling build tag replace a numbered version', () => {
+    const plan = planPortUpdate('v0.1.20', [release('n64', ['WWFNoMercyVR-Quest.apk'])])
+    expect(plan.action).toBe('keep')
+    expect(plan.reason).toBe('build name does not replace a numbered version')
+    expect(versionToWrite(plan)).toBeUndefined()
   })
 
   it('prunes analytics_events older than 60 days on daily sync', () => {

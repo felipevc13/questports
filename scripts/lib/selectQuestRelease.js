@@ -123,6 +123,10 @@ export function shouldAdoptCatalogVersion(current, candidateTag) {
   if (versionIsDesktopTagged(current) && !versionIsDesktopTagged(candidateTag)) {
     return { adopt: true, version: next, reason: 'replace desktop tag with quest build' }
   }
+  if (/^v\d/i.test(currentDisplay) && !/^v\d/i.test(next)) {
+    // A rolling tag such as 'n64' has digits, but they are not a newer version.
+    return { adopt: false, version: next, reason: 'build name does not replace a numbered version' }
+  }
   if (normalizeVersionKey(current) === normalizeVersionKey(next)) {
     if (String(current).trim() !== next) {
       return { adopt: true, version: next, reason: 'canonicalize' }
@@ -211,17 +215,21 @@ export function githubUpdateToWrite(stored, publishedAt) {
 
 /**
  * Columns to PATCH. latest_version is included only when the plan adopts one.
+ * port_download_url is included when applyDownloadRule moved it with the version.
  * last_github_update is included whenever the eligible published_at is newer
- * than the stored value, including when the version does not change.
- * @param {ReturnType<typeof planPortUpdate>} plan
+ * than the stored value, including when the version does not change. A blocked
+ * plan (the download could not follow the new version) writes nothing.
+ * @param {ReturnType<typeof planPortUpdate> & { port_download_url?: string }} plan
  * @param {string | null | undefined} storedUpdate
- * @returns {{ latest_version?: string, last_github_update?: string }}
+ * @returns {{ latest_version?: string, port_download_url?: string, last_github_update?: string }}
  */
 export function portSyncPatch(plan, storedUpdate) {
-  /** @type {{ latest_version?: string, last_github_update?: string }} */
+  /** @type {{ latest_version?: string, port_download_url?: string, last_github_update?: string }} */
   const body = {}
+  if (plan?.action === 'blocked') return body
   const version = versionToWrite(plan)
-  if (version) body.latest_version = version
+  if (version && version !== plan.previous) body.latest_version = version
+  if (plan?.port_download_url) body.port_download_url = plan.port_download_url
   const date = githubUpdateToWrite(storedUpdate, plan?.published_at)
   if (date) body.last_github_update = date
   return body

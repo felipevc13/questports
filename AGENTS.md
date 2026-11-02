@@ -216,7 +216,7 @@ Do not run these. Do not delete them. They are one-offs, and several still targe
 - `scripts/migrate.js` — would run `full_setup.sql` against the project
 - `scripts/download-all-previews.cjs` — `yt-dlp` into `public/previews`. Not the publish path
 
-`scripts/sync-github-stats.js` is the supported version sync. Preview with `--dry-run`. The daily job is `.github/workflows/sync-releases.yml`. `scripts/verify-apk-packages.mjs` only reads a few KB of a remote APK via HTTP Range to check `packageName`; it does not write the catalog. `npm run build:og` (`scripts/build-modern-og.js`) regenerates the local share card. It does not upload.
+`scripts/sync-github-stats.js` is the supported version sync. Preview with `--dry-run`. It reads the repo list from `ports.github_url` (overrides in `scripts/lib/portSyncTargets.js`), filters multi-game repos by tag prefix or asset name, and moves a pinned `port_download_url` together with `latest_version` (or holds the version back). The end of the log lists guides that still name the old version; re-read those by hand. The daily job is `.github/workflows/sync-releases.yml`. `scripts/verify-apk-packages.mjs` only reads a few KB of a remote APK via HTTP Range to check `packageName`; it does not write the catalog. `npm run build:og` (`scripts/build-modern-og.js`) regenerates the local share card. It does not upload.
 
 ## Add a port, a cover, or a preview
 

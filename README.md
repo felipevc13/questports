@@ -81,6 +81,8 @@ To normalize rows already stored in production, run `supabase/migrations/2026100
 
 The daily sync only writes a release that ships a Quest or Android build (an `.apk`, or a Quest/Android archive). It skips Windows/PC-only tags, ignores drafts, and uses a prerelease only when the repo has no stable Quest build. It never writes `Latest`, and it will not replace a catalog version with an older or desktop-only tag.
 
+It syncs every catalog row whose `github_url` is a GitHub repo (exceptions go in `SYNC_OVERRIDES`, `scripts/lib/portSyncTargets.js`). A repo that ships several games only gives a port the tags with its own prefix (`daytona-v…`, `hotd-v…`, inferred from the pinned download tag) or, when games share one tag, the release that has its own asset. When `port_download_url` pins `/releases/download/<tag>/`, the version moves only together with the new release's matching Quest asset, after its Android package is checked against `PORT_PACKAGE_CONFIGS`; otherwise the version stays. A download that is not this repo's GitHub release never gets a version bump. Guides are not rewritten: the run log ends with a "Guide mentions old version" list.
+
 Preview the writes without touching production:
 
 ```bash
