@@ -1,4 +1,4 @@
--- WinlatorXR page: add a section for the VR mods that run inside WinlatorXR
+-- WinlatorXR page: add a PCVR games note (Skyrim VR, Fallout 4 VR, Half-Life: Alyx) and a section for the VR mods that run inside WinlatorXR
 -- (Call of Duty 4, Far Cry, Crysis, Battlefield 1942, Red Faction, TrackMania).
 -- They are zips for a PC game install, not separate apps, so they stay on this page
 -- instead of getting their own catalog cards. mockPorts.ts carries the same text.
@@ -10,6 +10,14 @@ set installation_guide = '### Installation
 1. Download and install WinlatorXR APK via SideQuest or GitHub Releases.
 2. Put game installation folders in your Quest `/sdcard/Download/` directory.
 3. Open WinlatorXR, create a new Wine Container with Turnip drivers and DXVK enabled, and run your setup or .exe file.
+
+---
+
+### PCVR games
+Since October 2026 the **dawn** builds also run Windows PCVR games, through WinlatorXR''s own OpenXR runtime ([OXRWXR](https://github.com/WinlatorXR/OpenXR-WXR)). Players have reported **Skyrim VR**, **Fallout 4 VR** and **Half-Life: Alyx** running this way, all from your own copy of the game.
+
+> [!NOTE]
+> **Set your expectations.** The Quest 3 runs these like a PC from around 2010: Skyrim VR plays well indoors but drops to about 30 fps, sometimes under 20, in the open world. Most PCVR games were tested on the Pico 4 Ultra, and some that work there do not work on Quest 3. Check the [WinlatorXR compatibility page](https://winlatorxr.github.io/compatibility.html) before you copy a large game over.
 
 ---
 
@@ -34,6 +42,14 @@ where slug = 'winlatorxr'
 1. Download and install WinlatorXR APK via SideQuest or GitHub Releases.
 2. Put game installation folders in your Quest `/sdcard/Download/` directory.
 3. Open WinlatorXR, create a new Wine Container with Turnip drivers and DXVK enabled, and run your setup or .exe file.
+
+---
+
+### PCVR games
+Since October 2026 the **dawn** builds also run Windows PCVR games, through WinlatorXR''s own OpenXR runtime ([OXRWXR](https://github.com/WinlatorXR/OpenXR-WXR)). Players have reported **Skyrim VR**, **Fallout 4 VR** and **Half-Life: Alyx** running this way, all from your own copy of the game.
+
+> [!NOTE]
+> **Set your expectations.** The Quest 3 runs these like a PC from around 2010: Skyrim VR plays well indoors but drops to about 30 fps, sometimes under 20, in the open world. Most PCVR games were tested on the Pico 4 Ultra, and some that work there do not work on Quest 3. Check the [WinlatorXR compatibility page](https://winlatorxr.github.io/compatibility.html) before you copy a large game over.
 
 ---
 

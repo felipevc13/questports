@@ -570,6 +570,14 @@ The full game is present only when \`pak0.pak\`, \`pak1.pak\`, and \`pak2.pak\` 
 
 ---
 
+### PCVR games
+Since October 2026 the **dawn** builds also run Windows PCVR games, through WinlatorXR's own OpenXR runtime ([OXRWXR](https://github.com/WinlatorXR/OpenXR-WXR)). Players have reported **Skyrim VR**, **Fallout 4 VR** and **Half-Life: Alyx** running this way, all from your own copy of the game.
+
+> [!NOTE]
+> **Set your expectations.** The Quest 3 runs these like a PC from around 2010: Skyrim VR plays well indoors but drops to about 30 fps, sometimes under 20, in the open world. Most PCVR games were tested on the Pico 4 Ultra, and some that work there do not work on Quest 3. Check the [WinlatorXR compatibility page](https://winlatorxr.github.io/compatibility.html) before you copy a large game over.
+
+---
+
 ### VR mods that run inside WinlatorXR
 These are full VR mods for PC games that run standalone on Quest 3 through WinlatorXR, made by SgtBilko76 (Port Royale). They are not separate apps: each one is a zip you unpack into your own game folder, plus a WinlatorXR container or shortcut profile. All are betas.
 
