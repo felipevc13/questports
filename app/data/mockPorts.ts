@@ -3811,6 +3811,8 @@ Built by lialan on the same runtime as Ghost Squad Evolution VR and The House of
     installation_guide: `### Overview
 **Resident Evil Code: Veronica X VR** runs Capcom's 2001 survival horror game natively on Meta Quest, with no PC. It is built on aikatore's recompiled PC port (recvx-enhanced-recomp) and AshfordFamily's recvx-decomp decompilation, with a VR mode by NETO: tracked hands, aiming with the gun in your hand, a knife on a free hand, and physical reloads from the ammo at your belt.
 
+This is the full Code: Veronica X adventure (exploration, puzzles, inventory, Claire and Chris's story). It is not **Resident Evil Survivor 2: Code Veronica**, the arcade light-gun shooter, which has its own page on QuestPorts.
+
 > [!NOTE]
 > **No game files included.** You need your own \`.iso\` of the PS2 version, NTSC-U, **SLUS-20184**.
 
