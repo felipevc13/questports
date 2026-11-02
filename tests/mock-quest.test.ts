@@ -174,9 +174,9 @@ describe('catalog install card expectations', () => {
     expect(facts.every(fact => fact.installType !== 'missing')).toBe(true)
   })
 
-  it('treats QuestCraft, Iron Lung, Time Crisis, and Forsaken as self-contained sideloads', () => {
+  it('treats QuestCraft, Iron Lung, Time Crisis, Forsaken, and Visual Pinball as self-contained sideloads', () => {
     const selfContained = facts.filter(fact => fact.selfContained).map(fact => fact.slug).sort()
-    expect(selfContained).toEqual(['forsaken-vr', 'iron-lung-vr', 'questcraft', 'time-crisis-vr'])
+    expect(selfContained).toEqual(['forsaken-vr', 'iron-lung-vr', 'questcraft', 'time-crisis-vr', 'vpinball-vr'])
   })
 
   it('expects a send-files step for every game that is not self-contained', () => {

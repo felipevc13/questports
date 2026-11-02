@@ -1613,6 +1613,82 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'starship-vr': {
+    slug: 'starship-vr',
+    packageName: 'com.starship.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['sf64.o2r'],
+    fileGuidance: 'Make sf64.o2r from your Star Fox 64 ROM (US 1.0 or 1.1) with Starship on a PC. Launch Starship-VR once so Android creates its folder, do not create Android/data/com.starship.vr/files yourself, then copy sf64.o2r into it. If USB cannot list Android/data, confirm after copying.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Android/data/com.starship.vr/files/',
+    folders: [
+      {
+        id: 'starship_o2r',
+        name: 'Star Fox 64 asset archive (sf64.o2r)',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.starship.vr/files/',
+        required: true,
+        acceptance: 'confirm',
+        expectedFiles: ['sf64.o2r'],
+        description: 'sf64.o2r directly inside Android/data/com.starship.vr/files/.'
+      }
+    ]
+  },
+  'openmohaa-vr': {
+    slug: 'openmohaa-vr',
+    packageName: 'org.openmoh.openmohaa',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Copy every .pk3 from the main/ folder of your Medal of Honor: Allied Assault PC install into /sdcard/Android/data/org.openmoh.openmohaa/files/main/, plus the release\'s autoexec.cfg. If USB cannot list Android/data, confirm after copying.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Android/data/org.openmoh.openmohaa/files/main/',
+    folders: [
+      {
+        id: 'mohaa_main',
+        name: 'Game archives (main/*.pk3)',
+        folderName: 'main',
+        targetPath: '/sdcard/Android/data/org.openmoh.openmohaa/files/main/',
+        required: true,
+        acceptance: 'confirm',
+        fileExtensionPattern: '\\.pk3$',
+        description: 'Every .pk3 from the game\'s main/ folder, plus autoexec.cfg from the release.'
+      }
+    ]
+  },
+  'vpinball-vr': {
+    slug: 'vpinball-vr',
+    packageName: 'org.vpinball.vpinball_bgfx',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: download tables in the app with + → Download from Archive.org. Your own tables go in VPinball/tables/<Table name>/ with their ROMs in pinmame/roms/.',
+    sourceStoreName: 'Other'
+  },
+  'armsx2-3d': {
+    slug: 'armsx2-3d',
+    packageName: 'com.armsx2',
+    installType: 'direct_apk',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'ARMSX2-3D needs a PS2 BIOS dump from your own console and your own PS2 games (.iso, .chd, .cso, .bin/.cue). Put them in /sdcard/Download/ (any folder works), choose the BIOS in the app and point it at the games folder.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    romExtensions: ['.iso', '.chd', '.cso', '.bin', '.cue', '.gz'],
+    romDirectories: ['/sdcard/Download/'],
+    folders: [
+      {
+        id: 'ps2_games',
+        name: 'PS2 games',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|chd|cso|bin|cue|gz)$',
+        description: 'PS2 game in Download (.iso, .chd, .cso, .bin/.cue)'
+      }
+    ]
+  },
   'strikers-quest-mr': {
     slug: 'strikers-quest-mr',
     packageName: 'io.github.newcoke.strikers',

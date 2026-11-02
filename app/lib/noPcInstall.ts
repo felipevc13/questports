@@ -19,7 +19,7 @@
  */
 
 const NO_PC_READY = new Set([
-  'behind-enemy-lines-vr', 'bomberman-hero-vr', 'carnevil-vr', 'confidential-mission-vr',
+  'armsx2-3d', 'behind-enemy-lines-vr', 'bomberman-hero-vr', 'carnevil-vr', 'confidential-mission-vr',
   'crisis-zone-vr', 'ctr-turbocharged-vr', 'daytona-usa-vr', 'death-crimson-ox-vr',
   'dirt-dash-vr', 'dolphinxr', 'f-zero-x-vr', 'forsaken-vr', 'ghost-squad-evolution-vr',
   'goldeneye-vr', 'gran-turismo-3-vr', 'gunblade-ny-vr', 'halocequest', 'hotd-vr', 'hotd2-vr',
@@ -29,14 +29,14 @@ const NO_PC_READY = new Set([
   'perfect-dark-vr', 'ppsspp-vr', 'primedgun', 'rail-chase-2-vr', 'ratchet-and-clank-vr',
   'sega-rally-vr', 'sin-and-punishment-vr', 'sm64-coop-dx-vr', 'strikers-quest-mr',
   'survivor2-code-veronica-vr', 'teraburst-vr', 'time-crisis-2-vr', 'time-crisis-vr',
-  'twilight-princess-vr', 'virtua-cop-2-vr', 'virtua-cop-vr', 'wakerquest', 'wave-race-64-vr',
-  'wwf-no-mercy-vr', 'xelee', 'xrkart-64'
+  'twilight-princess-vr', 'virtua-cop-2-vr', 'virtua-cop-vr', 'vpinball-vr', 'wakerquest',
+  'wave-race-64-vr', 'wwf-no-mercy-vr', 'xelee', 'xrkart-64'
 ])
 
 const PC_REQUIRED = new Set([
   'animal-crossing-vr', 'crazy-taxi-vr', 'galaxyquest', 'gta-sa-vr-quest', 'magic-carpet-vr',
-  'openxwa-vr', 'red-dead-redemption-vr', 'starfox-enhanced-vr', 'vice-city-vr-quest',
-  'victory-heat-rally-vr', 'wipeout-rewrite-vr'
+  'openxwa-vr', 'red-dead-redemption-vr', 'starfox-enhanced-vr', 'starship-vr',
+  'vice-city-vr-quest', 'victory-heat-rally-vr', 'wipeout-rewrite-vr'
 ])
 
 export type NoPcInstall = 'yes' | 'no' | 'unknown'
