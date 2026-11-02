@@ -1415,6 +1415,8 @@
             {{ port.troubleshooting_notes }}
           </p>
         </div>
+
+        <OtherBuilds :builds="otherBuilds" @download="trackOtherBuildDownload" />
       </div>
 
       <!-- RIGHT LOWER: Requirements & Community Resources (4 Cols) -->
@@ -1711,6 +1713,8 @@ import { useTrack } from '~/composables/useTrack'
 import { claimConnectOrigin } from '~/lib/connectOrigin'
 import TransferProgress from '~/components/TransferProgress.vue'
 import CommunityReports from '~/components/CommunityReports.vue'
+import OtherBuilds from '~/components/OtherBuilds.vue'
+import { otherBuildsFor } from '~/data/otherBuilds'
 
 const route = useRoute()
 const router = useRouter()
@@ -2497,6 +2501,12 @@ const trackGithub = () => {
 
 const trackManualDownload = () => {
   track('manual_download_click', trackContext())
+}
+
+const otherBuilds = computed(() => otherBuildsFor(port.value?.slug))
+
+const trackOtherBuildDownload = (buildId: string) => {
+  track('manual_download_click', { ...trackContext(), props: { build: buildId } })
 }
 
 const trackBaseGame = (url: string | null | undefined, surface: BaseGameSurface) => {
