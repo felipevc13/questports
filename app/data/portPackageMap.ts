@@ -1198,6 +1198,31 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     installType: 'apk_and_assets',
     criticalFiles: []
   },
+  'nfl-blitz-2000-vr': {
+    slug: 'nfl-blitz-2000-vr',
+    packageName: 'com.blitz2000.recompiled',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'NFL Blitz 2000 (USA, Rev 1) ROM, any folder. The start window asks you to pick it and remembers it. /sdcard/Download/ is a good place to put it.'
+  },
+  'ratchet-and-clank-vr': {
+    slug: 'ratchet-and-clank-vr',
+    packageName: 'dev.ratchetquest.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Ratchet & Clank .iso: PAL SCES-50916 v2.00 (best supported) or NTSC-U SCUS-97199 v1.00. Put it in /sdcard/Download/ and choose it in the launcher. The first set-up takes up to half an hour and about 6 GB.'
+  },
+  'forsaken-vr': {
+    slug: 'forsaken-vr',
+    packageName: 'com.bilko.forsakenvr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The release APK has the Forsaken game data built in (about 752 MB). Install it and launch. No game-file copy step.',
+    sourceStoreName: 'Other'
+  },
   'crazy-taxi-vr': {
     slug: 'crazy-taxi-vr',
     packageName: 'com.baywilly.crazytaxivr',
@@ -1911,6 +1936,86 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         required: true,
         acceptance: 'any-file',
         description: 'The drv folder from your copy.'
+      }
+    ]
+  },
+  'hotd4-special-vr': {
+    slug: 'hotd4-special-vr',
+    packageName: 'org.lindbergh.hotd4sp.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['elf/hod4M.elf'],
+    fileGuidance: 'Copy the elf and fs folders of your House of the Dead 4 Special copy into /sdcard/HouseOfTheDead4Special/, so the executable is at /sdcard/HouseOfTheDead4Special/elf/hod4M.elf. This is not the House of the Dead 4 folder. The app runs only the game version it was built from.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/HouseOfTheDead4Special/',
+    folders: [
+      {
+        id: 'hotd4sp_elf',
+        name: 'Game executable (elf)',
+        folderName: 'elf',
+        targetPath: '/sdcard/HouseOfTheDead4Special/elf/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['hod4M.elf'],
+        description: 'The elf folder with hod4M.elf inside.'
+      },
+      {
+        id: 'hotd4sp_fs',
+        name: 'Game filesystem (fs)',
+        folderName: 'fs',
+        targetPath: '/sdcard/HouseOfTheDead4Special/fs/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The fs folder from your copy.'
+      }
+    ]
+  },
+  'lets-go-jungle-vr': {
+    slug: 'lets-go-jungle-vr',
+    packageName: 'org.lindbergh.lgj.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['lgj_final'],
+    fileGuidance: 'Copy lgj_final and the data, shader and extraShader folders of your Let\'s Go Jungle! copy into /sdcard/LetsGoJungle/, so the executable is at /sdcard/LetsGoJungle/lgj_final. The app runs only the game version it was built from.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/LetsGoJungle/',
+    folders: [
+      {
+        id: 'lgj_root',
+        name: 'Game executable (lgj_final)',
+        folderName: 'LetsGoJungle',
+        targetPath: '/sdcard/LetsGoJungle/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['lgj_final'],
+        description: 'lgj_final directly inside /sdcard/LetsGoJungle/.'
+      },
+      {
+        id: 'lgj_data',
+        name: 'Game data (data)',
+        folderName: 'data',
+        targetPath: '/sdcard/LetsGoJungle/data/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The data folder from your copy.'
+      },
+      {
+        id: 'lgj_shader',
+        name: 'Shaders (shader)',
+        folderName: 'shader',
+        targetPath: '/sdcard/LetsGoJungle/shader/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The shader folder from your copy.'
+      },
+      {
+        id: 'lgj_extra_shader',
+        name: 'Extra shaders (extraShader)',
+        folderName: 'extraShader',
+        targetPath: '/sdcard/LetsGoJungle/extraShader/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The extraShader folder from your copy.'
       }
     ]
   },
