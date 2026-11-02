@@ -145,7 +145,11 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'hotd4-special-vr',
   'lets-go-jungle-vr',
   'nfl-blitz-2000-vr',
-  'ratchet-and-clank-vr'
+  'ratchet-and-clank-vr',
+  'armsx2-3d',
+  'openmohaa-vr',
+  'starship-vr',
+  'vpinball-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -594,5 +598,21 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // nfl-blitz-2000-vr
   'nfl-blitz-2000-vr': { start: '2:00' },
-  '_TRRrQVE-Mg': { start: '2:00' }
+  '_TRRrQVE-Mg': { start: '2:00' },
+
+  // vpinball-vr
+  'vpinball-vr': { start: '1:30' },
+  'ZQAfHbLqfq4': { start: '1:30' },
+
+  // starship-vr
+  'starship-vr': { start: '14:00' },
+  'CrGiHBE3YZE': { start: '14:00' },
+
+  // openmohaa-vr
+  'openmohaa-vr': { start: '2:00' },
+  '-KIk1krj9fU': { start: '2:00' },
+
+  // armsx2-3d
+  'armsx2-3d': { start: '7:30' },
+  '7PQwEcLB51Q': { start: '7:30' }
 }

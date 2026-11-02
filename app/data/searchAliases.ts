@@ -121,5 +121,9 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'forsaken-vr': ['forsaken', 'forsakenx', 'forsaken 64', 'forsaken remastered'],
   'lets-go-jungle-vr': ['lets go jungle', 'let\'s go jungle', 'lgj', 'island of spice', 'sega lindbergh', 'lindbergh'],
   'hotd4-special-vr': ['house of the dead 4 special', 'hotd4 special', 'hotd4sp', 'hod4sp', 'hotd 4 special', 'sega lindbergh', 'lindbergh'],
-  'nfl-blitz-2000-vr': ['nfl blitz', 'blitz', 'blitz 2000', 'quest blitz', 'american football']
+  'nfl-blitz-2000-vr': ['nfl blitz', 'blitz', 'blitz 2000', 'quest blitz', 'american football'],
+  'vpinball-vr': ['visual pinball', 'vpx', 'vpinball', 'pinball', 'vpx vr', 'pinmame'],
+  'starship-vr': ['star fox 64', 'starfox 64', 'sf64', 'lylat wars', 'starship', 'star fox', 'starfox'],
+  'openmohaa-vr': ['medal of honor', 'moh', 'mohaa', 'moh aa', 'allied assault', 'openmohaa', 'medal of honor allied assault'],
+  'armsx2-3d': ['ps2', 'playstation 2', 'pcsx2', 'armsx2', 'aethersx2', 'nethersx2', 'ps2 emulator']
 }
