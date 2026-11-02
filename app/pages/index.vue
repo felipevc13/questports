@@ -320,6 +320,7 @@
                 <th class="py-2.5 px-3 text-center">6DoF</th>
                 <th class="py-2.5 px-3 text-center">Controls</th>
                 <th class="py-2.5 px-3 text-left">Hardware</th>
+                <th class="py-2.5 px-3 text-left" :title="`Works Great reports out of all player reports. Shown from ${COMMUNITY_TABLE_MIN} reports.`">Players</th>
                 <th class="py-2.5 px-3 text-left">Status</th>
                 <th class="py-2.5 px-3 text-right">Action</th>
               </tr>
@@ -405,6 +406,16 @@
                   <span class="font-mono text-[10px]">
                     {{ normalizeHeadsetList(port.supported_hardware).join(', ') }}
                   </span>
+                </td>
+
+                <!-- Player reports -->
+                <td class="py-2 px-3 whitespace-nowrap font-mono text-[11px]">
+                  <span
+                    v-if="communityTableLabel(port.community)"
+                    class="text-muted-foreground"
+                    :title="communityTableLabel(port.community)?.detail"
+                  >{{ communityTableLabel(port.community)?.text }}</span>
+                  <span v-else class="text-muted-foreground/40">—</span>
                 </td>
 
                 <!-- Status -->
@@ -576,6 +587,7 @@ import {
 } from '~/lib/catalogQuery'
 import { NO_PC_BADGE, noPcInstall } from '~/lib/noPcInstall'
 import { coverThumbUrl } from '~/data/coverUrl'
+import { COMMUNITY_TABLE_MIN, communityTableLabel } from '~/lib/communityReviews'
 import { useTrack } from '~/composables/useTrack'
 
 const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))

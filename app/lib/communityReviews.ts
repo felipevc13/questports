@@ -1,5 +1,43 @@
 /** Community playability feedback types and client storage helpers. */
 
+import type { Port } from '~/types/port'
+
+export type CommunityScore = NonNullable<Port['community']>
+
+/** The catalog table shows player reports only from this many votes. Cards do not show them. */
+export const COMMUNITY_TABLE_MIN = 5
+
+function readCount(value: unknown): number {
+  const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : 0
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0
+}
+
+/** Reads the ports_community_score embed (an array of one row, or nothing). */
+export function readCommunityScore(value: unknown): CommunityScore | null {
+  const row = Array.isArray(value) ? value[0] : value
+  if (!row || typeof row !== 'object') return null
+  const r = row as Record<string, unknown>
+  const score = {
+    total: readCount(r.total_reviews),
+    worksGreat: readCount(r.works_great_count),
+    needsTweaks: readCount(r.needs_tweaks_count),
+    cantRun: readCount(r.cant_run_count)
+  }
+  return score.total > 0 ? score : null
+}
+
+/**
+ * "👍 3 of 5": Works Great out of all reports. Needs Tweaks is not counted as working
+ * here, unlike works_pct. Null below COMMUNITY_TABLE_MIN.
+ */
+export function communityTableLabel(score: CommunityScore | null | undefined): { text: string; detail: string } | null {
+  if (!score || score.total < COMMUNITY_TABLE_MIN) return null
+  return {
+    text: `👍 ${score.worksGreat} of ${score.total}`,
+    detail: `${score.worksGreat} Works Great · ${score.needsTweaks} Needs Tweaks · ${score.cantRun} Couldn't Run (${score.total} player reports, all versions)`
+  }
+}
+
 export type CommunityVerdict = 'works_great' | 'needs_tweaks' | 'cant_run'
 
 export type CommunityIssueTag =
