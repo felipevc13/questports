@@ -5,9 +5,9 @@ import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, 
 import { getPortCampaigns } from '../app/data/expansions'
 import { isOneClickApkAsset, patchOnlyGuideFor, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
 
-describe('Game-by-Game Automated Verification Suite (All 77 Ports)', () => {
-  it('indexes all 77 ports in database', () => {
-    expect(INITIAL_PORTS.length).toBe(77)
+describe('Game-by-Game Automated Verification Suite (All 82 Ports)', () => {
+  it('indexes all 82 ports in database', () => {
+    expect(INITIAL_PORTS.length).toBe(82)
   })
 
   it('credits WinlatorXR to the WinlatorXR team and the project repo', () => {
