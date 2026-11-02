@@ -1657,6 +1657,97 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'freespace2-vr': {
+    slug: 'freespace2-vr',
+    packageName: 'com.bilko.fs2vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Copy the nine .vp files (root_fs2.vp … warble_fs2.vp) and the data2 and data3 folders from your GOG or Steam FreeSpace 2 to /sdcard/FS2.',
+    sourceStoreName: 'GOG',
+    targetPath: '/sdcard/FS2/',
+    folders: [
+      {
+        id: 'fs2_vp',
+        name: 'Game archives (*.vp)',
+        folderName: 'FS2',
+        targetPath: '/sdcard/FS2/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The nine .vp files and the data2 and data3 folders.'
+      }
+    ]
+  },
+  'wing-commander-vr': {
+    slug: 'wing-commander-vr',
+    packageName: 'com.bilko.wc1vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'From your GOG Wing Commander folder, copy WC.EXE, SM2.EXE and the GAMEDAT folder to /sdcard/WingCommander.',
+    sourceStoreName: 'GOG',
+    targetPath: '/sdcard/WingCommander/',
+    folders: [
+      {
+        id: 'wc1_gamedat',
+        name: 'Game data (GAMEDAT)',
+        folderName: 'GAMEDAT',
+        targetPath: '/sdcard/WingCommander/GAMEDAT/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The GAMEDAT folder, with WC.EXE and SM2.EXE next to it.'
+      }
+    ]
+  },
+  'wing-commander-2-vr': {
+    slug: 'wing-commander-2-vr',
+    packageName: 'com.bilko.wc2vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Copy WC2.EXE and the GAMEDAT folder (the WING2 folder of the CD, or your installed game) to /sdcard/WingCommander2.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/WingCommander2/',
+    folders: [
+      {
+        id: 'wc2_gamedat',
+        name: 'Game data (GAMEDAT)',
+        folderName: 'GAMEDAT',
+        targetPath: '/sdcard/WingCommander2/GAMEDAT/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The GAMEDAT folder, with WC2.EXE next to it.'
+      }
+    ]
+  },
+  'rvgl-vr': {
+    slug: 'rvgl-vr',
+    packageName: 'com.bilko.rvglvr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: on first launch the app downloads the free Re-Volt data (about 225 MB) to /sdcard/RVGL. Existing RVGL data in /sdcard/RVGL is reused.',
+    sourceStoreName: 'Other'
+  },
+  're-code-veronica-x-vr': {
+    slug: 're-code-veronica-x-vr',
+    packageName: 'org.recvx.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Code: Veronica X PS2 disc image (.iso, NTSC-U SLUS-20184). Put it in /sdcard/Download/ (any folder works) and pick it in the launcher under Disc.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'recvx_iso',
+        name: 'Code: Veronica X disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        fileExtensionPattern: '\\.iso$',
+        description: 'The NTSC-U SLUS-20184 .iso in Download (or any folder you pick in the launcher).'
+      }
+    ]
+  },
   'xwing-revival-vr': {
     slug: 'xwing-revival-vr',
     packageName: 'com.bilko.xwingrevivalvr',

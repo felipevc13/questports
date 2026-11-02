@@ -46,7 +46,7 @@ describe('noPcInstall', () => {
     const mapped = Object.keys(PORT_PACKAGE_CONFIGS)
     const yes = mapped.filter(slug => noPcInstall(slug) === 'yes')
     const no = mapped.filter(slug => noPcInstall(slug) === 'no')
-    expect(yes.length).toBe(58)
+    expect(yes.length).toBe(60)
     expect(no.length).toBe(12)
     expect(yes.filter(slug => no.includes(slug))).toEqual([])
     for (const slug of mapped) {
