@@ -591,6 +591,11 @@ These are full VR mods for PC games that run standalone on Quest 3 through Winla
 * **Red Faction VR**: copy the game folder to \`Download/RedFaction\`; the GOG \`RF.exe\` is converted on first start. Needs dawn-33 or newer. [Release](https://github.com/SgtBilko76/alpinefactionVR/releases/tag/quest-v0.2.0-beta) · [Guide](https://portroyale.online/redfaction.html)
 * **TrackMania Nations Forever VR**: the easiest one. Import the container image and the free game downloads from Nadeo on first start. Races run at about 30–45 fps. [Release](https://github.com/SgtBilko76/TrackManiaForeverOpenXR/releases/tag/quest-beta-0.2) · [Guide](https://portroyale.online/trackmania.html)
 
+From other developers:
+
+* **Halo: Combat Evolved VR** (HWXR, by Bigelowed with the WinlatorXR team): a WinlatorXR conversion of LivingFray's Halo CE VR mod. Needs the retail Halo CE for PC (patch 1.0.10, not Custom Edition). Run \`HWXR_Setup.exe\` inside a container after installing **Wine Mono** from System Tools, and set the shortcut to a custom 1400×1400 resolution. [Release](https://github.com/WinlatorXR/HWXR-Release/releases/tag/V1.5) · [Setup video](https://www.youtube.com/watch?v=gUu49RbHXmg)
+* **BRUTALISTICK VR** performance patch (BrutalLite Select, by abgitdev): a checkbox patch that turns off the effects that make BRUTALISTICK VR stutter on Quest 3 (blood painting, decals, particles, post-processing). Needs your own Steam copy of BRUTALISTICK VR running as a PCVR game in WinlatorXR. [Release](https://github.com/abgitdev/BrutalLite-Select/releases/tag/v1.0.0)
+
 > [!TIP]
 > Play with more than 50% battery: the Quest throttles below that, and these games feel it first.`,
     troubleshooting_notes: 'Best suited for older DirectX 9 / 10 PC titles on Quest 3 / 3S for optimal performance. For the VR mods, follow the container screen size on each mod\'s guide exactly: a wrong size gives a blurry picture or a crash.'
@@ -3562,5 +3567,221 @@ Built by lialan on the same runtime as Ghost Squad Evolution VR and The House of
 > [!TIP]
 > The VR settings page sets 3D on or off, depth, screen size, distance and curvature. Quest-tuned defaults use 3× internal resolution; heavy games may not run at full speed.`,
     troubleshooting_notes: 'If a game looks flat, it does not expose a usable depth buffer. Depth reprojection shows small artifacts at object edges. If the install fails with a signature mismatch, uninstall the other ARMSX2 build first.'
+  },
+  {
+    id: '69',
+    slug: 'xwing-revival-vr',
+    title: 'X-Wing Revival VR',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76/X-Wing-Revival-VR',
+    short_description: 'Raptor007\'s free Star Wars space combat fan game X-Wing Revival, natively in VR on Meta Quest: 25 flyable ships, fleet battles, the trench run and online play with PC pilots. Game data included.',
+    category: 'source_port',
+    status: 'playable_beta',
+    install_workflow: 'direct',
+    cover_image_url: '/covers/xwing-revival-vr.jpg',
+    youtube_video_id: 'hJu7S6qEg24',
+    supported_hardware: ['Quest 3', 'Quest 3S'],
+    locomotion_types: ['Seated Cockpit', '6DoF Ship Flight (sticks)'],
+    has_6dof_controls: false,
+    internal_storage_path: 'N/A (game data bundled in the APK; unpacked to /sdcard/XWingRevival/ on first start)',
+    base_game_url: 'https://www.raptor007.com/xwing-revival/',
+    base_game_store: 'Free (X-Wing Revival 0.6.1 by Raptor007, included in the APK)',
+    port_download_url: 'https://github.com/SgtBilko76/X-Wing-Revival-VR/releases/download/v1.0.3/X-Wing-Revival-VR-v1.0.3-full.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/X-Wing-Revival-VR',
+    latest_version: 'v1.0.3',
+    last_github_update: '2026-10-19T00:00:00Z',
+    featured: false,
+    installation_guide: `### Overview
+**X-Wing Revival VR** is a native VR port of X-Wing Revival, Raptor007's free Star Wars space combat game, by SgtBilko76 (Port Royale). You fly from the cockpit in head-tracked stereo 3D at 72 Hz. In the menus, space surrounds you and the menu floats in front of you, with a laser pointer and an on-screen keyboard. There are 25 flyable ships, fleet battles, the Death Star trench run and online multiplayer, where Quest, PICO and PC pilots meet on the official server.
+
+> [!NOTE]
+> **Nothing else to copy.** The full APK has the free X-Wing Revival 0.6.1 game data built in. It is a fan game, not the 1993 LucasArts X-Wing.
+
+---
+
+### Prerequisites
+* Meta Quest 3 (tested). Quest 2, 3S and Pro should work but are untested.
+* About 600 MB free (the APK plus about 310 MB of unpacked game data).
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`X-Wing-Revival-VR-v1.0.3-full.apk\` from GitHub Releases.
+2. Launch **X-Wing Revival VR** from **Unknown Sources** and allow **access to all files** when asked.
+3. The first start unpacks the game data to \`/sdcard/XWingRevival/\` (about 310 MB). Then the menu appears.
+4. Fly offline, or choose **Fly Online** to join the official Raptor007 server.
+
+---
+
+### Controls
+* **Left stick** pitches and yaws. **Right stick** rolls (left/right) and sets the throttle (up/down).
+* **Right trigger** fires. **Left trigger** targets what is in front of you.
+* **Right grip** switches weapons (lasers / ions / torpedoes). **Left grip** sets single or linked fire.
+* **A / B** target the nearest enemy / nearest attacker. Hold **both stick clicks** for 1 s to recenter.
+
+> [!TIP]
+> Big fleet battles run at about 45-65 fps on Quest 3. Custom missions: copy the mission's \`.def\` file to \`/sdcard/XWingRevival/Missions/\` and pick it in the lobby under Game Type → Mission.`,
+    troubleshooting_notes: 'If the menu does not appear on the first start, wait for the game data to finish unpacking to /sdcard/XWingRevival/ and allow access to all files. PC players with X-Wing Revival 0.6.1 join the same server via Custom / LAN → Connect to IP Address www.raptor007.com:7000.'
+  },
+  {
+    id: '70',
+    slug: 'openxw-vr',
+    title: 'OpenXW VR (Star Wars: X-Wing)',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76/OpenXW-VR',
+    short_description: 'LucasArts\' 1993 Star Wars: X-Wing in VR on Meta Quest, from the open-source OpenXW rebuild: stereo space and 3D cockpits for the X-Wing, Y-Wing, A-Wing and B-Wing. Bring your own Steam copy.',
+    category: 'engine_recreation',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/openxw-vr.jpg',
+    youtube_video_id: 'Ea_e0qiZz7c',
+    supported_hardware: ['Quest 3', 'Quest 3S'],
+    locomotion_types: ['Seated Cockpit', '6DoF Ship Flight (sticks)'],
+    has_6dof_controls: false,
+    internal_storage_path: '/sdcard/OpenXW/',
+    base_game_url: 'https://store.steampowered.com/app/354430/',
+    base_game_store: 'Steam (STAR WARS X-Wing Special Edition)',
+    port_download_url: 'https://github.com/SgtBilko76/OpenXW-VR/releases/download/v0.1.3-beta/OpenXW-VR-v0.1.3-beta.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/OpenXW-VR',
+    latest_version: 'v0.1.3-beta',
+    last_github_update: '2026-10-28T00:00:00Z',
+    featured: false,
+    installation_guide: `### Overview
+**OpenXW VR** is a VR port of OpenXW, the open-source rebuild of LucasArts' Star Wars: X-Wing, by SgtBilko76 (Port Royale). Space is rendered in stereo around you and you sit in a 3D cockpit of your X-Wing, Y-Wing, A-Wing or B-Wing (cockpits from X-Wing Revival, included), with the original instruments and HUD in front of you. The concourse, briefings and cutscenes play on a big virtual screen.
+
+> [!NOTE]
+> **No game files included.** You need your own copy of **STAR WARS X-Wing Special Edition** (Steam).
+
+---
+
+### Prerequisites
+* Meta Quest 3 (tested). Quest 2, 3S and Pro should work but are untested.
+* Your own Steam copy of X-Wing Special Edition, copied from a PC.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or install \`OpenXW-VR-v0.1.3-beta.apk\` with SideQuest / \`adb install -r\`.
+2. From the Steam folder \`STAR WARS X-Wing\`, copy \`collectors_cd\` to \`/sdcard/OpenXW/XW94\` and \`remastered\` to \`/sdcard/OpenXW/XW98\` on the headset.
+3. Launch **OpenXW VR** from **Unknown Sources** and allow **access to all files** when asked.
+
+---
+
+### Controls
+* **Left stick** pitches and yaws (up = nose down). **Right stick** rolls and moves the throttle.
+* **Right trigger** fires. **Left trigger** targets.
+* Hold the **left grip** for the weapons and power radial menu, the **right grip** for targets and wingman orders.
+* **Left Menu button** opens the OpenXW menu and pauses (hold 1 s to recenter).
+
+> [!TIP]
+> The small screens built into the X-Wing Revival cockpits are dark; the original instruments stay in front of you instead.`,
+    troubleshooting_notes: 'If the game does not find its data, check the two folders: /sdcard/OpenXW/XW94 (from collectors_cd) and /sdcard/OpenXW/XW98 (from remastered), and that access to all files was allowed.'
+  },
+  {
+    id: '71',
+    slug: 'openxvt-vr',
+    title: 'OpenXvT VR (X-Wing vs. TIE Fighter)',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76/OpenXvT-VR',
+    short_description: 'Star Wars: X-Wing vs. TIE Fighter with the Balance of Power campaigns in VR on Meta Quest, from the open-source OpenXvT rebuild: stereo space and 3D cockpits for rebel and imperial fighters. Bring your own Steam copy.',
+    category: 'engine_recreation',
+    status: 'playable_beta',
+    install_workflow: 'pc_assets',
+    cover_image_url: '/covers/openxvt-vr.jpg',
+    youtube_video_id: 'amOYTpdpNYI',
+    supported_hardware: ['Quest 3', 'Quest 3S'],
+    locomotion_types: ['Seated Cockpit', '6DoF Ship Flight (sticks)'],
+    has_6dof_controls: false,
+    internal_storage_path: '/sdcard/OpenXvT/',
+    base_game_url: 'https://store.steampowered.com/app/361690/',
+    base_game_store: 'Steam (STAR WARS X-Wing vs TIE Fighter - Balance of Power Campaigns)',
+    port_download_url: 'https://github.com/SgtBilko76/OpenXvT-VR/releases/download/v0.1.1-beta/OpenXvT-VR-v0.1.1-beta.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/OpenXvT-VR',
+    latest_version: 'v0.1.1-beta',
+    last_github_update: '2026-10-28T00:00:00Z',
+    featured: false,
+    installation_guide: `### Overview
+**OpenXvT VR** is a VR port of OpenXvT, the open-source rebuild of Star Wars: X-Wing vs. TIE Fighter with the Balance of Power campaigns, by SgtBilko76 (Port Royale). Space is rendered in stereo around you and you fly from a 3D cockpit (X-Wing Revival cockpits for the X-wing, Y-wing, A-wing, B-wing, TIE Fighter, Interceptor, Bomber and Gunboat, included), with the original instruments in front of you. The concourse, briefings and cutscenes play on a big virtual screen.
+
+> [!NOTE]
+> **No game files included.** You need your own copy of **STAR WARS X-Wing vs TIE Fighter - Balance of Power Campaigns** (Steam).
+
+---
+
+### Prerequisites
+* Meta Quest 3 (tested). Quest 2, 3S and Pro should work but are untested.
+* Your own Steam copy of the game, copied from a PC (about 400 MB).
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or install \`OpenXvT-VR-v0.1.1-beta.apk\` with SideQuest / \`adb install -r\`.
+2. Copy your whole Steam folder \`STAR WARS X-Wing vs TIE Fighter\` to \`/sdcard/OpenXvT\` on the headset.
+3. Launch **OpenXvT VR** from **Unknown Sources** and allow **access to all files** when asked.
+
+---
+
+### Controls
+* **Left stick** pitches and yaws (up = nose down). **Right stick** rolls and moves the throttle lever.
+* **Right trigger** fires. **Left trigger** targets (tap: target in your sights).
+* Hold the **left grip** for the weapons and power radial menu, the **right grip** for targets and wingman orders.
+* **Left Menu button** opens the OpenXvT menu and pauses.
+
+> [!TIP]
+> The Z-95, T-wing, R-41, TIE Advanced, TIE Defender and Missile Boat borrow the closest cockpit. The galaxy map and the hyperspace jump are shown flat. Multiplayer is untested.`,
+    troubleshooting_notes: 'If the game does not find its data, check that the whole Steam folder sits at /sdcard/OpenXvT and that access to all files was allowed.'
+  },
+  {
+    id: '72',
+    slug: 'supertuxkart-vr',
+    title: 'SuperTuxKart VR',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76/SuperTuxKart-VR',
+    short_description: 'The free, open-source kart racer SuperTuxKart as a native VR app on Meta Quest: per-eye stereo races with head tracking and menus on a floating screen. The whole game is in the APK.',
+    category: 'source_port',
+    status: 'playable_beta',
+    install_workflow: 'direct',
+    cover_image_url: '/covers/supertuxkart-vr.jpg',
+    youtube_video_id: 'YZDw85U44xo',
+    supported_hardware: ['Quest 3', 'Quest 3S'],
+    locomotion_types: ['Seated', 'Chase Camera', 'Head Tracking'],
+    has_6dof_controls: false,
+    internal_storage_path: 'N/A (game data bundled in the release APK)',
+    base_game_url: 'https://supertuxkart.net/',
+    base_game_store: 'Free (open-source game, included in the APK)',
+    port_download_url: 'https://github.com/SgtBilko76/SuperTuxKart-VR/releases/download/v1.0.1/SuperTuxKart-VR-1.0.1.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/SuperTuxKart-VR',
+    latest_version: 'v1.0.1',
+    last_github_update: '2026-10-11T00:00:00Z',
+    featured: false,
+    installation_guide: `### Overview
+**SuperTuxKart VR** is a standalone VR port of SuperTuxKart, the free and open-source kart racer, by SgtBilko76 (Port Royale). Races are rendered in real per-eye stereo with head tracking, layered on the normal kart-following camera, and the menus sit on a floating screen.
+
+> [!NOTE]
+> **Nothing else to copy.** The game is free and fully inside the APK (about 700 MB).
+
+---
+
+### Prerequisites
+* Meta Quest 3 or Quest 3S.
+* About 1 GB free.
+
+---
+
+### Step-by-Step Installation
+1. Install the APK via 1-click on QuestPorts or download \`SuperTuxKart-VR-1.0.1.apk\` from GitHub Releases. It is a large download.
+2. Launch **SuperTuxKart** from **Library → Unknown Sources**.
+3. Race.
+
+---
+
+### Controls
+* **Left stick** steers. **Right trigger** accelerates. **Left trigger** brakes.
+* The **face buttons** are nitro, fire, drift, rescue, look back and pause.`,
+    troubleshooting_notes: 'The APK is about 700 MB, so the download takes a while and needs about 1 GB free. If the install fails, free space and try again.'
   }
 ]

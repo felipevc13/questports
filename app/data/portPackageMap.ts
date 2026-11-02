@@ -1657,6 +1657,75 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'xwing-revival-vr': {
+    slug: 'xwing-revival-vr',
+    packageName: 'com.bilko.xwingrevivalvr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The full APK has the free X-Wing Revival 0.6.1 game data built in. The first start unpacks it to /sdcard/XWingRevival/. Nothing to copy.',
+    sourceStoreName: 'Other'
+  },
+  'supertuxkart-vr': {
+    slug: 'supertuxkart-vr',
+    packageName: 'portroyale.online.supertuxkart',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'SuperTuxKart is free and fully inside the APK (about 700 MB). Nothing to copy.',
+    sourceStoreName: 'Other'
+  },
+  'openxw-vr': {
+    slug: 'openxw-vr',
+    packageName: 'com.bilko.openxwvr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'From the Steam folder STAR WARS X-Wing, copy collectors_cd to /sdcard/OpenXW/XW94 and remastered to /sdcard/OpenXW/XW98.',
+    sourceStoreName: 'Steam',
+    targetPath: '/sdcard/OpenXW/',
+    folders: [
+      {
+        id: 'openxw_xw94',
+        name: 'X-Wing 1994 data (collectors_cd)',
+        folderName: 'XW94',
+        targetPath: '/sdcard/OpenXW/XW94/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The collectors_cd folder from Steam, renamed XW94.'
+      },
+      {
+        id: 'openxw_xw98',
+        name: 'X-Wing 1998 data (remastered)',
+        folderName: 'XW98',
+        targetPath: '/sdcard/OpenXW/XW98/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The remastered folder from Steam, renamed XW98.'
+      }
+    ]
+  },
+  'openxvt-vr': {
+    slug: 'openxvt-vr',
+    packageName: 'com.bilko.openxvtvr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Copy your whole Steam folder STAR WARS X-Wing vs TIE Fighter (about 400 MB) to /sdcard/OpenXvT.',
+    sourceStoreName: 'Steam',
+    targetPath: '/sdcard/OpenXvT/',
+    folders: [
+      {
+        id: 'openxvt_game',
+        name: 'X-Wing vs. TIE Fighter game folder',
+        folderName: 'OpenXvT',
+        targetPath: '/sdcard/OpenXvT/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The whole Steam folder STAR WARS X-Wing vs TIE Fighter, copied as /sdcard/OpenXvT.'
+      }
+    ]
+  },
   'vpinball-vr': {
     slug: 'vpinball-vr',
     packageName: 'org.vpinball.vpinball_bgfx',

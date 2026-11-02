@@ -125,5 +125,9 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'vpinball-vr': ['visual pinball', 'vpx', 'vpinball', 'pinball', 'vpx vr', 'pinmame'],
   'starship-vr': ['star fox 64', 'starfox 64', 'sf64', 'lylat wars', 'starship', 'star fox', 'starfox'],
   'openmohaa-vr': ['medal of honor', 'moh', 'mohaa', 'moh aa', 'allied assault', 'openmohaa', 'medal of honor allied assault'],
-  'armsx2-3d': ['ps2', 'playstation 2', 'pcsx2', 'armsx2', 'aethersx2', 'nethersx2', 'ps2 emulator']
+  'armsx2-3d': ['ps2', 'playstation 2', 'pcsx2', 'armsx2', 'aethersx2', 'nethersx2', 'ps2 emulator'],
+  'xwing-revival-vr': ['x-wing revival', 'xwing revival', 'xwr', 'raptor007', 'x wing', 'star wars x-wing'],
+  'openxw-vr': ['x-wing', 'xwing', 'x wing', 'star wars x-wing', 'openxw', 'x-wing special edition', 'xw94', 'xw98'],
+  'openxvt-vr': ['x-wing vs tie fighter', 'xvt', 'xwing vs tie', 'x wing vs tie fighter', 'balance of power', 'openxvt'],
+  'supertuxkart-vr': ['supertuxkart', 'super tux kart', 'stk', 'tux kart', 'tuxkart', 'kart']
 }
