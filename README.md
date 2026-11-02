@@ -2,6 +2,8 @@
 
 > **The standalone VR database for ports, emulators & injections. No PC streaming.**
 
+🌐 **Live site: [questports.com](https://questports.com)**
+
 QuestPorts is a centralized directory and knowledge base cataloging classic source ports, VR injections, and emulators that run **100% natively on Meta Quest hardware** (Quest 2, Quest 3, Quest 3S) with no PC streaming. Some ports still need files prepared on a PC, and each guide says so.
 
 ---
@@ -9,6 +11,7 @@ QuestPorts is a centralized directory and knowledge base cataloging classic sour
 ## ✨ Features
 
 * **Standalone Quest Experiences:** Everything runs on the headset. Some ports need game files or a build prepared on a PC first, and the guide says so.
+* **One-click install:** Chrome or Edge on a computer installs the APK on a USB-connected Quest over WebUSB, then checks the game folders on the headset.
 * **Instant Folder Mappings:** Accurate storage paths (e.g. `/sdcard/RTCWQuest/main/`) with one-click copy shortcuts.
 * **Curated Installation Guides:** Step-by-step instructions in Markdown with prerequisites and troubleshooting tips.
 * **Hardware & 6DoF Filtering:** Filter by headset model (Quest 2, 3, 3S), category, status, and developer (Team Beef, amwatson, etc.).
@@ -36,7 +39,7 @@ cd questports
 
 ### 2. Install dependencies
 ```bash
-npm install
+npm ci
 ```
 
 ### 3. Environment Variables
@@ -50,7 +53,7 @@ SUPABASE_KEY=your-publishable-or-anon-key
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. Run the tests with `npx vitest run`.
 
 ### Simulated Quest (install flow)
 
@@ -60,7 +63,7 @@ One-click install uses WebUSB/ADB and needs a headset. For local testing, open a
 
 ## 🗄️ Database Setup (Supabase)
 
-Run `supabase/full_setup.sql` in your Supabase SQL Editor to initialize the `ports` table, enums, RLS policies, and initial seed data.
+For a new project, run `supabase/schema.sql` in the Supabase SQL Editor (the `ports` table, enums and RLS), then the files in `supabase/migrations/` in name order; they are idempotent. `supabase/full_setup.sql` and `supabase/seed.sql` are historical (the seed still points at Unsplash and Storage URLs): do not apply them. The production catalog lives in the production database, not in a seed file.
 
 Headset checks live in `port_verifications` (one row per check). Apply `supabase/migrations/20261008220000_port_verifications.sql` in the SQL editor on an existing project. The public API can only read `approved` rows. Browsers cannot insert.
 
