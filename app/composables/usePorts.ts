@@ -3,6 +3,7 @@ import { applyRecordedFeatures } from '~/data/recordedPortFeatures'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import type { Port } from '~/types/port'
 import { withCatalogFilterFields } from '~/lib/portOrigin'
+import { readCommunityScore } from '~/lib/communityReviews'
 
 /**
  * Fields the catalog cards, filters, sort, library rows, and in-app home use.
@@ -35,6 +36,8 @@ export const CATALOG_FILTER_SOURCE_COLUMNS = ['base_game_store', 'locomotion_typ
 
 const CATALOG_ROW_SELECT = `${CATALOG_PORT_SELECT}, ${CATALOG_FILTER_SOURCE_COLUMNS.join(', ')}`
 const CATALOG_SELECT = `${CATALOG_ROW_SELECT}, ports_install_count(installs, last_install_at)`
+/** Adds player report counts. Until its migration is applied this fails and CATALOG_SELECT is used. */
+const CATALOG_SCORED_SELECT = `${CATALOG_SELECT}, ports_community_score(total_reviews, works_great_count, needs_tweaks_count, cant_run_count)`
 
 function catalogRow(row: Port): Port {
   const { base_game_store: _store, locomotion_types: _locomotion, ...rest } = withCatalogFilterFields(row)
@@ -60,10 +63,13 @@ function readInstallCount(value: unknown): number {
   return Math.floor(n)
 }
 
-function attachInstallCount(row: Port & { ports_install_count?: unknown }, mediaBase: string): Port {
+type EmbeddedPortRow = Port & { ports_install_count?: unknown; ports_community_score?: unknown }
+
+function attachInstallCount(row: EmbeddedPortRow, mediaBase: string): Port {
   const installs = readInstallCount(row.ports_install_count)
-  const { ports_install_count: _embed, ...port } = row
-  return withLocalCover({ ...catalogRow(port as Port), installs }, mediaBase)
+  const community = readCommunityScore(row.ports_community_score)
+  const { ports_install_count: _embed, ports_community_score: _score, ...port } = row
+  return withLocalCover({ ...catalogRow(port as Port), installs, ...(community ? { community } : {}) }, mediaBase)
 }
 
 function mockPort(port: Port, mediaBase: string): Port {
@@ -80,6 +86,20 @@ export const usePorts = () => {
   const fetchPorts = async (): Promise<Port[]> => {
     if (isConfigured && client) {
       try {
+        const scored = await client
+          .from('ports')
+          .select(CATALOG_SCORED_SELECT)
+          .order('featured', { ascending: false })
+          .order('title', { ascending: true })
+
+        if (!scored.error && scored.data && scored.data.length > 0) {
+          return (scored.data as EmbeddedPortRow[]).map(row => attachInstallCount(row, mediaBase))
+        }
+
+        if (scored.error) {
+          console.warn('[QuestPorts] Catalog player reports unavailable, loading ports without them:', scored.error.message)
+        }
+
         const embedded = await client
           .from('ports')
           .select(CATALOG_SELECT)
@@ -87,7 +107,7 @@ export const usePorts = () => {
           .order('title', { ascending: true })
 
         if (!embedded.error && embedded.data && embedded.data.length > 0) {
-          return (embedded.data as Array<Port & { ports_install_count?: unknown }>).map(row => attachInstallCount(row, mediaBase))
+          return (embedded.data as EmbeddedPortRow[]).map(row => attachInstallCount(row, mediaBase))
         }
 
         if (embedded.error) {

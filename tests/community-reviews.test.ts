@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
+  COMMUNITY_TABLE_MIN,
+  communityTableLabel,
+  readCommunityScore,
   isValidUuid,
   getOrCreateDeviceId,
   getStoredUserVote,
@@ -179,3 +183,53 @@ describe('community playability reviews', () => {
   })
 })
 
+
+describe('player reports in the catalog table', () => {
+  it('reads the ports_community_score embed', () => {
+    expect(readCommunityScore([{ total_reviews: 6, works_great_count: 1, needs_tweaks_count: 3, cant_run_count: '2' }]))
+      .toEqual({ total: 6, worksGreat: 1, needsTweaks: 3, cantRun: 2 })
+    expect(readCommunityScore([])).toBeNull()
+    expect(readCommunityScore(null)).toBeNull()
+    expect(readCommunityScore([{ total_reviews: 0 }])).toBeNull()
+  })
+
+  it('labels a port only from the minimum, counting Works Great alone as working', () => {
+    expect(COMMUNITY_TABLE_MIN).toBe(5)
+    expect(communityTableLabel({ total: 4, worksGreat: 4, needsTweaks: 0, cantRun: 0 })).toBeNull()
+    expect(communityTableLabel(undefined)).toBeNull()
+    const label = communityTableLabel({ total: 8, worksGreat: 1, needsTweaks: 5, cantRun: 2 })
+    expect(label?.text).toBe('👍 1 of 8')
+    expect(label?.detail).toContain('5 Needs Tweaks')
+    expect(label?.detail).toContain("2 Couldn't Run")
+  })
+
+  it('embeds the counts in the catalog request and falls back without them', () => {
+    const ports = readFileSync(new URL('../app/composables/usePorts.ts', import.meta.url), 'utf8')
+    expect(ports).toContain('ports_community_score(total_reviews, works_great_count, needs_tweaks_count, cant_run_count)')
+    const scored = ports.indexOf('.select(CATALOG_SCORED_SELECT)')
+    const installs = ports.indexOf('.select(CATALOG_SELECT)')
+    expect(scored).toBeGreaterThan(-1)
+    expect(installs).toBeGreaterThan(scored)
+  })
+
+  it('shows the Players column on the table, not on the card', () => {
+    const index = readFileSync(new URL('../app/pages/index.vue', import.meta.url), 'utf8')
+    expect(index).toContain('>Players</th>')
+    expect(index).toContain('communityTableLabel(port.community)')
+    const card = readFileSync(new URL('../app/components/PortCard.vue', import.meta.url), 'utf8')
+    expect(card).not.toContain('communityTableLabel')
+    expect(card).not.toContain('port.community')
+  })
+
+  it('exposes counts only, through a security_invoker view', () => {
+    const sql = readFileSync(new URL('../supabase/migrations/20261102140000_port_community_scores.sql', import.meta.url), 'utf8')
+    expect(sql).toContain('security definer')
+    expect(sql).toContain("set search_path = ''")
+    expect(sql).toContain('with (security_invoker = true)')
+    expect(sql).toContain('where r.is_flagged is false')
+    expect(sql).toContain('create or replace function public.ports_community_score(port public.ports)')
+    const code = sql.replace(/--.*$/gm, '').replace(/comment on[\s\S]*?;/g, '')
+    expect(code).not.toMatch(/device_id|ip_hash/)
+    expect(sql).not.toMatch(/grant select on (table )?public\.port_community_summaries to anon/i)
+  })
+})

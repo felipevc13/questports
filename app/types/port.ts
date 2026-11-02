@@ -101,4 +101,14 @@ export interface Port {
    * or zero, not "installed on this headset".
    */
   installs?: number
+  /**
+   * Player reports from the port page (flagged rows excluded), all versions.
+   * Attached by the catalog query from port_community_scores. Missing means none.
+   */
+  community?: {
+    total: number
+    worksGreat: number
+    needsTweaks: number
+    cantRun: number
+  }
 }
