@@ -134,5 +134,10 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'freespace2-vr': ['freespace', 'freespace 2', 'fs2', 'fso', 'freespace open', 'descent freespace'],
   'wing-commander-vr': ['wing commander', 'wing commander 1', 'wing commander i', 'wc1', 'kilrathi'],
   'wing-commander-2-vr': ['wing commander 2', 'wing commander ii', 'wc2', 'vengeance of the kilrathi', 'kilrathi'],
-  'rvgl-vr': ['re-volt', 'revolt', 're volt', 'rvgl', 'rc car', 'rc racing']
+  'rvgl-vr': ['re-volt', 'revolt', 're volt', 'rvgl', 'rc car', 'rc racing'],
+  'pikmin-vr': ['pikmin', 'pikmin 1', 'project honeydew', 'honeydew', 'olimar', 'open nectar'],
+  'pikmin-2-vr': ['pikmin 2', 'pikmin ii', 'project honeydew 2', 'honeydew 2', 'louie'],
+  'outlaws-vr': ['outlaws', 'outlaws remastered', 'lucasarts outlaws', 'marshal james anderson', 'western'],
+  'star-wars-arcade-vr': ['star wars arcade', 'star wars 1983', 'atari star wars', 'swvr', 'star wars vector', 'trench run'],
+  'ultima-4-vr': ['ultima', 'ultima 4', 'ultima iv', 'quest of the avatar', 'ankh', 'ankh-vr', 'avatar']
 }

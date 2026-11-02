@@ -158,7 +158,12 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   're-code-veronica-x-vr',
   'rvgl-vr',
   'wing-commander-2-vr',
-  'wing-commander-vr'
+  'wing-commander-vr',
+  'outlaws-vr',
+  'pikmin-2-vr',
+  'pikmin-vr',
+  'star-wars-arcade-vr',
+  'ultima-4-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -659,5 +664,25 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // rvgl-vr
   'rvgl-vr': { start: '2:00' },
-  '5Ei_opWv9Yk': { start: '2:00' }
+  '5Ei_opWv9Yk': { start: '2:00' },
+
+  // pikmin-vr
+  'pikmin-vr': { start: '7:00' },
+  'AsJ8L9qx7MQ': { start: '7:00' },
+
+  // pikmin-2-vr
+  'pikmin-2-vr': { start: '0:40' },
+  'iCjkQ6TGWt0': { start: '0:40' },
+
+  // outlaws-vr
+  'outlaws-vr': { start: '2:00' },
+  'gjTwduLNMyk': { start: '2:00' },
+
+  // star-wars-arcade-vr
+  'star-wars-arcade-vr': { start: '6:30' },
+  'nJv94FPRddA': { start: '6:30' },
+
+  // ultima-4-vr
+  'ultima-4-vr': { start: '10:00' },
+  'Z9mnNK967Jo': { start: '10:00' }
 }

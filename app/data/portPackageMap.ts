@@ -1657,6 +1657,98 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'pikmin-vr': {
+    slug: 'pikmin-vr',
+    packageName: 'org.projecthoneydew.quest',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Pikmin (GameCube, USA Rev 1) disc image as a plain .iso or .gcm in /sdcard/Download/. The app imports it on first start; you can delete it afterwards. The APK is on projecthoneydew.com, not GitHub.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'pikmin_disc',
+        name: 'Pikmin disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        fileExtensionPattern: '\\.(iso|gcm)$',
+        description: 'Pikmin (USA Rev 1) .iso or .gcm in Download.'
+      }
+    ]
+  },
+  'pikmin-2-vr': {
+    slug: 'pikmin-2-vr',
+    packageName: 'org.projecthoneydew.honeydew2',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Pikmin 2 (GameCube, USA GPVE01 or Europe GPVP01) disc image as a plain .iso or .gcm in /sdcard/Download/. The app imports it on first start. The APK is on projecthoneydew.com, not GitHub.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'pikmin2_disc',
+        name: 'Pikmin 2 disc image',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        fileExtensionPattern: '\\.(iso|gcm)$',
+        description: 'Pikmin 2 (USA or Europe) .iso or .gcm in Download.'
+      }
+    ]
+  },
+  'outlaws-vr': {
+    slug: 'outlaws-vr',
+    packageName: 'com.outlawsvr.OutlawsUE',
+    installType: 'pc_builder_required',
+    workflowType: 'pc_assets',
+    pcToolName: 'Install on Quest.bat',
+    criticalFiles: [],
+    fileGuidance: 'Unzip the release into your Outlaws Remastered folder (the one with olgeo.lab) on a Windows PC and run Install on Quest.bat with the headset on USB. It converts the cutscenes and music and installs everything.',
+    sourceStoreName: 'Steam'
+  },
+  'star-wars-arcade-vr': {
+    slug: 'star-wars-arcade-vr',
+    packageName: 'com.cyberheater.starwars',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Start the app once so Android creates its folder, then copy your MAME starwars.zip, as it is, to /sdcard/Android/data/com.cyberheater.starwars/files/. If USB cannot list Android/data, confirm after copying.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Android/data/com.cyberheater.starwars/files/',
+    folders: [
+      {
+        id: 'swvr_roms',
+        name: 'Star Wars ROM set (starwars.zip)',
+        folderName: 'files',
+        targetPath: '/sdcard/Android/data/com.cyberheater.starwars/files/',
+        required: true,
+        acceptance: 'confirm',
+        expectedFiles: ['starwars.zip'],
+        description: 'starwars.zip directly inside Android/data/com.cyberheater.starwars/files/.'
+      }
+    ]
+  },
+  'ultima-4-vr': {
+    slug: 'ultima-4-vr',
+    packageName: 'com.SwivelChairGames.ANKHVR',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: ['AVATAR.EXE'],
+    fileGuidance: 'Copy the whole Ultima IV install folder (free on GOG) to /sdcard/Android/data/com.SwivelChairGames.ANKHVR/files/u4, so AVATAR.EXE is at files/u4/AVATAR.EXE. File names are case sensitive. If USB cannot list Android/data, confirm after copying.',
+    sourceStoreName: 'GOG',
+    targetPath: '/sdcard/Android/data/com.SwivelChairGames.ANKHVR/files/u4/',
+    folders: [
+      {
+        id: 'u4_files',
+        name: 'Ultima IV game folder',
+        folderName: 'u4',
+        targetPath: '/sdcard/Android/data/com.SwivelChairGames.ANKHVR/files/u4/',
+        required: true,
+        acceptance: 'confirm',
+        expectedFiles: ['AVATAR.EXE'],
+        description: 'The whole Ultima IV install folder, with AVATAR.EXE directly inside u4/.'
+      }
+    ]
+  },
   'freespace2-vr': {
     slug: 'freespace2-vr',
     packageName: 'com.bilko.fs2vr',
