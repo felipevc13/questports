@@ -153,7 +153,12 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'openxvt-vr',
   'openxw-vr',
   'supertuxkart-vr',
-  'xwing-revival-vr'
+  'xwing-revival-vr',
+  'freespace2-vr',
+  're-code-veronica-x-vr',
+  'rvgl-vr',
+  'wing-commander-2-vr',
+  'wing-commander-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -634,5 +639,25 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // supertuxkart-vr
   'supertuxkart-vr': { start: '2:00' },
-  'YZDw85U44xo': { start: '2:00' }
+  'YZDw85U44xo': { start: '2:00' },
+
+  // re-code-veronica-x-vr
+  're-code-veronica-x-vr': { start: '4:30' },
+  '_2-NZcCqmSs': { start: '4:30' },
+
+  // freespace2-vr
+  'freespace2-vr': { start: '7:00' },
+  '0SCT-YZp40A': { start: '7:00' },
+
+  // wing-commander-vr
+  'wing-commander-vr': { start: '10:00' },
+  'S4J_LRKo4LI': { start: '10:00' },
+
+  // wing-commander-2-vr
+  'wing-commander-2-vr': { start: '3:00' },
+  'ZpIMM-tpdTI': { start: '3:00' },
+
+  // rvgl-vr
+  'rvgl-vr': { start: '2:00' },
+  '5Ei_opWv9Yk': { start: '2:00' }
 }

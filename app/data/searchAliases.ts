@@ -129,5 +129,10 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'xwing-revival-vr': ['x-wing revival', 'xwing revival', 'xwr', 'raptor007', 'x wing', 'star wars x-wing'],
   'openxw-vr': ['x-wing', 'xwing', 'x wing', 'star wars x-wing', 'openxw', 'x-wing special edition', 'xw94', 'xw98'],
   'openxvt-vr': ['x-wing vs tie fighter', 'xvt', 'xwing vs tie', 'x wing vs tie fighter', 'balance of power', 'openxvt'],
-  'supertuxkart-vr': ['supertuxkart', 'super tux kart', 'stk', 'tux kart', 'tuxkart', 'kart']
+  'supertuxkart-vr': ['supertuxkart', 'super tux kart', 'stk', 'tux kart', 'tuxkart', 'kart'],
+  're-code-veronica-x-vr': ['code veronica', 'code veronica x', 'resident evil code veronica', 're cv', 'recv', 'recvx', 'cvx', 'biohazard code veronica', 'resident evil'],
+  'freespace2-vr': ['freespace', 'freespace 2', 'fs2', 'fso', 'freespace open', 'descent freespace'],
+  'wing-commander-vr': ['wing commander', 'wing commander 1', 'wing commander i', 'wc1', 'kilrathi'],
+  'wing-commander-2-vr': ['wing commander 2', 'wing commander ii', 'wc2', 'vengeance of the kilrathi', 'kilrathi'],
+  'rvgl-vr': ['re-volt', 'revolt', 're volt', 'rvgl', 'rc car', 'rc racing']
 }
