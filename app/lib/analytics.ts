@@ -1313,6 +1313,10 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const tip = tipClickProps(props)
     if (!tip) return null
     storedProps = tip
+  } else if (record.event === 'manual_download_click') {
+    // props.build names an "Other builds" download. Missing means the main port.
+    const build = cleanPortSlug(props?.build)
+    storedProps = build ? { build } : null
   } else if (record.event === 'base_game_click') {
     const click = baseGameClickProps(props)
     if (!click) return null
