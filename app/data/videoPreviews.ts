@@ -140,7 +140,12 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'rail-chase-2-vr',
   'teraburst-vr',
   'virtua-cop-2-vr',
-  'wwf-no-mercy-vr'
+  'wwf-no-mercy-vr',
+  'forsaken-vr',
+  'hotd4-special-vr',
+  'lets-go-jungle-vr',
+  'nfl-blitz-2000-vr',
+  'ratchet-and-clank-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -569,5 +574,25 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // wwf-no-mercy-vr
   'wwf-no-mercy-vr': { start: '5:00' },
-  'tFMdpnK-bg8': { start: '5:00' }
+  'tFMdpnK-bg8': { start: '5:00' },
+
+  // ratchet-and-clank-vr
+  'ratchet-and-clank-vr': { start: '3:00' },
+  'i4qKMyzYV3Q': { start: '3:00' },
+
+  // forsaken-vr
+  'forsaken-vr': { start: '1:00' },
+  'CqllMMsXv8c': { start: '1:00' },
+
+  // lets-go-jungle-vr
+  'lets-go-jungle-vr': { start: '3:00' },
+  'Tlf1P1Twl1Q': { start: '3:00' },
+
+  // hotd4-special-vr
+  'hotd4-special-vr': { start: '3:00' },
+  '9MDLHrvqX3M': { start: '3:00' },
+
+  // nfl-blitz-2000-vr
+  'nfl-blitz-2000-vr': { start: '2:00' },
+  '_TRRrQVE-Mg': { start: '2:00' }
 }

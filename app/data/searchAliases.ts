@@ -116,5 +116,10 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'gran-turismo-3-vr': ['gt3', 'gt 3', 'gran turismo 3', 'gran turismo 3 a-spec', 'gt3 a spec', 'gt3 revisited', 'gt3r', 'ps2 gran turismo'],
   'wwf-no-mercy-vr': ['wwf no mercy', 'no mercy', 'wwe no mercy', 'wwf', 'wwe', 'wrestling', 'n64 wrestling'],
   'opentie-vr': ['tie fighter', 'star wars tie fighter', 'opentie', 'tie', 'star wars tie'],
-  'daggerfall-unity-vr': ['daggerfall', 'elder scrolls', 'elder scrolls 2', 'elder scrolls ii', 'tes2', 'dfu', 'dfu quest']
+  'daggerfall-unity-vr': ['daggerfall', 'elder scrolls', 'elder scrolls 2', 'elder scrolls ii', 'tes2', 'dfu', 'dfu quest'],
+  'ratchet-and-clank-vr': ['ratchet', 'ratchet and clank', 'r&c', 'rac', 'rerac', 'openrac', 'ratchet clank'],
+  'forsaken-vr': ['forsaken', 'forsakenx', 'forsaken 64', 'forsaken remastered'],
+  'lets-go-jungle-vr': ['lets go jungle', 'let\'s go jungle', 'lgj', 'island of spice', 'sega lindbergh', 'lindbergh'],
+  'hotd4-special-vr': ['house of the dead 4 special', 'hotd4 special', 'hotd4sp', 'hod4sp', 'hotd 4 special', 'sega lindbergh', 'lindbergh'],
+  'nfl-blitz-2000-vr': ['nfl blitz', 'blitz', 'blitz 2000', 'quest blitz', 'american football']
 }

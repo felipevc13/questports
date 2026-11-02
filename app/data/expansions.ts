@@ -433,6 +433,18 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'elf/hod4M.elf, fs, drv',
       instruction: 'Copy the elf, fs and drv folders into /sdcard/HouseOfTheDead4/ so the executable is at /sdcard/HouseOfTheDead4/elf/hod4M.elf'
     },
+    'hotd4-special-vr': {
+      folder: 'HouseOfTheDead4Special',
+      fullPath: '/sdcard/HouseOfTheDead4Special/',
+      exampleFiles: 'elf/hod4M.elf, fs',
+      instruction: 'Copy the elf and fs folders into /sdcard/HouseOfTheDead4Special/ so the executable is at /sdcard/HouseOfTheDead4Special/elf/hod4M.elf'
+    },
+    'lets-go-jungle-vr': {
+      folder: 'LetsGoJungle',
+      fullPath: '/sdcard/LetsGoJungle/',
+      exampleFiles: 'lgj_final, data, shader, extraShader',
+      instruction: 'Copy lgj_final and the data, shader and extraShader folders into /sdcard/LetsGoJungle/'
+    },
     'teraburst-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',
