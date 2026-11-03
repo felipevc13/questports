@@ -1840,6 +1840,76 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'wipeout-pure-vr': {
+    slug: 'wipeout-pure-vr',
+    packageName: 'online.portroyale.wipeoutpurevr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Start the app once so it creates its folder, then copy your own Wipeout Pure disc image (US Greatest Hits, UCUS-98612 v2.00, .iso) into /sdcard/Android/data/online.portroyale.wipeoutpurevr/files/import/. If USB cannot list Android/data, confirm the import in QuestPorts.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Android/data/online.portroyale.wipeoutpurevr/files/import/',
+    folders: [
+      {
+        id: 'wipeout_pure_import',
+        name: 'Disc image (import/)',
+        folderName: 'import',
+        targetPath: '/sdcard/Android/data/online.portroyale.wipeoutpurevr/files/import/',
+        required: true,
+        acceptance: 'confirm',
+        fileExtensionPattern: '\\.iso$',
+        description: 'Your own Wipeout Pure US Greatest Hits (UCUS-98612 v2.00) disc image.'
+      }
+    ]
+  },
+  'wc-saga-vr': {
+    slug: 'wc-saga-vr',
+    packageName: 'com.bilko.wcsagavr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: on first start the One-Tap Installer downloads the free Wing Commander Saga data (3.6 GB) to /sdcard/WCSaga/Wing_Commander_Saga. About 9 GB of free space is needed while it installs.',
+    sourceStoreName: 'Other'
+  },
+  'fotg-vr': {
+    slug: 'fotg-vr',
+    packageName: 'com.bilko.fotgvr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put the free Fate of the Galaxy data on the headset so that /sdcard/FotG/FotG_R/data holds tables, models and maps. On a PC, run get_fotg_data.py --push from the FotG-VR repo, or copy the data folder of a Knossos.NET install.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/FotG/FotG_R/',
+    folders: [
+      {
+        id: 'fotg_data',
+        name: 'Game data (FotG_R/data)',
+        folderName: 'data',
+        targetPath: '/sdcard/FotG/FotG_R/data/',
+        required: true,
+        acceptance: 'any-file',
+        description: 'The data folder of Fate of the Galaxy (tables, models, maps).'
+      }
+    ]
+  },
+  'openarena-vr': {
+    slug: 'openarena-vr',
+    packageName: 'com.bilko.openarenavr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: the game data is inside the APK (about 400 MB) and unpacks to /sdcard/OpenArenaVR on first start.',
+    sourceStoreName: 'Other'
+  },
+  'urbanterror-vr': {
+    slug: 'urbanterror-vr',
+    packageName: 'com.bilko.urtquest',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: on first start the app downloads the free Urban Terror 4.3.4 data (1.4 GB) to /sdcard/UrTQuest/q3ut4. Existing Urban Terror 4.3 data copied to /sdcard/UrTQuest/q3ut4 is reused.',
+    sourceStoreName: 'Other'
+  },
   'xwing-revival-vr': {
     slug: 'xwing-revival-vr',
     packageName: 'com.bilko.xwingrevivalvr',

@@ -139,5 +139,10 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'pikmin-2-vr': ['pikmin 2', 'pikmin ii', 'project honeydew 2', 'honeydew 2', 'louie'],
   'outlaws-vr': ['outlaws', 'outlaws remastered', 'lucasarts outlaws', 'marshal james anderson', 'western'],
   'star-wars-arcade-vr': ['star wars arcade', 'star wars 1983', 'atari star wars', 'swvr', 'star wars vector', 'trench run'],
-  'ultima-4-vr': ['ultima', 'ultima 4', 'ultima iv', 'quest of the avatar', 'ankh', 'ankh-vr', 'avatar']
+  'ultima-4-vr': ['ultima', 'ultima 4', 'ultima iv', 'quest of the avatar', 'ankh', 'ankh-vr', 'avatar'],
+  'wipeout-pure-vr': ['wipeout', 'wipeout pure', 'wipeout psp', 'wipEout pure', 'anti gravity racing', 'ag racing', 'psp racing'],
+  'wc-saga-vr': ['wing commander saga', 'wcs', 'wc saga', 'wing commander', 'darkest dawn', 'kilrathi', 'freespace open', 'fs2open'],
+  'fotg-vr': ['fate of the galaxy', 'fotg', 'star wars', 'star wars space combat', 'tie fighter', 'x-wing', 'xwing', 'freespace open', 'fs2open'],
+  'openarena-vr': ['openarena', 'open arena', 'oa', 'quake 3', 'quake iii', 'quake3', 'q3', 'arena shooter', 'ioquake3'],
+  'urbanterror-vr': ['urban terror', 'urt', 'ut4', 'urbanterror', 'frozensand', 'q3 tactical', 'tactical shooter', 'counter strike', 'cs']
 }

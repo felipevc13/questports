@@ -163,7 +163,12 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'pikmin-2-vr',
   'pikmin-vr',
   'star-wars-arcade-vr',
-  'ultima-4-vr'
+  'ultima-4-vr',
+  'wipeout-pure-vr',
+  'wc-saga-vr',
+  'fotg-vr',
+  'openarena-vr',
+  'urbanterror-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -684,5 +689,25 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // ultima-4-vr
   'ultima-4-vr': { start: '10:00' },
-  'Z9mnNK967Jo': { start: '10:00' }
+  'Z9mnNK967Jo': { start: '10:00' },
+
+  // wipeout-pure-vr
+  'wipeout-pure-vr': { start: '3:00' },
+  'mFOZDsTrw9s': { start: '3:00' },
+
+  // wc-saga-vr
+  'wc-saga-vr': { start: '2:00' },
+  '_78A7784kSQ': { start: '2:00' },
+
+  // fotg-vr
+  'fotg-vr': { start: '3:00' },
+  'Yy2Cr9rJHQ4': { start: '3:00' },
+
+  // openarena-vr
+  'openarena-vr': { start: '1:00' },
+  'BDeqjtsSnhw': { start: '1:00' },
+
+  // urbanterror-vr
+  'urbanterror-vr': { start: '2:00' },
+  'iF7uJmtLRZ0': { start: '2:00' }
 }
