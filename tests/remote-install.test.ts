@@ -312,6 +312,22 @@ describe('Send to Quest rules', () => {
       portSlug: 'questcraft',
       props: { surface: 'pair_modal', app_version: '1.0.4', min_app_version: '1.1.0' }
     })?.props).toEqual({ surface: 'pair_modal', app_version: '1.0.4', min_app_version: '1.1.0' })
+    expect(clientAnalyticsPayload('remote_pair_exit', {
+      portSlug: 'questcraft',
+      props: { action: 'get_app', typed: false }
+    })?.props).toEqual({ action: 'get_app', typed: 'false' })
+    expect(clientAnalyticsPayload('remote_pair_exit', {
+      portSlug: 'questcraft',
+      props: { action: 'closed', typed: 'true' }
+    })?.props).toEqual({ action: 'closed', typed: 'true' })
+    expect(clientAnalyticsPayload('remote_pair_exit', {
+      portSlug: 'questcraft',
+      props: { action: 'dismissed', typed: false }
+    })).toBeNull()
+    expect(clientAnalyticsPayload('remote_pair_exit', {
+      portSlug: 'questcraft',
+      props: { action: 'closed' }
+    })).toBeNull()
   })
 })
 
