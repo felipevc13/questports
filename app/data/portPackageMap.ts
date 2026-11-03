@@ -1168,12 +1168,6 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
   // Manifest package ids from the catalog APK (or the APK inside its zip), read
   // 2026-10-15. Without an entry the Quest app never calls isInstalled, so the
   // game stays out of Library. Each id belongs to one port.
-  '18-wheeler-vr': {
-    slug: '18-wheeler-vr',
-    packageName: 'com.flycast.emulator.wheeler18',
-    installType: 'apk_and_assets',
-    criticalFiles: []
-  },
   'age-of-joy': {
     slug: 'age-of-joy',
     packageName: 'com.curif.AgeOfJoy',
