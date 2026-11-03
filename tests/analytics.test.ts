@@ -135,7 +135,8 @@ describe('analytics allowlist', () => {
       'remote_status',
       'remote_app_outdated',
       'base_game_click',
-      'game_files_ready'
+      'game_files_ready',
+      'remote_pair_exit'
     ])
 
     for (const event of ANALYTICS_EVENTS) {
@@ -150,6 +151,7 @@ describe('analytics allowlist', () => {
       if (event === 'remote_pair_fail') body.props = { reason: 'invalid_code' }
       if (event === 'remote_status') body.props = { status: 'received' }
       if (event === 'remote_app_outdated') body.props = { surface: 'pair_modal' }
+      if (event === 'remote_pair_exit') body.props = { action: 'closed', typed: false }
       if (event === 'install_error') body.props = { reason: 'adb_fail' }
       if (event === 'install_step') body.props = { step: 'connect', status: 'start' }
       if (event === 'search') body.props = { q: 'doom', length: 4 }
@@ -234,7 +236,8 @@ describe('analytics allowlist', () => {
       'remote_pair_fail',
       'remote_request_created',
       'remote_status',
-      'remote_app_outdated'
+      'remote_app_outdated',
+      'remote_pair_exit'
     ]
     const appBannerEvents = [
       'banner_shown',
@@ -246,7 +249,7 @@ describe('analytics allowlist', () => {
       'app_page_view',
       'app_open'
     ]
-    const baseGameEvents = ['base_game_click', 'game_files_ready']
+    const baseGameEvents = ['base_game_click', 'game_files_ready', 'remote_pair_exit']
     const originalEvents = ANALYTICS_EVENTS.filter(event =>
       !['install_step', 'search_no_results', 'video_preview_play', 'tip_click', ...appBannerEvents, ...landingEvents, ...searchEvents, ...remoteEvents, ...baseGameEvents].includes(event)
     )
@@ -306,11 +309,23 @@ describe('analytics allowlist', () => {
       if (baseGameEvents.includes(event)) continue
       expect(remoteSql).toContain(`'${event}'`)
     }
+    const pairExitSql = readFileSync(
+      new URL('../supabase/migrations/20261103030000_analytics_remote_pair_exit.sql', import.meta.url),
+      'utf8'
+    )
+    for (const event of ANALYTICS_EVENTS) expect(pairExitSql).toContain(`'${event}'`)
+    expect(pairExitSql).toContain('drop constraint if exists analytics_events_event_check')
+    expect(pairExitSql).toContain('analytics_events_remote_pair_exit_check')
+    expect(pairExitSql).toContain("props->>'action' in ('get_app', 'closed')")
+    expect(pairExitSql).not.toMatch(/drop constraint if exists analytics_events_install_step_check/i)
     const baseGameSql = readFileSync(
       new URL('../supabase/migrations/20261102120000_analytics_base_game_and_files_ready.sql', import.meta.url),
       'utf8'
     )
-    for (const event of ANALYTICS_EVENTS) expect(baseGameSql).toContain(`'${event}'`)
+    for (const event of ANALYTICS_EVENTS) {
+      if (event === 'remote_pair_exit') continue
+      expect(baseGameSql).toContain(`'${event}'`)
+    }
     expect(baseGameSql).toContain('drop constraint if exists analytics_events_event_check')
     expect(baseGameSql).toContain('analytics_events_base_game_click_check')
     expect(baseGameSql).toContain("props->>'store' in ('steam', 'gog', 'store', 'info')")

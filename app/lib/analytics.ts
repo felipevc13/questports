@@ -42,7 +42,8 @@ export const ANALYTICS_EVENTS = [
   'remote_status',
   'remote_app_outdated',
   'base_game_click',
-  'game_files_ready'
+  'game_files_ready',
+  'remote_pair_exit'
 ] as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number]
@@ -216,6 +217,11 @@ export const REMOTE_APP_OUTDATED_SURFACES = ['pair_modal', 'paired', 'send'] as 
 
 export type RemoteAppOutdatedSurface = (typeof REMOTE_APP_OUTDATED_SURFACES)[number]
 
+/** How the pair modal ended without a pairing. `get_app` is the link to /app; `closed` is the X or a click outside. */
+export const REMOTE_PAIR_EXIT_ACTIONS = ['get_app', 'closed'] as const
+
+export type RemotePairExitAction = (typeof REMOTE_PAIR_EXIT_ACTIONS)[number]
+
 /** Which kind of link a base_game_click opened. `info` is a reference page, not a store. */
 export const BASE_GAME_STORES = ['steam', 'gog', 'store', 'info'] as const
 
@@ -261,7 +267,8 @@ const EVENTS_REQUIRING_SLUG: ReadonlySet<AnalyticsEventName> = new Set([
   'remote_status',
   'remote_app_outdated',
   'base_game_click',
-  'game_files_ready'
+  'game_files_ready',
+  'remote_pair_exit'
 ])
 
 /** One-click install of the QuestPorts app. Not a catalog port, so these events have no slug. */
@@ -1163,6 +1170,17 @@ function remoteStatusProps(
   return stored
 }
 
+function remotePairExitProps(
+  props: Record<string, unknown> | null
+): { action: RemotePairExitAction; typed: NeedsFilesProp } | null {
+  const action = props && typeof props.action === 'string' ? props.action : ''
+  if (!(REMOTE_PAIR_EXIT_ACTIONS as readonly string[]).includes(action)) return null
+  const value = props?.typed
+  const typed: NeedsFilesProp | null = value === true || value === 'true' ? 'true' : value === false || value === 'false' ? 'false' : null
+  if (!typed) return null
+  return { action: action as RemotePairExitAction, typed }
+}
+
 function remoteAppOutdatedProps(
   props: Record<string, unknown> | null
 ): { surface: RemoteAppOutdatedSurface; app_version?: string; min_app_version?: string } | null {
@@ -1269,6 +1287,10 @@ export function normalizeAnalyticsBody(body: unknown): NormalizedAnalyticsEvent 
     const outdated = remoteAppOutdatedProps(props)
     if (!outdated) return null
     storedProps = outdated
+  } else if (record.event === 'remote_pair_exit') {
+    const exit = remotePairExitProps(props)
+    if (!exit) return null
+    storedProps = exit
   } else if (record.event === 'page_view') {
     const landing = { ...campaignRefProps(props), ...pageLandingProps(props) }
     storedProps = Object.keys(landing).length ? landing : null

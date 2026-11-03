@@ -121,6 +121,24 @@
             <button type="button" class="text-muted-foreground hover:text-foreground" aria-label="Close" @click="closeModal">✕</button>
           </div>
           <p class="mt-1 text-xs leading-relaxed text-muted-foreground">One time. After this, Install via Wi-Fi works from this browser.</p>
+          <div
+            data-testid="pair-app-required"
+            class="mt-3 rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs leading-relaxed text-foreground"
+          >
+            <p class="font-semibold">You need the QuestPorts app on your Quest first.</p>
+            <p class="mt-1 text-muted-foreground">
+              The code comes from that app, so this won't work without it. It's free, and version
+              {{ REMOTE_INSTALL_MIN_APP_VERSION }} or newer. Already have it? Skip to step 1.
+            </p>
+            <NuxtLink
+              to="/app"
+              data-testid="pair-get-app"
+              class="mt-1 inline-flex min-h-11 items-center font-semibold text-primary underline md:min-h-0"
+              @click="trackPairExit('get_app')"
+            >
+              Get the QuestPorts app
+            </NuxtLink>
+          </div>
           <ol class="mt-3 list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-foreground">
             <li>Put on your headset and open the QuestPorts app.</li>
             <li>Open <span class="font-semibold">Remote install</span>. The app shows a 6-character code.</li>
@@ -173,9 +191,7 @@
             </NuxtLink>
           </div>
           <p class="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-            Don't have the app yet? It's free.
-            <NuxtLink to="/app" class="font-semibold text-primary underline">Get the QuestPorts app</NuxtLink>.
-            You can still install this port with the USB cable.
+            No app yet? You can still install this port with the USB cable.
           </p>
           <p v-if="justPaired && outdated" class="mt-3 text-center text-xs font-semibold text-amber-100">
             {{ REMOTE_APP_OUTDATED_TITLE }}
@@ -442,7 +458,17 @@ async function forget() {
   await remoteCall('pairing', { method: 'DELETE', token }).catch(() => null)
 }
 
+function trackPairExit(action: 'get_app' | 'closed') {
+  if (preview.value) return
+  track('remote_pair_exit', {
+    portSlug: props.slug,
+    path: `/ports/${props.slug}`,
+    props: { action, typed: codeDraft.value.length > 0 }
+  })
+}
+
 function closeModal() {
+  if (!justPaired.value) trackPairExit('closed')
   modalOpen.value = false
   justPaired.value = false
   errorMessage.value = ''

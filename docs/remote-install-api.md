@@ -9,6 +9,7 @@ Apply these files in the Supabase SQL editor after merge. Do not run them from C
 - `supabase/migrations/20261027050000_remote_install.sql`
 - `supabase/migrations/20261027050100_analytics_remote_install.sql`
 - `supabase/migrations/20261027113000_remote_device_accepting.sql` (`remote_devices.accepting_requests`, nullable)
+- `supabase/migrations/20261103030000_analytics_remote_pair_exit.sql` (`remote_pair_exit` event)
 
 Ready-made read queries are in `supabase/queries/remote_install.sql`.
 
@@ -272,6 +273,7 @@ New event names, tracked with the existing helper. Props are allowlisted. A new 
 | `remote_request_created` | Browser | `needs_files` `true`/`false` |
 | `remote_status` | Server, when the device changes status | `status` (`received`, `downloading`, `awaiting_confirm`, `installed`, `failed`, `cancelled`, `expired`), optional `reason`, `progress`, `seconds` |
 | `remote_app_outdated` | Browser | `surface`: `pair_modal`, `paired`, or `send`. Optional `app_version`, `min_app_version` |
+| `remote_pair_exit` | Browser | `action` `get_app` (opened the app link) or `closed` (X or click outside), `typed` `true`/`false` (a code was typed). Not sent after a successful pairing. Needs `20261103030000_analytics_remote_pair_exit.sql` |
 | `install_success` | Server, when status becomes `installed` | `method` `remote`, `needs_files` `true`/`false`, optional `seconds` |
 
 USB `install_success` rows stay unlabeled (`method` null). Queries treat `coalesce(props->>'method', 'usb') <> 'remote'` and `path <> '/app'` as USB. Progress-only `downloading` updates do not emit another `remote_status`.

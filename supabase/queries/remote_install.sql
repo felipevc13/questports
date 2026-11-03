@@ -85,3 +85,20 @@ from public.remote_install_requests r
 join public.remote_devices d on d.id = r.device_id
 group by 1, 2, 3
 order by 1, 2, 3;
+
+-- Pair modal outcomes: of the people who saw the code screen, how many paired, went to get the
+-- app, closed it (typed = a code was entered first), or failed a code. 'other' is the rest, such as
+-- a closed tab. Needs 20261103030000_analytics_remote_pair_exit.sql.
+select
+  device,
+  count(*) filter (where event = 'remote_pair_shown') as shown,
+  count(*) filter (where event = 'remote_pair_success') as paired,
+  count(*) filter (where event = 'remote_pair_exit' and props->>'action' = 'get_app') as went_to_get_app,
+  count(*) filter (where event = 'remote_pair_exit' and props->>'action' = 'closed' and props->>'typed' = 'false') as closed_no_code,
+  count(*) filter (where event = 'remote_pair_exit' and props->>'action' = 'closed' and props->>'typed' = 'true') as closed_with_code,
+  count(*) filter (where event = 'remote_pair_fail') as code_failed
+from public.analytics_events
+where event in ('remote_pair_shown', 'remote_pair_success', 'remote_pair_exit', 'remote_pair_fail')
+  and created_at > now() - interval '30 days'
+group by device
+order by shown desc;
