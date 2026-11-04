@@ -48,6 +48,28 @@ export const OTHER_BUILDS: Record<string, OtherBuild[]> = {
         'The first start shows loading dots for 1 to 2 minutes while it builds the game from your ROM.'
       ]
     }
+  ],
+  primedgun: [
+    {
+      id: 'primedgun-v2-native',
+      title: 'PrimedGun v2 (native)',
+      developer: 'Nobbie and iChris4',
+      developerUrl: 'https://github.com/iChris4',
+      repoUrl: 'https://github.com/iChris4/MetroidPrimePortVR',
+      apkUrl: 'https://github.com/iChris4/MetroidPrimePortVR/releases/download/v2.0.0-beta.7/PrimedGun-v2.0.0-beta.7-Quest.apk',
+      version: 'v2.0.0-beta.7',
+      releasedOn: '2026-11-01',
+      packageName: 'org.primedgun.v2',
+      hardware: ['Quest 3'],
+      pick: 'Metroid Prime as a native port, with no emulator: the same 6DOF arm cannon, room-scale movement and VR menu, plus a randomizer and Archipelago multiworld support. A new release almost every few days.',
+      caveat: 'Beta, tested on Quest 3 only. Dolphin save states do not carry over; its launcher can transfer a memory card or settings.',
+      steps: [
+        'Install the APK with SideQuest or adb. It installs next to PrimedGun; it does not replace it.',
+        'Copy your own Metroid Prime disc image (USA 1.00, 1.01 or 1.02; .iso, .nkit.iso, .rvz, .ciso or .wbfs) to the headset, for example in Download.',
+        'Open PrimedGun from Unknown Sources, tap Select Game, choose the disc image and tap Play.',
+        'To bring over progress, use Transfer PrimedGun Memory Card / Settings after choosing your game. Save normally in the game before moving.'
+      ]
+    }
   ]
 }
 
