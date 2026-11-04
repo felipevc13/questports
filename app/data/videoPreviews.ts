@@ -167,7 +167,9 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'wc-saga-vr',
   'fotg-vr',
   'openarena-vr',
-  'urbanterror-vr'
+  'urbanterror-vr',
+  'scud-race-vr',
+  'south-park-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -708,5 +710,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // urbanterror-vr
   'urbanterror-vr': { start: '2:00' },
-  'iF7uJmtLRZ0': { start: '2:00' }
+  'iF7uJmtLRZ0': { start: '2:00' },
+
+  // scud-race-vr
+  'scud-race-vr': { start: '0:20', end: '0:35' },
+  'r90VKyOhWvY': { start: '0:20', end: '0:35' },
+
+  // south-park-vr (original N64 gameplay: no Quest footage on YouTube yet)
+  'south-park-vr': { start: '20:00', end: '20:15' },
+  'xnINbs_mo9I': { start: '20:00', end: '20:15' }
 }

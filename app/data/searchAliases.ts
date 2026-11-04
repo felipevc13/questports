@@ -112,6 +112,8 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'rail-chase-2-vr': ['rail chase', 'rail chase 2', 'railchase', 'rchase2'],
   'behind-enemy-lines-vr': ['behind enemy lines', 'bel', 'sega behind enemy lines'],
   'mystical-ninja-vr': ['mystical ninja', 'goemon', 'ganbare goemon', 'goemon 64', 'mystical ninja starring goemon'],
+  'scud-race-vr': ['scud race', 'scud', 'sega scud race', 'port0r scud', 'model 3'],
+  'south-park-vr': ['south park', 'south park 64', 'southpark', 'sp64'],
   'sin-and-punishment-vr': ['sin and punishment', 'sin & punishment', 'snp', 'tsumi to batsu'],
   'gran-turismo-3-vr': ['gt3', 'gt 3', 'gran turismo 3', 'gran turismo 3 a-spec', 'gt3 a spec', 'gt3 revisited', 'gt3r', 'ps2 gran turismo'],
   'wwf-no-mercy-vr': ['wwf no mercy', 'no mercy', 'wwe no mercy', 'wwf', 'wwe', 'wrestling', 'n64 wrestling'],
