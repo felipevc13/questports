@@ -2587,6 +2587,47 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'scud-race-vr': {
+    slug: 'scud-race-vr',
+    packageName: 'io.port0r.scudrace',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'MAME 0.289 set scud.zip. The Port0r README says Download is the usual folder; the app also searches the rest of storage.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'scud_rom',
+        name: 'Scud Race ROM set',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['scud.zip'],
+        description: 'scud.zip (MAME 0.289). Leave it zipped.'
+      }
+    ]
+  },
+  'south-park-vr': {
+    slug: 'south-park-vr',
+    packageName: 'com.southpark.recompiled',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your South Park (USA) ROM (.z64, .n64 or .v64, any file name) on the headset, for example in /sdcard/Download/, and choose it in the start window on first launch.',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'south_park_rom',
+        name: 'South Park ROM',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(z64|n64|v64)$',
+        description: '.z64, .n64, or .v64. The start window copies it into the app once.'
+      }
+    ]
+  },
   'gran-turismo-3-vr': {
     slug: 'gran-turismo-3-vr',
     packageName: 'org.gt3revisited.gt3r',

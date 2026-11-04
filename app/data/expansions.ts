@@ -493,6 +493,18 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'Sin and Punishment .z64, .n64 or .v64',
       instruction: 'Put your Sin and Punishment ROM in Download, then choose it in the ROM window on first launch'
     },
+    'scud-race-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'scud.zip',
+      instruction: 'Put scud.zip (MAME 0.289) in Download and keep it zipped. The app also searches the rest of storage.'
+    },
+    'south-park-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'South Park (USA) .z64, .n64 or .v64',
+      instruction: 'Put your South Park (USA) ROM in Download, then choose it in the start window on first launch'
+    },
     'gran-turismo-3-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',
