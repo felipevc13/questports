@@ -499,6 +499,12 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'scud.zip',
       instruction: 'Put scud.zip (MAME 0.289) in Download and keep it zipped. The app also searches the rest of storage.'
     },
+    'metroid-prime-2-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Metroid Prime 2 - Echoes (USA).iso',
+      instruction: 'Put your Metroid Prime 2: Echoes disc image (.iso, .nkit.iso, .rvz, .ciso...) in Download, then pick it with Select Game'
+    },
     'south-park-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',

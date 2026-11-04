@@ -4777,5 +4777,83 @@ Highlights:
 > [!TIP]
 > Turn on **Options > Crosshairs** to see where your snowballs go. To play online, one player taps **Online co-op: host a room** and gives the friend the 4-digit code; the friend taps **Online co-op: join a room**. Both need the same version of the app.`,
     troubleshooting_notes: 'Version 0.1.0 is the first release. Known bugs: some polygons flicker or disappear in a few places (for example near Jimbo\'s), and the wrap-around screen looks softer than head aim. Online co-op is in beta, so expect some lag. If the start window refuses the ROM, it must be South Park (USA); other regions and hacks are not supported. Allow file access when the headset asks.'
+  },
+  {
+    id: '90',
+    slug: 'metroid-prime-2-vr',
+    title: 'PrimedGun Echoes (Metroid Prime 2 VR)',
+    developer: 'iChris4',
+    developer_url: 'https://github.com/iChris4',
+    short_description: 'Metroid Prime 2: Echoes in native VR on Quest, no emulator. Built from the PrimeDecomp decompilation with 6DOF arm cannon aiming, room-scale movement, beam and visor gestures, a 3D map and an in-headset settings panel. Alpha. Bring your own disc image.',
+    category: 'decompilation',
+    status: 'playable_beta',
+    install_workflow: 'emulator_roms',
+    cover_image_url: '/covers/metroid-prime-2-vr.jpg',
+    youtube_video_id: 'F710WBfa0sY',
+    supported_hardware: ['Quest 3'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Roomscale'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Metroid_Prime_2:_Echoes',
+    base_game_store: 'Requires your own copy (GameCube disc image, Metroid Prime 2: Echoes USA)',
+    port_download_url: 'https://github.com/iChris4/MetroidPrime2PortVR/releases/download/v1.0.0-alpha.4/PrimedGunEchoes-v1.0.0-alpha.4-Quest.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/iChris4/MetroidPrime2PortVR',
+    latest_version: 'v1.0.0-alpha.4',
+    last_github_update: '2026-11-02T03:22:52Z',
+    featured: false,
+    installation_guide: `### Overview
+**PrimedGun Echoes** is *Metroid Prime 2: Echoes* in native VR on standalone Meta Quest. It is not an emulator: it carries the VR layer of [PrimedGun v2](https://github.com/iChris4/MetroidPrimePortVR) onto [Echoes Unbound](https://github.com/Odrannnn/MetroidPrime2Port), Odrannnn's native port built from the PrimeDecomp decompilation. It keeps the controls of the original [PrimedGun](/ports/primedgun).
+
+**Install type: APK + your own disc image.**
+
+Highlights (v1.0.0-alpha.4):
+* 6DOF arm cannon tracking for aiming, grapple and lock-on, with left-handed play.
+* Room-scale movement, snap or smooth turning, one-click height calibration and an adjustable cannon position.
+* Beam wheel and visor gestures, a 3D map and the pause screens in the headset.
+* In-headset settings for controls, calibration and graphics, plus **Setup > Check for updates** inside the app.
+
+> [!WARNING]
+> **Alpha.** Expect rough edges and keep normal in-game saves. The Seeker Missile multi-lock, the Screw Attack camera and the turrets still use the original pad behaviour, and local multiplayer does not work in VR. Tested on Quest 3 only.
+
+> [!NOTE]
+> **No game data is included.** You need your own, legally owned disc image of Metroid Prime 2: Echoes. USA (\`G2ME01\`) is the tested release; PAL (\`G2MP01\`) and Metroid Prime Trilogy are experimental. Fan project, not affiliated with Nintendo.
+
+---
+
+### Prerequisites
+1. **Meta Quest 3** with Developer Mode enabled. The APK is about 31 MB.
+2. Your Echoes disc image: \`.iso\`, \`.nkit.iso\`, \`.gcm\`, \`.rvz\`, \`.wia\`, \`.ciso\` or \`.wbfs\`.
+
+---
+
+### Step-by-Step Installation
+
+#### 1. Install the APK
+Download **\`PrimedGunEchoes-v1.0.0-alpha.4-Quest.apk\`** via 1-click on QuestPorts or from [GitHub Releases](https://github.com/iChris4/MetroidPrime2PortVR/releases/tag/v1.0.0-alpha.4). Install it with SideQuest or:
+
+\`\`\`bash
+adb install -r PrimedGunEchoes-v1.0.0-alpha.4-Quest.apk
+\`\`\`
+
+The checksum is in \`SHA256SUMS.txt\` on the release page.
+
+#### 2. Put the disc image on the headset
+Copy the image to any folder you can reach, for example \`Download\`:
+
+\`\`\`bash
+adb push "Metroid Prime 2 - Echoes (USA).iso" /sdcard/Download/
+\`\`\`
+
+#### 3. First launch
+1. Open **Library**, set the filter to **Unknown sources** and start **PrimedGun Echoes**.
+2. Tap **Select Game** and choose your disc image.
+3. Tap **Play** to enter VR.
+4. In the game, click the right stick to set your height. Click the left stick to open or close the VR menu.
+5. Use **Calibration** to place the arm cannon, and the **Layout** tab to see the controller bindings.
+
+> [!TIP]
+> Install new versions over the old one and never uninstall, or you lose your saves. From alpha.4 the launcher has **Setup > Check for updates**, which downloads the APK, checks it and opens the Quest installer. **Import PrimedGun Settings** brings over your VR settings from PrimedGun v2 or the Dolphin PrimedGun. Game data is kept in \`/sdcard/Android/data/org.primedgun.echoes/files\`.`,
+    troubleshooting_notes: 'Alpha release: back up your saves, and make a normal in-game save before updating because alpha.3 save states are incompatible. Never uninstall to update; install the new APK over the old one. Select Game refuses the disc: USA (G2ME01) is the tested release, PAL and Trilogy are experimental, and a corrupt or partial image will not load. Seeker Missile multi-lock, the Screw Attack camera and the turrets keep the pad behaviour for now, and local multiplayer is not supported in VR. Tested on Quest 3 only.'
   }
 ]

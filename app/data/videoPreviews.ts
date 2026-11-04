@@ -169,7 +169,8 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'openarena-vr',
   'urbanterror-vr',
   'scud-race-vr',
-  'south-park-vr'
+  'south-park-vr',
+  'metroid-prime-2-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -718,5 +719,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // south-park-vr (original N64 gameplay: no Quest footage on YouTube yet)
   'south-park-vr': { start: '20:00', end: '20:15' },
-  'xnINbs_mo9I': { start: '20:00', end: '20:15' }
+  'xnINbs_mo9I': { start: '20:00', end: '20:15' },
+
+  // metroid-prime-2-vr (original GameCube gameplay: no Quest footage on YouTube yet)
+  'metroid-prime-2-vr': { start: '30:00', end: '30:15' },
+  'F710WBfa0sY': { start: '30:00', end: '30:15' }
 }

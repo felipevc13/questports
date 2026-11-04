@@ -2608,6 +2608,29 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'metroid-prime-2-vr': {
+    slug: 'metroid-prime-2-vr',
+    packageName: 'org.primedgun.echoes',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'PrimedGun Echoes needs your own Metroid Prime 2: Echoes GameCube disc image (USA G2ME01 is the tested release). The Quest file list accepts .iso (including .nkit.iso), .gcm, .rvz, .wia, .ciso and .wbfs. Put it anywhere you can reach, for example /sdcard/Download/, then choose it with Select Game in the launcher.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    romExtensions: ['.iso', '.gcm', '.rvz', '.wia', '.ciso', '.wbfs'],
+    romDirectories: ['/sdcard/Download/'],
+    folders: [
+      {
+        id: 'echoes_disc',
+        name: 'Metroid Prime 2: Echoes GameCube disc',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|gcm|rvz|wia|ciso|wbfs)$',
+        description: 'GameCube disc image (.iso, .nkit.iso, .gcm, .rvz, .wia, .ciso, .wbfs). Select Game copies it in.'
+      }
+    ]
+  },
   'south-park-vr': {
     slug: 'south-park-vr',
     packageName: 'com.southpark.recompiled',
