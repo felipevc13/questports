@@ -101,14 +101,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- LEFT HERO: Media Player + Feature Compatibility Matrix (7 Cols). Below lg the install card is first. -->
       <div class="order-2 space-y-3 lg:order-1 lg:col-span-7">
-        <div
-          class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl"
-          @mouseenter="armDetailPreview"
-          @mouseleave="stopDetailPreview"
-          @focusin="armDetailPreview"
-          @focusout="stopDetailPreview"
-          :tabindex="detailPreviewSource ? 0 : undefined"
-        >
+        <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-black shadow-2xl">
           <video
             v-if="detailPreviewPlaying && detailPreviewSource"
             ref="detailPreviewVideo"
@@ -120,6 +113,7 @@
             class="h-full w-full object-cover"
             data-testid="detail-preview-video"
             @play="onDetailPreviewPlaying"
+            @click="stopDetailPreview"
           />
           <iframe
             v-else-if="youtubeActive && youtubeClip"
@@ -155,16 +149,34 @@
               </span>
             </span>
           </button>
-          <img
-            v-else
-            :src="coverSrc"
-            :alt="port.title"
-            width="1280"
-            height="720"
-            class="w-full h-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
+          <template v-else>
+            <img
+              :src="coverSrc"
+              :alt="port.title"
+              width="1280"
+              height="720"
+              class="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <!-- The clip loads only after this click. Hover and focus never start it. -->
+            <button
+              v-if="detailPreviewSource"
+              type="button"
+              data-testid="detail-preview-play"
+              class="absolute inset-0 h-full w-full cursor-pointer"
+              :aria-label="`Play ${port.title} preview`"
+              @click="playDetailPreview"
+            >
+              <span class="absolute inset-0 flex items-center justify-center bg-black/25">
+                <span class="flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-black/80 text-white shadow-lg">
+                  <svg class="ml-1 h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </span>
+              </span>
+            </button>
+          </template>
         </div>
 
         <PortFeaturePanel :port="port" />
@@ -1707,7 +1719,7 @@ import {
   type InstallStep,
   type InstallStepStatus
 } from '~/lib/analytics'
-import { canHoverPreview, previewMp4Url, PREVIEW_HOVER_MS, youtubeClipForPort } from '~/data/videoPreviews'
+import { previewMp4Url, youtubeClipForPort } from '~/data/videoPreviews'
 import { versionedCoverUrl } from '~/data/coverUrl'
 import { useTrack } from '~/composables/useTrack'
 import { claimConnectOrigin } from '~/lib/connectOrigin'
@@ -2547,7 +2559,6 @@ const trackInstall = (
 const detailPreviewPlaying = ref(false)
 const detailPreviewVideo = ref<HTMLVideoElement | null>(null)
 const youtubeActive = ref(false)
-let detailPreviewTimer: ReturnType<typeof setTimeout> | null = null
 const mediaBase = computed(() => String(useRuntimeConfig().public.mediaBase || ''))
 const youtubeClip = computed(() => youtubeClipForPort({
   slug: port.value?.slug,
@@ -2567,19 +2578,12 @@ const coverSrc = computed(() => versionedCoverUrl(port.value?.cover_image_url, m
   || 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=1200&q=80')
 
 const stopDetailPreview = () => {
-  if (detailPreviewTimer) {
-    clearTimeout(detailPreviewTimer)
-    detailPreviewTimer = null
-  }
   detailPreviewPlaying.value = false
 }
 
-const armDetailPreview = () => {
-  if (!detailPreviewSource.value || !canHoverPreview()) return
-  if (detailPreviewTimer) clearTimeout(detailPreviewTimer)
-  detailPreviewTimer = setTimeout(() => {
-    detailPreviewPlaying.value = true
-  }, PREVIEW_HOVER_MS)
+const playDetailPreview = () => {
+  if (!detailPreviewSource.value) return
+  detailPreviewPlaying.value = true
 }
 
 watch(detailPreviewPlaying, async (playing) => {
@@ -2595,10 +2599,6 @@ watch(detailPreviewPlaying, async (playing) => {
 watch(() => port.value?.slug, () => {
   youtubeActive.value = false
   stopDetailPreview()
-})
-
-onUnmounted(() => {
-  if (detailPreviewTimer) clearTimeout(detailPreviewTimer)
 })
 
 const trackDetailPreview = () => {

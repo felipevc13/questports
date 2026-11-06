@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_MEDIA_BASE } from '../app/data/coverUrl'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
-import { AVAILABLE_VIDEO_PREVIEWS, GAME_VIDEO_PREVIEWS, hasVideoPreview, localVideoPreviewsEnabled, previewMp4Url, youtubeClipForPort, PREVIEW_HOVER_MS } from '../app/data/videoPreviews'
+import { AVAILABLE_VIDEO_PREVIEWS, GAME_VIDEO_PREVIEWS, hasVideoPreview, localVideoPreviewsEnabled, previewMp4Url, youtubeClipForPort } from '../app/data/videoPreviews'
 
 const PREVIEW_CLIPS: Array<[string, string, string, string]> = [
   ['sclerosis-vr', 'UpTDQZr0TWw', '36:20', '37:20'],
@@ -117,7 +117,6 @@ describe('local hover previews', () => {
     expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBe(
       `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4`
     )
-    expect(PREVIEW_HOVER_MS).toBe(400)
     expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBe(
       'https://cdn.example.com/previews/magic-carpet-vr.mp4'
     )
@@ -133,18 +132,22 @@ describe('local hover previews', () => {
     expect(youtubeClipForPort({ slug: 'hotd2-vr', youtubeId: null })).toBeNull()
   })
 
-  it('starts MP4s after a desktop hover, and from a touch Preview control that stays on the card', () => {
+  it('starts MP4s only from a Preview button, never from hover or focus', () => {
     const card = readFileSync('app/components/PortCard.vue', 'utf8')
     expect(card).toContain('preload="none"')
     expect(card).not.toContain('autoplay')
-    expect(card).toContain('if (!hasVideo.value || !canHoverPreview()) return')
-    expect(card).toContain('const stopPreview = () => {\n  if (!canHoverPreview()) return')
+    expect(card).not.toContain('@mouseenter')
+    expect(card).not.toContain('@mouseleave')
+    expect(card).not.toContain('@focusin')
+    expect(card).not.toContain('canHoverPreview')
+    expect(card).not.toContain('PREVIEW_HOVER_MS')
+    expect(card).not.toContain('hoverTimer')
     expect(card).toContain('onPreviewTap')
     expect(card).toContain('@click.stop.prevent="onPreviewTap"')
     expect(card).toContain("headerEl.value?.addEventListener('click', keepPreviewOnCard, true)")
     expect(card).toContain('event.preventDefault()')
     expect(card).toContain('event.stopPropagation()')
-    expect(card).toContain("!target.closest('.catalog-touch-preview')")
+    expect(card).toContain("!target.closest('.catalog-preview-btn')")
     expect(card).toContain('aria-label="Play preview"')
     expect(card).toContain('>Preview<')
     expect(card).toContain('aria-label="Close preview"')
@@ -152,15 +155,20 @@ describe('local hover previews', () => {
     expect(card).toContain('claimVideoPreviewPlay')
     expect(card).toContain("track('video_preview_play'")
     expect(card).toContain('v-if="hasVideo && !isPlayingPreview"')
-    expect(card).toContain('catalog-touch-preview absolute bottom-1.5 right-1.5')
-    expect(card).toContain('@media (hover: none), (pointer: coarse)')
-    expect(card).toContain('display: none')
-    expect(card).not.toMatch(/v-if="[^"]*canHoverPreview/)
+    expect(card).toContain('catalog-preview-btn absolute bottom-1.5 right-1.5')
+    // The button shows on every device now, so no media query hides it.
+    expect(card).not.toContain('@media (hover: none)')
+    expect(card).not.toContain('display: none')
     expect(card).toContain('const playing = !isPlayingPreview.value')
     const detail = readFileSync('app/pages/ports/[slug].vue', 'utf8')
     expect(detail).toContain('preload="none"')
     expect(detail).toContain('if (youtubeClip.value) return null')
     expect(detail).toContain('data-testid="youtube-lite"')
-    expect(detail).toContain('canHoverPreview')
+    expect(detail).toContain('data-testid="detail-preview-play"')
+    expect(detail).toContain('@click="playDetailPreview"')
+    expect(detail).not.toContain('armDetailPreview')
+    expect(detail).not.toContain('canHoverPreview')
+    expect(detail).not.toContain('PREVIEW_HOVER_MS')
+    expect(detail).not.toContain('@mouseenter="armDetailPreview"')
   })
 })
