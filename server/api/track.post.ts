@@ -1,6 +1,6 @@
 import { defineEventHandler, getRequestHeader, readBody, sendNoContent } from 'h3'
 import { analyticsRequestEvents } from '~/lib/analytics'
-import { clientIp } from '../utils/clientIp'
+import { clientIp, requestCountryHeader } from '../utils/clientIp'
 import { supabaseAdmin } from '../utils/supabaseAdmin'
 import { analyticsRateLimiter, decideAnalyticsRequest, type AnalyticsInsertRow } from '../utils/analytics'
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
         gpc: getRequestHeader(event, 'sec-gpc'),
         purpose: getRequestHeader(event, 'purpose'),
         secPurpose: getRequestHeader(event, 'sec-purpose'),
-        countryHeader: getRequestHeader(event, 'x-vercel-ip-country'),
+        countryHeader: requestCountryHeader(event),
         referrer: getRequestHeader(event, 'referer'),
         requestHost: getRequestHeader(event, 'x-forwarded-host') || getRequestHeader(event, 'host'),
         analyticsSalt: String(config.analyticsSalt || ''),
