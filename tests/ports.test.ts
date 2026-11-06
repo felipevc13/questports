@@ -171,6 +171,9 @@ describe('Port Package Map & Workflow Verification', () => {
     'wiicompiled-vr-plus': 'org.wiicompiled.quest',
     'wipeout-rewrite-vr': 'online.portroyale.wipeoutrewritevr',
     xelee: 'dev.melee.game',
+    'xonotic-vr': 'com.sgtbilko.xonoticquest',
+    'strikers-charged-vr': 'io.github.lancesweatpants.strikerscharged',
+    'lba2-vr': 'org.lbalab.lba2cc',
     'xrkart-64': 'com.n64vr.spaghettikart'
   }
 

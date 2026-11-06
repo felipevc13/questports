@@ -2631,6 +2631,58 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
       }
     ]
   },
+  'xonotic-vr': {
+    slug: 'xonotic-vr',
+    packageName: 'com.sgtbilko.xonoticquest',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'Nothing to copy: the Xonotic 0.8.6 game data is inside the APK (about 1.1 GB) and unpacks to /sdcard/XonoticVR (about 1.8 GB) on first start. Keep about 3 GB free.',
+    sourceStoreName: 'Other'
+  },
+  'strikers-charged-vr': {
+    slug: 'strikers-charged-vr',
+    packageName: 'io.github.lancesweatpants.strikerscharged',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'Put your own Mario Strikers Charged Wii disc image (USA R4QE01 revision 1, as .iso, .rvz or .wia) in /sdcard/Download/ and choose it with Choose game file in the app. Other regions and revisions do not work yet.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    romExtensions: ['.iso', '.rvz', '.wia'],
+    romDirectories: ['/sdcard/Download/'],
+    folders: [
+      {
+        id: 'strikers_charged_disc',
+        name: 'Mario Strikers Charged disc',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        fileExtensionPattern: '\\.(iso|rvz|wia)$',
+        description: 'Your own USA (R4QE01) revision 1 disc image as .iso, .rvz or .wia. Choose game file inside the app finds it.'
+      }
+    ]
+  },
+  'lba2-vr': {
+    slug: 'lba2-vr',
+    packageName: 'org.lbalab.lba2cc',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Copy the LBA2 data folder from your own GOG, Steam or retail copy (the folder with lba2.hqr, plus music, video and vox next to it) into /sdcard/lba2cc/. The game also finds it under a Common or CommonClassic subfolder. If the game cannot read it, allow All files access for the app in Quest Settings.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/lba2cc/',
+    folders: [
+      {
+        id: 'lba2_data',
+        name: 'LBA2 game data',
+        folderName: 'lba2cc',
+        targetPath: '/sdcard/lba2cc/',
+        required: true,
+        description: 'The LBA2 data folder from your own copy (lba2.hqr, music, video, vox...).'
+      }
+    ]
+  },
   'south-park-vr': {
     slug: 'south-park-vr',
     packageName: 'com.southpark.recompiled',

@@ -505,6 +505,18 @@ export function getDefaultFolderInfo(port: Port): {
       exampleFiles: 'Metroid Prime 2 - Echoes (USA).iso',
       instruction: 'Put your Metroid Prime 2: Echoes disc image (.iso, .nkit.iso, .rvz, .ciso...) in Download, then pick it with Select Game'
     },
+    'strikers-charged-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Mario Strikers Charged (USA).iso',
+      instruction: 'Put your Mario Strikers Charged disc image (USA R4QE01 revision 1, .iso, .rvz or .wia) in Download, then pick it with Choose game file'
+    },
+    'lba2-vr': {
+      folder: 'lba2cc',
+      fullPath: '/sdcard/lba2cc/',
+      exampleFiles: 'lba2.hqr',
+      instruction: 'Copy the LBA2 data folder from your own copy (lba2.hqr with music, video and vox next to it) into lba2cc'
+    },
     'south-park-vr': {
       folder: 'Download',
       fullPath: '/sdcard/Download/',
