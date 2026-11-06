@@ -170,7 +170,10 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'urbanterror-vr',
   'scud-race-vr',
   'south-park-vr',
-  'metroid-prime-2-vr'
+  'metroid-prime-2-vr',
+  'xonotic-vr',
+  'strikers-charged-vr',
+  'lba2-vr'
 ]
 
 /** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
@@ -723,5 +726,17 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // metroid-prime-2-vr (original GameCube gameplay: no Quest footage on YouTube yet)
   'metroid-prime-2-vr': { start: '30:00', end: '30:15' },
-  'F710WBfa0sY': { start: '30:00', end: '30:15' }
+  'F710WBfa0sY': { start: '30:00', end: '30:15' },
+
+  // xonotic-vr (desktop Xonotic duel gameplay: no Quest footage on YouTube yet)
+  'xonotic-vr': { start: '1:00', end: '1:15' },
+  'w-yJB0LtcFU': { start: '1:00', end: '1:15' },
+
+  // strikers-charged-vr (original Wii gameplay: no Quest footage on YouTube yet)
+  'strikers-charged-vr': { start: '3:00', end: '3:15' },
+  'qouu9d4fPxI': { start: '3:00', end: '3:15' },
+
+  // lba2-vr (original PC gameplay: no Quest footage on YouTube yet)
+  'lba2-vr': { start: '10:00', end: '10:15' },
+  'z6Ls3HKnBZM': { start: '10:00', end: '10:15' }
 }
