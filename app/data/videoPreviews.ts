@@ -176,13 +176,8 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'lba2-vr'
 ]
 
-/** Desktop hover/focus wait before an MP4 preview starts. Touch never starts one. */
-export const PREVIEW_HOVER_MS = 400
-
-export function canHoverPreview(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
-}
+// An MP4 preview never starts from hover or focus. Every request for a clip goes through the
+// media Worker and counts against the free Cloudflare quota, so it starts only from a Preview button.
 
 /**
  * MP4 previews stay off this origin unless a media base is set.
