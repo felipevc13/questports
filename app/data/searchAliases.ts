@@ -36,7 +36,7 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'citravr': ['citra', '3ds', 'nintendo 3ds'],
   'ppsspp-vr': ['ppsspp', 'psp', 'playstation portable'],
   'dolphinxr': ['dolphin', 'gamecube', 'game cube', 'wii'],
-  'winlatorxr': ['winlator', 'windows'],
+  'winlatorxr': ['winlator', 'windows', 'call of duty', 'cod', 'cod4', 'battlefield', 'bf1942', 'crysis', 'far cry', 'farcry', 'red faction', 'redfaction', 'trackmania'],
   'galaxyquest': ['mario galaxy', 'super mario galaxy', 'smg'],
   'primedgun': ['metroid prime', 'metroid'],
   'ocarina-of-time-vr': ['oot', 'ocarina', 'ocarina of time', 'zelda', 'tloz'],

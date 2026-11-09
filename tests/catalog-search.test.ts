@@ -123,6 +123,19 @@ describe('catalog search matches', () => {
     expect(searchCatalog(items, 'half life alyx')[0]?.via).toBe('text')
   })
 
+  it('matches winlatorxr for vr mods documented on its page', () => {
+    const items = [port('winlatorxr', 'WinlatorXR')]
+    expect(slugs('call of duty', items)).toEqual(['winlatorxr'])
+    expect(slugs('cod', items)).toEqual(['winlatorxr'])
+    expect(slugs('cod4', items)).toEqual(['winlatorxr'])
+    expect(slugs('battlefield', items)).toEqual(['winlatorxr'])
+    expect(slugs('bf1942', items)).toEqual(['winlatorxr'])
+    expect(slugs('crysis', items)).toEqual(['winlatorxr'])
+    expect(slugs('far cry', items)).toEqual(['winlatorxr'])
+    expect(slugs('red faction', items)).toEqual(['winlatorxr'])
+    expect(slugs('trackmania', items)).toEqual(['winlatorxr'])
+  })
+
   it('offers a close title only when the query nearly matches', () => {
     expect(slugs('wolfenstien')).toEqual(['rtcwquest'])
     const suggestions = closestCatalogPorts(CATALOG, 'marioo kart')
