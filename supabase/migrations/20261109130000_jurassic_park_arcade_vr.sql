@@ -57,20 +57,14 @@ The game renders onto a 4-meter-wide virtual cinema screen floating in full VR a
 
 ### Step-by-Step Build & Installation
 1. Clone the repository on your PC:
-   ```bash
-   git clone https://github.com/Lovecore/jurassic-park-arcade-quest.git
-   cd jurassic-park-arcade-quest
-   ```
+   `git clone https://github.com/Lovecore/jurassic-park-arcade-quest.git`
+   `cd jurassic-park-arcade-quest`
 2. Place your arcade game files in the expected directory as described in `tools/quest/README.md`.
 3. Run the automated lift and compilation script:
-   ```bash
-   sh tools/quest/build_apk.sh
-   ```
+   `sh tools/quest/build_apk.sh`
 4. Install the generated APK and push runtime data to the Quest over USB:
-   ```bash
-   sh tools/quest/install.sh
-   sh tools/quest/push_data.sh
-   ```
+   `sh tools/quest/install.sh`
+   `sh tools/quest/push_data.sh`
 5. Launch **Jurassic Park Arcade** from **App Library → Unknown Sources** on your headset.
 
 ---
