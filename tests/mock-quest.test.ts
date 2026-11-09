@@ -176,7 +176,7 @@ describe('catalog install card expectations', () => {
 
   it('treats the bundled-data ports as self-contained sideloads', () => {
     const selfContained = facts.filter(fact => fact.selfContained).map(fact => fact.slug).sort()
-    expect(selfContained).toEqual(['forsaken-vr', 'iron-lung-vr', 'openarena-vr', 'questcraft', 'rvgl-vr', 'supertuxkart-vr', 'time-crisis-vr', 'urbanterror-vr', 'vpinball-vr', 'wc-saga-vr', 'xonotic-vr', 'xwing-revival-vr'])
+    expect(selfContained).toEqual(['bugdom-2-vr', 'bugdom-vr', 'forsaken-vr', 'iron-lung-vr', 'openarena-vr', 'questcraft', 'rvgl-vr', 'supertuxkart-vr', 'time-crisis-vr', 'urbanterror-vr', 'vpinball-vr', 'wc-saga-vr', 'xonotic-vr', 'xwing-revival-vr'])
   })
 
   it('expects a send-files step for every game that is not self-contained', () => {

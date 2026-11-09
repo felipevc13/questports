@@ -17,6 +17,7 @@ logs
 *.log
 
 # Misc
+scripts/media/range-test/
 .DS_Store
 .fleet
 .idea

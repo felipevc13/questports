@@ -5059,5 +5059,132 @@ The README has a full controller map, spell chords and the VR zoom and screen op
 > [!TIP]
 > If an older build used a different signing key, the author's installer has a clean option (\`--clean\`). App-local saves can be lost, but the game data in \`/sdcard/lba2cc/\` is kept.`,
     troubleshooting_notes: 'Early release (v0.0.3, 5 Nov 2026) from a one-person fork that is updated almost daily. If the game cannot find its data, check that the folder with lba2.hqr is under /sdcard/lba2cc/ and that All files access is allowed. Keep backups of your saves before updating.'
+  },
+  {
+    id: '94',
+    slug: 'bugdom-vr',
+    title: 'Bugdom VR',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76',
+    short_description: 'The 1999 classic Pangea 3D action-adventure Bugdom rebuilt for Meta Quest with OpenXR, stereoscopic 3D, and Touch controls. Roll, kick, and fly as Rollie McFly to save the ladybugs.',
+    category: 'source_port',
+    status: 'playable_beta',
+    install_workflow: 'direct',
+    cover_image_url: '/covers/bugdom-vr.jpg',
+    youtube_video_id: '-leTy9bmmY0',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Third-person VR'],
+    has_6dof_controls: true,
+    internal_storage_path: 'N/A (game data is bundled in the APK)',
+    base_game_url: 'https://github.com/jorio/Bugdom',
+    base_game_store: 'Free (game data is bundled under CC BY-NC-SA 4.0)',
+    port_download_url: 'https://github.com/SgtBilko76/Bugdom/releases/download/v1.3.5-vr-beta1/Bugdom-VR-1.3.5-beta1.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/Bugdom',
+    latest_version: 'v1.3.5-vr-beta1',
+    last_github_update: '2026-10-01T11:26:07Z',
+    featured: false,
+    installation_guide: `### Overview
+**Bugdom VR** is the classic 1999 Pangea Software Macintosh action-adventure *Bugdom* updated for modern VR headsets by SgtBilko76 (Port Royale). You play as Rollie McFly, a pill bug on a quest to save the ladybugs from King Thorax's swarm.
+
+Built from Iliyas Jorio's modern source port (\`jorio/Bugdom\`) with an OpenXR VR backend, the port delivers stereoscopic 3D, 6DoF head tracking, a level-horizon chase camera, sRGB color handling, and full Touch controller input.
+
+**Install type: Direct APK (No PC needed).**
+
+> [!NOTE]
+> **Full game included.** The game assets are re-released under CC BY-NC-SA 4.0 with permission from Pangea Software, Inc., and are bundled directly inside the APK. No game data copy required.
+
+---
+
+### Prerequisites
+* Meta Quest 2, 3, 3S, or Pro with Developer Mode enabled.
+* About 100 MB of free storage.
+
+---
+
+### Step-by-Step Installation
+1. Sideload the APK via 1-click on QuestPorts or download \`Bugdom-VR-1.3.5-beta1.apk\` from GitHub Releases.
+2. Open **Library**, switch the filter to **Unknown Sources**, and launch **Bugdom**.
+3. Point with the right controller laser to navigate menus, then jump into the game.
+
+---
+
+### Controls
+| Control | Action |
+| --- | --- |
+| Left stick | Move / Roll |
+| Right stick | Snap turn (30°) |
+| Hold Right stick click (1s) | Recenter forward & eye height |
+| A | Jump |
+| B | Ball mode (roll) |
+| X or Right Trigger | Kick |
+| Y | Call buddy |
+| Menu button | Pause menu |
+| Right controller laser | Point & click in menus |`,
+    troubleshooting_notes: 'First beta release (v1.3.5-vr-beta1). Tested on Quest 3; Quest 2, 3S, and Pro are compatible. If the camera angle or height feels offset, hold the right stick click for 1 second to recenter.'
+  },
+  {
+    id: '95',
+    slug: 'bugdom-2-vr',
+    title: 'Bugdom 2 VR',
+    developer: 'SgtBilko76',
+    developer_url: 'https://github.com/SgtBilko76',
+    short_description: 'The 2002 sequel Bugdom 2 by Pangea Software brought to Meta Quest via OpenXR. Fly, swim, and buzz across giant 3D backyards as Skip the grasshopper in native stereoscopic VR.',
+    category: 'source_port',
+    status: 'playable_beta',
+    install_workflow: 'direct',
+    cover_image_url: '/covers/bugdom-2-vr.jpg',
+    youtube_video_id: 'RxfCzJINBjQ',
+    supported_hardware: ['Quest 2', 'Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Smooth Locomotion', 'Snap Turn', 'Third-person VR'],
+    has_6dof_controls: true,
+    internal_storage_path: 'N/A (game data is bundled in the APK)',
+    base_game_url: 'https://github.com/jorio/Bugdom2',
+    base_game_store: 'Free (game data is bundled under CC BY-NC-SA 4.0)',
+    port_download_url: 'https://github.com/SgtBilko76/Bugdom2/releases/download/v4.0.1-vr-beta1/Bugdom2-VR-4.0.1-beta1.apk',
+    port_download_source: 'GitHub Releases',
+    github_url: 'https://github.com/SgtBilko76/Bugdom2',
+    latest_version: 'v4.0.1-vr-beta1',
+    last_github_update: '2026-10-01T12:47:54Z',
+    featured: false,
+    installation_guide: `### Overview
+**Bugdom 2 VR** is the standalone Meta Quest port of Pangea Software's 2002 hit *Bugdom 2* by SgtBilko76 (Port Royale). You control Skip the grasshopper on a mission to track down the bully bee who stole your knapsack.
+
+Running natively via OpenXR from Iliyas Jorio's modern engine port (\`jorio/Bugdom2\`), this release features full 6DoF head tracking, stereoscopic 3D, a level-horizon chase camera, floating VR HUD, and immersive tunnel rides and balsa airplane sequences in VR.
+
+**Install type: Direct APK (No PC needed).**
+
+> [!NOTE]
+> **Full game included.** Game data is bundled inside the APK under CC BY-NC-SA 4.0 permission from Pangea Software, Inc. On first start, data unpacks automatically.
+
+---
+
+### Prerequisites
+* Meta Quest 2, 3, 3S, or Pro with Developer Mode enabled.
+* About 200 MB of free storage.
+
+---
+
+### Step-by-Step Installation
+1. Sideload the APK via 1-click on QuestPorts or download \`Bugdom2-VR-4.0.1-beta1.apk\` from GitHub Releases.
+2. Open **Library**, switch the filter to **Unknown Sources**, and launch **Bugdom 2**.
+3. First launch takes a few seconds longer while assets unpack.
+
+---
+
+### Controls
+| Control | Action |
+| --- | --- |
+| Left stick | Walk / Fly |
+| Right stick | Snap turn (30°) |
+| Hold Right stick click (1s) | Recenter forward & eye height |
+| Left stick click | Adjust camera distance |
+| A | Jump |
+| B | Pick up / Drop items |
+| X or Right Trigger | Kick |
+| Y | Launch buddy |
+| Menu button | Pause menu |
+| Grips | Previous / Next page in menus |`,
+    troubleshooting_notes: 'First beta release (v4.0.1-vr-beta1). First launch takes a few extra seconds while game assets unpack. Hold the right stick click for 1 second to recenter camera height and forward direction at any time.'
   }
 ]

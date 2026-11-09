@@ -2792,6 +2792,24 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'The arena2 folder pushed with adb. USB cannot list another app\'s Android/data folder, so confirm after the push.'
       }
     ]
+  },
+  'bugdom-vr': {
+    slug: 'bugdom-vr',
+    packageName: 'io.jor.bugdom',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The Bugdom VR APK bundles the full game data (CC BY-NC-SA 4.0). Sideload the APK and launch.',
+    sourceStoreName: 'Other'
+  },
+  'bugdom-2-vr': {
+    slug: 'bugdom-2-vr',
+    packageName: 'io.jor.bugdom2',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The Bugdom 2 VR APK bundles the full game data. Sideload the APK and launch.',
+    sourceStoreName: 'Other'
   }
 }
 

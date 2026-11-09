@@ -150,5 +150,7 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'wc-saga-vr': ['wing commander saga', 'wcs', 'wc saga', 'wing commander', 'darkest dawn', 'kilrathi', 'freespace open', 'fs2open'],
   'fotg-vr': ['fate of the galaxy', 'fotg', 'star wars', 'star wars space combat', 'tie fighter', 'x-wing', 'xwing', 'freespace open', 'fs2open'],
   'openarena-vr': ['openarena', 'open arena', 'oa', 'quake 3', 'quake iii', 'quake3', 'q3', 'arena shooter', 'ioquake3'],
-  'urbanterror-vr': ['urban terror', 'urt', 'ut4', 'urbanterror', 'frozensand', 'q3 tactical', 'tactical shooter', 'counter strike', 'cs']
+  'urbanterror-vr': ['urban terror', 'urt', 'ut4', 'urbanterror', 'frozensand', 'q3 tactical', 'tactical shooter', 'counter strike', 'cs'],
+  'bugdom-vr': ['bugdom', 'rollie mcfly', 'pangea', 'bugdom 1', 'bugdom vr'],
+  'bugdom-2-vr': ['bugdom 2', 'bugdom2', 'skip grasshopper', 'pangea', 'bugdom 2 vr']
 }
