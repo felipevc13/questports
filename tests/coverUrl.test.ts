@@ -65,29 +65,29 @@ describe('resolveCoverUrl', () => {
 
 describe('coverThumbUrl', () => {
   it('points local covers at a small generated thumbnail', () => {
-    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg?v=8')
-    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg?v=8')
+    expect(coverThumbUrl('/covers/doom3quest.jpg')).toBe('/covers/thumbs/doom3quest.jpg?v=9')
+    expect(coverThumbUrl('/covers/halocequest.jpg')).toBe('/covers/thumbs/halocequest.jpg?v=9')
   })
 
   it('versions covers and can load them from an external media base', () => {
-    expect(versionedCoverUrl('/covers/nolf-vr.png')).toBe('/covers/nolf-vr.png?v=8')
+    expect(versionedCoverUrl('/covers/nolf-vr.png')).toBe('/covers/nolf-vr.png?v=9')
     expect(versionedCoverUrl(
       'https://ccjteoxolasldhfgnoyx.supabase.co/storage/v1/object/public/port-covers/nolf-vr.png'
-    )).toBe('/covers/nolf-vr.png?v=8')
+    )).toBe('/covers/nolf-vr.png?v=9')
     expect(versionedCoverUrl('/covers/nolf-vr.png', 'https://cdn.example.com/')).toBe(
-      'https://cdn.example.com/covers/nolf-vr.png?v=8'
+      'https://cdn.example.com/covers/nolf-vr.png?v=9'
     )
     expect(coverThumbUrl('/covers/doom3quest.jpg', 'https://cdn.example.com')).toBe(
-      'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=8'
+      'https://cdn.example.com/covers/thumbs/doom3quest.jpg?v=9'
     )
   })
 
   it('keeps absolute media-host covers versioned without double-prefixing', () => {
     const db = `${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg`
-    expect(versionedCoverUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg?v=8`)
-    expect(versionedCoverUrl(db)).toBe('/covers/doom3quest.jpg?v=8')
-    expect(coverThumbUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/thumbs/doom3quest.jpg?v=8`)
-    expect(absoluteCoverUrl(db)).toBe('https://questports.com/covers/doom3quest.jpg?v=8')
+    expect(versionedCoverUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/doom3quest.jpg?v=9`)
+    expect(versionedCoverUrl(db)).toBe('/covers/doom3quest.jpg?v=9')
+    expect(coverThumbUrl(db, DEFAULT_MEDIA_BASE)).toBe(`${DEFAULT_MEDIA_BASE}/covers/thumbs/doom3quest.jpg?v=9`)
+    expect(absoluteCoverUrl(db)).toBe('https://questports.com/covers/doom3quest.jpg?v=9')
     // A value that already went through versionedCoverUrl stays stable.
     const once = versionedCoverUrl(db, DEFAULT_MEDIA_BASE)
     expect(versionedCoverUrl(once, DEFAULT_MEDIA_BASE)).toBe(once)
@@ -103,19 +103,19 @@ describe('coverThumbUrl', () => {
 describe('absoluteCoverUrl', () => {
   it('prefixes local covers for Open Graph', () => {
     expect(absoluteCoverUrl('/covers/nolf-vr.png')).toBe(
-      'https://questports.com/covers/nolf-vr.png?v=8'
+      'https://questports.com/covers/nolf-vr.png?v=9'
     )
   })
 
   it('keeps Open Graph covers on the site even when the file is on the media host', () => {
-    expect(absoluteCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/nolf-vr.png?v=9`)).toBe(
-      'https://questports.com/covers/nolf-vr.png?v=8'
+    expect(absoluteCoverUrl(`${DEFAULT_MEDIA_BASE}/covers/nolf-vr.png?v=8`)).toBe(
+      'https://questports.com/covers/nolf-vr.png?v=9'
     )
   })
 
   it('falls back to the cache-busted site card', () => {
     expect(absoluteCoverUrl(null)).toBe(
-      'https://questports.com/covers/questports-og.png?v=8'
+      'https://questports.com/covers/questports-og.png?v=9'
     )
   })
 })

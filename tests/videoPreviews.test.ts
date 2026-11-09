@@ -86,7 +86,7 @@ describe('local hover previews', () => {
     expect(AVAILABLE_VIDEO_PREVIEWS).toContain(slug)
     expect(GAME_VIDEO_PREVIEWS[slug]).toBeUndefined()
     expect(previewMp4Url({ slug, mediaBase: DEFAULT_MEDIA_BASE })).toBe(
-      `${DEFAULT_MEDIA_BASE}/previews/${slug}.mp4`
+      `${DEFAULT_MEDIA_BASE}/previews/${slug}.mp4?v=9`
     )
   })
 
@@ -112,13 +112,13 @@ describe('local hover previews', () => {
       mediaBase: ''
     })).toBeNull()
     expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: 'https://cdn.example.com/' })).toBe(
-      'https://cdn.example.com/previews/hotd2-vr.mp4'
+      'https://cdn.example.com/previews/hotd2-vr.mp4?v=9'
     )
     expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBe(
-      `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4`
+      `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4?v=9`
     )
     expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBe(
-      'https://cdn.example.com/previews/magic-carpet-vr.mp4'
+      'https://cdn.example.com/previews/magic-carpet-vr.mp4?v=9'
     )
   })
 
