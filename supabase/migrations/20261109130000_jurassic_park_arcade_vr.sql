@@ -36,22 +36,22 @@ insert into public.ports (
   'v1.0',
   '2026-10-21T18:00:00Z',
   false,
-  '### Overview
-**Jurassic Park Arcade on Meta Quest** is Raw Thrills'' hit 2015 light-gun rail shooter statically recompiled to C and built natively for Meta Quest. There is no emulator: the original x86 Linux binary (and 15 bundled libraries) was translated to C via static binary recompilation (`tools/recomp/lift.py`) and compiled with the Android NDK for ARM64.
+  $guide$### Overview
+**Jurassic Park Arcade on Meta Quest** is Raw Thrills' hit 2015 light-gun rail shooter statically recompiled to C and built natively for Meta Quest. There is no emulator: the original x86 Linux binary (and 15 bundled libraries) was translated to C via static binary recompilation (`tools/recomp/lift.py`) and compiled with the Android NDK for ARM64.
 
 The game renders onto a 4-meter-wide virtual cinema screen floating in full VR at a steady 72 fps, using the Touch controllers for precision gun aiming, trigger fire, and start buttons.
 
 **Install type: PC recompilation & build required.**
 
 > [!WARNING]
-> **No precompiled APK is distributed.** Because Raw Thrills'' *Jurassic Park Arcade* is commercial arcade software, the author cannot distribute prebuilt APK binaries. You must provide your own copy of the arcade game files and compile the APK on a PC using the project''s build scripts.
+> **No precompiled APK is distributed.** Because Raw Thrills' *Jurassic Park Arcade* is commercial arcade software, the author cannot distribute prebuilt APK binaries. You must provide your own copy of the arcade game files and compile the APK on a PC using the project's build scripts.
 
 ---
 
 ### Prerequisites
 1. **Meta Quest 2, 3, 3S, or Pro** with Developer Mode enabled.
 2. PC (Windows with Git Bash, Linux, or macOS) with Android SDK/NDK installed.
-3. Original arcade game files from Raw Thrills'' *Jurassic Park Arcade* (2015).
+3. Original arcade game files from Raw Thrills' *Jurassic Park Arcade* (2015).
 
 ---
 
@@ -84,10 +84,9 @@ The game renders onto a 4-meter-wide virtual cinema screen floating in full VR a
 | X | Player 2 Start |
 | Left thumbstick click | Recenter screen position |
 | Right thumbstick up / down | Resize screen (larger / smaller) |
-| Left trigger | Secondary input (grenade / special) |',
+| Left trigger | Secondary input (grenade / special) |$guide$,
   'Requires building the APK locally on a PC with Android NDK. The game files must be pushed to /sdcard/Android/data/com.jp2015.vr/files/game/ with push_data.sh. The game runs in Free Play mode by default so no coin input is required.'
 )
 on conflict (slug) do nothing;
 
 commit;
-
