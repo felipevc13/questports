@@ -19,7 +19,7 @@
  */
 
 const NO_PC_READY = new Set([
-  'armsx2-3d', 'behind-enemy-lines-vr', 'bomberman-hero-vr', 'carnevil-vr',
+  'armsx2-3d', 'behind-enemy-lines-vr', 'bomberman-hero-vr', 'bugdom-2-vr', 'bugdom-vr', 'carnevil-vr',
   'confidential-mission-vr', 'crisis-zone-vr', 'ctr-turbocharged-vr', 'daytona-usa-vr',
   'death-crimson-ox-vr', 'dirt-dash-vr', 'dolphinxr', 'f-zero-x-vr', 'forsaken-vr',
   'ghost-squad-evolution-vr', 'goldeneye-vr', 'gran-turismo-3-vr', 'gunblade-ny-vr',

@@ -39,6 +39,8 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'avp-vr',
   'beefraiderxr',
   'bomberman-hero-vr',
+  'bugdom-2-vr',
+  'bugdom-vr',
   'citravr',
   'confidential-mission-vr',
   'crazy-taxi-vr',
@@ -733,5 +735,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // lba2-vr (original PC gameplay: no Quest footage on YouTube yet)
   'lba2-vr': { start: '10:00', end: '10:15' },
-  'z6Ls3HKnBZM': { start: '10:00', end: '10:15' }
+  'z6Ls3HKnBZM': { start: '10:00', end: '10:15' },
+
+  // bugdom-vr
+  'bugdom-vr': { start: '1:00', end: '1:15' },
+  '-leTy9bmmY0': { start: '1:00', end: '1:15' },
+
+  // bugdom-2-vr
+  'bugdom-2-vr': { start: '0:30', end: '0:45' },
+  'RxfCzJINBjQ': { start: '0:30', end: '0:45' }
 }
