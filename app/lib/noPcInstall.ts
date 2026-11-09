@@ -35,7 +35,7 @@ const NO_PC_READY = new Set([
 ])
 
 const PC_REQUIRED = new Set([
-  'animal-crossing-vr', 'crazy-taxi-vr', 'fotg-vr', 'galaxyquest', 'gta-sa-vr-quest', 'magic-carpet-vr',
+  'animal-crossing-vr', 'crazy-taxi-vr', 'fotg-vr', 'galaxyquest', 'gta-sa-vr-quest', 'jurassic-park-arcade-vr', 'magic-carpet-vr',
   'openxwa-vr', 'outlaws-vr', 'red-dead-redemption-vr', 'starfox-enhanced-vr', 'starship-vr',
   'vice-city-vr-quest', 'victory-heat-rally-vr', 'wipeout-rewrite-vr'
 ])

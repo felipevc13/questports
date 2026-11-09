@@ -2810,6 +2810,17 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     criticalFiles: [],
     fileGuidance: 'The Bugdom 2 VR APK bundles the full game data. Sideload the APK and launch.',
     sourceStoreName: 'Other'
+  },
+  'jurassic-park-arcade-vr': {
+    slug: 'jurassic-park-arcade-vr',
+    packageName: 'com.jp2015.vr',
+    installType: 'pc_builder_required',
+    workflowType: 'smart_converter',
+    pcToolName: 'tools/quest/build_apk.sh',
+    criticalFiles: [],
+    fileGuidance: 'Raw Thrills\' Jurassic Park Arcade contains proprietary arcade code, so no precompiled APK is distributed. On a PC, the recompilation tools translate your arcade dump to C and compile the Quest APK with Android NDK.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Android/data/com.jp2015.vr/files/game/'
   }
 }
 

@@ -152,5 +152,6 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'openarena-vr': ['openarena', 'open arena', 'oa', 'quake 3', 'quake iii', 'quake3', 'q3', 'arena shooter', 'ioquake3'],
   'urbanterror-vr': ['urban terror', 'urt', 'ut4', 'urbanterror', 'frozensand', 'q3 tactical', 'tactical shooter', 'counter strike', 'cs'],
   'bugdom-vr': ['bugdom', 'rollie mcfly', 'pangea', 'bugdom 1', 'bugdom vr'],
-  'bugdom-2-vr': ['bugdom 2', 'bugdom2', 'skip grasshopper', 'pangea', 'bugdom 2 vr']
+  'bugdom-2-vr': ['bugdom 2', 'bugdom2', 'skip grasshopper', 'pangea', 'bugdom 2 vr'],
+  'jurassic-park-arcade-vr': ['jurassic park', 'jurassic park arcade', 'raw thrills', 'jp arcade', 'jp2015', 'jurassic park vr']
 }

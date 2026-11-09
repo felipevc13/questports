@@ -46,7 +46,7 @@ function downloadPath(url: string | null | undefined): string {
   try {
     return decodeURIComponent(new URL(trimmed).pathname)
   } catch {
-    return trimmed.split(/[?#]/)[0]
+    return trimmed.split(/[?#]/)[0] || ''
   }
 }
 
@@ -172,7 +172,18 @@ export const CRAZY_TAXI_INSTALL_STEPS: PatchOnlyStep[] = [
 ]
 
 /** Short install card. Same pattern as the GTA PC-builder card. The long steps stay in the page guide. */
-export const CRAZY_TAXI_PC_PATCH = {
+export interface PcPatchCard {
+  title: string
+  tag: string
+  body: string
+  href: string
+  buttonLabel: string
+  patchUrl?: string
+  patchLabel?: string
+  pageIntro?: string
+}
+
+export const CRAZY_TAXI_PC_PATCH: PcPatchCard = {
   title: 'Step 1: PC patch required',
   tag: 'PC Patch',
   body: 'SEGA removed Crazy Taxi from digital stores, so this project ships an XDelta patch instead of the game. On a PC, apply that patch to your own original Crazy Taxi Android file, then install the result on the headset over USB with SideQuest.',
@@ -183,8 +194,18 @@ export const CRAZY_TAXI_PC_PATCH = {
   pageIntro: 'The card above opens the project\'s README. The guide below is the full install text. QuestPorts does not install this port for you.'
 }
 
-export function pcPatchCardFor(slug: string | null | undefined): typeof CRAZY_TAXI_PC_PATCH | null {
-  return slug === CRAZY_TAXI_VR_SLUG ? CRAZY_TAXI_PC_PATCH : null
+export const JURASSIC_PARK_PC_BUILD: PcPatchCard = {
+  title: 'Step 1: PC build required',
+  tag: 'PC Recompilation',
+  body: 'Raw Thrills\' Jurassic Park Arcade contains proprietary arcade code, so no precompiled APK is distributed. On a PC, the recompilation tools translate your arcade dump to C and compile the Quest APK with Android NDK.',
+  href: 'https://github.com/Lovecore/jurassic-park-arcade-quest',
+  buttonLabel: 'Open Build Instructions (GitHub)'
+}
+
+export function pcPatchCardFor(slug: string | null | undefined): PcPatchCard | null {
+  if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_PC_PATCH
+  if (slug === 'jurassic-park-arcade-vr') return JURASSIC_PARK_PC_BUILD
+  return null
 }
 
 function manualInstallGuide(downloadUrl?: string | null, githubUrl?: string | null): PatchOnlyGuide {
