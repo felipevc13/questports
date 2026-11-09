@@ -46,7 +46,7 @@ describe('site-wide social preview', () => {
     expect(tags['og:image']).toBe(OG_IMAGE_URL)
     expect(tags['og:image:secure_url']).toBe(OG_IMAGE_URL)
     expect(tags['twitter:image']).toBe(OG_IMAGE_URL)
-    expect(OG_IMAGE_URL).toBe('https://questports.com/covers/questports-og.png?v=8')
+    expect(OG_IMAGE_URL).toBe('https://questports.com/covers/questports-og.png?v=9')
     expect(tags['og:image:width']).toBe(OG_IMAGE_WIDTH)
     expect(tags['og:image:height']).toBe(OG_IMAGE_HEIGHT)
     expect(tags['og:image:width']).toBe('1200')
@@ -81,7 +81,7 @@ describe('per-port social description', () => {
 
   it('keeps each port on its own cover', () => {
     const halo = portShareMeta('/covers/halocequest.jpg', 'Halo CE Quest VR')
-    expect(halo.image).toBe('https://questports.com/covers/halocequest.jpg?v=8')
+    expect(halo.image).toBe('https://questports.com/covers/halocequest.jpg?v=9')
     expect(halo.type).toBe('image/jpeg')
     expect(halo.width).toBeNull()
     expect(halo.height).toBeNull()
@@ -89,7 +89,7 @@ describe('per-port social description', () => {
     expect(halo.description).toContain('Install in one click from your browser.')
 
     const png = portShareMeta('/covers/nolf-vr.png', 'No One Lives ForeVR')
-    expect(png.image).toBe('https://questports.com/covers/nolf-vr.png?v=8')
+    expect(png.image).toBe('https://questports.com/covers/nolf-vr.png?v=9')
     expect(png.type).toBe('image/png')
     expect(png.width).toBeNull()
 

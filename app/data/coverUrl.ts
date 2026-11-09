@@ -4,11 +4,12 @@ const SITE_ORIGIN = 'https://questports.com'
 export const DEFAULT_MEDIA_BASE = 'https://questports-media.questports.workers.dev'
 const DEFAULT_OG = '/covers/questports-og.png'
 /** Bump when a cover file changes. Paired with a year-long immutable cache. */
-export const COVER_CACHE_VERSION = '8'
+export const COVER_CACHE_VERSION = '9'
 /** Cache-busted absolute URL for the site-wide 1200×630 share card. */
 export const DEFAULT_OG_URL = `${SITE_ORIGIN}${DEFAULT_OG}?v=${COVER_CACHE_VERSION}`
 /** SteamGridDB grid ids that stay hotlinked in the database, served from /covers. */
 const STEAMGRID_COVERS: Record<string, string> = {
+  '81ac44325cad613a824ba5787741f79b': '/covers/jurassic-park-arcade-vr.jpg',
   '7adb6a50e7687b45a00b35796f18f17d': '/covers/ut99vr.png',
   'efa57a13caff2c0bef9bb12e2e734d31': '/covers/sclerosis-vr.png',
   '5a3560a50c0cde4c41fc6e5bd431c1b4': '/covers/sega-rally-vr.png',

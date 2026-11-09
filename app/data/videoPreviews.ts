@@ -1,4 +1,4 @@
-import { prefixMediaBase } from './coverUrl'
+import { prefixMediaBase, withCoverVersion } from './coverUrl'
 
 /**
  * Video Preview Timestamps configuration for QuestPorts.
@@ -205,11 +205,11 @@ export function previewMp4Url(input: {
   if (custom) {
     if (/^https?:\/\//i.test(custom)) return custom
     const path = custom.startsWith('/') ? custom : `/${custom}`
-    return prefixMediaBase(path, base)
+    return prefixMediaBase(withCoverVersion(path), base)
   }
   const slug = input.slug?.trim()
   if (slug && AVAILABLE_VIDEO_PREVIEWS.includes(slug)) {
-    return prefixMediaBase(`/previews/${slug}.mp4`, base)
+    return prefixMediaBase(withCoverVersion(`/previews/${slug}.mp4`), base)
   }
   return null
 }
