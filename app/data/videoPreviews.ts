@@ -66,6 +66,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'hotd2-vr',
   'iron-lung-vr',
   'jkxr',
+  'jurassic-park-arcade-vr',
   'lambda1vr',
   'lupin-the-third-vr',
   'majoras-mask-vr',
@@ -742,6 +743,10 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
   '-leTy9bmmY0': { start: '1:00', end: '1:15' },
 
   // bugdom-2-vr
-  'bugdom-2-vr': { start: '0:30', end: '0:45' },
-  'RxfCzJINBjQ': { start: '0:30', end: '0:45' }
+  'bugdom-2-vr': { start: '2:35', end: '2:50' },
+  'RxfCzJINBjQ': { start: '2:35', end: '2:50' },
+
+  // jurassic-park-arcade-vr
+  'jurassic-park-arcade-vr': { start: '1:00', end: '1:15' },
+  'rDp0rKjrSYQ': { start: '1:00', end: '1:15' }
 }

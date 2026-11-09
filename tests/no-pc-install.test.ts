@@ -47,7 +47,7 @@ describe('noPcInstall', () => {
     const yes = mapped.filter(slug => noPcInstall(slug) === 'yes')
     const no = mapped.filter(slug => noPcInstall(slug) === 'no')
     expect(yes.length).toBe(70)
-    expect(no.length).toBe(14)
+    expect(no.length).toBe(15)
     expect(yes.filter(slug => no.includes(slug))).toEqual([])
     for (const slug of mapped) {
       if (PORT_PACKAGE_CONFIGS[slug].installType === 'pc_builder_required') expect(noPcInstall(slug)).toBe('no')
