@@ -2821,6 +2821,40 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     fileGuidance: 'Raw Thrills\' Jurassic Park Arcade contains proprietary arcade code, so no precompiled APK is distributed. On a PC, the recompilation tools translate your arcade dump to C and compile the Quest APK with Android NDK.',
     sourceStoreName: 'Other',
     targetPath: '/sdcard/Android/data/com.jp2015.vr/files/game/'
+  },
+  'umbrella-chronicles-vr': {
+    slug: 'umbrella-chronicles-vr',
+    packageName: 'org.uc.umbrellachronicles.vr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your own NTSC-U (RBUE08) disc image as a single .wbfs or .iso, plus a 16-byte common-key.bin, in /sdcard/UmbrellaChronicles/ (or /sdcard/Download/). Keep the key in the same folder as the image. .rvz, .ciso, .wia and split .wbf1 files are not read.',
+    sourceStoreName: 'Nintendo Wii Disc',
+    targetPath: '/sdcard/UmbrellaChronicles/',
+    altPaths: ['/sdcard/Download/'],
+    folders: [
+      {
+        id: 'uc_disc',
+        name: 'Umbrella Chronicles disc image (RBUE08)',
+        folderName: 'UmbrellaChronicles',
+        targetPath: '/sdcard/UmbrellaChronicles/',
+        altPaths: ['/sdcard/Download/'],
+        required: true,
+        fileExtensionPattern: '\\.(wbfs|iso)$',
+        description: 'North American disc image as one .wbfs or .iso file. Any file name works.'
+      },
+      {
+        id: 'uc_key',
+        name: 'Wii common key',
+        folderName: 'UmbrellaChronicles',
+        targetPath: '/sdcard/UmbrellaChronicles/',
+        altPaths: ['/sdcard/Download/'],
+        required: true,
+        expectedFiles: ['common-key.bin'],
+        acceptance: 'expected',
+        description: '16-byte common-key.bin, in the same folder as the image.'
+      }
+    ]
   }
 }
 

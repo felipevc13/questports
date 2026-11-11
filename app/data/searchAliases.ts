@@ -153,5 +153,6 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'urbanterror-vr': ['urban terror', 'urt', 'ut4', 'urbanterror', 'frozensand', 'q3 tactical', 'tactical shooter', 'counter strike', 'cs'],
   'bugdom-vr': ['bugdom', 'rollie mcfly', 'pangea', 'bugdom 1', 'bugdom vr'],
   'bugdom-2-vr': ['bugdom 2', 'bugdom2', 'skip grasshopper', 'pangea', 'bugdom 2 vr'],
-  'jurassic-park-arcade-vr': ['jurassic park', 'jurassic park arcade', 'raw thrills', 'jp arcade', 'jp2015', 'jurassic park vr']
+  'jurassic-park-arcade-vr': ['jurassic park', 'jurassic park arcade', 'raw thrills', 'jp arcade', 'jp2015', 'jurassic park vr'],
+  'umbrella-chronicles-vr': ['umbrella chronicles', 'resident evil umbrella chronicles', 're uc', 'reuc', 'ruc', 'biohazard umbrella chronicles', 'resident evil', 're wii', 'wii light gun', 'lightgun', 'ecliptic express']
 }
