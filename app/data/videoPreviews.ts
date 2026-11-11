@@ -111,6 +111,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'time-crisis-2-vr',
   'time-crisis-vr',
   'twilight-princess-vr',
+  'umbrella-chronicles-vr',
   'unreal-gold-vr',
   'ut99-vr-quest',
   'vice-city-vr-quest',
@@ -748,5 +749,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // jurassic-park-arcade-vr
   'jurassic-park-arcade-vr': { start: '1:00', end: '1:15' },
-  'rDp0rKjrSYQ': { start: '1:00', end: '1:15' }
+  'rDp0rKjrSYQ': { start: '1:00', end: '1:15' },
+
+  // umbrella-chronicles-vr
+  'umbrella-chronicles-vr': { start: '3:38', end: '3:53' },
+  'CSk3iaN37Rw': { start: '3:38', end: '3:53' }
 }
