@@ -5409,5 +5409,154 @@ Look around with your head. The left stick moves you where you look.
 
 In menus, point with the right controller and pull its trigger. The settings page has TURN (snap or smooth), SNAP ANGLE and TURN SPEED. L/R HAND swaps attack and block.`,
     troubleshooting_notes: 'Quest 3 and 3S only. Needs a PC (Windows or macOS) with about 40 GB free and your own Lunacid copy on Steam; there is no APK to download. If the setup stops, run the same line again. If it says the Quest is waiting to allow this computer, unplug the cable, put the headset on, plug it back in while wearing it and choose Allow USB debugging. If it says the game on the Quest was built on another computer (signed by another key), follow the back-up, uninstall, install and restore steps in the project README. The game data is an OBB in /sdcard/Android/obb/com.AkumaKira.LunacidVR/.'
+  },
+  {
+    id: '99',
+    slug: 'silent-scope-vr',
+    title: 'Silent Scope VR',
+    developer: 'vr4all-standalone',
+    developer_url: 'https://github.com/vr4all-standalone',
+    short_description: 'Dreamcast sniper shooter in standalone Quest VR. Hold a tracked sniper rifle with two hands, look through the live scope view in the eyepiece, zoom with the stick, and reload by hand on the AWP rifle. Built from your own disc.',
+    category: 'decompilation',
+    status: 'in_development',
+    cover_image_url: '/covers/silent-scope-vr.png',
+    youtube_video_id: 'u2KXT71UqwI',
+    supported_hardware: ['Quest 3', 'Quest 3S'],
+    locomotion_types: ['Seated', 'Standing'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/Download/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Silent_Scope',
+    base_game_store: 'Requires your own Dreamcast disc files (USA, V1.000)',
+    port_download_url: 'https://github.com/vr4all-standalone/silent-scope-vr/releases/download/v0.0.68/silent-scope-vr-quest.apk',
+    port_download_source: 'GitHub Release',
+    github_url: 'https://github.com/vr4all-standalone/silent-scope-vr',
+    latest_version: 'v0.0.68',
+    last_github_update: '2026-11-11T17:52:48Z',
+    featured: false,
+    installation_guide: `### Overview
+**Silent Scope VR** runs the Dreamcast version of Konami's sniper shooter natively on Meta Quest 3 / 3S as a standalone app (a VR build of the Flycast engine by VR4ALL). You hold a tracked sniper rifle and look through the game's live scope view inside the eyepiece. Pick an Arcade rifle (automatic reload) or an AWP Simulation rifle (a real bolt and magazine) from the two labelled positions in front of you.
+
+**Install type: APK plus your own disc files.** The APK contains no game, disc image or BIOS. You import your own Dreamcast disc files from inside the app.
+
+> [!WARNING]
+> **Experimental release (v0.0.68).** The APK is installed and checked on a Quest 3S and the startup is verified. A full physical-headset playthrough of the latest build, a continuous scored campaign and every end-of-round screen are not yet verified, and brief flat frames can appear during loading or view changes. Please report problems on the project's GitHub issues.
+
+---
+
+### What you need
+1. **Meta Quest 3 or 3S** with Developer Mode on.
+2. Your own **Silent Scope (USA), Dreamcast US V1.000** disc files, exactly these four files, extracted from any archive:
+   - \`Silent Scope (USA).cue\`
+   - \`Silent Scope (USA) (Track 1).bin\`
+   - \`Silent Scope (USA) (Track 2).bin\`
+   - \`Silent Scope (USA) (Track 3).bin\`
+3. The arcade ROM set and Silent Scope 2 use different game data and do not work.
+
+---
+
+### Step-by-step installation
+1. Download \`silent-scope-vr-quest.apk\` from the GitHub release and install it with \`adb install -r silent-scope-vr-quest.apk\`, or drag it onto SideQuest.
+2. Copy the four disc files to the headset (the \`Download\` folder is a good place).
+3. In the headset open **Library → Unknown Sources → Silent Scope - VR4ALL**.
+4. Choose **Choose disc files** and select the CUE and all three BIN tracks together. The app keeps a working copy in its own folder and validates it before starting VR.
+5. Read the introduction, grab either labelled rifle with Grip, and use B or Y to send the game's Start command.
+
+---
+
+### Updating
+Install a newer APK over the old one (\`adb install -r\`). Your game files, saves and settings stay.
+
+---
+
+### Controls (Touch controllers)
+
+| Control | Action |
+| --- | --- |
+| Firing-hand Grip | Pick up or release the rifle at its rear grip |
+| Support-hand Grip at the fore-end | Hold the rifle with two hands |
+| Release both grips | Return the rifle and show both rifle choices |
+| Trigger | Fire, or point and select in the original game menus |
+| B or Y | Native Start / Pause |
+| Hold A | Focus Mode for smaller aiming adjustments |
+| Right stick up / down | Native scope camera zoom (0.2x to 5x) |
+| Left Menu button | VR settings |
+| Left stick click | Recenter |
+| Right stick click | Toggle the laser |
+
+For left-handed play choose Left hand in VR settings. On the Simulation rifle, use a free hand's Trigger to grab the highlighted bolt (lift, pull back, push forward, close) and to swap the magazine when it is empty.`,
+    troubleshooting_notes: "Quest 3 and 3S; experimental. Needs your own Dreamcast US V1.000 Silent Scope disc: the .cue and all three .bin tracks, extracted from any archive, selected together in the app's file picker. Other regions, the arcade ROM set and Silent Scope 2 do not work. Install updates over the existing app to keep game files and saves. Brief flat frames can appear during loading or view changes."
+  },
+  {
+    id: '100',
+    slug: 'virtuatennis3-vr',
+    title: 'Virtua Tennis 3 VR',
+    developer: 'mrchrisster',
+    developer_url: 'https://github.com/mrchrisster',
+    short_description: "Sega's arcade Virtua Tennis 3 rebuilt for Quest: stand courtside in the full 3D stadium, or play Classic on a big virtual screen. Built on your PC from your own arcade copy.",
+    category: 'decompilation',
+    status: 'in_development',
+    cover_image_url: '/covers/virtuatennis3-vr.jpg',
+    youtube_video_id: 'HLOx7s2JFiw',
+    supported_hardware: ['Quest 3', 'Quest 3S', 'Quest Pro'],
+    locomotion_types: ['Seated', 'Standing'],
+    has_6dof_controls: true,
+    internal_storage_path: '/sdcard/VirtuaTennis3/',
+    base_game_url: 'https://en.wikipedia.org/wiki/Virtua_Tennis_3',
+    base_game_store: 'Requires your own Virtua Tennis 3 arcade game folder (Lindbergh)',
+    port_download_url: 'https://github.com/mrchrisster/virtuatennis3-vr',
+    port_download_source: 'GitHub Build Script',
+    github_url: 'https://github.com/mrchrisster/virtuatennis3-vr',
+    latest_version: 'v0.1.0',
+    last_github_update: '2026-11-14T16:48:04Z',
+    featured: false,
+    installation_guide: `### Overview
+**Virtua Tennis 3 VR** is a Meta Quest 3 / 3S / Pro port of Sega's arcade *Virtua Tennis 3* (Lindbergh, 2006). The game's x86 code is statically recompiled to C on your own computer and built against a runtime that stands in for the arcade cabinet. Nothing is emulated. Play **Classic** (the arcade picture on a big virtual screen) or **VR** (stand courtside in the full 3D stadium).
+
+**Install type: built on your own PC, from your own arcade game folder.** There is no APK to download: the app holds code translated from the game, so everyone builds their own. The project ships no game files.
+
+> [!WARNING]
+> **Early, experimental project.** The README says it was built and checked on macOS and not yet confirmed on the headset by the project, although the author's trailer shows it running on a Quest 3. Expect rough edges and report problems on the project's GitHub issues.
+
+---
+
+### What you need
+1. **Meta Quest 3, 3S or Pro** with Developer Mode on, and a USB-C data cable.
+2. Your own **Virtua Tennis 3 arcade game folder** (\`disk0\`, the one that holds \`vt3_Lindbergh/\`, \`shader/\` and \`lib/\`), including \`lib/libCg.so\`. The port is built against the \`vt3_Lindbergh_HD\` (1360x768) executable and the script checks its SHA-256. Rev. A or Rev. C dumps work.
+3. A **Mac or Windows PC** with Git, CMake, Ninja, Python 3.10+, a JDK 17+ (21 recommended) and the Android SDK with NDK 27 or 28. macOS also needs the Xcode command line tools.
+4. About 7 to 15 minutes for the first build (most of it the recompile).
+
+> [!WARNING]
+> Some \`vt3.bin\` dumps are cut short and leave 11 to 12 player model \`.efo\` files (James Blake and Mario Ancic) empty or damaged. The build stops by default. If you bypass the check, the game plays but crashes in tournaments when those players load. Replace those files from a complete copy.
+
+---
+
+### Step-by-step installation
+1. Install the build tools listed in the project README (macOS: Homebrew \`cmake ninja\`, \`openjdk@21\`, Android Studio's SDK Manager for the SDK and NDK; Windows: \`winget install Git.Git Kitware.CMake Ninja-build.Ninja Microsoft.OpenJDK.21 Python.Python.3.12\` plus the Android SDK).
+2. **Mac:**
+   \`git clone --recursive https://github.com/mrchrisster/virtuatennis3-vr.git\`, then \`cd virtuatennis3-vr\` and \`scripts/build-quest-from-my-copy.sh --install /path/to/disk0\`.
+3. **Windows (PowerShell):** clone the same way, then run \`.\\scripts\\build-quest-windows.ps1 -Install C:\\path\\to\\disk0\`.
+4. The script checks your game folder, builds the libraries, recompiles your copy, builds \`quest/VirtuaTennis3VR.apk\`, installs it and copies the game files the app reads to \`/sdcard/VirtuaTennis3/\` on the headset. Run it again after an update or a failure: finished steps are skipped. Use \`--check\` (Mac) or \`-Check\` (Windows) to only verify your tools and game folder.
+5. In the headset open **Library → Unknown Sources → Virtua Tennis 3 VR**.
+
+---
+
+### Updating
+Pull the repository and run the same script again. Settings and saves on the headset are left alone.
+
+---
+
+### Controls (Touch controllers, either hand)
+
+| Control | Action |
+| --- | --- |
+| Trigger | Top spin |
+| A / X | Slice |
+| B / Y | Lob |
+| Stick | Move |
+| Stick click | Start |
+| Left menu button | Settings panel |
+
+The settings panel switches between Classic and VR, and sets camera height, replays, sky, anti-aliasing, texture filtering, shadows, display rate and resolution per eye. It starts with settings tuned on a Quest 3; lower them on a Quest 3S or Pro if the frame rate drops. Progress saving is on by default (experimental).`,
+    troubleshooting_notes: "Experimental; needs a Mac or Windows PC to build, and your own Virtua Tennis 3 arcade folder (disk0 with vt3_Lindbergh/, shader/ and lib/libCg.so). No APK is distributed. The game files the app reads are copied to /sdcard/VirtuaTennis3/. A dump that requires the cabinet's security dongle check stops at start-up with 'Game Program Not Found'. Damaged player .efo models crash tournaments; replace them from a complete Rev. A or Rev. C copy. Lower the picture settings on a Quest 3S or Pro."
   }
 ]

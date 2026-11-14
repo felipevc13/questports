@@ -101,6 +101,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'rtcwquest',
   'sclerosis-vr',
   'sega-rally-vr',
+  'silent-scope-vr',
   'simpsonshitrun',
   'sin-and-punishment-vr',
   'sm64-coop-dx-vr',
@@ -118,6 +119,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'vice-city-vr-quest',
   'victory-heat-rally-vr',
   'virtua-cop-vr',
+  'virtuatennis3-vr',
   'wakerquest',
   'wave-race-64-vr',
   'wiicompiled-vr-plus',
@@ -758,5 +760,13 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // lunacid-vr
   'lunacid-vr': { start: '1:07', end: '1:22' },
-  'k4I-RJvP6mY': { start: '1:07', end: '1:22' }
+  'k4I-RJvP6mY': { start: '1:07', end: '1:22' },
+
+  // silent-scope-vr (original Dreamcast footage; no Quest recording yet)
+  'silent-scope-vr': { start: '6:10', end: '6:25' },
+  'u2KXT71UqwI': { start: '6:10', end: '6:25' },
+
+  // virtuatennis3-vr
+  'virtuatennis3-vr': { start: '0:12', end: '0:22' },
+  'HLOx7s2JFiw': { start: '0:12', end: '0:22' }
 }

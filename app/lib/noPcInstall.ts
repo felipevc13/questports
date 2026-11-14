@@ -37,7 +37,7 @@ const NO_PC_READY = new Set([
 const PC_REQUIRED = new Set([
   'animal-crossing-vr', 'crazy-taxi-vr', 'fotg-vr', 'galaxyquest', 'gta-sa-vr-quest', 'jurassic-park-arcade-vr', 'lunacid-vr', 'magic-carpet-vr',
   'openxwa-vr', 'outlaws-vr', 'red-dead-redemption-vr', 'starfox-enhanced-vr', 'starship-vr',
-  'vice-city-vr-quest', 'victory-heat-rally-vr', 'wipeout-rewrite-vr'
+  'vice-city-vr-quest', 'victory-heat-rally-vr', 'virtuatennis3-vr', 'wipeout-rewrite-vr'
 ])
 
 export type NoPcInstall = 'yes' | 'no' | 'unknown'
