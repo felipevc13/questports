@@ -68,6 +68,7 @@ export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'jkxr',
   'jurassic-park-arcade-vr',
   'lambda1vr',
+  'lunacid-vr',
   'lupin-the-third-vr',
   'majoras-mask-vr',
   'mario-party-4-partyboard',
@@ -753,5 +754,9 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // umbrella-chronicles-vr
   'umbrella-chronicles-vr': { start: '3:38', end: '3:53' },
-  'CSk3iaN37Rw': { start: '3:38', end: '3:53' }
+  'CSk3iaN37Rw': { start: '3:38', end: '3:53' },
+
+  // lunacid-vr
+  'lunacid-vr': { start: '1:07', end: '1:22' },
+  'k4I-RJvP6mY': { start: '1:07', end: '1:22' }
 }
