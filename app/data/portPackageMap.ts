@@ -2866,6 +2866,39 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     fileGuidance: 'No APK is distributed. On a Windows or Mac PC, the setup script takes your own Steam copy of Lunacid, builds the game with Unity and installs the APK and its OBB on the Quest over USB. Run the same line again to update; your saves stay.',
     sourceStoreName: 'Steam',
     targetPath: '/sdcard/Android/obb/com.AkumaKira.LunacidVR/'
+  },
+  'silent-scope-vr': {
+    slug: 'silent-scope-vr',
+    packageName: 'com.vrlightgunhub.silentscope',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Silent Scope (USA) Dreamcast V1.000 disc: the .cue and all three .bin tracks, extracted from any archive. Copy them to the headset (Download is fine), then pick the CUE and all three BINs together in the app. It keeps its own working copy.',
+    sourceStoreName: 'Dreamcast Disc',
+    targetPath: '/sdcard/Download/',
+    folders: [
+      {
+        id: 'silent_scope_disc',
+        name: 'Silent Scope (USA) Dreamcast disc',
+        folderName: 'Download',
+        targetPath: '/sdcard/Download/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['Silent Scope (USA).cue'],
+        description: 'Silent Scope (USA).cue and its three Track .bin files, to pick together in the app.'
+      }
+    ]
+  },
+  'virtuatennis3-vr': {
+    slug: 'virtuatennis3-vr',
+    packageName: 'org.lindbergh.vt3.vr',
+    installType: 'pc_builder_required',
+    workflowType: 'smart_converter',
+    pcToolName: 'scripts/build-quest-from-my-copy.sh / build-quest-windows.ps1',
+    criticalFiles: [],
+    fileGuidance: 'No APK is distributed. On a Mac or Windows PC, the build script recompiles your own Virtua Tennis 3 arcade folder (disk0) to C, builds the Quest APK and, with --install, copies the game files the app reads to /sdcard/VirtuaTennis3/ on the headset.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/VirtuaTennis3/'
   }
 }
 

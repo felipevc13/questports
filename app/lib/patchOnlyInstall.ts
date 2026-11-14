@@ -210,10 +210,19 @@ export const LUNACID_PC_BUILD: PcPatchCard = {
   buttonLabel: 'Open Setup Instructions (GitHub)'
 }
 
+export const VIRTUA_TENNIS_3_PC_BUILD: PcPatchCard = {
+  title: 'Step 1: PC build required',
+  tag: 'PC Recompilation',
+  body: 'Virtua Tennis 3 VR ships no game files and no APK. On a Mac or Windows PC, the build script recompiles your own arcade copy of the game to C, builds the Quest app and installs it over USB.',
+  href: 'https://github.com/mrchrisster/virtuatennis3-vr',
+  buttonLabel: 'Open Build Instructions (GitHub)'
+}
+
 export function pcPatchCardFor(slug: string | null | undefined): PcPatchCard | null {
   if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_PC_PATCH
   if (slug === 'jurassic-park-arcade-vr') return JURASSIC_PARK_PC_BUILD
   if (slug === 'lunacid-vr') return LUNACID_PC_BUILD
+  if (slug === 'virtuatennis3-vr') return VIRTUA_TENNIS_3_PC_BUILD
   return null
 }
 
