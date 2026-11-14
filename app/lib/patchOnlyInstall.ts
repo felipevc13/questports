@@ -202,9 +202,18 @@ export const JURASSIC_PARK_PC_BUILD: PcPatchCard = {
   buttonLabel: 'Open Build Instructions (GitHub)'
 }
 
+export const LUNACID_PC_BUILD: PcPatchCard = {
+  title: 'Step 1: PC build required',
+  tag: 'PC Build',
+  body: 'Lunacid VR ships no game files and no APK. On a Windows or Mac PC, one setup line takes your own Steam copy of Lunacid, builds the game with Unity and installs it on the Quest over USB.',
+  href: 'https://github.com/felipevc13/lunacid-vr',
+  buttonLabel: 'Open Setup Instructions (GitHub)'
+}
+
 export function pcPatchCardFor(slug: string | null | undefined): PcPatchCard | null {
   if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_PC_PATCH
   if (slug === 'jurassic-park-arcade-vr') return JURASSIC_PARK_PC_BUILD
+  if (slug === 'lunacid-vr') return LUNACID_PC_BUILD
   return null
 }
 

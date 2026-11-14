@@ -2855,6 +2855,17 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: '16-byte common-key.bin, in the same folder as the image.'
       }
     ]
+  },
+  'lunacid-vr': {
+    slug: 'lunacid-vr',
+    packageName: 'com.AkumaKira.LunacidVR',
+    installType: 'pc_builder_required',
+    workflowType: 'smart_converter',
+    pcToolName: 'lunacid_vr.py (setup.ps1 / setup.sh)',
+    criticalFiles: [],
+    fileGuidance: 'No APK is distributed. On a Windows or Mac PC, the setup script takes your own Steam copy of Lunacid, builds the game with Unity and installs the APK and its OBB on the Quest over USB. Run the same line again to update; your saves stay.',
+    sourceStoreName: 'Steam',
+    targetPath: '/sdcard/Android/obb/com.AkumaKira.LunacidVR/'
   }
 }
 
