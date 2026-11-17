@@ -5558,5 +5558,176 @@ Pull the repository and run the same script again. Settings and saves on the hea
 
 The settings panel switches between Classic and VR, and sets camera height, replays, sky, anti-aliasing, texture filtering, shadows, display rate and resolution per eye. It starts with settings tuned on a Quest 3; lower them on a Quest 3S or Pro if the frame rate drops. Progress saving is on by default (experimental).`,
     troubleshooting_notes: "Experimental; needs a Mac or Windows PC to build, and your own Virtua Tennis 3 arcade folder (disk0 with vt3_Lindbergh/, shader/ and lib/libCg.so). No APK is distributed. The game files the app reads are copied to /sdcard/VirtuaTennis3/. A dump that requires the cabinet's security dongle check stops at start-up with 'Game Program Not Found'. Damaged player .efo models crash tournaments; replace them from a complete Rev. A or Rev. C copy. Lower the picture settings on a Quest 3S or Pro."
+  },
+  {
+    id: "101",
+    slug: "bioshock-infinite-quest",
+    title: "BioShock Infinite Quest",
+    developer: "egomortal",
+    developer_url: "https://github.com/egomortal",
+    short_description: "BioShock Infinite running natively on Quest 3 in stereo VR: the Windows game is recompiled to ARM64, no PC streaming. A Windows installer converts your own Steam copy and sends it to the headset over USB.",
+    category: 'decompilation',
+    status: 'in_development',
+    cover_image_url: '/covers/bioshock-infinite-quest.png',
+    youtube_video_id: 'RcO4hM7w4bY',
+    supported_hardware: ["Quest 3"],
+    locomotion_types: ["Smooth Locomotion", "Seated", "Standing"],
+    has_6dof_controls: true,
+    internal_storage_path: "/sdcard/Android/data/com.bsiquest.game/",
+    base_game_url: "https://store.steampowered.com/app/8870/",
+    base_game_store: "Steam",
+    port_download_url: "https://github.com/egomortal/bsi-quest/releases/download/b142/BSI-Quest-Installer.zip",
+    port_download_source: "GitHub Release ZIP",
+    github_url: "https://github.com/egomortal/bsi-quest",
+    latest_version: "b142",
+    last_github_update: "2026-11-10T21:03:15Z",
+    featured: false,
+    installation_guide: `### Overview
+**BSI-Quest** is an unofficial project that runs *BioShock Infinite* natively on Meta Quest 3, in stereo VR or flat. The Windows game's x86 code is statically recompiled to ARM64 and runs on the project's own runtime (DXVK plus the Turnip Vulkan driver). Nothing is streamed from a PC while you play.
+
+**Install type: Windows installer plus your own Steam copy.** The APK holds only translated program code. The installer copies the game data from your PC to the headset over USB. The project ships no game files and has no DRM bypass.
+
+> [!WARNING]
+> **Early build (b142).** Quest 3 only. The installer checks for the exact Steam build of \`BioShockInfinite.exe\` and refuses other builds. GOG and Epic copies are not supported yet.
+
+---
+
+### What you need
+1. **Meta Quest 3** with Developer Mode on.
+2. A **Windows PC** and a USB cable.
+3. **BioShock Infinite installed from Steam.**
+
+---
+
+### Step-by-step installation
+1. Install BioShock Infinite from Steam on the PC.
+2. Connect the Quest by USB and accept the USB debugging prompt in the headset.
+3. Download \`BSI-Quest-Installer.zip\` from the latest (stable) GitHub release and unzip it.
+4. Double-click \`Install.bat\`. Choose install (or optimized settings), VR or Flat, and whether to include the DLC.
+5. If the installer cannot find the game, drag the BioShock Infinite game folder onto \`Install.bat\`.
+6. On the headset open **Library → Unknown Sources → BioShock Infinite**.
+
+\`Switch-Mode.bat\` switches between VR and Flat later, and \`Uninstall.bat\` removes the app. The release also attaches \`bsi-quest.apk\` and \`vulkan.ad07xx.so\` for the manual route described in the README.
+
+---
+
+### Folders on the Quest
+- \`/sdcard/Android/data/com.bsiquest.game/\`: game data copied by the installer.
+- \`/sdcard/BSI/\`: settings, the Vulkan driver and saves (\`/sdcard/BSI/user\`).
+- \`/sdcard/BSI/BioShock Infinite/\`: fallback game location if the app folder cannot be used.
+- \`/sdcard/BSI/grip.txt\` and \`/sdcard/BSI/vr_aim.txt\`: optional control settings.`,
+    troubleshooting_notes: "Quest 3 only; early build. Needs a Windows PC, a USB cable and the Steam build of BioShock Infinite: the installer rejects any other BioShockInfinite.exe, and GOG and Epic copies are not supported yet. If the game is not found, drag its folder onto Install.bat. Saves live in /sdcard/BSI/user. Use Switch-Mode.bat to change between VR and Flat."
+  },
+  {
+    id: "102",
+    slug: "futurama-quest",
+    title: "Futurama Quest",
+    developer: "mrchrisster",
+    developer_url: "https://github.com/mrchrisster",
+    short_description: "The 2003 Futurama game, rebuilt natively for Quest 3 from a C++ decompilation and shown as a stereoscopic 3D window over passthrough. Bring your own Xbox ISO.",
+    category: 'decompilation',
+    status: 'in_development',
+    cover_image_url: '/covers/futurama-quest.png',
+    youtube_video_id: 'VGxI-xH8VX8',
+    supported_hardware: ["Quest 3"],
+    locomotion_types: ["Seated", "Virtual Screen (stereo 3D)", "Mixed Reality (passthrough)"],
+    has_6dof_controls: false,
+    internal_storage_path: "/sdcard/Futurama/",
+    base_game_url: "https://en.wikipedia.org/wiki/Futurama_(video_game)",
+    base_game_store: "Requires your own copy of Futurama (Xbox, NTSC-U or PAL)",
+    port_download_url: "https://github.com/mrchrisster/futurama-quest/releases/download/v0.1.2/futurama-quest-v0.1.2.apk",
+    port_download_source: "GitHub Releases",
+    github_url: "https://github.com/mrchrisster/futurama-quest",
+    latest_version: "v0.1.2",
+    last_github_update: "2026-11-15T00:29:35Z",
+    featured: false,
+    installation_guide: `### Overview
+**Futurama Quest** runs the 2003 *Futurama* game natively on Meta Quest 3 (OpenXR and Vulkan). It is built from [Futurama-The-Game-The-Recomp](https://github.com/hiburn8/Futurama-The-Game-The-Recomp), a C++ decompilation of the original game. The game is shown in a stereoscopic 3D window floating over passthrough. It is not first-person VR.
+
+**Install type: APK plus your own Xbox disc image.** The APK contains no game data.
+
+> [!WARNING]
+> **Early release (v0.1.2).** Expect rough edges and report problems on the project's GitHub issues.
+
+---
+
+### What you need
+1. **Meta Quest 3** with Developer Mode on.
+2. Your own original Xbox **Futurama** disc (NTSC-U or PAL), as a \`.iso\` image or as extracted files (\`default.xbe\` plus its assets). Any filename matching \`*futurama*.iso\` works.
+
+---
+
+### Step-by-step installation
+1. Download \`futurama-quest-v0.1.2.apk\` from the GitHub release.
+2. Install it with SideQuest, Meta Quest Developer Hub or \`adb install -r futurama-quest-v0.1.2.apk\`.
+3. Copy your ISO (or the extracted files) to **one** of these folders on the headset:
+   - \`/sdcard/Futurama/\`
+   - \`/sdcard/Download/\`
+   - \`/sdcard/Android/data/com.futuramarecomp.app/files/\`
+4. Open **Library → Unknown Sources → Futurama**.`,
+    troubleshooting_notes: "Quest 3; early release. Shown as a stereoscopic 3D window over passthrough, not first-person VR. Needs your own Xbox Futurama disc (NTSC-U or PAL) as an ISO whose name contains \"futurama\", or as extracted files with default.xbe, in /sdcard/Futurama/, /sdcard/Download/ or the app's Android/data files folder."
+  },
+  {
+    id: "103",
+    slug: "silent-hill-vr",
+    title: "Silent Hill VR",
+    developer: "renangto15722-arch",
+    developer_url: "https://github.com/renangto15722-arch",
+    short_description: "The original 1999 Silent Hill as a standalone Quest 3 VR port: 6DoF head and hand tracking, roomscale, and weapons you draw from hip, chest and shoulder holsters. Bring your own USA disc.",
+    category: 'decompilation',
+    status: 'in_development',
+    cover_image_url: '/covers/silent-hill-vr.png',
+    youtube_video_id: 'jmQHxjxKQUk',
+    supported_hardware: ["Quest 3"],
+    locomotion_types: ["Smooth Locomotion", "Roomscale"],
+    has_6dof_controls: true,
+    internal_storage_path: "/sdcard/SilentHillVR/gamedata/",
+    base_game_url: "https://en.wikipedia.org/wiki/Silent_Hill_(video_game)",
+    base_game_store: "Requires your own copy of Silent Hill (PS1, USA, SLUS-00707)",
+    port_download_url: "https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone/releases/download/v0.1/SilentHillVR-Quest-0.1.apk",
+    port_download_source: "GitHub Releases",
+    github_url: "https://github.com/renangto15722-arch/Silent-Hill-1999-Quest-Standalone",
+    latest_version: "v0.1",
+    last_github_update: "2026-11-16T20:34:37Z",
+    featured: false,
+    installation_guide: `### Overview
+**Silent Hill VR** is a standalone Meta Quest 3 VR port of the original PlayStation *Silent Hill* (1999), based on the Silent Hill PC port and decompilation project. It runs on the headset with no PC and no streaming: 6DoF head and hand tracking with roomscale, hip, chest and shoulder holsters, and PGXP geometry and texture stabilisation. VR hands come from UltimateXR BigHands (MIT).
+
+**Install type: APK plus your own disc image.** No game files are distributed.
+
+> [!WARNING]
+> **Work in progress (v0.1 pre-release).** The first public build. Expect bugs and missing features, and report problems on the project's GitHub issues.
+
+---
+
+### What you need
+1. **Meta Quest 3** with Developer Mode on.
+2. Your own **Silent Hill (USA)** disc, SLUS-00707, as \`Silent Hill (USA).bin\` and \`Silent Hill (USA).cue\`.
+3. Optional: the HD texture pack (keep it zipped) and the HD maps linked from the project's README.
+
+---
+
+### Step-by-step installation
+1. Download \`SilentHillVR-Quest-0.1.apk\` from the GitHub release and install it with SideQuest or \`adb install\`.
+2. Copy \`Silent Hill (USA).bin\` and \`Silent Hill (USA).cue\` to \`/sdcard/SilentHillVR/gamedata/\`.
+3. Optional: put the zipped HD textures in \`/sdcard/SilentHillVR/gamedata/texturemods/\` and the HD map folders (such as \`TIM\`) in \`/sdcard/SilentHillVR/gamedata/load/\`.
+4. Open **Library → Unknown Sources → Silent Hill VR** and allow **All files access** when asked.
+
+On Windows, \`Install-SilentHillVR.bat\` from the release does the same over USB: it fetches adb from Google if needed, installs the APK, grants storage access and copies your files.
+
+Saves and logs stay in \`/sdcard/SilentHillVR\` after an uninstall.
+
+---
+
+### Controls (Touch controllers)
+
+| Control | Action |
+| --- | --- |
+| Trigger | Shoot or attack |
+| Grip near hip, chest or shoulder | Draw or holster a weapon |
+| Hold X | Item screen |
+| Hold Y | PC options |
+| Hold A (2 s) | Healing and map wheel |`,
+    troubleshooting_notes: "Quest 3; v0.1 work-in-progress pre-release. Needs your own USA disc (SLUS-00707) named Silent Hill (USA).bin and Silent Hill (USA).cue in /sdcard/SilentHillVR/gamedata/. Allow All files access on first launch or the game cannot read the disc. HD textures stay zipped in gamedata/texturemods/. Saves and logs in /sdcard/SilentHillVR survive an uninstall."
   }
 ]

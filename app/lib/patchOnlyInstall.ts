@@ -218,11 +218,20 @@ export const VIRTUA_TENNIS_3_PC_BUILD: PcPatchCard = {
   buttonLabel: 'Open Build Instructions (GitHub)'
 }
 
+export const BIOSHOCK_INFINITE_PC_INSTALL: PcPatchCard = {
+  title: 'Step 1: Windows installer required',
+  tag: 'PC Installer',
+  body: 'BioShock Infinite Quest ships no game files. On a Windows PC, Install.bat from BSI-Quest-Installer.zip finds your Steam copy of BioShock Infinite, installs the app and its Vulkan driver, and copies the game data to the Quest over USB.',
+  href: 'https://github.com/egomortal/bsi-quest',
+  buttonLabel: 'Open Installer Instructions (GitHub)'
+}
+
 export function pcPatchCardFor(slug: string | null | undefined): PcPatchCard | null {
   if (slug === CRAZY_TAXI_VR_SLUG) return CRAZY_TAXI_PC_PATCH
   if (slug === 'jurassic-park-arcade-vr') return JURASSIC_PARK_PC_BUILD
   if (slug === 'lunacid-vr') return LUNACID_PC_BUILD
   if (slug === 'virtuatennis3-vr') return VIRTUA_TENNIS_3_PC_BUILD
+  if (slug === 'bioshock-infinite-quest') return BIOSHOCK_INFINITE_PC_INSTALL
   return null
 }
 

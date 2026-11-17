@@ -34,6 +34,9 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  */
 export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
   'age-of-joy',
+  'bioshock-infinite-quest',
+  'futurama-quest',
+  'silent-hill-vr',
   'arx-libertatis-vr',
   'astroquest',
   'avp-vr',
@@ -768,5 +771,17 @@ export const GAME_VIDEO_PREVIEWS: Record<string, PreviewConfig> = {
 
   // virtuatennis3-vr
   'virtuatennis3-vr': { start: '0:12', end: '0:22' },
-  'HLOx7s2JFiw': { start: '0:12', end: '0:22' }
+  'HLOx7s2JFiw': { start: '0:12', end: '0:22' },
+
+  // bioshock-infinite-quest (original PC game footage; no Quest recording found)
+  'bioshock-infinite-quest': { start: '2:50', end: '3:00' },
+  'RcO4hM7w4bY': { start: '2:50', end: '3:00' },
+
+  // futurama-quest (original PS2 game footage; no Quest recording found)
+  'futurama-quest': { start: '8:00', end: '8:10' },
+  'VGxI-xH8VX8': { start: '8:00', end: '8:10' },
+
+  // silent-hill-vr (Quest 3 recording of this port, NotAGameAddict)
+  'silent-hill-vr': { start: '1:48', end: '2:00' },
+  'jmQHxjxKQUk': { start: '1:48', end: '2:00' }
 }

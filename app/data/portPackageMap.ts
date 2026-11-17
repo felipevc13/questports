@@ -2899,6 +2899,63 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
     fileGuidance: 'No APK is distributed. On a Mac or Windows PC, the build script recompiles your own Virtua Tennis 3 arcade folder (disk0) to C, builds the Quest APK and, with --install, copies the game files the app reads to /sdcard/VirtuaTennis3/ on the headset.',
     sourceStoreName: 'Other',
     targetPath: '/sdcard/VirtuaTennis3/'
+  },
+  'bioshock-infinite-quest': {
+    slug: 'bioshock-infinite-quest',
+    packageName: 'com.bsiquest.game',
+    installType: 'pc_builder_required',
+    workflowType: 'smart_converter',
+    pcToolName: 'BSI-Quest-Installer (Install.bat)',
+    criticalFiles: [],
+    fileGuidance: 'On a Windows PC, Install.bat from BSI-Quest-Installer.zip finds your Steam copy of BioShock Infinite (the exact Steam build), installs the APK and the Vulkan driver, and copies the game data to the Quest over USB. GOG and Epic copies are not supported yet.',
+    sourceStoreName: 'Steam',
+    targetPath: '/sdcard/Android/data/com.bsiquest.game/'
+  },
+  'futurama-quest': {
+    slug: 'futurama-quest',
+    packageName: 'com.futuramarecomp.app',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Xbox Futurama disc (NTSC-U or PAL) as an ISO whose filename contains "futurama", or as extracted files with default.xbe. Put it in /sdcard/Futurama/ (or Download, or the app\'s Android/data files folder).',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Futurama/',
+    folders: [
+      {
+        id: 'futurama_iso',
+        name: 'Futurama Xbox disc image',
+        folderName: 'Futurama',
+        targetPath: '/sdcard/Futurama/',
+        altPaths: ['/sdcard/Download/', '/sdcard/Android/data/com.futuramarecomp.app/files/'],
+        required: true,
+        acceptance: 'expected-or-extension',
+        expectedFiles: ['default.xbe'],
+        fileExtensionPattern: 'futurama.*\\.iso$',
+        description: 'Your Futurama ISO (any name with "futurama"), or default.xbe and its extracted files.'
+      }
+    ]
+  },
+  'silent-hill-vr': {
+    slug: 'silent-hill-vr',
+    packageName: 'com.sh1vr.quest',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Your own Silent Hill (USA) PS1 disc, SLUS-00707, as Silent Hill (USA).bin and Silent Hill (USA).cue in /sdcard/SilentHillVR/gamedata/. Allow All files access on first launch.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/SilentHillVR/gamedata/',
+    folders: [
+      {
+        id: 'silent_hill_disc',
+        name: 'Silent Hill (USA) disc',
+        folderName: 'gamedata',
+        targetPath: '/sdcard/SilentHillVR/gamedata/',
+        required: true,
+        acceptance: 'expected',
+        expectedFiles: ['Silent Hill (USA).cue', 'Silent Hill (USA).bin'],
+        description: 'Silent Hill (USA).bin and Silent Hill (USA).cue (SLUS-00707).'
+      }
+    ]
   }
 }
 
