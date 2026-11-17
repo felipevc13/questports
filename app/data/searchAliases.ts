@@ -157,5 +157,8 @@ export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
   'umbrella-chronicles-vr': ['umbrella chronicles', 'resident evil umbrella chronicles', 're uc', 'reuc', 'ruc', 'biohazard umbrella chronicles', 'resident evil', 're wii', 'wii light gun', 'lightgun', 'ecliptic express'],
   'lunacid-vr': ['lunacid', 'lunacid vr', 'kings field', "king's field", 'shadow tower', 'akuma kira', 'kira', 'dungeon crawler', 'souls like'],
   'silent-scope-vr': ['silent scope', 'silent scope vr', 'konami', 'sniper', 'sniper rifle', 'dreamcast sniper', 'vr4all silent scope'],
-  'virtuatennis3-vr': ['virtua tennis', 'virtua tennis 3', 'vt3', 'sega tennis', 'tennis', 'lindbergh', 'sega lindbergh']
+  'virtuatennis3-vr': ['virtua tennis', 'virtua tennis 3', 'vt3', 'sega tennis', 'tennis', 'lindbergh', 'sega lindbergh'],
+  'bioshock-infinite-quest': ['bioshock', 'bioshock infinite', 'bioshock infinite vr', 'bsi', 'bsi quest', 'columbia', 'irrational games', 'booker dewitt', 'elizabeth'],
+  'futurama-quest': ['futurama', 'futurama game', 'futurama the game', 'futurama xbox', 'futurama recomp', 'bender', 'planet express'],
+  'silent-hill-vr': ['silent hill', 'silent hill 1', 'silent hill 1999', 'sh1', 'sh1 vr', 'silent hill ps1', 'konami horror', 'survival horror']
 }
