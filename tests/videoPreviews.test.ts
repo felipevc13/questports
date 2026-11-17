@@ -46,7 +46,7 @@ describe('local hover previews', () => {
   })
 
   it('gives every ported game a hover MP4 file, so no card is left cover-only', () => {
-    expect(AVAILABLE_VIDEO_PREVIEWS).toHaveLength(148)
+    expect(AVAILABLE_VIDEO_PREVIEWS).toHaveLength(151)
     expect(new Set(AVAILABLE_VIDEO_PREVIEWS).size).toBe(AVAILABLE_VIDEO_PREVIEWS.length)
     for (const slug of AVAILABLE_VIDEO_PREVIEWS) {
       expect(existsSync(new URL(`../public/previews/${slug}.mp4`, import.meta.url)), slug).toBe(true)
@@ -86,7 +86,7 @@ describe('local hover previews', () => {
     expect(AVAILABLE_VIDEO_PREVIEWS).toContain(slug)
     expect(GAME_VIDEO_PREVIEWS[slug]).toBeUndefined()
     expect(previewMp4Url({ slug, mediaBase: DEFAULT_MEDIA_BASE })).toBe(
-      `${DEFAULT_MEDIA_BASE}/previews/${slug}.mp4?v=10`
+      `${DEFAULT_MEDIA_BASE}/previews/${slug}.mp4?v=11`
     )
   })
 
@@ -112,13 +112,13 @@ describe('local hover previews', () => {
       mediaBase: ''
     })).toBeNull()
     expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: 'https://cdn.example.com/' })).toBe(
-      'https://cdn.example.com/previews/hotd2-vr.mp4?v=10'
+      'https://cdn.example.com/previews/hotd2-vr.mp4?v=11'
     )
     expect(previewMp4Url({ slug: 'hotd2-vr', mediaBase: DEFAULT_MEDIA_BASE })).toBe(
-      `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4?v=10`
+      `${DEFAULT_MEDIA_BASE}/previews/hotd2-vr.mp4?v=11`
     )
     expect(previewMp4Url({ slug: 'magic-carpet-vr', mediaBase: 'https://cdn.example.com' })).toBe(
-      'https://cdn.example.com/previews/magic-carpet-vr.mp4?v=10'
+      'https://cdn.example.com/previews/magic-carpet-vr.mp4?v=11'
     )
   })
 

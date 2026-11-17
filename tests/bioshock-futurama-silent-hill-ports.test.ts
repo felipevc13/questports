@@ -4,6 +4,7 @@ import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { PORT_PACKAGE_CONFIGS } from '../app/data/portPackageMap'
 import { getDefaultFolderInfo } from '../app/data/expansions'
 import { searchCatalog } from '../app/lib/catalogSearch'
+import { AVAILABLE_VIDEO_PREVIEWS } from '../app/data/videoPreviews'
 import { noPcInstall } from '../app/lib/noPcInstall'
 import { isOneClickApkAsset, pcPatchCardFor, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
 
@@ -46,9 +47,12 @@ describe('BioShock Infinite, Futurama and Silent Hill ports', () => {
       expect(migration).toContain(row.installation_guide!)
     })
 
-    it('has no cover yet, in the mock row or the migration', () => {
-      expect(port(slug)?.cover_image_url).toBeNull()
-      expect(migration).not.toContain(`/covers/${slug}`)
+    it('has a SteamGridDB cover and a video preview, in the mock row and the migration', () => {
+      expect(port(slug)?.cover_image_url).toBe(`/covers/${slug}.png`)
+      expect(migration).toContain(`https://questports-media.questports.workers.dev/covers/${slug}.png`)
+      expect(port(slug)?.youtube_video_id).toBeTruthy()
+      expect(migration).toContain(`'${port(slug)?.youtube_video_id}'`)
+      expect(AVAILABLE_VIDEO_PREVIEWS).toContain(slug)
     })
   })
 

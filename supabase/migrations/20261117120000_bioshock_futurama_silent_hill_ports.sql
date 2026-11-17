@@ -5,8 +5,9 @@
 -- Silent Hill: package com.sh1vr.quest (README); v0.1 pre-release APK; player supplies own USA disc (SLUS-00707).
 -- Package ids come from each README, not yet read from the APK manifest (scripts/verify-apk-packages.mjs).
 --
--- cover_image_url is left null: the SteamGridDB capsules were not downloaded in this change.
--- Add them in a follow-up migration once public/covers has the files.
+-- Covers: SteamGridDB horizontal capsules in public/covers (upload to questports-media is a separate step).
+-- Videos: BioShock and Futurama use 2D footage of the original game (no Quest recording found);
+-- Silent Hill uses a Quest 3 recording of this port.
 --
 -- Apply manually in the Supabase SQL editor after merge.
 -- Do not run this from CI or against production from the agent.
@@ -27,8 +28,8 @@ insert into public.ports (
   'BioShock Infinite running natively on Quest 3 in stereo VR: the Windows game is recompiled to ARM64, no PC streaming. A Windows installer converts your own Steam copy and sends it to the headset over USB.',
   'decompilation',
   'in_development',
-  null,
-  null,
+  'https://questports-media.questports.workers.dev/covers/bioshock-infinite-quest.png',
+  'RcO4hM7w4bY',
   array['Quest 3'],
   array['Smooth Locomotion', 'Seated', 'Standing'],
   true,
@@ -85,8 +86,8 @@ insert into public.ports (
   'The 2003 Futurama game, rebuilt natively for Quest 3 from a C++ decompilation and shown as a stereoscopic 3D window over passthrough. Bring your own Xbox ISO.',
   'decompilation',
   'in_development',
-  null,
-  null,
+  'https://questports-media.questports.workers.dev/covers/futurama-quest.png',
+  'VGxI-xH8VX8',
   array['Quest 3'],
   array['Seated', 'Virtual Screen (stereo 3D)', 'Mixed Reality (passthrough)'],
   false,
@@ -133,8 +134,8 @@ insert into public.ports (
   'The original 1999 Silent Hill as a standalone Quest 3 VR port: 6DoF head and hand tracking, roomscale, and weapons you draw from hip, chest and shoulder holsters. Bring your own USA disc.',
   'decompilation',
   'in_development',
-  null,
-  null,
+  'https://questports-media.questports.workers.dev/covers/silent-hill-vr.png',
+  'jmQHxjxKQUk',
   array['Quest 3'],
   array['Smooth Locomotion', 'Roomscale'],
   true,
