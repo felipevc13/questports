@@ -1,5 +1,6 @@
 <template>
-  <div data-testid="patch-only-install" class="space-y-3 text-xs">
+  <Gt4ManualInstall v-if="route.params.slug === 'gran-turismo-4-vr'" />
+  <div v-else data-testid="patch-only-install" class="space-y-3 text-xs">
     <p class="text-[11px] leading-relaxed text-muted-foreground">{{ guide.lead }}</p>
     <ol v-if="guide.steps.length" class="space-y-3">
       <li v-for="(step, index) in guide.steps" :key="step.title" class="space-y-1.5">
@@ -51,7 +52,11 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+import Gt4ManualInstall from '~/components/Gt4ManualInstall.vue'
 import type { PatchOnlyGuide } from '~/lib/patchOnlyInstall'
+
+const route = useRoute()
 
 defineProps<{
   guide: PatchOnlyGuide
