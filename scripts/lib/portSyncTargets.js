@@ -9,7 +9,9 @@ import { pickPreferredReleaseDownload } from '../../server/utils/apkAssetPicker.
  *   skip       reason the port is not synced
  * @type {Record<string, { repo?: string, tagPrefix?: string, skip?: string }>}
  */
-export const SYNC_OVERRIDES = {}
+export const SYNC_OVERRIDES = {
+  'gran-turismo-4-vr': { skip: 'Online and Spec II use different APKs and disc images; review both releases manually' }
+}
 
 /**
  * owner/repo from a github.com URL, or null.
