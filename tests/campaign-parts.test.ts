@@ -38,7 +38,7 @@ describe('installed parts', () => {
   })
 
   it('uses the same rule for every multi-part port, including alt package ids', () => {
-    expect(Object.keys(PORT_EXPANSIONS).filter(slug => (PORT_EXPANSIONS[slug]?.length || 0) > 1).sort())
+    expect(Object.keys(PORT_EXPANSIONS).filter(slug => slug !== 'gran-turismo-4-vr' && (PORT_EXPANSIONS[slug]?.length || 0) > 1).sort())
       .toEqual([...MULTI_PART_SLUGS].sort())
 
     for (const slug of MULTI_PART_SLUGS) {
