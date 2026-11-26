@@ -162,7 +162,7 @@ describe('mock Quest device', () => {
     expect(buildPackageState('absent').packages.some(pkg => pkg.includes('rtcw'))).toBe(false)
     expect(buildPackageState('installed').packages).toContain('com.drbeef.rtcwquest')
     expect(buildPackageState('outdated').versions['com.JackRandolph.IronLungVR']).toBe('0.0.1')
-    expect(INITIAL_PORTS.length).toBe(buildPackageState('installed').packages.filter(pkg => !pkg.startsWith('com.oculus.')).length)
+    expect(INITIAL_PORTS.length - 1).toBe(buildPackageState('installed').packages.filter(pkg => !pkg.startsWith('com.oculus.')).length) // GT4 is intentionally manual.
   })
 })
 
@@ -171,12 +171,12 @@ describe('catalog install card expectations', () => {
 
   it('classifies every catalog game', () => {
     expect(facts).toHaveLength(INITIAL_PORTS.length)
-    expect(facts.every(fact => fact.installType !== 'missing')).toBe(true)
+    expect(facts.filter(fact => fact.installType === 'missing').map(fact => fact.slug)).toEqual(['gran-turismo-4-vr'])
   })
 
   it('treats the bundled-data ports as self-contained sideloads', () => {
     const selfContained = facts.filter(fact => fact.selfContained).map(fact => fact.slug).sort()
-    expect(selfContained).toEqual(['bugdom-2-vr', 'bugdom-vr', 'forsaken-vr', 'iron-lung-vr', 'openarena-vr', 'questcraft', 'rvgl-vr', 'supertuxkart-vr', 'time-crisis-vr', 'urbanterror-vr', 'vpinball-vr', 'wc-saga-vr', 'xonotic-vr', 'xwing-revival-vr'])
+    expect(selfContained).toEqual(['bugdom-2-vr', 'bugdom-vr', 'forsaken-vr', 'iron-lung-vr', 'no-gravity-vr', 'openarena-vr', 'questcraft', 'rvgl-vr', 'supertuxkart-vr', 'time-crisis-vr', 'urbanterror-vr', 'vpinball-vr', 'warzone-2100-vr', 'wc-saga-vr', 'xonotic-vr', 'xwing-revival-vr'])
   })
 
   it('expects a send-files step for every game that is not self-contained', () => {
