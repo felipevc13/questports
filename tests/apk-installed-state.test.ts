@@ -18,6 +18,8 @@ describe('APK installed card follows a live headset', () => {
     expect(slugs).toEqual([...new Set(slugs)].sort())
     // Live catalog rows can have a package id without a mockPorts copy.
     for (const slug of catalogSlugs) {
+      // GT4 is temporarily manual-only: its two APK variants must not be mixed.
+      if (slug === 'gran-turismo-4-vr' && !PORT_PACKAGE_CONFIGS[slug]) continue
       expect(PORT_PACKAGE_CONFIGS[slug], slug).toBeDefined()
     }
   })
@@ -98,7 +100,7 @@ describe('APK installed card follows a live headset', () => {
 
   it('keeps every multi-campaign counter at 0 while disconnected', () => {
     const multi = Object.keys(PORT_EXPANSIONS).filter(slug => (PORT_EXPANSIONS[slug]?.length || 0) > 1).sort()
-    expect(multi).toEqual(['doom3quest', 'lambda1vr', 'metal-gear-solid-vr', 'nolf-vr', 'razexr', 'sourcevr'])
+    expect(multi).toEqual(['doom3quest', 'gran-turismo-4-vr', 'lambda1vr', 'metal-gear-solid-vr', 'nolf-vr', 'razexr', 'sourcevr'])
 
     for (const slug of multi) {
       const port = INITIAL_PORTS.find(item => item.slug === slug) || { slug } as any
@@ -113,6 +115,11 @@ describe('APK installed card follows a live headset', () => {
       })
       expect(countInstalledParts(parts, () => ({ packageInstalled, filesReady: false })), slug).toBe(0)
 
+      // GT4 offers separate manual APKs and deliberately has no single package config.
+      if (!cfg) {
+        expect(slug).toBe('gran-turismo-4-vr')
+        continue
+      }
       const live = apkInstalledOnHeadset({
         connected: true,
         slug,
