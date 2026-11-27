@@ -1,5 +1,5 @@
 -- Six Port Royale ports. Official installation sources linked in each guide.
--- Cover and video intentionally null: supply verified art before publication.
+-- Cover and video are initially NULL; later migrations set missing covers and video IDs.
 -- GT4 download is Online only; Spec II has a different APK and ISO. Sync is disabled.
 -- Apply manually after merge; never run by an agent.
 begin;

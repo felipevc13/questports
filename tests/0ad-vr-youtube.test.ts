@@ -16,7 +16,7 @@ describe('0 A.D. VR YouTube video', () => {
     expect(clip.start).toBeNull()
     expect(clip.end).toBeNull()
     expect(GAME_VIDEO_PREVIEWS[port.slug]).toBeUndefined()
-    expect(AVAILABLE_VIDEO_PREVIEWS).not.toContain(port.slug)
+    expect(AVAILABLE_VIDEO_PREVIEWS).toContain(port.slug)
   })
 
   it('only fills a missing video ID for the intended port', () => {
