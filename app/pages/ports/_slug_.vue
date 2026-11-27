@@ -1,4 +1,4 @@
-<template>
+[slug].vue<template>
   <div v-if="port" class="mx-auto w-full min-w-0 max-w-[1720px] space-y-6 px-4 py-4 sm:px-6 md:py-6 lg:px-10">
     <!-- Breadcrumb & Top Bar -->
     <div class="flex min-w-0 items-center justify-between gap-2 border-b border-border/50 pb-2 text-xs text-muted-foreground">
