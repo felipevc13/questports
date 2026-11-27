@@ -59,7 +59,7 @@ describe('local hover previews', () => {
   it('gives catalog ports a YouTube video when verified footage is available', () => {
     for (const port of INITIAL_PORTS) {
       // These new ports have no verified video in this catalog yet.
-      if (['rage-racer-vr', 'forza-horizon-vr', 'gran-turismo-4-vr', 'crash-bandicoot-launcher', '0ad-vr', 'warzone-2100-vr', 'no-gravity-vr'].includes(port.slug)) expect(port.youtube_video_id).toBeNull()
+      if (['rage-racer-vr', 'forza-horizon-vr', 'gran-turismo-4-vr', 'crash-bandicoot-launcher', 'warzone-2100-vr', 'no-gravity-vr'].includes(port.slug)) expect(port.youtube_video_id).toBeNull()
       else expect(port.youtube_video_id, port.slug).toBeTruthy()
     }
   })
