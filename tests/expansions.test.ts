@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { PORT_EXPANSIONS, getPortCampaigns, getDefaultFolderInfo } from '../app/data/expansions'
-import { PORT_PACKAGE_CONFIGS } from '../app/data/portPackageMap'
+import { PORT_PACKAGE_CONFIGS, isSelfContainedSideload } from '../app/data/portPackageMap'
 import { INITIAL_PORTS } from '../app/data/mockPorts'
 import { catalogInstallFacts } from '../app/lib/catalogInstallFacts'
 
@@ -172,10 +172,10 @@ describe('Port Campaigns & Expansions Engine', () => {
       expect(sw?.folder).toBe('sw')
     })
 
-    it('ensures each multi-campaign port has exactly one base campaign', () => {
+    it('ensures each multi-campaign port has one base, except separate GT4 apps', () => {
       for (const [slug, campaigns] of Object.entries(PORT_EXPANSIONS)) {
         const baseCampaigns = campaigns.filter(c => c.isBase)
-        expect(baseCampaigns.length, `${slug} must have exactly one base campaign`).toBe(1)
+        expect(baseCampaigns.length, `${slug} base campaign count`).toBe(slug === 'gran-turismo-4-vr' ? 2 : 1)
       }
     })
   })
@@ -305,7 +305,7 @@ describe('Port Campaigns & Expansions Engine', () => {
 
   describe('getPortCampaigns cross-validation on all ports', () => {
     it('generates at least one valid campaign for every single port in INITIAL_PORTS', () => {
-      expect(INITIAL_PORTS.length).toBe(103)
+      expect(INITIAL_PORTS.length).toBe(111)
 
       for (const port of INITIAL_PORTS) {
         const campaigns = getPortCampaigns(port)
@@ -320,7 +320,9 @@ describe('Port Campaigns & Expansions Engine', () => {
           expect(c.instruction).toBeTruthy()
 
           // Path formatting check
-          if (!port.internal_storage_path?.startsWith('N/A')) {
+          if (c.fullPath === 'N/A') {
+            expect(isSelfContainedSideload(PORT_PACKAGE_CONFIGS[port.slug]), port.slug).toBe(true)
+          } else if (!port.internal_storage_path?.startsWith('N/A')) {
             expect(c.fullPath.startsWith('/sdcard/'), `${port.slug} campaign path must start with /sdcard/`).toBe(true)
             expect(c.fullPath.endsWith('/'), `${port.slug} campaign path must end with /`).toBe(true)
             expect(c.fullPath.includes('//sdcard'), `${port.slug} cannot contain double slashes`).toBe(false)
