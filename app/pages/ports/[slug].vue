@@ -243,7 +243,7 @@
             <span class="text-xs font-bold text-foreground">{{ step2Title }}</span>
           </div>
           <p class="text-xs leading-relaxed text-muted-foreground">
-            {{ languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.') }}
+            {{ port?.slug === 'gran-turismo-4-vr' ? 'Copy the ISO for your installed APK to its matching folder from a PC.' : (languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.')) }}
           </p>
           <div v-if="gameFilesGuidance" data-testid="game-files-guidance" class="space-y-1 rounded border border-border/70 bg-muted/30 p-2.5">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{{ GAME_FILES_ON_PC_LABEL }}</p>
@@ -1024,7 +1024,8 @@
               <div v-if="campaignList.length > 1" class="space-y-1.5 pt-1">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-muted-foreground font-medium flex items-center gap-1">
-                    <template v-if="languageFolders">Select language:</template>
+                    <template v-if="port?.slug === 'gran-turismo-4-vr'">Select the APK version you installed:</template>
+                    <template v-else-if="languageFolders">Select language:</template>
                     <template v-else><span>🎮</span> Select Campaign or Expansion:</template>
                   </span>
                   <span class="text-[10px] text-muted-foreground/80 font-mono">
@@ -1267,7 +1268,7 @@
                   </button>
 
                   <button
-                    v-if="nextUntransferredCampaign && !languageFolders"
+                    v-if="nextUntransferredCampaign && !languageFolders && port?.slug !== 'gran-turismo-4-vr'"
                     @click="selectCampaign(nextUntransferredCampaign.id)"
                     class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-[11px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
                   >
