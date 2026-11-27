@@ -40,6 +40,8 @@ describe('GT4 manual variants', () => {
     expect(html).toContain('/sdcard/GT4SpecII/')
     expect(html).toContain('US v2.00 ISO')
     expect(html).toContain('Spec II 1.10 ISO')
+    expect(html).toContain('https://www.theadmiester.co.uk/specii/install.html')
+    expect(html).toContain('unmodified US Online Public Beta ISO')
     expect(html).toContain('separate apps')
     expect(html).not.toContain('install-on-quest')
     expect(html).not.toContain('patch-only-readme')
