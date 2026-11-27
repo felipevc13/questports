@@ -19,7 +19,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "decompilation",
     "status": "playable_beta",
     "cover_image_url": "https://questports-media.questports.workers.dev/covers/forza-horizon-vr.png",
-    "youtube_video_id": null,
+    "youtube_video_id": "6qrHTbc1VEg",
     "supported_hardware": [
       "Quest 3"
     ],
@@ -47,7 +47,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "decompilation",
     "status": "playable_beta",
     "cover_image_url": "https://questports-media.questports.workers.dev/covers/gran-turismo-4-vr.png",
-    "youtube_video_id": null,
+    "youtube_video_id": "SxuMwVc_YZw",
     "supported_hardware": [
       "Quest 3"
     ],
@@ -75,7 +75,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "decompilation",
     "status": "playable_beta",
     "cover_image_url": "https://questports-media.questports.workers.dev/covers/crash-bandicoot-launcher.png",
-    "youtube_video_id": null,
+    "youtube_video_id": "9HtPF0ers1w",
     "supported_hardware": [
       "Quest 3"
     ],
@@ -131,7 +131,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "source_port",
     "status": "playable_beta",
     "cover_image_url": "https://questports-media.questports.workers.dev/covers/warzone-2100-vr.png",
-    "youtube_video_id": null,
+    "youtube_video_id": "xVMO3dwug8Y",
     "supported_hardware": [
       "Quest 3"
     ],
@@ -159,7 +159,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "source_port",
     "status": "playable_beta",
     "cover_image_url": null,
-    "youtube_video_id": null,
+    "youtube_video_id": "XeNZw0lQ8eY",
     "supported_hardware": [
       "Quest 3"
     ],
@@ -5908,7 +5908,7 @@ Saves and logs stay in \`/sdcard/SilentHillVR\` after an uninstall.
     category: "source_port",
     status: "in_development",
     cover_image_url: "https://questports-media.questports.workers.dev/covers/rage-racer-vr.png",
-    youtube_video_id: null,
+    youtube_video_id: "uwif0w4M3GY",
     supported_hardware: ["Quest 3"],
     locomotion_types: ["Seated"],
     has_6dof_controls: false,
