@@ -15,6 +15,9 @@ const covers = [
 describe('new port cover sources and delivery', () => {
   const sql = readFileSync(new URL('../supabase/migrations/20261126210000_eight_port_covers.sql', import.meta.url), 'utf8')
   const sources = readFileSync(new URL('../docs/new-port-cover-sources.md', import.meta.url), 'utf8')
+  it('describes cover source links without claiming verification', () => {
+    expect(sql.split('\n')[0]).toBe('-- SteamGridDB capsule source links are listed in docs/new-port-cover-sources.md.')
+  })
   it.each(covers)('%s references a local cover, thumbnail, source and SQL update', (slug, ext, id) => {
     const url = `https://questports-media.questports.workers.dev/covers/${slug}.${ext}`
     expect(INITIAL_PORTS.find(port => port.slug === slug)?.cover_image_url).toBe(url)

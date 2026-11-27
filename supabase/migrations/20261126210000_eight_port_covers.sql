@@ -1,4 +1,4 @@
--- Verified SteamGridDB capsule sources are listed in docs/new-port-cover-sources.md.
+-- SteamGridDB capsule source links are listed in docs/new-port-cover-sources.md.
 -- Apply manually after both port insert migrations, after merge; do not deploy media from an agent.
 begin;
 
