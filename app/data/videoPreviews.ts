@@ -33,6 +33,8 @@ export function parseSeconds(val: string | number | undefined | null, fallback =
  * List of port slugs that have verified local MP4 preview clips available in /previews/
  */
 export const AVAILABLE_VIDEO_PREVIEWS: string[] = [
+  '0ad-vr',
+  'wario-land-4-vr',
   'forza-horizon-vr',
   'gran-turismo-4-vr',
   'crash-bandicoot-launcher',

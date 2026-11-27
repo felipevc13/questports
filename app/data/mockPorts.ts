@@ -158,7 +158,7 @@ export const INITIAL_PORTS: Port[] = [
     "developer_url": "https://github.com/SgtBilko76",
     "category": "source_port",
     "status": "playable_beta",
-    "cover_image_url": null,
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/no-gravity-vr.jpg",
     "youtube_video_id": "XeNZw0lQ8eY",
     "supported_hardware": [
       "Quest 3"
