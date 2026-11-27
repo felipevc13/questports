@@ -103,7 +103,7 @@ export const INITIAL_PORTS: Port[] = [
     "category": "source_port",
     "status": "playable_beta",
     "cover_image_url": "https://questports-media.questports.workers.dev/covers/0ad-vr.png",
-    "youtube_video_id": null,
+    "youtube_video_id": "VthjeJ8kOoI",
     "supported_hardware": [
       "Quest 3"
     ],
