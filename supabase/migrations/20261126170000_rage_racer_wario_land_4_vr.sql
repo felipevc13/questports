@@ -1,5 +1,5 @@
 -- Prepare only: Felipe applies this migration manually after merge.
--- Covers are intentionally unset until suitable verified artwork is available.
+-- Covers are initially NULL; later migrations set missing cover URLs. Wario insert includes its video ID.
 begin;
 
 insert into public.ports (

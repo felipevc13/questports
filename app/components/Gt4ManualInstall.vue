@@ -18,6 +18,7 @@
     <div class="space-y-2 rounded-lg border border-border/80 bg-muted/20 p-3">
       <p class="font-bold text-foreground">GT4 Spec II VR</p>
       <p class="leading-relaxed text-muted-foreground">Requires a Spec II 1.10 ISO made from your own US Online Public Beta disc and the Spec II patch. Copy it to <span class="break-all font-mono">/sdcard/GT4SpecII/</span>.</p>
+      <p class="leading-relaxed text-muted-foreground">Use the full Spec II 1.10 xDelta patch on the unmodified US Online Public Beta ISO; save the output with a .iso extension. <a href="https://www.theadmiester.co.uk/specii/install.html" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary underline">Official patch and instructions ↗</a></p>
       <a
         href="https://github.com/SgtBilko76/gt4-vr/releases/download/v0.3.2-beta-specii/GT4-SpecII-VR-0.3.2-beta.apk"
         target="_blank"
