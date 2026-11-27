@@ -154,12 +154,7 @@ describe('Game-by-Game Automated Verification Suite', () => {
         expect(port.developer).toBeTruthy()
         expect(port.category).toBeTruthy()
         expect(port.status).toBeTruthy()
-        // No Gravity has no verified horizontal capsule yet.
-        if (port.slug === 'no-gravity-vr') {
-          expect(port.cover_image_url).toBeNull()
-        } else {
-          expect(port.cover_image_url).toBeTruthy()
-        }
+        expect(port.cover_image_url).toBeTruthy()
         expect(port.supported_hardware).toBeInstanceOf(Array)
         // The Wario release names Meta Quest but does not specify tested models.
         if (port.slug === 'wario-land-4-vr') expect(port.supported_hardware).toEqual([])
