@@ -45,7 +45,7 @@ describe('Port Royale preliminary integrations', () => {
       expect(sql).toContain(`'${slug}'`)
       expect(sql).toContain(port!.port_download_url)
       expect(sql).toContain(port!.installation_guide.replace(/'/g, "''"))
-      if (slug === 'no-gravity-vr') expect(port!.cover_image_url).toBeNull()
+      if (slug === 'no-gravity-vr') expect(port!.cover_image_url).toBe('https://questports-media.questports.workers.dev/covers/no-gravity-vr.jpg')
       else expect(port!.cover_image_url).toBe(`https://questports-media.questports.workers.dev/covers/${slug}.png`)
     }
     expect(sql).toContain('on conflict (slug) do nothing')
@@ -61,6 +61,10 @@ describe('Port Royale preliminary integrations', () => {
     expect(variants[1]!.instruction).toContain('Do not use the Online ISO')
     const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
     expect(page).toContain('Select the APK version you installed:')
+  })
+  it('does not claim 0 A.D. requires a purchased PC game', () => {
+    const page = readFileSync(new URL('../app/pages/ports/[slug].vue', import.meta.url), 'utf8')
+    expect(page).toContain("port.slug === '0ad-vr' ? 'Free data ZIP from the port release; no purchase required'")
   })
   it('shows picker and data-folder instructions instead of generic folder-copy text', () => {
     for (const slug of ['forza-horizon-vr', 'crash-bandicoot-launcher']) {
