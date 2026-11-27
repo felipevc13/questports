@@ -13,6 +13,13 @@
  * See AGENTS.md, "Search aliases".
  */
 export const PORT_SEARCH_ALIASES: Record<string, readonly string[]> = {
+  'forza-horizon-vr': ['forza', 'forza horizon', 'fh1', 'pinyon shift'],
+  'gran-turismo-4-vr': ['gt4', 'gt 4', 'gt4 spec ii', 'gt4 online', 'gran turismo 4 spec 2'],
+  'crash-bandicoot-launcher': ['crash bandicoot', 'crash 1', 'crash ps1'],
+  '0ad-vr': ['0ad', '0 a d', 'zero ad', 'zero a d'],
+  'warzone-2100-vr': ['warzone 2100', 'warzone2100', 'wz2100'],
+  'no-gravity-vr': ['no gravity', 'nogravity'],
+  'wario-land-4-vr': ['wl4', 'wario land iv'],
   'red-dead-redemption-vr': ['rdr', 'rdr1', 'red dead', 'red dead redemption'],
   'lambda1vr': ['hl', 'hl1', 'half life', 'half life 1', 'gordon freeman'],
   'sourcevr': ['hl', 'hl2', 'half life 2', 'half life 2 episode', 'portal', 'portal 2'],
