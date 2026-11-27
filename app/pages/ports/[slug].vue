@@ -2902,7 +2902,7 @@ const handleDrop = async (e: DragEvent) => {
     }
   } catch (err: any) {
     console.error('Could not read the dropped folder:', err)
-    alert(`Could not read the entire dropped folder. No files were copied. Please try again. ${err?.message || ''}`)
+    alert(`The folder could not be read or the copy failed. Some files may not have been copied. Please verify and try again. ${err?.message || ''}`)
   }
 }
 
