@@ -1,0 +1,1 @@
+$-- Schema prerequisite for the following port inserts.\n-- Prepare only: do not apply without explicit approval and a staging check.\n-- This migration must commit before any migration uses the new enum value.\nALTER TYPE public.port_category ADD VALUE IF NOT EXISTS 'decompilation';\n
