@@ -46,7 +46,7 @@ describe('local hover previews', () => {
   })
 
   it('gives every ported game a hover MP4 file, so no card is left cover-only', () => {
-    expect(AVAILABLE_VIDEO_PREVIEWS).toHaveLength(151)
+    expect(AVAILABLE_VIDEO_PREVIEWS).toHaveLength(159)
     expect(new Set(AVAILABLE_VIDEO_PREVIEWS).size).toBe(AVAILABLE_VIDEO_PREVIEWS.length)
     for (const slug of AVAILABLE_VIDEO_PREVIEWS) {
       expect(existsSync(new URL(`../public/previews/${slug}.mp4`, import.meta.url)), slug).toBe(true)
@@ -56,7 +56,7 @@ describe('local hover previews', () => {
     }
   })
 
-  it('gives every catalog port a YouTube video', () => {
+  it('gives catalog ports a YouTube video when verified footage is available', () => {
     for (const port of INITIAL_PORTS) {
       expect(port.youtube_video_id, port.slug).toBeTruthy()
     }

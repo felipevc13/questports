@@ -1,0 +1,13 @@
+# Read-only remote-media preflight
+
+Before approving a media-host upload, check the exact cover, thumbnail, and preview URLs from the catalog against the deployed media host:
+
+```bash
+node scripts/media/preflight-remote.mjs docs/pr-174-media-preflight.json
+```
+
+A manifest has an `assets` array; each item needs an HTTPS `url`, a `type` (`image` or `video`), and may have a human-readable `label`. The checker makes bounded concurrent GET requests with `Range: bytes=0-63`; it does not download full previews or alter/upload anything. A pass requires HTTP 206, an exact `Content-Range: bytes 0-63/<total>`, expected image/MP4 MIME type, exactly 64 response bytes, and a matching PNG/JPEG/WebP/ISO-BMFF signature. It fails closed on a 200 response (including servers that ignore Range), 404s, malformed range headers, short bodies, or mismatched content.
+
+Exit code is 0 only when every manifest entry passes; otherwise it prints each failed URL and exits non-zero. Network errors are failures, not availability evidence. The PR #174 manifest lists its eight covers, eight thumbnails, and eight MP4 previews.
+
+This is only an availability-and-header preflight at the time checked. It does not prove the full object is intact, the MP4 decodes or plays in a Quest browser, the video is the intended footage, or the media is licensed for redistribution. Rights review and playback testing remain separate release gates. The check never uploads media or changes the catalog.

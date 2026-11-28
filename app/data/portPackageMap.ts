@@ -79,6 +79,52 @@ function mgsLanguageFolder(language: (typeof MGS_DISC_LANGUAGES)[number]): PortF
 }
 
 export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
+  'forza-horizon-vr': {
+    slug: 'forza-horizon-vr',
+    packageName: 'studio.deimos.pinyonshift',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'Copy the extracted game folder from your own US Forza Horizon disc to the headset (for example Download), then select it in Choose folder. The headset builds the game on first start; allow 25–35 minutes and about 12 GB free. This version does not accept an ISO directly.',
+    targetPath: '/sdcard/Download/',
+    folders: [{ id: 'forza_folder', name: 'Extracted US disc folder', folderName: 'Download', targetPath: '/sdcard/Download/', required: true, acceptance: 'confirm', description: 'Select your extracted US disc folder in the app; Download is only an example location.' }]
+  },
+  'crash-bandicoot-launcher': {
+    slug: 'crash-bandicoot-launcher',
+    packageName: 'io.github.matteo842.crashlauncher.runtime',
+    installType: 'apk_and_assets',
+    workflowType: 'emulator_roms',
+    criticalFiles: [],
+    fileGuidance: 'Select your own Crash Bandicoot NTSC-U (SCUS-94900) disc dump as .chd or matching .cue and .bin. Copy it to the headset, for example Download, and grant all-files access.',
+    targetPath: '/sdcard/Download/',
+    folders: [{ id: 'crash_disc', name: 'Crash Bandicoot NTSC-U disc', folderName: 'Download', targetPath: '/sdcard/Download/', required: true, acceptance: 'confirm', description: 'Select your own NTSC-U SCUS-94900 .chd or .cue plus .bin in the app; Download is an example location.' }]
+  },
+  '0ad-vr': {
+    slug: '0ad-vr',
+    packageName: 'com.bilko.zeroadvr',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Download the separate 0 A.D. VR data ZIP from the same release, extract it and copy its 0AD folder to the root of internal storage, so /sdcard/0AD/data/ exists. Grant all-files access.',
+    targetPath: '/sdcard/0AD/data/',
+    folders: [{ id: '0ad_data', name: '0 A.D. game data', folderName: 'data', targetPath: '/sdcard/0AD/data/', required: true, acceptance: 'confirm', description: 'Extract the release ZIP and drop its data folder into /sdcard/0AD/data/.' }]
+  },
+  'warzone-2100-vr': {
+    slug: 'warzone-2100-vr',
+    packageName: 'net.wz2100.warzone2100.quest',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The APK includes the full game and campaign videos. The first launch unpacks the data and takes about a minute.'
+  },
+  'no-gravity-vr': {
+    slug: 'no-gravity-vr',
+    packageName: 'com.bilko.nogravityvr',
+    installType: 'direct_apk',
+    workflowType: 'direct',
+    criticalFiles: [],
+    fileGuidance: 'The full game is included in the APK. Its first launch unpacks the game data.'
+  },
   rtcwquest: {
     slug: 'rtcwquest',
     packageName: 'com.drbeef.rtcwquest',
@@ -2934,6 +2980,36 @@ export const PORT_PACKAGE_CONFIGS: Record<string, PortPackageConfig> = {
         description: 'Your Futurama ISO (any name with "futurama"), or default.xbe and its extracted files.'
       }
     ]
+  },
+  'rage-racer-vr': {
+    slug: 'rage-racer-vr',
+    packageName: 'org.rageracer.quest',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your Rage Racer disc image on the headset, for example in Download. Keep every BIN track alongside its CUE, or use a CHD with Rage Racer in its name. Select it in the setup panel.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    folders: [{
+      id: 'rage_racer_disc', name: 'Rage Racer disc image', folderName: 'Download',
+      targetPath: '/sdcard/Download/', required: true, acceptance: 'confirm',
+      description: 'CUE with all BIN tracks, or a CHD with Rage Racer in its name. Use the in-app setup panel.'
+    }]
+  },
+  'wario-land-4-vr': {
+    slug: 'wario-land-4-vr',
+    packageName: 'com.wl4recomp.quest',
+    installType: 'apk_and_assets',
+    workflowType: 'pc_assets',
+    criticalFiles: [],
+    fileGuidance: 'Put your Wario Land 4 (USA, Europe) GBA ROM on the headset, for example in Download, then select it on first launch. The app checks its SHA-1.',
+    sourceStoreName: 'Other',
+    targetPath: '/sdcard/Download/',
+    folders: [{
+      id: 'wario_land_4_rom', name: 'Wario Land 4 ROM', folderName: 'Download',
+      targetPath: '/sdcard/Download/', required: true, acceptance: 'confirm',
+      description: 'Wario Land 4 (USA, Europe) .gba ROM. Select it in the app; it checks the SHA-1.'
+    }]
   },
   'silent-hill-vr': {
     slug: 'silent-hill-vr',

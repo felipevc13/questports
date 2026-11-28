@@ -1,0 +1,1 @@
+ALTER TYPE public.port_category ADD VALUE IF NOT EXISTS 'decompilation';

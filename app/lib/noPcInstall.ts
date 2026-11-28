@@ -28,10 +28,10 @@ const NO_PC_READY = new Set([
   'mok-vr', 'mystical-ninja-vr', 'nfl-blitz-2000-vr', 'nfsu-vr', 'nfsu2-vr',
   'ninja-assault-vr', 'ocarina-of-time-vr', 'openarena-vr', 'perfect-dark-vr', 'pikmin-2-vr', 'pikmin-vr',
   'ppsspp-vr', 'primedgun', 'rail-chase-2-vr', 'ratchet-and-clank-vr', 're-code-veronica-x-vr',
-  'rvgl-vr', 'scud-race-vr', 'sega-rally-vr', 'silent-hill-vr', 'sin-and-punishment-vr', 'south-park-vr', 'sm64-coop-dx-vr', 'strikers-quest-mr',
+  'rage-racer-vr', 'rvgl-vr', 'scud-race-vr', 'sega-rally-vr', 'silent-hill-vr', 'sin-and-punishment-vr', 'south-park-vr', 'sm64-coop-dx-vr', 'strikers-quest-mr',
   'supertuxkart-vr', 'survivor2-code-veronica-vr', 'teraburst-vr', 'time-crisis-2-vr',
   'time-crisis-vr', 'twilight-princess-vr', 'urbanterror-vr', 'virtua-cop-2-vr', 'virtua-cop-vr',
-  'vpinball-vr', 'wakerquest', 'wave-race-64-vr', 'wc-saga-vr', 'wwf-no-mercy-vr', 'xelee', 'xonotic-vr', 'xrkart-64', 'xwing-revival-vr'
+  'vpinball-vr', 'wario-land-4-vr', 'wakerquest', 'wave-race-64-vr', 'wc-saga-vr', 'wwf-no-mercy-vr', 'xelee', 'xonotic-vr', 'xrkart-64', 'xwing-revival-vr'
 ])
 
 const PC_REQUIRED = new Set([

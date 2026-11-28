@@ -10,6 +10,174 @@ export function mockPortInstallCount(slug: string): number {
 
 export const INITIAL_PORTS: Port[] = [
   {
+    "id": "portroyale-forza-horizon-vr",
+    "slug": "forza-horizon-vr",
+    "title": "Forza Horizon VR",
+    "short_description": "Forza Horizon on Quest with a stereoscopic screen and head-tracked driving views.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "decompilation",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/forza-horizon-vr.png",
+    "youtube_video_id": "6qrHTbc1VEg",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": true,
+    "internal_storage_path": "/sdcard/Download/",
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/ForzaHorizon-VR/releases/download/quest-v0.4.5-beta/ForzaHorizon-VR-0.4.5-beta.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/ForzaHorizon-VR",
+    "latest_version": "v0.4.5-beta",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Requirements\nQuest 3 tested; Quest 2, 3S and Pro untested. Bring your own US Xbox 360 Forza Horizon disc and its extracted game folder containing default.xex. This version does not open ISO images.\n\n### Installation\n1. Sideload the release APK.\n2. Extract your disc and copy the game folder to the headset, for example Download.\n3. Launch from Unknown Sources, choose the game folder and press Play. Keep about 12 GB free; the first on-headset build takes 25–35 minutes. Updates rebuild once; saves are kept.\n\nSource: https://portroyale.online/forzahorizon.html",
+    "troubleshooting_notes": "Quest 3 tested. This beta requires the extracted US disc folder, not an ISO. The cockpit runs at about 25–35 fps."
+  },
+  {
+    "id": "portroyale-gran-turismo-4-vr",
+    "slug": "gran-turismo-4-vr",
+    "title": "Gran Turismo 4 VR",
+    "short_description": "Gran Turismo 4 races in head-tracked stereo 3D on Quest.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "decompilation",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/gran-turismo-4-vr.png",
+    "youtube_video_id": "SxuMwVc_YZw",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": false,
+    "internal_storage_path": "/sdcard/GT4HD/",
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/gt4-vr/releases/download/v0.3.2-beta-online/GT4-Online-VR-0.3.2-beta.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/gt4-vr",
+    "latest_version": "v0.3.2-beta",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Requirements\nQuest 3 tested; Quest 2, 3S and Pro untested. The main download is GT4 Online VR, which requires your own US Gran Turismo 4 v2.00 ISO. The APK does not include game data.\n\n### GT4 Online installation\n1. Sideload GT4-Online-VR-0.3.2-beta.apk.\n2. Copy your US v2.00 ISO to /sdcard/GT4HD/.\n3. Launch from Unknown Sources and grant All files access. Once a race starts, press both sticks to switch to head-tracked VR. Wi-Fi is needed for online races.\n\n### Alternative: GT4 Spec II\nThis is a different APK and requires a different ISO: apply the Spec II 1.10 xDelta patch to your own US NTSC Gran Turismo 4 Online Public Beta disc image, then copy the patched ISO to /sdcard/GT4SpecII/. Do not use the Online APK with the Spec II ISO. Download the separate Spec II APK at https://github.com/SgtBilko76/gt4-vr/releases/tag/v0.3.2-beta-specii. Both apps can be installed side by side.\n\nSource: https://portroyale.online/gt4.html",
+    "troubleshooting_notes": "Only the listed disc versions are supported. The Online and Spec II APKs use different ISO versions and folders."
+  },
+  {
+    "id": "portroyale-crash-bandicoot-launcher",
+    "slug": "crash-bandicoot-launcher",
+    "title": "Crash Bandicoot Launcher",
+    "short_description": "The original Crash Bandicoot recompiled for Quest and shown in stereoscopic 3D.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "decompilation",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/crash-bandicoot-launcher.png",
+    "youtube_video_id": "9HtPF0ers1w",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": false,
+    "internal_storage_path": "/sdcard/Download/",
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/CrashBandicoot-Launcher/releases/download/v2.0.0-beta.1/CrashBandicoot-2.0.0-beta.1.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/CrashBandicoot-Launcher",
+    "latest_version": "v2.0.0-beta.1",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Requirements\nQuest 3 tested. Bring your own Crash Bandicoot NTSC-U disc dump (SCUS-94900), as CHD or matching CUE and BIN files. The APK includes no game data.\n\n### Installation\n1. Sideload the release APK. If you have an earlier 1.9.x or test build, back up your memory card saves and uninstall it first: the signing key changed.\n2. Copy the disc dump to the headset, for example Download.\n3. Launch from Unknown Sources, grant All files access, select the disc and press Start Game. The first on-headset compilation takes about half a minute.\n\nSource: https://portroyale.online/crash-bandicoot.html",
+    "troubleshooting_notes": "Only NTSC-U SCUS-94900 is supported. Earlier 1.9.x and test builds must be uninstalled after backing up saves because the signing key changed."
+  },
+  {
+    "id": "portroyale-0ad-vr",
+    "slug": "0ad-vr",
+    "title": "0 A.D. VR",
+    "short_description": "Free ancient-world strategy on a tabletop in VR or mixed reality.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "source_port",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/0ad-vr.png",
+    "youtube_video_id": "VthjeJ8kOoI",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": true,
+    "internal_storage_path": "/sdcard/0AD/data/",
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/0AD-VR/releases/download/v0.1.0-beta/0AD-VR-Quest-v0.1.0-beta.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/0AD-VR",
+    "latest_version": "v0.1.0-beta",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Requirements\nQuest 3 tested. The free game data is a separate download; allow about 2 GB for the data. The developer describes using a PC to copy it.\n\n### Installation\n1. Download and sideload the release APK.\n2. Download https://github.com/SgtBilko76/0AD-VR/releases/download/v0.1.0-beta/0AD-VR-Quest-data-v0.1.0-beta.zip. Unzip it and copy the 0AD folder to the root of headset internal storage, so /sdcard/0AD/data/ exists.\n3. Launch from Unknown Sources, allow All files access and start the game again.\n\nSource: https://portroyale.online/0ad.html",
+    "troubleshooting_notes": "Known issue: occasional short freezes while computer players think. The game data ZIP is separate from the APK."
+  },
+  {
+    "id": "portroyale-warzone-2100-vr",
+    "slug": "warzone-2100-vr",
+    "title": "Warzone 2100 VR",
+    "short_description": "Free strategy on a tabletop in VR or mixed reality.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "source_port",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/warzone-2100-vr.png",
+    "youtube_video_id": "xVMO3dwug8Y",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": true,
+    "internal_storage_path": null,
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/Warzone2100-VR/releases/download/v0.1.1-beta/Warzone2100-VR-Quest-v0.1.1-beta.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/Warzone2100-VR",
+    "latest_version": "v0.1.1-beta",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Installation\nThe APK contains the full free game, including campaign videos; no separate game files are needed. Quest 3 is tested; Quest 2, 3S and Pro are listed by the developer.\n\n1. Sideload Warzone2100-VR-Quest-v0.1.1-beta.apk.\n2. Launch from Unknown Sources. The first start unpacks about 700 MB of game data and takes about a minute.\n3. If the table or panel is not in front of you, hold both stick clicks for a second.\n\nSource: https://portroyale.online/warzone2100.html",
+    "troubleshooting_notes": "The APK is approximately 958.7 MB. The first launch unpacks its included game data."
+  },
+  {
+    "id": "portroyale-no-gravity-vr",
+    "slug": "no-gravity-vr",
+    "title": "No Gravity VR",
+    "short_description": "A free space combat game in head-tracked stereo 3D.",
+    "developer": "SgtBilko76",
+    "developer_url": "https://github.com/SgtBilko76",
+    "category": "source_port",
+    "status": "playable_beta",
+    "cover_image_url": "https://questports-media.questports.workers.dev/covers/no-gravity-vr.jpg",
+    "youtube_video_id": "XeNZw0lQ8eY",
+    "supported_hardware": [
+      "Quest 3"
+    ],
+    "locomotion_types": [],
+    "has_6dof_controls": false,
+    "internal_storage_path": null,
+    "base_game_url": null,
+    "base_game_store": null,
+    "port_download_url": "https://github.com/SgtBilko76/NoGravity-VR/releases/download/v0.1.1-beta/NoGravity-VR-v0.1.1-beta.apk",
+    "port_download_source": "GitHub Releases",
+    "github_url": "https://github.com/SgtBilko76/NoGravity-VR",
+    "latest_version": "v0.1.1-beta",
+    "last_github_update": null,
+    "featured": false,
+    "installation_guide": "### Installation\nThe free game data is included in the APK. Quest 3 is tested; Quest 2, 3S and Pro are untested.\n\n1. Sideload NoGravity-VR-v0.1.1-beta.apk.\n2. Launch from Unknown Sources. The first launch takes a few seconds longer while game data is unpacked.\n\nSource: https://portroyale.online/nogravity.html",
+    "troubleshooting_notes": "First public beta, tested on Quest 3. The APK is signed with a debug key."
+  },
+  {
     id: '1',
     slug: 'rtcwquest',
     title: 'RTCWQuest (Return to Castle Wolfenstein)',
@@ -5729,5 +5897,81 @@ Saves and logs stay in \`/sdcard/SilentHillVR\` after an uninstall.
 | Hold Y | PC options |
 | Hold A (2 s) | Healing and map wheel |`,
     troubleshooting_notes: "Quest 3; v0.1 work-in-progress pre-release. Needs your own USA disc (SLUS-00707) named Silent Hill (USA).bin and Silent Hill (USA).cue in /sdcard/SilentHillVR/gamedata/. Allow All files access on first launch or the game cannot read the disc. HD textures stay zipped in gamedata/texturemods/. Saves and logs in /sdcard/SilentHillVR survive an uninstall."
+  },
+  {
+    id: "104",
+    slug: "rage-racer-vr",
+    title: "Rage Racer VR",
+    developer: "Thoreman",
+    developer_url: "https://github.com/Thoreman",
+    short_description: "Rage Racer on Meta Quest: drive in VR with head tracking and Touch controllers. Bring your own PlayStation disc image.",
+    category: "source_port",
+    status: "in_development",
+    cover_image_url: "https://questports-media.questports.workers.dev/covers/rage-racer-vr.png",
+    youtube_video_id: "uwif0w4M3GY",
+    supported_hardware: ["Quest 3"],
+    locomotion_types: ["Seated"],
+    has_6dof_controls: false,
+    internal_storage_path: "/sdcard/Download/",
+    base_game_url: null,
+    base_game_store: "Requires your own Rage Racer PlayStation disc",
+    port_download_url: "https://github.com/Thoreman/rage-racer-pc/releases/download/v0.6.5-rc1/rage-racer-vr-0.6.5-rc1.apk",
+    port_download_source: "GitHub Releases",
+    github_url: "https://github.com/Thoreman/rage-racer-pc",
+    latest_version: "v0.6.5-rc1",
+    last_github_update: "2026-11-24T15:51:14Z",
+    featured: false,
+    installation_guide: `### Overview
+Rage Racer VR is an unofficial standalone Quest port of the PlayStation racing game, built on Chris Hasiński's Rage Racer PC port and PSY-Z. Drive with Touch controllers and look around with head tracking. Menus and videos appear on a floating screen.
+
+**Install type: APK plus your own disc image.** No game data is included.
+
+> [!WARNING]
+> v0.6.5-rc1 is a release candidate. Only Quest 3 has been tested; Quest 2, 3S and Pro settings are estimates. The road can look smeary on some inclines.
+
+### Installation
+1. Enable Developer Mode and sideload \`rage-racer-vr-0.6.5-rc1.apk\`, for example with SideQuest or \`adb install\`.
+2. Copy your legally obtained Rage Racer disc image to the headset, for example to \`Download\`. Use a \`.cue\` with all its \`.bin\` tracks in the same folder, or a \`.chd\` with Rage Racer in its filename. Europe, USA and Japan discs are supported.
+3. Open **Library → Unknown Sources → Rage Racer VR**. Choose **Search this headset for it** and allow all files access, or **Choose the folder myself** to select a folder and copy the image into the app.
+4. Press **Start Rage Racer**. The choice is remembered. Alternatively, copying the disc into \`/sdcard/Android/data/org.rageracer.quest/files/disc/\` skips the setup panel.
+
+Use the right trigger to accelerate, left trigger to brake, left stick to steer, and hold X to recenter.`,
+    troubleshooting_notes: "Only Quest 3 was tested; Quest 2, 3S and Pro settings are estimates. If the disc is not found, keep the CUE and every BIN track it references together, or use a CHD with Rage Racer in its name. Some inclines can appear smeary. Check headset tuner apps if performance is unexpectedly poor."
+  },
+  {
+    id: "105",
+    slug: "wario-land-4-vr",
+    title: "Wario Land 4 VR",
+    developer: "mrchrisster",
+    developer_url: "https://github.com/mrchrisster",
+    short_description: "Wario Land 4 recompiled for Meta Quest with Virtual Boy-style layered stereoscopic depth. Bring your own GBA ROM.",
+    category: "decompilation",
+    status: "in_development",
+    cover_image_url: "https://questports-media.questports.workers.dev/covers/wario-land-4-vr.jpg",
+    youtube_video_id: "fdBW9pHtGyo",
+    supported_hardware: [],
+    locomotion_types: ["Virtual Screen (stereo 3D)"],
+    has_6dof_controls: false,
+    internal_storage_path: "/sdcard/Download/",
+    base_game_url: null,
+    base_game_store: "Requires your own Wario Land 4 (USA, Europe) GBA ROM",
+    port_download_url: "https://github.com/mrchrisster/wario-land-4-vr/releases/download/v0.1.0/wario-land-4-vr-quest.apk",
+    port_download_source: "GitHub Releases",
+    github_url: "https://github.com/mrchrisster/wario-land-4-vr",
+    latest_version: "v0.1.0",
+    last_github_update: "2026-11-21T00:36:59Z",
+    featured: false,
+    installation_guide: `### Overview
+Wario Land 4 VR is an unofficial Quest project that statically recompiles the Game Boy Advance game and presents its layers in stereoscopic depth. It is not an emulator or a first-person VR game.
+
+**Install type: APK plus your own ROM.** The release contains no ROM, graphics, sound or save data.
+
+### Installation
+1. Enable Developer Mode and sideload \`wario-land-4-vr-quest.apk\`, for example with SideQuest or \`adb install -r\`.
+2. Put your own legally obtained Wario Land 4 (USA, Europe) \`.gba\` file on the headset, for example in Downloads.
+3. Open **Library → Unknown Sources → Wario Land 4 VR** and select the ROM on first launch. It is checked against SHA-1 \`b9fe05a8080e124b67bce6a623234ee3b518a2c1\` and copied into the app once. No BIOS is needed.
+
+The left Menu button opens options for save states, depth, passthrough or a dark room, and recentering. The release APK does not include the menu logo.`,
+    troubleshooting_notes: "Use your own Wario Land 4 (USA, Europe) GBA ROM with SHA-1 b9fe05a8080e124b67bce6a623234ee3b518a2c1. The release APK does not include the ROM or menu logo."
   }
 ]

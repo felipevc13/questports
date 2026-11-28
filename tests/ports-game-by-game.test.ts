@@ -5,9 +5,9 @@ import { PORT_PACKAGE_CONFIGS, isPortInstalledOnQuest, isSelfContainedSideload, 
 import { getPortCampaigns } from '../app/data/expansions'
 import { isOneClickApkAsset, patchOnlyGuideFor, refusesOneClickInstall } from '../app/lib/patchOnlyInstall'
 
-describe('Game-by-Game Automated Verification Suite (All 103 Ports)', () => {
-  it('indexes all 103 ports in database', () => {
-    expect(INITIAL_PORTS.length).toBe(103)
+describe('Game-by-Game Automated Verification Suite', () => {
+  it('indexes all 111 ports in the offline catalog', () => {
+    expect(INITIAL_PORTS.length).toBe(111)
   })
 
   it('credits WinlatorXR to the WinlatorXR team and the project repo', () => {
@@ -156,7 +156,9 @@ describe('Game-by-Game Automated Verification Suite (All 103 Ports)', () => {
         expect(port.status).toBeTruthy()
         expect(port.cover_image_url).toBeTruthy()
         expect(port.supported_hardware).toBeInstanceOf(Array)
-        expect(port.supported_hardware.length).toBeGreaterThanOrEqual(1)
+        // The Wario release names Meta Quest but does not specify tested models.
+        if (port.slug === 'wario-land-4-vr') expect(port.supported_hardware).toEqual([])
+        else expect(port.supported_hardware.length).toBeGreaterThanOrEqual(1)
 
         // Must have non-empty installation guide
         expect(port.installation_guide).toBeTruthy()
@@ -165,6 +167,10 @@ describe('Game-by-Game Automated Verification Suite (All 103 Ports)', () => {
 
       it('has matching package configuration in PORT_PACKAGE_CONFIGS', () => {
         const pkg = PORT_PACKAGE_CONFIGS[port.slug]
+        if (port.slug === 'gran-turismo-4-vr') {
+          expect(pkg).toBeUndefined() // Manual variant selection; never mix Online and Spec II.
+          return
+        }
         expect(pkg, `Missing package config for ${port.slug}`).toBeDefined()
         expect(pkg.packageName).toBeTruthy()
         expect(pkg.packageName).toMatch(/^[a-zA-Z0-9_.]+$/)
@@ -183,6 +189,10 @@ describe('Game-by-Game Automated Verification Suite (All 103 Ports)', () => {
 
       it('properly detects headset installation via isPortInstalledOnQuest', () => {
         const pkg = PORT_PACKAGE_CONFIGS[port.slug]
+        if (port.slug === 'gran-turismo-4-vr') {
+          expect(isPortInstalledOnQuest(port.slug, ['online.portroyale.gt4hd'])).toBe(false)
+          return
+        }
         expect(pkg).toBeDefined()
 
         // Test primary package name detection
@@ -210,7 +220,7 @@ describe('Game-by-Game Automated Verification Suite (All 103 Ports)', () => {
           expect(c.id).toBeTruthy()
           expect(c.name).toBeTruthy()
           expect(c.folder).toBeTruthy()
-          if (!port.internal_storage_path?.startsWith('N/A')) {
+          if (!isSelfContainedSideload(PORT_PACKAGE_CONFIGS[port.slug]) && !port.internal_storage_path?.startsWith('N/A')) {
             expect(c.fullPath.startsWith('/sdcard/'), `${c.fullPath} must start with /sdcard/`).toBe(true)
             expect(c.fullPath.endsWith('/'), `${c.fullPath} must end with /`).toBe(true)
           }

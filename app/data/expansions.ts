@@ -238,6 +238,28 @@ export const PORT_EXPANSIONS: Record<string, PortCampaign[]> = {
       storeName: 'Requires your own GOTY copy'
     }
   ],
+  'gran-turismo-4-vr': [
+    {
+      id: 'gt4-online',
+      name: 'GT4 Online VR',
+      badge: 'Separate APK',
+      isBase: true,
+      folder: 'GT4HD',
+      fullPath: '/sdcard/GT4HD/',
+      exampleFiles: 'Gran Turismo 4 US v2.00 ISO',
+      instruction: 'For the Online APK only, copy your US v2.00 ISO here. Select Spec II above if you installed the Spec II APK.'
+    },
+    {
+      id: 'gt4-spec-ii',
+      badge: 'Separate APK',
+      name: 'GT4 Spec II VR',
+      isBase: true,
+      folder: 'GT4SpecII',
+      fullPath: '/sdcard/GT4SpecII/',
+      exampleFiles: 'Spec II 1.10 ISO patched from your US Online Public Beta disc image',
+      instruction: 'For the Spec II APK only, copy your separately patched Spec II 1.10 ISO here. Do not use the Online ISO.'
+    }
+  ],
   'metal-gear-solid-vr': MGS_DISC_LANGUAGES.map(language => ({
     id: language.id,
     name: language.name,
@@ -271,6 +293,16 @@ export function getDefaultFolderInfo(port: Port): {
     }
   }
   const map: Record<string, { folder: string; fullPath: string; exampleFiles: string; instruction: string }> = {
+    'rage-racer-vr': {
+      folder: 'Download', fullPath: '/sdcard/Download/',
+      exampleFiles: 'Rage Racer CUE and all BIN tracks, or a Rage Racer CHD',
+      instruction: 'Put your disc image in Download, then search for it or choose its folder in the app.'
+    },
+    'wario-land-4-vr': {
+      folder: 'Download', fullPath: '/sdcard/Download/',
+      exampleFiles: 'Wario Land 4 (USA, Europe) .gba',
+      instruction: 'Put your ROM in Download and choose it on first launch. The app checks its SHA-1.'
+    },
     rtcwquest: {
       folder: 'Main',
       fullPath: '/sdcard/RTCWQuest/Main/',
@@ -522,6 +554,30 @@ export function getDefaultFolderInfo(port: Port): {
       fullPath: '/sdcard/Download/',
       exampleFiles: 'South Park (USA) .z64, .n64 or .v64',
       instruction: 'Put your South Park (USA) ROM in Download, then choose it in the start window on first launch'
+    },
+    'forza-horizon-vr': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Extracted US Forza Horizon disc folder',
+      instruction: 'Copy your extracted game folder to the headset, then choose it in the app. Download is an example location; an ISO cannot be used directly.'
+    },
+    'gran-turismo-4-vr': {
+      folder: 'GT4HD',
+      fullPath: '/sdcard/GT4HD/',
+      exampleFiles: 'Gran Turismo 4 US v2.00 ISO',
+      instruction: 'Copy your US v2.00 ISO to GT4HD for the Online APK. The Spec II APK requires its separately patched Online Public Beta ISO in GT4SpecII instead.'
+    },
+    'crash-bandicoot-launcher': {
+      folder: 'Download',
+      fullPath: '/sdcard/Download/',
+      exampleFiles: 'Crash Bandicoot NTSC-U SCUS-94900 .chd or matching .cue and .bin',
+      instruction: 'Copy your disc dump to the headset and select it in the launcher. Download is an example location.'
+    },
+    '0ad-vr': {
+      folder: 'data',
+      fullPath: '/sdcard/0AD/data/',
+      exampleFiles: 'data folder from the extracted 0 A.D. VR release ZIP',
+      instruction: 'Extract the release ZIP, then drag and drop its data folder here. The click-to-choose file picker cannot select folders. It will be copied into /sdcard/0AD/data/.'
     },
     'gran-turismo-3-vr': {
       folder: 'Download',

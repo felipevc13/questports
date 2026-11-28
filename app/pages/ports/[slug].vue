@@ -243,7 +243,7 @@
             <span class="text-xs font-bold text-foreground">{{ step2Title }}</span>
           </div>
           <p class="text-xs leading-relaxed text-muted-foreground">
-            {{ languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.') }}
+            {{ port?.slug === 'gran-turismo-4-vr' ? 'Copy the ISO for your installed APK to its matching folder from a PC.' : (languageFolders ? 'Copy one language. English is the USA discs.' : (manualCopyCampaigns.length > 1 ? 'Each campaign has its own folder. Copy the files from a PC.' : 'Copy these files from a PC.')) }}
           </p>
           <div v-if="gameFilesGuidance" data-testid="game-files-guidance" class="space-y-1 rounded border border-border/70 bg-muted/30 p-2.5">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{{ GAME_FILES_ON_PC_LABEL }}</p>
@@ -1024,7 +1024,8 @@
               <div v-if="campaignList.length > 1" class="space-y-1.5 pt-1">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-muted-foreground font-medium flex items-center gap-1">
-                    <template v-if="languageFolders">Select language:</template>
+                    <template v-if="port?.slug === 'gran-turismo-4-vr'">Select the APK version you installed:</template>
+                    <template v-else-if="languageFolders">Select language:</template>
                     <template v-else><span>🎮</span> Select Campaign or Expansion:</template>
                   </span>
                   <span class="text-[10px] text-muted-foreground/80 font-mono">
@@ -1267,7 +1268,7 @@
                   </button>
 
                   <button
-                    v-if="nextUntransferredCampaign && !languageFolders"
+                    v-if="nextUntransferredCampaign && !languageFolders && port?.slug !== 'gran-turismo-4-vr'"
                     @click="selectCampaign(nextUntransferredCampaign.id)"
                     class="px-3 py-1.5 rounded bg-primary text-primary-foreground text-[11px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
                   >
@@ -1445,9 +1446,9 @@
             <div v-if="campaignList.length <= 1" class="space-y-3">
               <!-- Base Game Source -->
               <div class="space-y-1">
-                <span class="text-[11px] text-muted-foreground block font-mono">Original Game Required:</span>
+                <span class="text-[11px] text-muted-foreground block font-mono">{{ port.slug === '0ad-vr' ? 'Game data:' : 'Original Game Required:' }}</span>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded border border-border/60 bg-muted/40 p-2">
-                  <span class="min-w-0 flex-1 break-words font-medium text-foreground">{{ port.base_game_store || 'PC Retail / Legal Copy' }}</span>
+                  <span class="min-w-0 flex-1 break-words font-medium text-foreground">{{ port.slug === '0ad-vr' ? 'Free data ZIP from the port release; no purchase required' : (port.base_game_store || 'PC Retail / Legal Copy') }}</span>
                   <a
                     v-if="port.base_game_url"
                     :href="port.base_game_url"
@@ -1674,6 +1675,7 @@ import {
 import { mockUserAgentFromSearch, unsupportedNoticeForUserAgent } from '~/lib/unsupportedBrowser'
 import { assessCampaignOnQuest, campaignPresenceIsAnyFile, isPortInstalledOnQuest, isSelfContainedSideload, PORT_PACKAGE_CONFIGS } from '~/data/portPackageMap'
 import { destinationDirForDroppedFile, isCleanQuestDropPath } from '~/lib/dropPaths'
+import { traverseDroppedEntry } from '~/lib/droppedEntries'
 import { formatPortVersion } from '~/lib/portVersion'
 import { catalogReturnTarget } from '~/lib/catalogReturn'
 import {
@@ -2080,7 +2082,7 @@ const confirmImportedFiles = () => {
 const confirmCopy = computed(() => {
   const reason = currentDetectedCampaign.value?.confirmReason
   if (reason === 'unproven') {
-    return 'QuestPorts cannot see this port’s imported files over USB. If you already ran its installer or in-app import, confirm to show Launch.'
+    return 'QuestPorts cannot verify that these game files are complete and correct. If you copied all required files or finished the in-app import, confirm to show Launch.'
   }
   if (reason === 'unreadable') {
     return 'USB cannot list this Android/data folder (Quest keeps it private). If you already imported the files, confirm to show Launch. A stray file somewhere else is not enough.'
@@ -2876,52 +2878,31 @@ const handleFileInputChange = async (e: Event) => {
   }
 }
 
-const traverseDroppedEntry = async (item: any, path = ''): Promise<{ file: File, relPath: string }[]> => {
-  if (item.isFile) {
-    return new Promise((resolve) => {
-      item.file((file: File) => resolve([{ file, relPath: path }]))
-    })
-  }
-  if (!item.isDirectory) return []
-  const dirReader = item.createReader()
-  const entries: any[] = await new Promise((resolve) => {
-    const all: any[] = []
-    const readNext = () => {
-      dirReader.readEntries((batch: any[]) => {
-        if (!batch || batch.length === 0) resolve(all)
-        else {
-          all.push(...batch)
-          readNext()
-        }
-      }, () => resolve(all))
-    }
-    readNext()
-  })
-  const subFolder = path ? `${path}/${item.name}` : item.name
-  const results: { file: File, relPath: string }[] = []
-  for (const child of entries) results.push(...await traverseDroppedEntry(child, subFolder))
-  return results
-}
-
 const handleDrop = async (e: DragEvent) => {
   e.preventDefault()
   if (!currentCampaign.value || !questAdb.isConnected.value) return
-  const items = e.dataTransfer?.items
-  if (items && items.length > 0 && typeof items[0]?.webkitGetAsEntry === 'function') {
-    const collected: { file: File, relPath: string }[] = []
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      const entry = item && typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null
-      if (entry) collected.push(...await traverseDroppedEntry(entry, ''))
+  try {
+    const items = e.dataTransfer?.items
+    if (items && items.length > 0 && typeof items[0]?.webkitGetAsEntry === 'function') {
+      const collected: { file: File, relPath: string }[] = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        const entry = item && typeof item.webkitGetAsEntry === 'function' ? item.webkitGetAsEntry() : null
+        if (!entry) throw new Error('A dropped item could not be read.')
+        collected.push(...await traverseDroppedEntry(entry, ''))
+      }
+      if (collected.length > 0) {
+        await uploadRealFiles(collected)
+        return
+      }
     }
-    if (collected.length > 0) {
-      await uploadRealFiles(collected)
-      return
+    const files = e.dataTransfer?.files
+    if (files && files.length > 0) {
+      await uploadRealFiles(Array.from(files).map(file => ({ file })))
     }
-  }
-  const files = e.dataTransfer?.files
-  if (files && files.length > 0) {
-    await uploadRealFiles(Array.from(files).map(file => ({ file })))
+  } catch (err: any) {
+    console.error('Could not read the dropped folder:', err)
+    alert(`The folder could not be read or the copy failed. Some files may not have been copied. Please verify and try again. ${err?.message || ''}`)
   }
 }
 
