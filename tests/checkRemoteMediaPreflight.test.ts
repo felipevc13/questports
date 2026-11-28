@@ -1,1 +1,106 @@
-import { describe, expect, it, vi } from 'vitest'\nimport { checkRemoteAsset, RANGE_SAMPLE_BYTES } from '../scripts/media/preflight-remote.mjs'\n\nconst sampleBytes = (signature: number[]) => {\n  const bytes = new Uint8Array(RANGE_SAMPLE_BYTES)\n  bytes.set(signature)\n  return bytes\n}\n\nfunction rangeResponse({\n  status = 206,\n  type = 'image/png',\n  range = `bytes 0-${RANGE_SAMPLE_BYTES - 1}/4096`,\n  body = sampleBytes([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])\n}: {\n  status?: number\n  type?: string\n  range?: string\n  body?: Uint8Array\n} = {}) {\n  return new Response(body, {\n    status,\n    headers: { 'content-type': type, 'content-range': range }\n  })\n}\n\nconst imageAsset = { label: 'cover', type: 'image', url: 'https://media.example/covers/cover.png' }\n\n describe('remote media preflight', () => {\n  it('requires and reports a correctly typed 206 byte-range image response', async () => {\n    const fetchImpl = vi.fn().mockResolvedValue(rangeResponse({ type: 'image/png; charset=binary' }))\n    const result = await checkRemoteAsset(imageAsset, { fetchImpl })\n\n    expect(result).toMatchObject({ ok: true, status: 206, contentType: 'image/png', contentRange: 'bytes 0-63/4096', totalBytes: 4096 })\n    expect(fetchImpl).toHaveBeenCalledWith(imageAsset.url, expect.objectContaining({\n      method: 'GET',\n      headers: { Range: 'bytes=0-63' },\n      redirect: 'manual'\n    }))\n  })\n\n  it('accepts an MP4 signature only with the video MIME type and a real range', async () => {\n    const mp4 = sampleBytes([0, 0, 0, 12, 0x66, 0x72, 0x65, 0x65, 0, 0, 0, 0, 0, 0, 0, 16, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0, 0, 0, 0])\n    const result = await checkRemoteAsset(\n      { label: 'preview', type: 'video', url: 'https://media.example/previews/clip.mp4' },\n      { fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ type: 'video/mp4', body: mp4 })) }\n    )\n\n    expect(result.ok).toBe(true)\n  })\n\n  it('rejects a 200 response even when its headers look like media', async () => {\n    const result = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ status: 200 }))\n    })\n\n    expect(result).toMatchObject({ ok: false, reason: 'expected HTTP 206 for Range request, got 200' })\n  })\n\n  it('rejects a wrong or missing Content-Range', async () => {\n    const result = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ range: 'bytes 0-63/*' }))\n    })\n\n    expect(result.ok).toBe(false)\n    expect(result.reason).toContain('unexpected Content-Range')\n  })\n\n  it('rejects an incorrect MIME type', async () => {\n    const result = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ type: 'text/html' }))\n    })\n\n    expect(result.ok).toBe(false)\n    expect(result.reason).toContain('unexpected Content-Type')\n  })\n\n  it('rejects a short range body and a MIME/signature mismatch', async () => {\n    const short = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ body: new Uint8Array([0x89, 0x50]) }))\n    })\n    const html = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ body: sampleBytes([0x3c, 0x68, 0x74, 0x6d, 0x6c]) }))\n    })\n\n    expect(short.ok).toBe(false)\n    expect(short.reason).toContain('range body was 2 bytes')\n    expect(html).toMatchObject({ ok: false, reason: 'sample bytes do not match image/png' })\n  })\n\n  it('refuses non-HTTPS URLs without making a request', async () => {\n    const fetchImpl = vi.fn()\n    const result = await checkRemoteAsset({ ...imageAsset, url: 'http://media.example/cover.png' }, { fetchImpl })\n\n    expect(result).toMatchObject({ ok: false, reason: 'URL must use HTTPS' })\n    expect(fetchImpl).not.toHaveBeenCalled()\n  })\n\n  it('reports request failures without treating them as passes', async () => {\n    const result = await checkRemoteAsset(imageAsset, {\n      fetchImpl: vi.fn().mockRejectedValue(new Error('network unavailable'))\n    })\n\n    expect(result).toMatchObject({ ok: false, reason: 'request failed: network unavailable' })\n  })\n})\n
+import { describe, expect, it, vi } from 'vitest'
+import { checkRemoteAsset, RANGE_SAMPLE_BYTES } from '../scripts/media/preflight-remote.mjs'
+
+const sampleBytes = (signature: number[]) => {
+  const bytes = new Uint8Array(RANGE_SAMPLE_BYTES)
+  bytes.set(signature)
+  return bytes
+}
+
+function rangeResponse({
+  status = 206,
+  type = 'image/png',
+  range = `bytes 0-${RANGE_SAMPLE_BYTES - 1}/4096`,
+  body = sampleBytes([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+}: {
+  status?: number
+  type?: string
+  range?: string
+  body?: Uint8Array
+} = {}) {
+  return new Response(body, {
+    status,
+    headers: { 'content-type': type, 'content-range': range }
+  })
+}
+
+const imageAsset = { label: 'cover', type: 'image', url: 'https://media.example/covers/cover.png' }
+
+ describe('remote media preflight', () => {
+  it('requires and reports a correctly typed 206 byte-range image response', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(rangeResponse({ type: 'image/png; charset=binary' }))
+    const result = await checkRemoteAsset(imageAsset, { fetchImpl })
+
+    expect(result).toMatchObject({ ok: true, status: 206, contentType: 'image/png', contentRange: 'bytes 0-63/4096', totalBytes: 4096 })
+    expect(fetchImpl).toHaveBeenCalledWith(imageAsset.url, expect.objectContaining({
+      method: 'GET',
+      headers: { Range: 'bytes=0-63' },
+      redirect: 'manual'
+    }))
+  })
+
+  it('accepts an MP4 signature only with the video MIME type and a real range', async () => {
+    const mp4 = sampleBytes([0, 0, 0, 12, 0x66, 0x72, 0x65, 0x65, 0, 0, 0, 0, 0, 0, 0, 16, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d, 0, 0, 0, 0])
+    const result = await checkRemoteAsset(
+      { label: 'preview', type: 'video', url: 'https://media.example/previews/clip.mp4' },
+      { fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ type: 'video/mp4', body: mp4 })) }
+    )
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('rejects a 200 response even when its headers look like media', async () => {
+    const result = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ status: 200 }))
+    })
+
+    expect(result).toMatchObject({ ok: false, reason: 'expected HTTP 206 for Range request, got 200' })
+  })
+
+  it('rejects a wrong or missing Content-Range', async () => {
+    const result = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ range: 'bytes 0-63/*' }))
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.reason).toContain('unexpected Content-Range')
+  })
+
+  it('rejects an incorrect MIME type', async () => {
+    const result = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ type: 'text/html' }))
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.reason).toContain('unexpected Content-Type')
+  })
+
+  it('rejects a short range body and a MIME/signature mismatch', async () => {
+    const short = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ body: new Uint8Array([0x89, 0x50]) }))
+    })
+    const html = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockResolvedValue(rangeResponse({ body: sampleBytes([0x3c, 0x68, 0x74, 0x6d, 0x6c]) }))
+    })
+
+    expect(short.ok).toBe(false)
+    expect(short.reason).toContain('range body was 2 bytes')
+    expect(html).toMatchObject({ ok: false, reason: 'sample bytes do not match image/png' })
+  })
+
+  it('refuses non-HTTPS URLs without making a request', async () => {
+    const fetchImpl = vi.fn()
+    const result = await checkRemoteAsset({ ...imageAsset, url: 'http://media.example/cover.png' }, { fetchImpl })
+
+    expect(result).toMatchObject({ ok: false, reason: 'URL must use HTTPS' })
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('reports request failures without treating them as passes', async () => {
+    const result = await checkRemoteAsset(imageAsset, {
+      fetchImpl: vi.fn().mockRejectedValue(new Error('network unavailable'))
+    })
+
+    expect(result).toMatchObject({ ok: false, reason: 'request failed: network unavailable' })
+  })
+})
